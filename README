@@ -177,13 +177,21 @@ DNS resolution of the Teredo server works:
 and your system's DNS resolver library in /lib. If in doubt, don't
 chroot if you intend to run Miredo as a Teredo client.
 
-  Finally, you must tell your syslog daemon to listen to
+  You must then tell your syslog daemon to listen to
 /var/lib/miredo/dev/log. That is usually done by adding that option to
 your syslogd upon start: '-a /var/lib/miredo/dev/log'. If you don't do
 so, you won't get any logging information from Miredo (nor if it hasn't
 read-write access to dev/log, but it should no problem). How to do that
 depends on what operating system and which distribution thereof you
 use.
+
+  Finally, you must put Miredo's configuration in the chroot. Do not
+forget to specify right path (from inside the chroot) when running
+Miredo, e.g.:
+
+# miredo -u miredo -t /var/lib/miredo -c /etc/miredo.conf
+
+if the configuration is [/var/lib/miredo]/etc/miredo.conf
 
 
 3) POSIX capabilities:
