@@ -1,3 +1,9 @@
+2004-05-15  Remi Denis-Courmont
+
+	* src/main.c, src/miredo.cpp:
+	- support for changing Teredo relay/client port,
+	- automatic relay IPv4 address selection.
+
 2004-05-14  Remi Denis-Courmont
 
 	* src/main.c, configure.ac:

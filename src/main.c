@@ -1,7 +1,7 @@
 /*
  * main.c - Unix Teredo server & relay implementation
  *          command line handling and core functions
- * $Id: main.c,v 1.1 2004/06/14 21:52:32 rdenisc Exp $
+ * $Id: main.c,v 1.2 2004/06/15 16:09:22 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -28,13 +28,18 @@
 #endif
 
 #include <stdio.h>
+#include <stdlib.h> /* strtoul() */
 
 #include <sys/types.h>
 #include <sys/resource.h> /* getrlimit() */
 #include <unistd.h>
 #include <errno.h> /* errno */
-#include <pwd.h> /* getpwnam() */
-#include <grp.h> /* getgrnam() */
+#ifdef MIREDO_UNPRIV_USER
+# include <pwd.h> /* getpwnam() */
+#endif
+#ifdef MIREDO_UNPRIV_GROUP
+# include <grp.h> /* getgrnam() */
+#endif
 
 #if HAVE_GETOPT_H
 # include <getopt.h>
@@ -69,9 +74,8 @@ usage (void)
 "\n"
 "  -h, --help     display this help and exit\n"
 "  -i, --iface    define the Teredo tunneling interface name\n"
+"  -p, --port     define the UDP port to be used by relay/client\n"
 "  -P, --prefix   define the Teredo prefix to be used\n"
-"  -r, --relay    enable Teredo relay,\n"
-"                  and specify relay IPv4 address\n"
 "  -s, --server   enable Teredo server,\n"
 "                  and specify primary server IPv4 address\n"
 "  -T, --tundev   override tunnel device file\n"
@@ -114,6 +118,15 @@ error_dup (char opt, const char *already, const char *additionnal)
 
 
 static int
+error_qty (char opt, const char *qty)
+{
+	fprintf (stderr, _(
+"Invalid number (or capacity exceeded) `%s' for option -%c\n"), qty, opt);
+	return 2;
+}
+
+
+static int
 error_extra (const char *extra)
 {
 	fprintf (stderr, _("%s: unexpected extra parameter\n"), extra);
@@ -131,8 +144,12 @@ error_missing (void)
 
 int init_security (void)
 {
+#ifdef MIREDO_UNPRIV_USER
 	struct passwd *pw;
+#endif
+#ifdef MIREDO_UNPRIV_GROUP
 	struct group *grp;
+#endif
 	struct rlimit lim;
 	int i;
 	extern uid_t unpriv_uid;
@@ -206,18 +223,17 @@ int init_security (void)
 int
 main (int argc, char *argv[])
 {
-	const char *server = NULL, *relay = NULL,
-		*prefix = NULL, *ifname = NULL, *tundev = NULL;
-	const char *ipv6;
+	const char *server = NULL, *prefix = NULL, *ifname = NULL,
+			*tundev = NULL, *ipv6;
+	uint16_t client_port = 0;
 	
-	const struct option longopts[] =
+	const struct option opts[] =
 	{
 		{ "help",	no_argument,		NULL, 'h' },
 		{ "iface",	required_argument,	NULL, 'i' },
 		{ "interface",	required_argument,	NULL, 'i' },
-		//{ "port",	required_argument,	NULL, 'p' },
+		{ "port",	required_argument,	NULL, 'p' },
 		{ "prefix",	required_argument,	NULL, 'P' },
-		{ "relay",	required_argument,	NULL, 'r' },
 		{ "server",	required_argument,	NULL, 's' },
 		{ "tundev",	required_argument,	NULL, 'T' },
 		{ "version",	no_argument,		NULL, 'V' },
@@ -225,9 +241,6 @@ main (int argc, char *argv[])
 	};
 
 	int c;
-	
-	if (init_security ())
-		return 1;
 
 #define ONETIME_SETTING( setting ) \
 	if (setting != NULL) \
@@ -235,7 +248,7 @@ main (int argc, char *argv[])
 	else \
 		setting = optarg;
 
-	while ((c = getopt_long (argc, argv, "hi:P:r:s:T:V", longopts, NULL))
+	while ((c = getopt_long (argc, argv, "hi:p:P:r:s:T:V", opts, NULL))
 			!= -1)
 		switch (c)
 		{
@@ -249,31 +262,45 @@ main (int argc, char *argv[])
 				ONETIME_SETTING (ifname);
 				break;
 
-			case 'P': /* FIXME: */
-				fputs ("-P option is NOT SUPPORTED YET\n", stderr);
-				ONETIME_SETTING (prefix);
+			case 'p':
+			{
+				unsigned long l;
+				char *end;
+
+				l = strtoul (optarg, &end, 0);
+				if ((*end != '\0') || (l == 0)
+				 || (l > 65535))
+					return error_qty (c, optarg);
+				if (client_port != 0)
+				{
+					char buf[6];
+					snprintf (buf, 6, "%u",
+						  (unsigned)client_port);
+					buf[5] = 0;
+					return error_dup (c,  optarg, buf);
+				}
+				client_port = (uint16_t)l;
+			}
 				break;
+				
+			/*case 'P':*/ /* FIXME: unimplemented */
 
-			case 'r':
-				ONETIME_SETTING (relay);
-				break;
+		    case 's':
+			ONETIME_SETTING (server);
+			break;
 
-			case 's':
-				ONETIME_SETTING (server);
-				break;
+		    case 'T':
+			ONETIME_SETTING (tundev);
+			break;
 
-			case 'T':
-				ONETIME_SETTING (tundev);
-				break;
+		    case 'V':
+			return version ();
 
-			case 'V':
-				return version ();
-
-			default:
-				fprintf (stderr, _(
+		    default:
+			fprintf (stderr, _(
 "Returned unknown option -%c :\n"
 "That is probably a bug. Please report it.\n"), c);
-				return 1;
+			return 1;
 		}
 
 	if (optind >= argc) /* no more arguments ! */
@@ -284,8 +311,10 @@ main (int argc, char *argv[])
 	if (optind < argc)
 		return error_extra (argv[optind]);
 
-	
-	return miredo_run (ipv6, relay, server, prefix, ifname, tundev)
+	if (init_security ())
+		return 1;
+
+	return miredo_run (ipv6,client_port, server, prefix, ifname, tundev)
 		? 1
 		: 0;
 }

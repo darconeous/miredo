@@ -1,7 +1,7 @@
 /*
  * miredo.cpp - Unix Teredo server & relay implementation
  *              core functions
- * $Id: miredo.cpp,v 1.1 2004/06/14 21:52:32 rdenisc Exp $
+ * $Id: miredo.cpp,v 1.2 2004/06/15 16:09:22 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -198,17 +198,30 @@ get_relay_ipv6 (const char *name)
 /*
  * Initialization stuff
  */
-extern uid_t unpriv_uid = 0;
+uid_t unpriv_uid = 0;
  
 extern "C" int
-miredo_run (const char *ipv6_name,
-	const char *relay_name, const char *server_name,
-	const char *prefix_name, const char *ifname, const char *tundev_name)
+miredo_run (const char *ipv6_name, uint16_t client_port,
+		const char *server_name, const char *prefix_name,
+		const char *ifname, const char *tundev_name)
 {
 	seteuid (unpriv_uid);
 	int retval = -1;
 
 	/* default values */
+	if (client_port == 0)
+		/*
+		 * We use 3545 as a Teredo service port.
+		 * It is better to use a fixed port number for the
+		 * purpose of firewalling, rather than a pseudo-random
+		 * one (all the more as it might be a "dangerous"
+		 * often firewalled port, such as 1214 as it happened
+		 * to me once).
+		 */
+		client_port = IPPORT_TEREDO + 1;
+	else
+		client_port = htons (client_port);
+
 	if (ifname == NULL)
 		ifname = "ter%d";
 	if (prefix_name == NULL) // TODO: parse prefix_name
@@ -279,44 +292,25 @@ miredo_run (const char *ipv6_name,
 	}
 
 	// Sets up relay socket
-	if (relay_name != NULL)
+	// TODO: ability to disable relay(?)
+	try
 	{
-		uint32_t ipv4 = getipbyname (relay_name);
-		if (!ipv4)
-		{	// an error message has already been logged
-			syslog (LOG_ALERT, _("Fatal configuration error\n"));
-			goto abort;
-		}
-		
-		/*
-		 * We use 3545 as a Teredo service port.
-		 * It is better to use a fixed port number for the
-		 * purpose of firewalling, rather than a pseudo-random
-		 * one (all the more as it might be a "dangerous"
-		 * often firewalled port, such as 1214 as it happened
-		 * to me once).
-		 */
-		uint16_t port = htons (IPPORT_TEREDO + 1);
-
-		try
-		{
-			conf.relay_udp = new MiredoRelayUDP;
-		}
-		catch (...)
-		{
-			conf.relay_udp = NULL;
-			goto abort;
-		}
+		conf.relay_udp = new MiredoRelayUDP;
+	}
+	catch (...)
+	{
+		conf.relay_udp = NULL;
+		goto abort;
+	}
 		
 
-		if (conf.relay_udp->ListenIP (ipv4, port))
-		{
-			syslog (LOG_ALERT,
-				_("Teredo service port failure\n"));
-			syslog (LOG_NOTICE, _("Make sure another instance "
-				"of the program is not already running.\n"));
-			goto abort;
-		}
+	if (conf.relay_udp->ListenPort (client_port))
+	{
+		syslog (LOG_ALERT,
+			_("Teredo service port failure\n"));
+		syslog (LOG_NOTICE, _("Make sure another instance "
+			"of the program is not already running.\n"));
+		goto abort;
 	}
 
 	retval = teredo_server_relay ();

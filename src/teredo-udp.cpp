@@ -1,6 +1,6 @@
 /*
  * teredo-udp.cpp - UDP sockets class definition
- * $Id: teredo-udp.cpp,v 1.2 2004/06/14 21:52:32 rdenisc Exp $
+ * $Id: teredo-udp.cpp,v 1.3 2004/06/15 16:09:22 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -212,13 +212,13 @@ MiredoRelayUDP::~MiredoRelayUDP (void)
 }
 
 
-int MiredoRelayUDP::ListenIP (uint32_t ip, uint16_t port)
+int MiredoRelayUDP::ListenPort (uint16_t port)
 {
 	// Closes former socket:
 	if (fd != -1)
 		close (fd);
 
-	fd = OpenTeredoSocket (ip, port);
+	fd = OpenTeredoSocket (INADDR_ANY, port);
 	return fd != -1 ? 0 : -1;
 }
 

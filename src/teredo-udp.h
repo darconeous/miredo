@@ -1,6 +1,6 @@
 /*
  * teredo-udp.h - UDP sockets class declaration
- * $Id: teredo-udp.h,v 1.2 2004/06/14 21:52:32 rdenisc Exp $
+ * $Id: teredo-udp.h,v 1.3 2004/06/15 16:09:22 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -138,7 +138,7 @@ class MiredoRelayUDP : public MiredoCommonUDP
 
 		virtual ~MiredoRelayUDP (void);
 
-		int ListenIP (uint32_t ip = 0, uint16_t port = 0);
+		int ListenPort (uint16_t port = 0);
 
 		int RegisterReadSet (fd_set *readset) const;
 		int ReceivePacket (const fd_set *readset);

@@ -1,6 +1,6 @@
 /*
  * ipv6-tunnel.cpp - IPv6 interface class definition
- * $Id: ipv6-tunnel.cpp,v 1.2 2004/06/14 21:52:32 rdenisc Exp $
+ * $Id: ipv6-tunnel.cpp,v 1.3 2004/06/15 16:09:22 rdenisc Exp $
  */
 
 /***********************************************************************
@@ -65,7 +65,6 @@ secure_strncpy (char *tgt, const char *src, size_t len)
 
 IPv6Tunnel::IPv6Tunnel (const char *req_name, const char *tundev)
 {
-	extern uid_t unpriv_uid;
 	if (tundev == NULL)
 		tundev = "/dev/net/tun";
 
@@ -206,9 +205,9 @@ IPv6Tunnel::SendPacket (const void *packet, size_t len) const
 
 		len += 4;
 
-		if (write (fd, buf, len) == len)
+		if (write (fd, buf, len) == (int)len)
 			return 0;
-		if (len == -1)
+		if ((int)len == -1)
 			syslog (LOG_ERR,
 				_("Cannot send packet to tunnel: %m"));
 		else
