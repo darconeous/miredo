@@ -37,16 +37,17 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 #include <syslog.h>
-#if HAVE_SYS_UIO_H
-# include <sys/uio.h> // readv() & writev()
-#endif
 
 #include <sys/socket.h> // socket(PF_INET6, SOCK_DGRAM, 0)
 #include <netinet/in.h> // htons()
 #include <net/if.h> // struct ifreq, if_nametoindex()
 
-#if HAVE_LINUX_IF_TUN_H
-/* Linux includes */
+# include <stdio.h> // snprintf() for BSD drivers
+
+#if defined (HAVE_LINUX)
+/*
+ * Linux tunneling driver
+ */
 # include <linux/if_tun.h> // TUNSETIFF - Linux tunnel driver
 /*
  * <linux/ipv6.h> conflicts with <netinet/in.h> and <arpa/inet.h>,
@@ -59,8 +60,15 @@ struct in6_ifreq {
 };
 
 # include <net/route.h> // struct in6_rtmsg
-#elif HAVE_NETINET6_IN6_VAR_H
-/* FreeBSD includes */
+
+# define USE_TUNHEAD
+static const char *os_driver = "Linux";
+
+#elif defined (HAVE_FREEBSD)
+/*
+ * FreeBSD tunneling driver
+ * FIXME: FreeBSD routing is broken
+ */
 # include <net/if_var.h>
 # include <netinet6/in6_var.h> // struct in6_aliasreq, struct in6_ifreq
 /*
@@ -72,11 +80,44 @@ struct in6_ifreq {
 # define ND6_INFINITE_LIFETIME 0xffffffff
 
 # include <net/if_tun.h> // TUNSIFHEAD - FreeBSD tunnel driver
-# include <stdio.h> // snprintf()
 # include <net/route.h> // AF_ROUTE things
 # include <errno.h> // errno
 
-#include <net/if_dl.h> // struct sockaddr_dl
+# include <net/if_dl.h> // struct sockaddr_dl
+
+# define USE_TUNHEAD
+static const char *os_driver = "FreeBSD";
+
+#elif defined (HAVE_OPENBSD)
+/*
+ * OpenBSD tunneling driver
+ * TODO: OpenBSD routing support, compile-test
+ */
+# define USE_TUNHEAD
+static const char *os_driver = "OpenBSD";
+ 
+#elif defined (HAVE_NETBSD)
+/*
+ * NetBSD tunneling driver
+ * TODO: NetBSD routing support, compile-test
+ */
+static const char *os_driver = "NetBSD";
+
+#elif defined (HAVE_DARWIN)
+/*
+ * Darwin tunneling driver
+ * TODO: Darwin routing support
+ */
+static const char *os_driver = "Darwin";
+
+#else
+static const char *os_driver = "Generic";
+
+# warn Unknown host OS. The driver will probably not work.
+#endif
+
+#ifdef USE_TUNHEAD
+# include <sys/uio.h> // readv() & writev()
 #endif
 
 #include <arpa/inet.h> // inet_ntop()
@@ -110,7 +151,7 @@ secure_strncpy (char *tgt, const char *src, size_t len)
  */
 IPv6Tunnel::IPv6Tunnel (const char *req_name) : fd (-1), ifname (NULL)
 {
-#if defined (TUNSETIFF)
+#if defined (HAVE_LINUX)
 	/*
 	 * TUNTAP (Linux) tunnel driver initialization
 	 */
@@ -139,9 +180,10 @@ IPv6Tunnel::IPv6Tunnel (const char *req_name) : fd (-1), ifname (NULL)
 	}
 
 	ifname = strdup (req.ifr_name);
-#elif defined (TUNSIFHEAD)
+#elif defined (HAVE_FREEBSD) || defined (HAVE_OPENBSD) \
+   || defined (HAVE_NETBSD) || defined (HAVE_DARWIN)
 	/*
-	 * FreeBSD tunnel driver initialization
+	 * BSD tunnel drivers initialization
 	 */
 	char tundev[12];
 	int reqfd = socket_udp6 ();
@@ -154,6 +196,7 @@ IPv6Tunnel::IPv6Tunnel (const char *req_name) : fd (-1), ifname (NULL)
 			tundev[sizeof (tundev) - 1] = '\0';
 
 			fd = open (tundev, O_RDWR);
+
 			if (fd == -1)
 				continue;
 
@@ -171,9 +214,11 @@ IPv6Tunnel::IPv6Tunnel (const char *req_name) : fd (-1), ifname (NULL)
 				close (fd);
 				fd = -1;
 			}
-# else
+# else /* SIOCSIFNAME */
 			ifname = strdup (tundev + 5); // strlen ("/dev/") == 5
-# endif
+# endif /* SIOCSIFNAME */
+
+# ifdef TUNSIFHEAD
 			// Enables TUNSIFHEAD
 			const int dummy = 1;
 			if (ioctl (fd, TUNSIFHEAD, &dummy))
@@ -184,6 +229,7 @@ IPv6Tunnel::IPv6Tunnel (const char *req_name) : fd (-1), ifname (NULL)
 				close (fd);
 				fd = -1;
 			}
+# endif /* TUNSIFHEAD */
 		}
 
 		close (reqfd);
@@ -192,10 +238,11 @@ IPv6Tunnel::IPv6Tunnel (const char *req_name) : fd (-1), ifname (NULL)
 # error No tunneling driver implemented on your platform!
 #endif
 	if (fd != -1)
-		syslog (LOG_INFO, _("Tunneling interface %s created"),
-			ifname);
+		syslog (LOG_INFO, _("%s tunneling interface %s created"),
+			os_driver, ifname);
 	else
-		syslog (LOG_ERR, _("Tunneling interface creation failure"));
+		syslog (LOG_ERR, _("%s tunneling interface creation failure"),
+			os_driver);
 }
 
 
@@ -715,49 +762,54 @@ IPv6Tunnel::ReceivePacket (const fd_set *readset, void *buffer, size_t maxlen)
 	if ((fd == -1) || !FD_ISSET (fd, readset))
 		return -1;
 
-#if defined (TUNSETIFF)
+#if defined (HAVE_LINUX)
 	struct
 	{
 		uint16_t flags;
 		uint16_t proto;
 	} head;
-#elif defined (TUNSIFHEAD)
+#elif defined (HAVE_FREEBSD) || defined (HAVE_OPENBSD)
 	uint32_t head;
-#else
-# error Your platform is not supported!
 #endif
 
+#if defined (USE_TUNHEAD)
 	struct iovec vect[2];
 	vect[0].iov_base = (char *)&head;
-	vect[0].iov_len = 4;
+	vect[0].iov_len = sizeof (head);
 	vect[1].iov_base = (char *)buffer;
 	vect[1].iov_len = maxlen;
 
 	int len = readv (fd, vect, 2);
+#else /* USE_TUNHEAD */
+	int len = read (fd, buffer, maxlen);
+#endif /* USE_TUNHEAD */
+
 	if (len == -1)
 	{
 		syslog (LOG_ERR, _("Cannot receive packet: %m"));
 		return -1;
 	}
-	if (len < (int)sizeof (head))
+#if defined (USE_TUNHEAD)
+	len -= sizeof (head);
+
+	if (len < 0)
 	{
 		syslog (LOG_ERR, _("Received packet too short"));
 		return -1;
 	}
+#endif /* USE_TUNHEAD */
 
-#if defined (TUNSETIFF)
+#if defined (HAVE_LINUX)
 	/* TUNTAP driver */
 	if (head.proto != htons (ETH_P_IPV6))
 		return -1; // only accept IPv6 packets
-#elif defined (TUNSIFHEAD)
+#elif defined (HAVE_FREEBSD) || defined (HAVE_OPENBSD)
 	/* FreeBSD driver */
 	if (head != htonl (AF_INET6))
 		return -1;
-#else
-# error Your platform is not supported!
 #endif
 
-	return len - sizeof (head);
+	return len;
 }
 
 
@@ -776,21 +828,17 @@ IPv6Tunnel::SendPacket (const void *packet, size_t len) const
 	if (fd == -1)
 		return -1;
 
-#if defined (TUNSETIFF)
-	/* TUNTAP driver */
+#if defined (HAVE_LINUX)
 	struct
 	{
 		uint16_t flags;
 		uint16_t proto;
 	} head = { 0, htons (ETH_P_IPV6) };
-#elif defined (TUNSIFHEAD)
-	/* FreeBSD tunnel driver */
+#elif defined (HAVE_FREEBSD) || defined (HAVE_OPENBSD)
 	uint32_t head = htonl (AF_INET6);
-
-#else
-# error Your platform is not supported!
 #endif
 
+#if defined (USE_TUNHEAD)
 	struct iovec vect[2];
 	vect[0].iov_base = (char *)&head;
 	vect[0].iov_len = sizeof (head);
@@ -798,12 +846,17 @@ IPv6Tunnel::SendPacket (const void *packet, size_t len) const
 	vect[1].iov_len = len;
 
 	int val = writev (fd, vect, 2);
+#else /* USE_TUNHEAD */
+	int val = write (fd, packet, len);
+#endif /* USE_TUNHEAD */
 
-	if (val < 0)
+	if (val == -1)
 	{
 		syslog (LOG_ERR, _("Cannot send packet to tunnel: %m"));
 		return -1;
 	}
+
+#if defined (USE_TUNHEAD)
 	val -= sizeof (head);
 
 	if (val < 0)
@@ -811,6 +864,7 @@ IPv6Tunnel::SendPacket (const void *packet, size_t len) const
 		syslog (LOG_ERR, _("Sent packet too short"));
 		return -1;
 	}
+#endif
 
 	if (val < (int)len)
 		syslog (LOG_ERR, _("Packet truncated to %d byte(s)"), val);

@@ -44,17 +44,41 @@ AM_INIT_AUTOMAKE([dist-bzip2])
 
 
 # Checks for libraries.
+AH_TEMPLATE(HAVE_LINUX,
+		[Define to 1 if the host kernel is Linux.])
+AH_TEMPLATE(HAVE_FREEBSD,
+		[Define to 1 if the host kernel is FreeBSD.])
+AH_TEMPLATE(HAVE_OPENBSD,
+		[Define to 1 if the host kernel is OpenBSD.])
+AH_TEMPLATE(HAVE_NETBSD,
+		[Define to 1 if the host kernel is NetBSD.])
+AH_TEMPLATE(HAVE_DARWIN,
+		[Define to 1 if the host kernel is Darwin (e.g. Mac OS X).])
 
+
+AC_CANONICAL_HOST
+case $host_os in
+  *linux*)
+	AC_DEFINE(HAVE_LINUX)
+	;;
+  *freebsd*)
+	AC_DEFINE(HAVE_FREEBSD)
+	;;
+  *openbsd*)
+	AC_DEFINE(HAVE_OPENBSD)
+	;;
+  *netbsd*)
+	AC_DEFINE(HAVE_NETBSD)
+	;;
+  *darwin*)
+	AC_DEFINE(HAVE_DARWIN)
+	;;
+  *)
+	AS_WARN(You have an unrecognized operating system.)
+	;;
+esac
 
 # Checks for header files.
-AC_CHECK_HEADERS([sys/socket.h linux/if_tun.h sys/uio.h])
-AC_CHECK_HEADERS([netinet6/in6_var.h], [], [],
-[#include <sys/types.h>
-#include <sys/socket.h>
-#include <net/if.h>
-#include <net/if_var.h>
-#include <netinet/in.h>
-])
 
 
 # Checks for typedefs, structures, and compiler characteristics.
