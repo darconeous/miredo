@@ -1,6 +1,6 @@
 /*
  * server_pkt.cpp - Handling of a single Teredo datagram (server-side).
- * $Id: server_pkt.cpp,v 1.5 2004/06/27 10:25:24 rdenisc Exp $
+ * $Id: server_pkt.cpp,v 1.6 2004/06/27 15:40:25 rdenisc Exp $
  */
 
 /***********************************************************************
@@ -103,6 +103,8 @@ teredo_send_ra (const MiredoServerUDP *sock, const struct in6_addr *dest_ip6)
 			+ sizeof (struct nd_opt_prefix_info)],
 		*ptr = packet;
 
+	/* FIXME: fix likely byte-alignment issues */
+
 	// Authentification header
 	const uint8_t *nonce = sock->GetAuthNonce ();
 	if (nonce != NULL)
@@ -139,9 +141,15 @@ teredo_send_ra (const MiredoServerUDP *sock, const struct in6_addr *dest_ip6)
 					+ sizeof (struct nd_opt_prefix_info));
 	ip6->ip6_nxt = IPPROTO_ICMPV6;
 	ip6->ip6_hlim = 255;
-	// FIXME: use server_ip and server_port
-	memcpy (&ip6->ip6_src, "\xfe\x80\x00\x00\x00\x00\x00\x00"
-		"\x80\x00\xf2\x27\xbf\xfb\xe6\xad", 16);
+
+	union teredo_addr *src = (union teredo_addr *)&ip6->ip6_src;
+	src->teredo.prefix = htonl (0xfe800000);
+	src->teredo.server_ip = 0;
+	src->teredo.flags = htons (TEREDO_FLAGS_CONE);
+		// FIXME: use run-time port:
+	src->teredo.client_port = htons (IPPORT_TEREDO);
+	src->teredo.client_ip = ~conf.server_ip;
+
 	memcpy (&ip6->ip6_dst, dest_ip6, sizeof (struct in6_addr));
 	ptr += 40;
 
