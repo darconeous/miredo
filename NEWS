@@ -25,6 +25,11 @@ BETA RELEASE 0.3.0 : Major feature enhancement
   capabilities. That should reduce the possible impact of a hypothetic
   compromise of the program.
 
+# Gettext internationalization support :
+  Miredo can now be localized in other languages beside English.
+  A French translation is provided. Other translations will be included upon
+  submission by volunteer translators.
+
 =============================================================================
 BETA RELEASE 0.3.0 : Major feature enhancement
 
