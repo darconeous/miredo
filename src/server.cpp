@@ -1,6 +1,6 @@
 /*
  * server.cpp - Handling of a single Teredo datagram (server-side).
- * $Id: server.cpp,v 1.2 2004/07/11 10:17:34 rdenisc Exp $
+ * $Id: server.cpp,v 1.3 2004/07/11 10:43:29 rdenisc Exp $
  */
 
 /***********************************************************************
@@ -33,7 +33,6 @@
 #include <netinet/icmp6.h>
 
 #include <arpa/inet.h> // inet_ntoa()
-#include <syslog.h> // DEBUG
 
 #include "teredo-udp.h"
 #include "common_pkt.h" // TODO: remove
@@ -199,6 +198,7 @@ teredo_send_ra (const MiredoServerUDP *sock, const struct in6_addr *dest_ip6,
 
 	if (!sock->ReplyPacket (packet, ptr - packet, use_secondary_ip)) 
 	{
+#if 0
 		struct in_addr inp;
 
 		inp.s_addr = sock->GetClientIP ();
@@ -207,7 +207,7 @@ teredo_send_ra (const MiredoServerUDP *sock, const struct in6_addr *dest_ip6,
 			inet_ntoa (inp), IN6_IS_TEREDO_ADDR_CONE(dest_ip6)
 				? _("cone flag set")
 				: _("cone flag not set"));
-
+#endif
 		return 0;
 	}
 
@@ -230,6 +230,7 @@ ForwardUDPPacket (const MiredoServerUDP *sock, bool insert_orig = true)
 	memcpy (&dst, &p->ip6_dst, sizeof (dst));
 	uint32_t dest_ip = ~dst.teredo.client_ip;
 
+#if 0
 	{
 		struct in_addr addr;
 
@@ -237,7 +238,8 @@ ForwardUDPPacket (const MiredoServerUDP *sock, bool insert_orig = true)
 		syslog (LOG_DEBUG, "DEBUG: Forwarding packet to %s:%u\n",
 			inet_ntoa (addr), ntohs (~dst.teredo.client_port));
 	}
-
+#endif
+	
 	if (!is_ipv4_global_unicast (dest_ip))
 		return 0; // ignore invalid client IP
 
@@ -316,13 +318,11 @@ MiredoServer::ReceivePacket (void) const
 	// Teredo server check number 6 (in the negative)
 	 && (IN6_TEREDO_PREFIX (&ip6->ip6_src) == GetPrefix ()
 	  || IN6_TEREDO_SERVER (&ip6->ip6_dst) != GetServerIP ()))
-	{
 		// Teredo server check number 7
 		return 0; // packet not allowed through server
-	}
 
 	// Ensures that the packet destination has a global scope
-	// (ie 2000::/3)
+	// (ie 2000::/3). That's not in the spec.
 	if ((ip6->ip6_dst.s6_addr[0] & 0xe0) != 0x20)
 		return 0; // must be discarded
 	

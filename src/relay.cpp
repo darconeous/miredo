@@ -1,6 +1,6 @@
 /*
  * relay.cpp - Teredo relay peers list definition
- * $Id: relay.cpp,v 1.10 2004/07/10 16:29:06 rdenisc Exp $
+ * $Id: relay.cpp,v 1.11 2004/07/11 10:43:29 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -34,7 +34,6 @@
 #include <netinet/in.h>
 #include <netinet/ip6.h> // struct ip6_hdr
 #include <syslog.h>
-#include <arpa/inet.h> // DEBUG: inet_ntoa()
 
 #include <teredo.h>
 
@@ -198,18 +197,20 @@ int MiredoRelay::TransmitPacket (void)
 
 	/* Case 1 (paragraph 5.4.1) */
 	struct peer *p = FindPeer (&addr.ip6);
+#if 0
 	{
 		struct in_addr a;
 		a.s_addr = ~addr.teredo.client_ip;
-		syslog (LOG_DEBUG, "DEBUG; packet for %s:%hu\n", inet_ntoa (a),
+		syslog (LOG_DEBUG, "DEBUG: packet for %s:%hu\n", inet_ntoa (a),
 				~addr.teredo.client_port);
 	}
+#endif
+
 	if (p != NULL)
 	{
 		if (p->flags.flags.trusted)
 		{
 			time (&p->last_rx);
-			syslog (LOG_DEBUG, "DEBUG: xmit packet to trusted peer\n");
 			return sock->SendPacket (buf, length, p->mapped_addr,
 							p->mapped_port);
 		}
@@ -218,7 +219,6 @@ int MiredoRelay::TransmitPacket (void)
 	{
 		// Creates an entry
 		p = AllocatePeer ();
-		syslog (LOG_DEBUG, "DEBUG: allocated new peer\n");
 		memcpy (&p->addr, &addr.ip6, sizeof (addr.ip6));
 		p->mapped_addr = ~addr.teredo.client_ip;
 		p->mapped_port = ~addr.teredo.client_port;
@@ -231,7 +231,6 @@ int MiredoRelay::TransmitPacket (void)
 	/* TODO: send bubble if IsCone () is true */
 	if (IN6_IS_TEREDO_ADDR_CONE (&addr.ip6))
 	{
-		syslog (LOG_DEBUG, "DEBUG: xmit to new cone peer\n");
 		p->flags.flags.trusted = 1;
 		return sock->SendPacket (buf, length, p->mapped_addr,
 						p->mapped_port);
@@ -240,17 +239,15 @@ int MiredoRelay::TransmitPacket (void)
 	/* Case 3 */
 	/* TODO: enqueue more than one packet 
 	 * (and do this in separate functions) */
-	syslog (LOG_DEBUG, "DEBUG: xmit bubble to untrusted non-cone peer's server\n");
 	if (p->queue == NULL)
 	{
 		p->queue = new uint8_t[length];
 
-		syslog (LOG_DEBUG, "DEBUG: Packet queued for later delivery\n");
 		memcpy (p->queue, buf, length);
 		p->queuelen = length;
 	}
 	else
-		syslog (LOG_DEBUG, _("FIXME: packet not queued\n"));
+		/*syslog (LOG_DEBUG, _("FIXME: packet not queued\n"))*/;
 
 
 	// Sends no more than one bubble every 2 seconds,
@@ -264,11 +261,11 @@ int MiredoRelay::TransmitPacket (void)
 		{
 			p->flags.flags.bubbles ++;
 			memcpy (&p->last_xmit, &now, sizeof (p->last_xmit));
-			syslog (LOG_DEBUG, "DEBUG: sending bubble\n");
 			return SendBubble (&addr);
 		}
 	}
-	syslog (LOG_DEBUG, "DEBUG: bubbles exceeded\n");
+
+	// Too many bubbles already sent
 	return 0;
 }
 
@@ -286,13 +283,6 @@ int MiredoRelay::ReceivePacket (void)
 	union teredo_addr src;
 
 	// Checks packet
-	{
-		struct in_addr a;
-
-		a.s_addr = sock->GetClientIP ();
-		syslog (LOG_DEBUG, "DEBUG: received UDP packet of length %u from %s:%u\n",
-			length, inet_ntoa (a), sock->GetClientPort ());
-	}
 	if ((length < sizeof (ip6)) || (length > 65507))
 		return 0; // invalid packet
 
@@ -307,8 +297,6 @@ int MiredoRelay::ReceivePacket (void)
 	 || !IN6_MATCHES_TEREDO_CLIENT (&src, sock->GetClientIP (),
 		 			sock->GetClientPort ()))
 		return 0;
-	syslog (LOG_DEBUG, "DEBUG: packet is valid and has %u byte(s) of payload\n",
-			ntohs (ip6.ip6_plen));
 
 	// Checks peers list
 	struct peer *p = FindPeer (&src.ip6);
@@ -317,11 +305,7 @@ int MiredoRelay::ReceivePacket (void)
 	 * and it surely much safer.
 	 */
 	if (p == NULL)
-	{
-		syslog (LOG_DEBUG," DEBUG: peer is UNKNOWN!!\n");
 		return 0;
-	}
-	syslog (LOG_DEBUG, "DEBUG: peer is known!\n");
 
 	p->flags.flags.trusted = p->flags.flags.replied = 1;
 	time (&p->last_rx);
@@ -329,7 +313,6 @@ int MiredoRelay::ReceivePacket (void)
 	// Dequeues queued packets (TODO: dequeue more than one)
 	if (p->queue != NULL)
 	{
-		syslog (LOG_DEBUG, "DEBUG: sending previously queued packet\n");
 		sock->SendPacket (p->queue, p->queuelen, p->mapped_addr,
 					p->mapped_port);
 		delete p->queue;
@@ -346,7 +329,6 @@ int MiredoRelay::ReceivePacket (void)
 	if ((ip6.ip6_dst.s6_addr[0] & 0xe0) != 0x20)
 		return 0; // must be discarded
 
-	syslog (LOG_DEBUG, "DEBUG: sending packet!\n");
 	return tunnel->SendPacket (buf, length);
 }
 
