@@ -76,11 +76,6 @@ class TeredoRelay::OutQueue : public PacketsQueue
 
 		virtual int SendPacket (const void *p, size_t len)
 		{
-			/* FIXME: remove this */
-			if (addr == 0)
-				syslog (LOG_ERR,
-				"DEBUG error flushing unmapped queue");
-			
 			return sock->SendPacket (p, len, addr, port);
 		}
 
@@ -88,8 +83,6 @@ class TeredoRelay::OutQueue : public PacketsQueue
 		OutQueue (TeredoRelayUDP *s) : PacketsQueue (MAXQUEUE),
 					       sock (s)
 		{
-			/* FIXME: remove this one day */
-			addr = 0;
 		}
 
 		void SetMapping (uint32_t mapped_addr, uint16_t mapped_port)
@@ -399,7 +392,6 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
 
 		// FIXME: re-send echo request later if no response
 
-		syslog (LOG_DEBUG, "DEBUG: queue out");
 		p->outqueue.Queue (packet, length);
 
 		if (!p->flags.flags.nonce)
@@ -719,7 +711,6 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 						p->mapped_port);
 			time (&p->last_rx);
 
-			syslog (LOG_DEBUG, "DEBUG: flush in & out");
 			p->outqueue.Flush ();
 			p->inqueue.Flush ();
 
@@ -775,8 +766,6 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 			}
 			else
 			{
-				syslog (LOG_DEBUG,
-					"DEBUG possibly impossible case");
 				p->outqueue.Flush ();
 				/* p->inqueue.Flush (); -- always empty */
 			}
@@ -821,7 +810,6 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 		time (&p->last_rx);
 	}
 
-	syslog (LOG_DEBUG, "DEBUG: queue in");
 	p->inqueue.Queue (buf, length);
 	
 	// FIXME: re-send echo request later if no response
