@@ -1,7 +1,7 @@
 /*
  * main.c - Unix Teredo server & relay implementation
  *          command line handling and core functions
- * $Id: main.c,v 1.18 2004/07/22 17:38:29 rdenisc Exp $
+ * $Id: main.c,v 1.19 2004/08/18 09:41:46 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -254,6 +254,11 @@ init_security (const char *username, const char *rootdir, int nodetach)
 		fprintf (stderr, "User %s: %s\n",
 				username, errno ? strerror (errno)
 					: _("User not found"));
+		fprintf (stderr,
+			_("Error: This program was asked to run in the\n"
+			"security context of system user \"%s\", but it\n"
+			"does not seem to exist on your system.\n"),
+			username);
 		return -1;
 	}
 
@@ -279,6 +284,12 @@ init_security (const char *username, const char *rootdir, int nodetach)
 	{
 		fprintf (stderr, _("SetGID to group ID %u: %s\n"),
 				(unsigned)pw->pw_gid, strerror (errno));
+		fputs (_("Error: This program tried to change its system\n"
+			"group(s) security context but it failed.\n"
+			"This is usually an indication that you are trying\n"
+			"to start the program as an unprivileged user.\n"
+			"This program should normally be started only by\n"
+			"root, the system administrative user.\n"), stderr);
 		return -1;
 	}
 
@@ -322,6 +333,12 @@ init_security (const char *username, const char *rootdir, int nodetach)
 	if (seteuid (unpriv_uid))
 	{
 		perror (_("SetUID to unpriviledged user"));
+		fputs (_("Error: This program tried to change its system\n"
+			"user security context but it failed.\n"
+			"This is usually an indication that you are trying\n"
+			"to start the program as an unprivileged user.\n"
+			"This program should normally be started only by\n"
+			"root, the system administrative user.\n"), stderr);
 		return -1;
 	}
 
