@@ -194,6 +194,12 @@ TeredoPacket::Receive (int fd)
 }
 
 
+int
+TeredoPacket::Receive (const fd_set *readset, int fd)
+{
+	return (fd != -1) && FD_ISSET (fd, readset) ? Receive (fd) : -1;
+}
+
 
 /*** TeredoRelayUDP implementation ***/
 TeredoRelayUDP::~TeredoRelayUDP (void)
@@ -220,15 +226,6 @@ TeredoRelayUDP::RegisterReadSet (fd_set *readset) const
 	if (fd != -1)
 		FD_SET (fd, readset);
 	return fd;
-}
-
-
-int
-TeredoRelayUDP::ReceivePacket (const fd_set *readset,
-				TeredoPacket& packet) const
-{
-	return ((fd != -1) && FD_ISSET (fd, readset))
-		? packet.Receive (fd) : -1;
 }
 
 
@@ -307,24 +304,6 @@ int TeredoServerUDP::RegisterReadSet (fd_set *readset) const
 			maxfd = fd_secondary;
 	}
 	return maxfd;
-}
-
-
-int
-TeredoServerUDP::ReceivePacket (const fd_set *readset,
-				TeredoPacket& packet) const
-{
-	return ((fd_primary != -1) && FD_ISSET (fd_primary, readset))
-		? packet.Receive (fd_primary) : -1;
-}
-
-
-int
-TeredoServerUDP::ReceivePacket2 (const fd_set *readset,
-				TeredoPacket& packet) const
-{
-	return ((fd_secondary != -1) && FD_ISSET (fd_secondary, readset))
-		? packet.Receive (fd_secondary) : -1;
 }
 
 

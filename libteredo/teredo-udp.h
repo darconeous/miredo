@@ -54,6 +54,7 @@ class TeredoPacket
 		 * fd. This is not thread-safe (the object should be locked).
 		 */
 		int Receive (int fd);
+		int Receive (const fd_set *readset, int fd);
 
 		/*
 		 * Returns a pointer to the IPv6 packet last received with
@@ -134,7 +135,11 @@ class TeredoRelayUDP
 		// Thread safe functions:
 		int RegisterReadSet (fd_set *readset) const;
 		int ReceivePacket (const fd_set *readset,
-					TeredoPacket& packet) const;
+					TeredoPacket& packet) const
+		{
+			return packet.Receive (readset, fd);
+		}
+
 		int SendPacket (const void *packet, size_t len,
 				uint32_t dest_ip, uint16_t dest_port) const;
 
@@ -182,9 +187,16 @@ class TeredoServerUDP
 		 * or they were not valid Terdo-encapsulated-packets.
 		 */
 		int ReceivePacket (const fd_set *readset,
-					TeredoPacket& packet) const;
+					TeredoPacket& packet) const
+		{
+			return packet.Receive (readset, fd_primary);
+		}
+
 		int ReceivePacket2 (const fd_set *readset,
-					TeredoPacket& packet) const;
+					TeredoPacket& packet) const
+		{
+			return packet.Receive (readset, fd_secondary);
+		}
 
 		/*
 		 * Sends an UDP packet at <packet>, of length <len>
