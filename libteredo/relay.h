@@ -1,6 +1,6 @@
 /*
  * relay.h - Teredo relay peers list declaration
- * $Id: relay.h,v 1.22 2004/08/27 16:42:19 rdenisc Exp $
+ * $Id: relay.h,v 1.23 2004/08/28 10:36:50 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -189,7 +189,8 @@ class TeredoRelay
 
 		bool IsRunning (void) const
 		{
-			return is_valid_teredo_prefix (GetPrefix ());
+			return is_valid_teredo_prefix (GetPrefix ())
+				&& (probe.state == 0);
 		}
 
 

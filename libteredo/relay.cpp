@@ -1,6 +1,6 @@
 /*
  * relay.cpp - Teredo relay peers list definition
- * $Id: relay.cpp,v 1.28 2004/08/27 16:58:57 rdenisc Exp $
+ * $Id: relay.cpp,v 1.29 2004/08/28 10:36:50 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -155,14 +155,11 @@ SendRS (const TeredoRelayUDP& sock, uint32_t server_ip, unsigned char *nonce,
 		memcpy (&rs.ip6.ip6_dst, &in6addr_allrouters,
 			sizeof (rs.ip6.ip6_dst));
 	
-		// avoids memory disclosure, and allows
-		// precomputed checksum:
-		memset (&rs.rs, 0, sizeof (rs.rs));
-
 		rs.rs.nd_rs_type = ND_ROUTER_SOLICIT;
 		rs.rs.nd_rs_code = 0;
 		// Checksums are pre-computed
 		rs.rs.nd_rs_cksum = htons (cone ? 0x114b : 0x914b);
+		rs.rs.nd_rs_reserved = 0;
 
 		/*
 		 * Microsoft Windows XP sends a 14 byte nul
@@ -185,6 +182,89 @@ SendRS (const TeredoRelayUDP& sock, uint32_t server_ip, unsigned char *nonce,
 
 	return sock.SendPacket (packet, sizeof (packet), server_ip,
 				htons (IPPORT_TEREDO));
+}
+
+
+/*
+ * Validates a router advertisement from the Teredo server.
+ * The RA must be of type cone if and only if cone is true.
+ * Prefix, flags, mapped port and IP are returned through newaddr.
+ *
+ * Assumptions:
+ * - newaddr must be 4-bytes aligned.
+ * - newaddr->teredo.server_ip must be set to the server's expected IP by the
+ *   caller.
+ * - IPv6 header is valid (ie. version 6, plen matches packet's length).
+ */
+static bool
+ParseRA (const TeredoPacket& packet, union teredo_addr *newaddr, bool cone)
+{
+	const struct teredo_orig_ind *ind = packet.GetOrigInd ();
+	size_t length;
+
+	const struct ip6_hdr *ip6 = packet.GetIPv6Header (length);
+
+	if ((ind == NULL)
+	 || memcmp (&ip6->ip6_dst, cone ? &teredo_cone : &teredo_restrict,
+			sizeof (ip6->ip6_dst))
+	 || (ip6->ip6_nxt != IPPROTO_ICMPV6)
+	 || (length < sizeof (struct nd_router_advert)))
+		return false;
+
+	// Only read bytes, so no need to align
+	const struct nd_router_advert *ra =
+		(const struct nd_router_advert *)
+			(((uint8_t *)ip6) + sizeof (struct ip6_hdr));
+	length -= sizeof (struct nd_router_advert);
+
+	if ((ra->nd_ra_type != ND_ROUTER_ADVERT)
+	 || (ra->nd_ra_code != 0)
+	 || (length < sizeof (struct nd_opt_prefix_info)))
+	/*
+	 * We don't check checksum, because it is rather useless.
+	 * There were already (at least) two lower-level checksums.
+	 */
+		return false;
+
+	// Looks for a prefix information option
+	const struct nd_opt_prefix_info *pi =
+		(const struct nd_opt_prefix_info *)(((uint8_t *)ra)
+			+ sizeof (struct nd_router_advert));
+
+	while (pi->nd_opt_pi_type != ND_OPT_PREFIX_INFORMATION)
+	{
+		if (length < (size_t)(pi->nd_opt_pi_len << 3))
+			return 0; // too short
+		length -= pi->nd_opt_pi_len << 3;
+		if (length < sizeof (struct nd_opt_prefix_info))
+			return 0; // too short
+
+		pi = (const struct nd_opt_prefix_info *)
+			(((uint8_t *)pi) + (pi->nd_opt_pi_len << 3));
+	}
+
+	if ((pi->nd_opt_pi_len != (sizeof (struct nd_opt_prefix_info) >> 3))
+	 || (pi->nd_opt_pi_prefix_len != 64))
+		return false;
+
+	uint32_t prefix, ip;
+
+	memcpy (&prefix, &pi->nd_opt_pi_prefix, sizeof (prefix));
+	memcpy (&ip, ((uint8_t *)&pi->nd_opt_pi_prefix) + 4, sizeof (ip));
+
+	if (!is_valid_teredo_prefix (prefix)
+	 || (ip != newaddr->teredo.server_ip))
+	{
+		syslog (LOG_WARNING, _("Invalid Teredo prefix received"));
+		return false;
+	}
+
+	newaddr->teredo.prefix = prefix;
+	// only accept the cone flag:
+	newaddr->teredo.flags = cone ? htons (TEREDO_FLAG_CONE) : 0;
+	newaddr->teredo.client_port = ind->orig_port;
+	newaddr->teredo.client_ip = ind->orig_addr;
+	return true;
 }
 
 
@@ -221,6 +301,12 @@ struct __TeredoRelay_peer
 	size_t queuelen;
 };
 
+#define PROBE_CONE	1
+#define PROBE_RESTRICT	2
+#define PROBE_SYMMETRIC	3
+
+#define QUALIFIED	0
+
 
 TeredoRelay::TeredoRelay (uint32_t pref, uint16_t port, bool cone)
 	: head (NULL)
@@ -229,17 +315,12 @@ TeredoRelay::TeredoRelay (uint32_t pref, uint16_t port, bool cone)
 	addr.teredo.server_ip = 0;
 	addr.teredo.flags = cone ? htons (TEREDO_FLAG_CONE) : 0;
 	addr.teredo.client_ip = 0;
-	addr.teredo.client_port = 0; 
+	addr.teredo.client_port = 0;
+	probe.state = QUALIFIED;
 
 	sock.ListenPort (port);
 }
 
-
-#define PROBE_CONE	1
-#define PROBE_RESTRICT	2
-#define PROBE_SYMMETRIC	3
-
-#define QUALIFIED	0
 
 TeredoRelay::TeredoRelay (uint32_t server_ip, uint16_t port)
 	: head (NULL)
@@ -514,6 +595,12 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
  * (as specified per paragraph 5.4.2). That's called "Packet reception".
  * Returns 0 on success, -1 on error.
  */
+// seconds to wait before considering that we've lost contact with the server
+#define SERVER_LOSS_DELAY 35
+#define SERVER_PING_DELAY 30
+#define RESTART_DELAY 300
+#define PROBE_DELAY 4
+
 int TeredoRelay::ReceivePacket (const fd_set *readset)
 {
 	TeredoPacket packet;
@@ -536,8 +623,61 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 
 	if (!IsRunning ())
 	{
-		/* FIXME: handle server RA for Qualification */
-		return 0;
+		/* Handle router advertisement for qualification */
+		/*
+		 * We don't accept router advertisement without nonce.
+		 * It is far too easy to spoof such packets.
+		 *
+		 * We don't check the source address (which may be the
+		 * server's secondary address, nor the source port)
+		 * TODO: Maybe we should check that too
+		 */
+		const uint8_t *s_nonce = packet.GetAuthNonce ();
+		if ((s_nonce == NULL) || memcmp (s_nonce, probe.nonce, 8))
+			return 0;
+
+		union teredo_addr newaddr;
+
+		if (!ParseRA (packet, &newaddr, probe.state == PROBE_CONE))
+			return 0;
+
+		/* Correct router advertisement! */
+		gettimeofday (&probe.serv, NULL);
+		probe.serv.tv_sec += SERVER_LOSS_DELAY;
+
+		if (probe.state == PROBE_RESTRICT)
+		{
+			probe.state = PROBE_SYMMETRIC;
+			SendRS (sock, GetServerIP (), probe.nonce,
+				false, false);
+
+			gettimeofday (&probe.next, NULL);
+			probe.next.tv_sec += PROBE_DELAY;
+		}
+		else
+		if ((probe.state == PROBE_SYMMETRIC)
+		 && ((addr.teredo.client_port != newaddr.teredo.client_port)
+		  || (addr.teredo.client_ip != newaddr.teredo.client_ip)))
+		{
+			syslog (LOG_ERR,
+				_("Unsupported symmetric NAT detected."));
+
+			/* Resets state, will retry in 5 minutes */
+			addr.teredo.prefix = PREFIX_UNSET;
+			probe.state = PROBE_CONE;
+			probe.count = 0;
+			return 0;
+		}
+		else
+		{
+			syslog (LOG_INFO, _("Qualified (NAT type: %s)"),
+				gettext (probe.state == PROBE_CONE
+				? N_("cone") : N_("restricted")));
+			probe.state = QUALIFIED;
+		}
+
+		memcpy (&addr, &newaddr, sizeof (addr));
+		return NotifyUp (&addr.ip6);
 	}
 
 	/*
@@ -552,7 +692,7 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 	{
 		// TODO: refresh interval randomisation
 		gettimeofday (&probe.serv, NULL);
-		probe.serv.tv_sec += 30;
+		probe.serv.tv_sec += 35;
 
 		const struct teredo_orig_ind *ind = packet.GetOrigInd ();
 		if (ind != NULL)
@@ -628,7 +768,7 @@ int TeredoRelay::Process (void)
 		if (probe.state == QUALIFIED)
 		{
 			// TODO: randomize refresh interval
-			delay = 30;
+			delay = SERVER_PING_DELAY;
 
 			if (((signed)(now.tv_sec - probe.serv.tv_sec) > 0)
 			 || ((now.tv_sec == probe.serv.tv_sec)
@@ -642,7 +782,7 @@ int TeredoRelay::Process (void)
 		}
 		else
 		{
-			delay = 4;
+			delay = PROBE_DELAY;
 
 			if (probe.state == PROBE_CONE)
 			{
@@ -674,9 +814,9 @@ int TeredoRelay::Process (void)
 					/*
 					 * Last restricted qualification
 					 * attempt before declaring failure.
-					 * Defer new attempts for 30 seconds.
+					 * Defer new attempts for 300 seconds.
 					 */
-					delay = 30;
+					delay = RESTART_DELAY;
 			}
 
 			probe.count ++;
