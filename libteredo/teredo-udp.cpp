@@ -89,6 +89,9 @@ static int
 SendUDPPacket (int fd, const void *packet, size_t plen,
 		uint32_t dest_ip, uint16_t dest_port)
 {
+	if (plen > 65507)
+		return -1;
+
 	struct sockaddr_in nat_addr;
 	memset (&nat_addr, 0, sizeof (nat_addr));
 	nat_addr.sin_family = AF_INET;
@@ -98,21 +101,8 @@ SendUDPPacket (int fd, const void *packet, size_t plen,
 	nat_addr.sin_len = sizeof (nat_addr);
 #endif
 
-	int check = sendto (fd, packet, plen, 0, (struct sockaddr *)&nat_addr,
-				sizeof (nat_addr));
-	if (check == -1)
-	{
-		syslog (LOG_WARNING, _("Couldn't send UDP packet: %m"));
-		return -1;
-	}
-	else if ((size_t)check < plen)
-	{
-		/* FIXME: handle singular properly */
-		syslog (LOG_WARNING, _("UDP packet shortened: sent %d bytes "
-				"instead of %u"), check, plen);
-		return -1;
-	}
-	return 0;
+	return sendto (fd, packet, plen, 0, (struct sockaddr *)&nat_addr,
+			sizeof (nat_addr)) == (int)plen ? 0 : -1;
 }
 
 
@@ -136,11 +126,7 @@ TeredoPacket::Receive (int fd)
 					(struct sockaddr *)&ad, &alen);
 
 		if (length < 0)
-		{
-			syslog (LOG_WARNING,
-				_("Error receiving UDP packet: %m"));
 			return -1;
-		}
 
 		last_ip = ad.sin_addr.s_addr;
 		last_port = ad.sin_port;

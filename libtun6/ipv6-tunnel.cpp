@@ -888,7 +888,7 @@ int libtun6_driver_diagnose (char *errbuf)
 			LIBTUN6_ERRBUF_SIZE - 1);
 #elif defined (HAVE_DARWIN)
 		strncat (errbuf,
-			_("You can obtain a tunnel device for the "
+			_("You can obtain a tunnel driver for the "
 			"Darwin kernel (Mac OS X) from :\n"
 			"http://chrisp.de/en/projects/tunnel.html\n"),
 			LIBTUN6_ERRBUF_SIZE - 1);

@@ -537,19 +537,17 @@ main (int argc, char *argv[])
 	{
 		puts (_("Miredo configuration :"));
 		puts ("----------------------------------------------------");
+		fputs (_("Client/relay UDP port       : "), stdout);
 		if (client_port)
-			printf (_("Client/relay UDP port       : %u\n"),
-				(unsigned)client_port);
+			printf ("%u\n", (unsigned)client_port);
 		else
-			puts (_("Client/relay UDP port       : default"));
-		if (client_ip != NULL)
-			printf (_("Client/relay IPv4 address   : %s\n"),
-				client_ip);
-		else
-			puts (_("Client/relay IPv4 address   : any"));
+			puts (_("automatic"));
+
+		printf (_("Client/relay IPv4 address   : %s\n"),
+			(client_ip != NULL) ? (client_ip) : _("any"));
 
 		printf (_("Tunnel interface name       : %s\n"),
-			ifname != NULL ? ifname : _("default"));
+			(ifname != NULL) ? ifname : _("default"));
 
 		if (flags.manual)
 		{

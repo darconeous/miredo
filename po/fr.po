@@ -16,29 +16,29 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 
 #: libteredo/teredo-udp.cpp:63
-#, fuzzy, c-format
+#, c-format
 msgid "Fatal socket error: %m"
-msgstr "Erreur fatale de socket(): %m\n"
+msgstr "Erreur fatale de socket: %m"
 
 #: libteredo/teredo-udp.cpp:69
-#, fuzzy, c-format
+#, c-format
 msgid "Fatal bind error: %m"
-msgstr "Erreur fatale de bind(): %m\n"
+msgstr "Erreur fatale de bind(): %m"
 
 #: libteredo/teredo-udp.cpp:105
-#, fuzzy, c-format
+#, c-format
 msgid "Couldn't send UDP packet: %m"
-msgstr "Impossible d'envoyer un paquet UDP: %m\n"
+msgstr "Impossible d'envoyer un paquet UDP: %m"
 
 #: libteredo/teredo-udp.cpp:111
-#, fuzzy, c-format
+#, c-format
 msgid "UDP packet shortened: sent %d bytes instead of %u"
-msgstr "Paquet UDP raccourci: %d octets émis au lieu de %u\n"
+msgstr "Paquet UDP raccourci: %d octets émis au lieu de %u"
 
 #: libteredo/teredo-udp.cpp:141
-#, fuzzy, c-format
+#, c-format
 msgid "Error receiving UDP packet: %m"
-msgstr "Erreur de réception d'un paquet UDP: %m\n"
+msgstr "Erreur de réception d'un paquet UDP: %m"
 
 #: libteredo/teredo-udp.cpp:274
 msgid ""
@@ -48,12 +48,11 @@ msgstr ""
 "globale unicast."
 
 #: libteredo/teredo-udp.cpp:281
-#, fuzzy
 msgid ""
 "Teredo server UDP socket error: Server IPv4 addresses must not be wildcard."
 msgstr ""
 "Erreur de socket UDP du server Teredo: les adresses IPv4 de serveur ne "
-"doivent pas être génériques.\n"
+"doivent pas être génériques."
 
 #: libteredo/relay.cpp:177
 msgid "Server has a non global IPv4 address. It will most likely not work."
@@ -182,7 +181,7 @@ msgstr "Route retirée du tunnel %s: %s/%u"
 #: libtun6/ipv6-tunnel.cpp:855
 #, c-format
 msgid "Error: %s character device not found or unavailable.\n"
-msgstr ""
+msgstr "Erreur: périphérique %s non trouvé ou non disponible.\n"
 
 #: libtun6/ipv6-tunnel.cpp:859
 msgid ""
@@ -191,24 +190,34 @@ msgid ""
 "# mknod /dev/net/tun c 10 200\n"
 "(you must be root to do that).\n"
 msgstr ""
+"Vous devriez exécuter ces commande pour le créer :\n"
+"# mkdir -p /dev/net\n"
+"# mknod /dev/net/tun c 10 200\n"
+"(vous devez être root pour cela).\n"
 
 #: libtun6/ipv6-tunnel.cpp:866 libtun6/ipv6-tunnel.cpp:891
 msgid ""
-"You can obtain a tunnel device for the Darwin kernel (Mac OS X) from :\n"
+"You can obtain a tunnel driver for the Darwin kernel (Mac OS X) from :\n"
 "http://chrisp.de/en/projects/tunnel.html\n"
 msgstr ""
+"Vous pouvez obtenir un pilote de tunnel pour le noyau Darwin (Mac OS X) à :\n"
+"http://chrisp.de/en/projects/tunnel.html\n"
 
 #: libtun6/ipv6-tunnel.cpp:879
 msgid ""
 "Error: your operating system does not seem to provide a network tunnneling\n"
 "device driver, which is required.\n"
 msgstr ""
+"Erreur: votre système d'exploitation semble ne pas fournir de pilote de\n"
+"périphérique de tunnel réseau, ce qui est indispensable.\n"
 
 #: libtun6/ipv6-tunnel.cpp:885
 msgid ""
 "Make sure your Linux kernel includes the \"Universal TUNTAP driver\"\n"
 "(CONFIG_TUN option), possibly as a module.\n"
 msgstr ""
+"Vérifiez que votre noyau Linux comporte l'\"Universal TUNTAP driver\"\n"
+"(option CONFIG_TUN), éventuellement sous forme de module.\n"
 
 #: libtun6/ipv6-tunnel.cpp:901
 #, c-format
@@ -216,10 +225,12 @@ msgid ""
 "Error: cannot open device file %s (%s)\n"
 "IPv6 tunneling will not work.\n"
 msgstr ""
+"Erreur: ouverture impossible du fichier de périphérique %s (%s)\n"
+"Le tunneling IPv6 ne fonctionnera pas.\n"
 
 #: src/main.c:71
 msgid "Try `miredo -h | more' for more information.\n"
-msgstr ""
+msgstr "Faîtes `miredo -h | more' pour plus de détails.\n"
 
 #: src/main.c:80
 msgid ""
@@ -543,52 +554,3 @@ msgstr ""
 #, c-format
 msgid "Child %d killed by signal %d (%s)"
 msgstr ""
-
-#~ msgid "Tunnel error (SIOCGIFFLAGS): %m"
-#~ msgstr "Erreur de tunnel (SIOCGIFFLAGS): %m"
-
-#~ msgid "%s tunnel error (SIOCSIFFLAGS): %m"
-#~ msgstr "Erreur du tunnel %s (SIOCSIFFLAGS): %m"
-
-#~ msgid "IPv6 prefix too long: %u"
-#~ msgstr "Préfixe IPv6 trop long! %u"
-
-#~ msgid ""
-#~ "%s tunnel address setup not supported.\n"
-#~ "Please do it manually."
-#~ msgstr ""
-#~ "Réglage de l'adresse du tunnel %s non supporté.\n"
-#~ "Veuillez le faire manuellement."
-
-#~ msgid "[unknown_address]"
-#~ msgstr "[adresse_inconnue]"
-
-#~ msgid "PF_ROUTE error: %m"
-#~ msgstr "Erreur de PF_ROUTE: %m"
-
-#~ msgid "Setting a route on FreeBSD does not work fine. Please do it by hand."
-#~ msgstr ""
-#~ "Le réglage d'une route sur FreeBSD fonctionne mal.\n"
-#~ "Veuillez le faire manuellement."
-
-#~ msgid "socket (PF_ROUTE) error: %m"
-#~ msgstr "Erreur de socket (PF_ROUTE): %m"
-
-#~ msgid ""
-#~ "%s tunnel route setup not supported.\n"
-#~ "Please do it manually."
-#~ msgstr ""
-#~ "Réglage d'une route pour le tunnel %s non supportée.\n"
-#~ "Veuillez le faire manuellement."
-
-#~ msgid "[unknown_route]"
-#~ msgstr "[route_inconnue]"
-
-#~ msgid "IPv6 MTU too small (<1280): %u"
-#~ msgstr "MTU IPv6 trop petit (<1280): %u"
-
-#~ msgid "IPv6 MTU too big (>65535): %u"
-#~ msgstr "MTU IPv6 trop grand (>65535): %u"
-
-#~ msgid "%s tunnel MTU set to %u"
-#~ msgstr "MTU du tunnel %s réglé à %u"
