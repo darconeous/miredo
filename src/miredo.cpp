@@ -358,7 +358,6 @@ miredo_run (uint16_t bind_port, uint32_t bind_ip, uint32_t server_ip,
 #endif
 
 	// Sets up relay or client
-	// TODO: ability to not be a relay at all
 
 #ifdef MIREDO_TEREDO_RELAY
 # ifdef MIREDO_TEREDO_CLIENT
@@ -377,6 +376,7 @@ miredo_run (uint16_t bind_port, uint32_t bind_ip, uint32_t server_ip,
 	}
 	else
 # endif /* ifdef MIREDO_TEREDO_CLIENT */
+	if (relay_on)
 	{
 		// Sets up relay
 		try
