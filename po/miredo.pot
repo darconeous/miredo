@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: rdenis@simphalempin.com\n"
-"POT-Creation-Date: 2004-12-02 15:10+0100\n"
+"POT-Creation-Date: 2004-12-03 22:51+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -57,7 +57,7 @@ msgstr ""
 msgid "cone"
 msgstr ""
 
-#: libteredo/relay.cpp:581 src/main.c:650
+#: libteredo/relay.cpp:581 src/main.c:628
 msgid "restricted"
 msgstr ""
 
@@ -163,12 +163,7 @@ msgstr ""
 msgid "%s tunnel route removed: %s/%u"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:855
-#, c-format
-msgid "Error: %s character device not found or unavailable.\n"
-msgstr ""
-
-#: libtun6/ipv6-tunnel.cpp:859
+#: libtun6/ipv6-tunnel.cpp:857
 msgid ""
 "You should run these commands to create it :\n"
 "# mkdir -p /dev/net\n"
@@ -176,25 +171,34 @@ msgid ""
 "(you must be root to do that).\n"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:866 libtun6/ipv6-tunnel.cpp:891
+#: libtun6/ipv6-tunnel.cpp:862 libtun6/ipv6-tunnel.cpp:887
 msgid ""
 "You can obtain a tunnel driver for the Darwin kernel (Mac OS X) from :\n"
 "http://chrisp.de/en/projects/tunnel.html\n"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:879
+#: libtun6/ipv6-tunnel.cpp:870
+#, c-format
 msgid ""
-"Error: your operating system does not seem to provide a network tunnneling\n"
-"device driver, which is required.\n"
+"Error: %s character device not found or unavailable.\n"
+"%s"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:885
+#: libtun6/ipv6-tunnel.cpp:883
 msgid ""
 "Make sure your Linux kernel includes the \"Universal TUNTAP driver\"\n"
 "(CONFIG_TUN option), possibly as a module.\n"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:901
+#: libtun6/ipv6-tunnel.cpp:895
+#, c-format
+msgid ""
+"Error: your operating system does not seem to provide a network tunnneling\n"
+"device driver, which is required.\n"
+"%s"
+msgstr ""
+
+#: libtun6/ipv6-tunnel.cpp:904
 #, c-format
 msgid ""
 "Error: cannot open device file %s (%s)\n"
@@ -299,41 +303,33 @@ msgid ""
 "user. Running as root is STRONGLY DISCOURAGED.\n"
 msgstr ""
 
-#: src/main.c:322
+#: src/main.c:321
 msgid ""
 "Error: This program is not supposed to keep root\n"
 "privileges. That is potentially very dangerous\n"
 "(all the more as it is beta quality code that has\n"
 "never been audited for security vulnerabilities).\n"
-"If you really want to run it as root, run the\n"
-"source configure script with --disable-miredo-user\n"
-"and recompile the program.\n"
+"Besides, it does not even work properly when root\n"
+"privileges are kept.\n"
 msgstr ""
 
-#: src/main.c:331
-msgid ""
-"Warning: This program was configured to retain\n"
-"root privileges while running. That is potentially\n"
-"very dangerous. PROCEED WITH CAUTION.\n"
-msgstr ""
-
-#: src/main.c:343
+#: src/main.c:336
 #, c-format
 msgid "SetGID to group ID %u: %s\n"
 msgstr ""
 
-#: src/main.c:345
+#: src/main.c:338
 msgid ""
 "Error: This program tried to change its system\n"
 "group(s) security context but it failed.\n"
 msgstr ""
 
-#: src/main.c:362
+#: src/main.c:355
 #, c-format
 msgid "Root directory jail in %s: %s\n"
 msgstr ""
 
-#: src/main.c:379
+#: src/main.c:372
 #, c-format
 msgid ""
 "Warning: /dev/log not found or invalid: logging will probably not work.\n"
@@ -341,43 +337,43 @@ msgid ""
 " to your syslogd command line to fix that.\n"
 msgstr ""
 
-#: src/main.c:400
+#: src/main.c:393
 #, c-format
 msgid "SetUID to user ID %u: %s\n"
 msgstr ""
 
-#: src/main.c:402
+#: src/main.c:395
 msgid ""
 "Error: This program tried to change its system\n"
 "user security context but it failed.\n"
 msgstr ""
 
-#: src/main.c:419 src/main.c:426 src/main.c:440
+#: src/main.c:412 src/main.c:419
 msgid "Fatal error"
 msgstr ""
 
-#: src/main.c:448
+#: src/main.c:426
 msgid "Getting networking privileges"
 msgstr ""
 
-#: src/main.c:450
+#: src/main.c:428
 msgid ""
 "Error: This program tried to obtain system networking administration\n"
 "privileges but it failed.\n"
 msgstr ""
 
-#: src/main.c:466
+#: src/main.c:444
 msgid "Error (daemon)"
 msgstr ""
 
-#: src/main.c:598
+#: src/main.c:576
 #, c-format
 msgid ""
 "Read unknown option -%c :\n"
 "That is probably a bug. Please report it.\n"
 msgstr ""
 
-#: src/main.c:610
+#: src/main.c:588
 msgid ""
 "You have selected conflicting parameters.\n"
 "It is not possible to run a Teredo relay and/or\n"
@@ -385,60 +381,60 @@ msgid ""
 "Refer to the manual page for more details.\n"
 msgstr ""
 
-#: src/main.c:627
+#: src/main.c:605
 msgid "Miredo configuration :"
 msgstr ""
 
-#: src/main.c:629
+#: src/main.c:607
 msgid "Client/relay UDP port       : "
 msgstr ""
 
-#: src/main.c:633
+#: src/main.c:611
 msgid "automatic"
 msgstr ""
 
-#: src/main.c:635
+#: src/main.c:613
 #, c-format
 msgid "Client/relay IPv4 address   : %s\n"
 msgstr ""
 
-#: src/main.c:636
+#: src/main.c:614
 msgid "any"
 msgstr ""
 
-#: src/main.c:638
+#: src/main.c:616
 #, c-format
 msgid "Tunnel interface name       : %s\n"
 msgstr ""
 
-#: src/main.c:639 src/main.c:646
+#: src/main.c:617 src/main.c:624
 msgid "default"
 msgstr ""
 
-#: src/main.c:643
+#: src/main.c:621
 #, c-format
 msgid "Server primary IPv4 address : %s\n"
 msgstr ""
 
-#: src/main.c:644
+#: src/main.c:622
 msgid "disabled"
 msgstr ""
 
-#: src/main.c:645
+#: src/main.c:623
 #, c-format
 msgid "Teredo IPv6 prefix          : %s\n"
 msgstr ""
 
-#: src/main.c:647
+#: src/main.c:625
 #, c-format
 msgid "Assumed NAT type            : %s\n"
 msgstr ""
 
-#: src/main.c:649
+#: src/main.c:627
 msgid "none/cone"
 msgstr ""
 
-#: src/main.c:653
+#: src/main.c:631
 #, c-format
 msgid "Server name                 : %s\n"
 msgstr ""
