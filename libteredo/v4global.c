@@ -42,6 +42,8 @@ is_ipv4_global_unicast (uint32_t ip)
 {
 	ip = ntohl (ip);
 	return
+		// Check for range 0.0.0.0/8
+		((ip & 0xff000000) != 0x00000000) &&
 		// Check for class A private range 10.0.0.0/24
 		((ip & 0xff000000) != 0x0a000000) &&
 		// Check for class A loopback range 127.0.0.0/8
@@ -49,10 +51,21 @@ is_ipv4_global_unicast (uint32_t ip)
 		// Check for "Microsoft" private range 169.254.0.0/16
 		((ip & 0xffff0000) != 0xa9fe0000) &&
 		// Check for class B private range 172.16.0.0/12
-		 ((ip & 0xfff00000) != 0xac100000) &&
+		((ip & 0xfff00000) != 0xac100000) &&
 		// Check for class C private range 192.168.0.0/16
 		((ip & 0xffff0000) != 0xc0a80000) &&
+		// Check for 6to4 anycast addresses 192.88.99.0/24
+		((ip & 0xffffff00) != 0xc0586200) &&
 		// Class D (Multicast), E, bad classes:
 		((ip & 0xe0000000) != 0xe0000000);
+	/* NOTE (FIXME)
+	 * The specification does not forbid 240.0.0.0/8,
+	 * but it forbids 255.255.255.255/32.
+	 *
+	 * Additionnaly, it forbids broadcast addresses of subnets
+	 * the node is attached to. It would be quite complex to check
+	 * that. We don't set the SO_BROADCAST socket option, which
+	 * should be sufficient to avoid security issues.
+	 */
 }
 
