@@ -81,6 +81,11 @@ static int should_reload;
  */
 static pid_t rootpid;
 
+/*
+ * Pipe file descriptors (the right way to interrupt select() on Linux
+ * from a signal handler, as pselect() is not supported).
+ */
+static int signalfd[2];
 
 static void
 exit_handler (int signum)
@@ -92,6 +97,8 @@ exit_handler (int signum)
 		/* Signal handler run from the parent that loads configuration
 		 * and respawns miredo */
 		kill (0, signum);
+	else
+		write(signalfd[1], &signum, sizeof (signum));
 
 	should_exit = signum;
 }
@@ -129,7 +136,8 @@ teredo_server_relay (IPv6Tunnel& tunnel, TeredoRelay *relay = NULL,
 		struct timeval tv;
 		FD_ZERO (&readset);
 
-		int maxfd = -1;
+		int maxfd = signalfd[0];
+		FD_SET(signalfd[0], &readset);
 
 #ifdef MIREDO_TEREDO_SERVER
 		if (server != NULL)
@@ -159,7 +167,9 @@ teredo_server_relay (IPv6Tunnel& tunnel, TeredoRelay *relay = NULL,
 
 		/* Wait until one of them is ready for read */
 		maxfd = select (maxfd + 1, &readset, NULL, NULL, &tv);
-		if (maxfd < 0) // interrupted by signal
+		if ((maxfd < 0)
+		 || ((maxfd >= 1) && FD_ISSET(signalfd[0], &readset)))
+			// interrupted by signal
 			continue;
 
 		/* Handle incoming data */
@@ -516,12 +526,17 @@ abort:
 
 
 // Defines signal handlers
-static void
+static int
 init_signals (void)
 {
 	struct sigaction sa;
 
 	rootpid = getpid ();
+	if (pipe (signalfd))
+	{
+		syslog (LOG_ALERT, _("pipe failed: %m"));
+		return -1;
+	}
 	should_exit = 0;
 	should_reload = 0;
 
@@ -542,6 +557,8 @@ init_signals (void)
 	
 	sa.sa_handler = reload_handler;
 	sigaction (SIGHUP, &sa, NULL);
+
+	return 0;
 }
 
 
@@ -559,11 +576,9 @@ miredo_main (uint16_t client_port, const char *client_ip,
 	int facility = LOG_DAEMON;
 	openlog (daemon_ident, LOG_PID, facility);
 
-	int retval;
+	int retval = init_signals () ?: -2;
 
-	init_signals ();
-
-	do
+	while (retval == -2)
 	{
 		if (should_reload)
 		{
@@ -634,7 +649,6 @@ miredo_main (uint16_t client_port, const char *client_ip,
 			retval = -2;
 		}
 	}
-	while (retval == -2);
 
 	closelog ();
 	return retval;
