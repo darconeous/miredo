@@ -1,6 +1,6 @@
 /*
  * relay.cpp - Teredo relay peers list definition
- * $Id: relay.cpp,v 1.32 2004/08/28 13:49:53 rdenisc Exp $
+ * $Id: relay.cpp,v 1.33 2004/08/28 15:14:25 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -475,14 +475,23 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 		gettimeofday (&probe.serv, NULL);
 		probe.serv.tv_sec += SERVER_LOSS_DELAY;
 
+		// Make sure our Teredo address did not change:
+		union teredo_addr newaddr;
+		newaddr.teredo.server_ip = GetServerIP ();
+
+		if (ParseRA (packet, &newaddr, IsCone ())
+		 && memcmp (&addr, &newaddr, sizeof (addr)))
+		{
+			memcpy (&addr, &newaddr, sizeof (addr));
+			syslog (LOG_NOTICE, _("Teredo address changed"));
+			NotifyUp (&newaddr.ip6);
+			return 0;
+		}
+
 		const struct teredo_orig_ind *ind = packet.GetOrigInd ();
 		if (ind != NULL)
 			/* FIXME: perform direct IPv6 connectivity test */;
 	}
-
-	// Only the server is allowed to send packet when not qualified
-	if (!IsRunning ())
-		return 0;
 
 	const union teredo_addr *src =
 		(const union teredo_addr *)&ip6.ip6_src;
