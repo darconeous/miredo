@@ -86,7 +86,7 @@ InterfaceName	teredo
 #  - teredo.ipv6.6wind.com (6wind ng_teredo testing server)
 #  - teredo.via.ecp.fr (Miredo testing server)
 #
-# Defaults: unset, serve as a Teredo relay instead.
+# Defaults: unset - will not work unless RelayType is specified.
 # Example:  ServerAddress teredo.ipv6.microsoft.com
 #
 ServerAddress teredo.via.ecp.fr
@@ -135,6 +135,15 @@ ServerAddress teredo.via.ecp.fr
 #                                                                     #
 # Future Miredo releases will probably use a different default prefix #
 # once the definitive IANA-assigned Teredo prefix is known.           #
+#######################################################################
+#
+##################### ANOTHER BIG FAT WARNING !!! #####################
+# The Teredo client on Microsoft Windows XP SP2 (or SP1 with Advanced #
+# Networking Pack) does not seem to accept prefix other than the      #
+# current default one (ie. 3ffe:831f::). Miredo's Teredo client works #
+# fine with any global IPv6 prefix.                                   #
+#                                                                     #
+# Complaints should be directed to Microsoft.                         #
 #######################################################################
 #
 #Prefix 3ffe:831f::
