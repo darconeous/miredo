@@ -103,8 +103,8 @@ AS_MESSAGE(writing results...)
 AC_CONFIG_FILES([Makefile m4/Makefile libtun6/Makefile libteredo/Makefile src/Makefile])
 AC_OUTPUT
 
-AS_IF([test "${openssl}" = false],
+AS_IF([test "${openssl}" = false], [
 echo "WARNING: OpenSSL v0.9.5 or more recent is highly recommended to use"
 echo "         Miredo as a Teredo client. However, It could not be found on"
 echo "         your system."
-)
+])

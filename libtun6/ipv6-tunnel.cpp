@@ -711,7 +711,11 @@ IPv6Tunnel::ReceivePacket (const fd_set *readset, void *buffer, size_t maxlen)
 		return -1;
 
 #if defined (TUNSETIFF)
-	uint16_t head[2];
+	struct
+	{
+		uint16_t flags;
+		uint16_t proto;
+	} head;
 #elif defined (TUNSIFHEAD)
 	uint32_t head;
 #else
@@ -719,9 +723,9 @@ IPv6Tunnel::ReceivePacket (const fd_set *readset, void *buffer, size_t maxlen)
 #endif
 
 	struct iovec vect[2];
-	vect[0].iov_base = &head;
+	vect[0].iov_base = (char *)&head;
 	vect[0].iov_len = 4;
-	vect[1].iov_base = buffer;
+	vect[1].iov_base = (char *)buffer;
 	vect[1].iov_len = maxlen;
 
 	int len = readv (fd, vect, 2);
@@ -738,7 +742,7 @@ IPv6Tunnel::ReceivePacket (const fd_set *readset, void *buffer, size_t maxlen)
 
 #if defined (TUNSETIFF)
 	/* TUNTAP driver */
-	if (head[1] != htons (ETH_P_IPV6))
+	if (head.proto != htons (ETH_P_IPV6))
 		return -1; // only accept IPv6 packets
 #elif defined (TUNSIFHEAD)
 	/* FreeBSD driver */
@@ -769,10 +773,11 @@ IPv6Tunnel::SendPacket (const void *packet, size_t len) const
 
 #if defined (TUNSETIFF)
 	/* TUNTAP driver */
-	uint16_t head[2];
-	head[0] = 0;
-	head[1] = htons (ETH_P_IPV6);
-
+	struct
+	{
+		uint16_t flags;
+		uint16_t proto;
+	} head = { 0, htons (ETH_P_IPV6) };
 #elif defined (TUNSIFHEAD)
 	/* FreeBSD tunnel driver */
 	uint32_t head = htonl (AF_INET6);
@@ -782,9 +787,9 @@ IPv6Tunnel::SendPacket (const void *packet, size_t len) const
 #endif
 
 	struct iovec vect[2];
-	vect[0].iov_base = &head;
+	vect[0].iov_base = (char *)&head;
 	vect[0].iov_len = sizeof (head);
-	vect[1].iov_base = (void *)packet; // necessary cast to non-const
+	vect[1].iov_base = (char *)packet; // necessary cast to non-const
 	vect[1].iov_len = len;
 
 	int val = writev (fd, vect, 2);
