@@ -1,7 +1,7 @@
 /*
  * miredo.cpp - Unix Teredo server & relay implementation
  *              core functions
- * $Id: miredo.cpp,v 1.9 2004/06/22 16:39:53 rdenisc Exp $
+ * $Id: miredo.cpp,v 1.10 2004/06/24 19:16:14 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -255,7 +255,7 @@ miredo_run (uint16_t client_port, const char *server_name,
 
 	if (retval)
 	{
-		syslog (LOG_ALERT, _("Teredo tunnel allocation failed."
+		syslog (LOG_ALERT, _("Teredo tunnel setup failed."
 					" You should be root to do that."));
 		goto abort;
 	}

@@ -1,3 +1,9 @@
+2004-05-24  Remi Denis-Courmont
+
+	* src/ipv6-tunnel.cpp:
+	- support for FreeBSD tunneling driver (still a stupid compilation
+	  error, routing change not implemented).
+
 2004-05-20  Remi Denis-Courmont
 
 	* configure.ac, src/*:

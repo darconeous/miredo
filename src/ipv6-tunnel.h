@@ -1,6 +1,6 @@
 /*
  * ipv6-tunnel.h - IPv6 interface class declaration
- * $Id: ipv6-tunnel.h,v 1.6 2004/06/21 17:48:55 rdenisc Exp $
+ * $Id: ipv6-tunnel.h,v 1.7 2004/06/24 19:16:14 rdenisc Exp $
  */
 
 /***********************************************************************
@@ -64,16 +64,16 @@ class IPv6Tunnel
 		}
 
 		int AddAddress (const struct in6_addr *addr,
-				int prefix_len = 64) const;
+				unsigned prefix_len = 64) const;
 		int DelAddress (const struct in6_addr *addr,
-				int prefix_len = 64) const;
+				unsigned prefix_len = 64) const;
 
-		int SetMTU (int mtu) const;
+		int SetMTU (unsigned mtu) const;
 
-		int AddRoute (const struct in6_addr *addr, int prefix_len)
-									const;
-		int DelRoute (const struct in6_addr *addr, int prefix_len)
-									const;
+		int AddRoute (const struct in6_addr *addr,
+				unsigned prefix_len) const;
+		int DelRoute (const struct in6_addr *addr,
+				unsigned prefix_len) const;
 
 		/*
 		 * Registers file descriptors in an fd_set for use with
