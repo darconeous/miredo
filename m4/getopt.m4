@@ -25,6 +25,11 @@ AC_DEFUN([RDC_REPLACE_FUNC_GETOPT_LONG],
  struct option { const char *name; int has_arg; int *flag; int val; };
 #  define GETOPT_STRUCT_OPTION 1
 # endif
+# ifndef required_argument
+#  define no_argument 0
+#  define required_argument 1
+#  define optional_argument 2
+# endif
 #endif])
 RDC_FUNC_GETOPT_LONG
 ])

@@ -1,7 +1,7 @@
 /*
  * main.c - Unix Teredo server & relay implementation
  *          command line handling and core functions
- * $Id: main.c,v 1.3 2004/06/17 22:52:28 rdenisc Exp $
+ * $Id: main.c,v 1.4 2004/06/20 10:02:41 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -70,7 +70,7 @@ static int
 usage (void)
 {
         puts (_(
-"Usage: miredo [OPTION]... <IPv6 address/hostname>\n"
+"Usage: miredo [OPTION]...\n"
 "Creates a Teredo tunneling interface for encapsulation of IPv6.\n"
 "\n"
 "  -h, --help     display this help and exit\n"
@@ -135,12 +135,14 @@ error_extra (const char *extra)
 }
 
 
+#if 0
 static int
 error_missing (void)
 {
 	fputs (_("Error: missing command line parameter\n"), stderr);
 	return 2;
 }
+#endif
 
 
 /*
@@ -207,7 +209,7 @@ int init_security (void)
 		return -1;
 	}
 	
-	if (setgid  (grp->gr_gid))
+	if (setgid  (grp->gr_gid) || setgroups (0, NULL))
 	{
 		perror (_("SetGID to unpriviledged group"));
 		return -1;
@@ -248,7 +250,7 @@ int
 main (int argc, char *argv[])
 {
 	const char *server = NULL, *prefix = NULL, *ifname = NULL,
-			*tundev = NULL, *ipv6;
+			*tundev = NULL;
 	uint16_t client_port = 0;
 	
 	const struct option opts[] =
@@ -329,18 +331,14 @@ main (int argc, char *argv[])
 				return 1;
 		}
 
-	if (optind >= argc) /* no more arguments ! */
-		return error_missing ();
-	else
-		ipv6 = argv[optind++];
-
 	if (optind < argc)
 		return error_extra (argv[optind]);
 
 	if (init_security ())
 		return 1;
 
-	return miredo_run (ipv6,client_port, server, prefix, ifname, tundev)
-		? 1
-		: 0;
+	if (miredo_run (client_port, server, prefix, ifname, tundev))
+		return 1;
+	else
+		return 0;
 }

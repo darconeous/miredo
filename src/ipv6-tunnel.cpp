@@ -1,6 +1,6 @@
 /*
  * ipv6-tunnel.cpp - IPv6 interface class definition
- * $Id: ipv6-tunnel.cpp,v 1.4 2004/06/17 22:52:28 rdenisc Exp $
+ * $Id: ipv6-tunnel.cpp,v 1.5 2004/06/20 10:02:41 rdenisc Exp $
  */
 
 /***********************************************************************
@@ -38,20 +38,25 @@
 #endif
 #include <net/if.h> // struct ifreq
 #include <sys/socket.h> // socket(PF_INET6, SOCK_DGRAM, 0)
-#if HAVE_LINUX_IPV6_H
-# include <linux/ipv6.h> // strict in6_ifreq
+#include <arpa/inet.h> // inet_ntop()
+#include <netinet/in.h> // htons()
+
+#ifndef ETH_P_IPV6
+# define ETH_P_IPV6 0x86DD
 #endif
 
-/* 
- * NOTE:
- * This has to be done by hand rather than through htons(),
- * not for optimisation, but because <netinet/in.h> conflicts with
- * <linux/ipv6.h> on my system.
+#if HAVE_NETINET6_IN6_VAR_H
+# include <netinet6/in6_var.h>
+/*
+ * <linux/ipv6.h> conflicts with <netinet/in.h> and <arpa/inet.h>,
+ * so we've got to declare this structure by hand.
  */
-#ifdef WORDS_BIGENDIAN
-# define L2_PROTO_IPV6 0x86dd
-#else
-# define L2_PROTO_IPV6 0xdd86
+#elif HAVE_LINUX_IPV6_H
+struct in6_ifreq {
+	struct in6_addr ifr6_addr;
+	uint32_t ifr6_prefixlen;
+	int ifr6_ifindex;
+};
 #endif
 
 static int
@@ -119,9 +124,6 @@ IPv6Tunnel::~IPv6Tunnel ()
 int
 IPv6Tunnel::SetState (bool up) const
 {
-	if (fd == -1)
-		return -1;
-
 	int reqfd = socket_udp6 ();
 	if (reqfd == -1)
 		return -1;
@@ -162,7 +164,7 @@ IPv6Tunnel::SetState (bool up) const
 int
 IPv6Tunnel::SetAddress (const struct in6_addr *addr, int prefix_len) const
 {
-	if ((fd == -1) || (prefix_len < 0))
+	if (prefix_len < 0)
 		return -1;
 
 	if (prefix_len > 128)
@@ -191,9 +193,13 @@ IPv6Tunnel::SetAddress (const struct in6_addr *addr, int prefix_len) const
 
 		if (ioctl (reqfd, SIOCSIFADDR, &req6) == 0)
 		{
-			// FIXME: display address/prefix
-			syslog (LOG_DEBUG, _("%s tunnel address set\n"),
-				ifname);
+			char str[INET6_ADDRSTRLEN];
+
+			if (inet_ntop (AF_INET6, addr, str, sizeof (str))
+								!= NULL)
+				syslog (LOG_DEBUG,
+					_("%s tunnel address set to %s/%d\n"),
+					ifname, str, prefix_len);
 			close (reqfd);
 			return 0;
 		}
@@ -207,8 +213,6 @@ IPv6Tunnel::SetAddress (const struct in6_addr *addr, int prefix_len) const
 int
 IPv6Tunnel::SetMTU (int mtu) const
 {
-	if (fd == -1)
-		return -1;
 	if (mtu < 1280)
 	{
 		syslog (LOG_ERR, _("IPv6 MTU too small (<1280): %d\n"), mtu);
@@ -237,7 +241,7 @@ IPv6Tunnel::SetMTU (int mtu) const
 		return -1;
 	}
 
-	syslog (LOG_DEBUG, _("%s tunnel MTU set to %d.\n"), ifname, mtu);
+	syslog (LOG_DEBUG, _("%s tunnel MTU set to %d\n"), ifname, mtu);
 	return 0;
 }
 
@@ -267,7 +271,7 @@ IPv6Tunnel::ReceivePacket (const fd_set *readset)
 	uint16_t flags, proto;
 	memcpy (&flags, pbuf, 2);
 	memcpy (&proto, pbuf + 2, 2);
-	if (proto != L2_PROTO_IPV6)
+	if (proto != htons (ETH_P_IPV6))
 		return -1; // only accept IPv6 packets
 
 	return 0;
@@ -280,12 +284,15 @@ IPv6Tunnel::SendPacket (const void *packet, size_t len) const
 	if ((fd != -1) && (len <= 65535))
 	{
 		uint8_t buf[65535 + 4];
-		const uint16_t flags = 0, proto = L2_PROTO_IPV6;
+		uint16_t word;
 
-		memcpy (buf, &flags, 2);
-		memcpy (buf + 2, &proto, 2);
+		word = 0;
+		memcpy (buf, &word, 2);
+
+		word = htons (ETH_P_IPV6);
+		memcpy (buf + 2, &word, 2);
+
 		memcpy (buf + 4, packet, len);
-
 		len += 4;
 
 		if (write (fd, buf, len) == (int)len)

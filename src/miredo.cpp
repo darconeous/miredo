@@ -1,7 +1,7 @@
 /*
  * miredo.cpp - Unix Teredo server & relay implementation
  *              core functions
- * $Id: miredo.cpp,v 1.4 2004/06/17 22:52:28 rdenisc Exp $
+ * $Id: miredo.cpp,v 1.5 2004/06/20 10:02:41 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -35,7 +35,7 @@
 #include <netdb.h>
 #include <netinet/in.h> // struct sockaddr_in
 #include <syslog.h>
-#include <unistd.h> // uid
+#include <unistd.h> // uid_t
 
 #ifndef LOG_PERROR
 # define LOG_PERROR 0
@@ -200,8 +200,8 @@ getipv6byname (const char *name, struct in6_addr *ipv6)
 uid_t unpriv_uid = 0;
  
 extern "C" int
-miredo_run (const char *ipv6_name, uint16_t client_port,
-		const char *server_name, const char *prefix_name,
+miredo_run (uint16_t client_port, const char *server_name,
+		const char *prefix_name,
 		const char *ifname, const char *tundev_name)
 {
 	seteuid (unpriv_uid);
@@ -225,8 +225,8 @@ miredo_run (const char *ipv6_name, uint16_t client_port,
 
 	openlog ("miredo", LOG_PERROR|LOG_PID, LOG_DAEMON);
 
-	// FIXME: using conf.addr for temporary storage is a dirty
-	if (getipv6byname (prefix_name, &conf.addr.ip6))
+	// FIXME: using conf.addr for temporary storage is dirty
+	if (getipv6byname ("fe80::5445:5245:444f", &conf.addr.ip6))
 	{
 		syslog (LOG_ALERT,
 			_("Teredo prefix not properly set.\n"));
@@ -244,7 +244,7 @@ miredo_run (const char *ipv6_name, uint16_t client_port,
 	int retval = !tunnel
 		|| tunnel.SetMTU (1280)
 		|| tunnel.BringUp ()
-		|| tunnel.SetAddress (&conf.addr.ip6, 32);
+		|| tunnel.SetAddress (&conf.addr.ip6, 64);
 
 	// Definitely drops privileges
 	if (setuid (unpriv_uid))
@@ -328,12 +328,14 @@ miredo_run (const char *ipv6_name, uint16_t client_port,
 	}
 
 	// FIXME: should not be needed, not that manual way
+	/*
 	if (getipv6byname (ipv6_name, &conf.addr.ip6))
 	{
 		syslog (LOG_ALERT,
 			_("Teredo IPv6 relay address not properly set.\n"));
 		goto abort;
 	}
+	*/
 
 	if (daemon (0, 0))
 	{

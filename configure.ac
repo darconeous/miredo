@@ -43,7 +43,7 @@ AM_INIT_AUTOMAKE([dist-bzip2])
 # Checks for libraries.
 
 # Checks for header files.
-AC_CHECK_HEADERS([linux/if_tun.h linux/ipv6.h])
+AC_CHECK_HEADERS([netinet6/in6_var.h linux/if_tun.h linux/ipv6.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_BIGENDIAN
