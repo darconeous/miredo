@@ -1,6 +1,6 @@
 /*
  * relay-packets.cpp - helpers to send Teredo packet from relay/client
- * $Id: relay-packets.cpp,v 1.1 2004/08/28 13:49:53 rdenisc Exp $
+ * $Id: relay-packets.cpp,v 1.2 2004/08/29 15:56:07 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -85,6 +85,54 @@ SendBubble (const TeredoRelayUDP& sock, const struct in6_addr *d,
 	return 0;
 }
 
+
+static uint16_t
+sum16 (const uint8_t *data, size_t length, uint32_t sum32 = 0)
+{
+	size_t wordc = length / 2;
+
+	for (size_t i = 0; i < wordc; i++)
+		sum32 += ((uint16_t *)data)[i];
+	if (length & 1) // trailing byte if length is odd
+		sum32 += ntohs(((uint16_t)(data[length - 1])) << 8);
+
+	while (sum32 > 0xffff)
+		sum32 = (sum32 & 0xffff) + (sum32 >> 16);
+	
+	return sum32;
+}
+
+/*
+ * Computes an IPv6 16-bits checksum
+ */
+static uint16_t 
+ipv6_sum (const struct ip6_hdr *ip6)
+{
+	uint32_t sum32 = 0;
+
+	/* Pseudo-header sum */
+	for (size_t i = 0; i < 16; i += 2)
+		sum32 += *(uint16_t *)(&ip6->ip6_src.s6_addr[i]);
+	for (size_t i = 0; i < 16; i += 2)
+		sum32 += *(uint16_t *)(&ip6->ip6_dst.s6_addr[i]);
+
+	sum32 += ip6->ip6_plen + ntohs (ip6->ip6_nxt);
+
+	while (sum32 > 0xffff)
+		sum32 = (sum32 & 0xffff) + (sum32 >> 16);
+
+	return sum32;
+}
+
+
+static uint16_t
+icmp6_checksum (const struct ip6_hdr *ip6, const struct icmp6_hdr *icmp6)
+{
+	return ~sum16 ((uint8_t *)icmp6, ntohs (ip6->ip6_plen),
+			ipv6_sum (ip6));
+}
+
+
 /*
  * Sends a router solication with an Authentication header to the server.
  * If secondary is true, the packet will be sent to the server's secondary
@@ -114,7 +162,7 @@ SendRS (const TeredoRelayUDP& sock, uint32_t server_ip, unsigned char *nonce,
 		auth->hdr.hdr.code = teredo_auth_hdr;
 		auth->hdr.id_len = auth->hdr.au_len = 0;
 #ifdef USE_OPENSSL
-		if (!RAND_pseudo_bytes (nonce, 8))
+		if (!RAND_pseudo_bytes (auth->nonce, 8))
 		{
 			char buf[120];
 
@@ -122,9 +170,9 @@ SendRS (const TeredoRelayUDP& sock, uint32_t server_ip, unsigned char *nonce,
 				ERR_error_string (ERR_get_error (), buf));
 		}
 #else
-		memset (nonce, 0, 8);
+		memset (auth->nonce, 0, 8);
 #endif
-		memcpy (&auth->nonce, nonce, 8);
+		memcpy (nonce, auth->nonce, 8);
 		auth->confirmation = 0;
 
 		ptr += 13;
@@ -259,4 +307,51 @@ ParseRA (const TeredoPacket& packet, union teredo_addr *newaddr, bool cone)
 	newaddr->teredo.client_port = ind->orig_port;
 	newaddr->teredo.client_ip = ind->orig_addr;
 	return true;
+}
+
+
+/*
+ * Sends an ICMPv6 Echo request toward an IPv6 node through the Teredo server.
+ */
+int SendPing (const TeredoRelayUDP& sock, const union teredo_addr *src,
+		const struct in6_addr *dst, uint8_t *nonce)
+{
+	struct
+	{
+		struct ip6_hdr ip6;
+		struct icmp6_hdr icmp6;
+                uint32_t payload;
+	} ping;
+
+	ping.ip6.ip6_flow = htonl (0x60000000);
+	ping.ip6.ip6_plen = htons (sizeof (ping.icmp6) + 4);
+	ping.ip6.ip6_nxt = IPPROTO_ICMPV6;
+	ping.ip6.ip6_hlim = 21;
+	memcpy (&ping.ip6.ip6_src, src, sizeof (ping.ip6.ip6_src));
+	memcpy (&ping.ip6.ip6_dst, dst, sizeof (ping.ip6.ip6_dst));
+	
+	ping.icmp6.icmp6_type = ICMP6_ECHO_REQUEST;
+	ping.icmp6.icmp6_code = 0;
+	ping.icmp6.icmp6_cksum = 0;
+	/*
+	ping.icmp6.icmp6_id = 0;
+	ping.icmp6.icmp6_seq = 0;
+	 */
+#ifdef USE_OPENSSL
+	if (!RAND_pseudo_bytes ((unsigned char *)&ping.icmp6.icmp6_id, 8))
+	{
+		char buf[120];
+
+		syslog (LOG_WARNING, _("Possibly predictable RS: %s"),
+			ERR_error_string (ERR_get_error (), buf));
+	}
+#else
+	memset (&ping.icmp6.icmp6_id, 0, 8);
+#endif
+	memcpy (nonce, &ping.icmp6.icmp6_id, 8);
+
+	ping.icmp6.icmp6_cksum = icmp6_checksum (&ping.ip6, &ping.icmp6);
+
+	return sock.SendPacket (&ping, sizeof (ping), IN6_TEREDO_SERVER (src),
+				htons (IPPORT_TEREDO));
 }

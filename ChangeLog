@@ -11,7 +11,9 @@
 	- implemented client packet reception,
 	- check confirmation byte from server,
 	* libteredo/teredo-udp.*:
-	- support for getting the confirmation byte in auth header.
+	- support for getting the confirmation byte in auth header,
+	* libteredo/relay-packets.*:
+	- support for sending Teredo ICMPv6 Echo request.
 
 2004-08-28  Remi Denis-Courmont
 
