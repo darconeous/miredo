@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: miredo 0.3.1\n"
 "Report-Msgid-Bugs-To: rdenis@simphalempin.com\n"
-"POT-Creation-Date: 2004-11-01 19:19+0100\n"
+"POT-Creation-Date: 2004-11-01 20:12+0100\n"
 "PO-Revision-Date: 2004-11-01 18:41+0100\n"
 "Last-Translator: Rémi Denis-Courmont <rdenis@simphalempin.com>\n"
 "Language-Team: N/A\n"
@@ -25,29 +25,14 @@ msgstr "Erreur fatale de socket: %m"
 msgid "Fatal bind error: %m"
 msgstr "Erreur fatale de bind(): %m"
 
-#: libteredo/teredo-udp.cpp:105
-#, c-format
-msgid "Couldn't send UDP packet: %m"
-msgstr "Impossible d'envoyer un paquet UDP: %m"
-
-#: libteredo/teredo-udp.cpp:111
-#, c-format
-msgid "UDP packet shortened: sent %d bytes instead of %u"
-msgstr "Paquet UDP raccourci: %d octets émis au lieu de %u"
-
-#: libteredo/teredo-udp.cpp:141
-#, c-format
-msgid "Error receiving UDP packet: %m"
-msgstr "Erreur de réception d'un paquet UDP: %m"
-
-#: libteredo/teredo-udp.cpp:274
+#: libteredo/teredo-udp.cpp:260
 msgid ""
 "Teredo server UDP socket error: Server IPv4 addresses must be global unicast."
 msgstr ""
 "Erreur de socket UDP de serveur Teredo: l'adresse IPv4 de serveur doit être "
 "globale unicast."
 
-#: libteredo/teredo-udp.cpp:281
+#: libteredo/teredo-udp.cpp:267
 msgid ""
 "Teredo server UDP socket error: Server IPv4 addresses must not be wildcard."
 msgstr ""
@@ -77,7 +62,7 @@ msgstr "Qualifié (type de NAT: %s)"
 msgid "cone"
 msgstr "cône"
 
-#: libteredo/relay.cpp:581 src/main.c:563
+#: libteredo/relay.cpp:581 src/main.c:561
 msgid "restricted"
 msgstr "restreint"
 
@@ -195,9 +180,10 @@ msgstr ""
 "# mknod /dev/net/tun c 10 200\n"
 "(vous devez être root pour cela).\n"
 
-#: libtun6/ipv6-tunnel.cpp:866 libtun6/ipv6-tunnel.cpp:891
+#: libtun6/ipv6-tunnel.cpp:866
+#, fuzzy
 msgid ""
-"You can obtain a tunnel driver for the Darwin kernel (Mac OS X) from :\n"
+"You can obtain a tunnel device for the Darwin kernel (Mac OS X) from :\n"
 "http://chrisp.de/en/projects/tunnel.html\n"
 msgstr ""
 "Vous pouvez obtenir un pilote de tunnel pour le noyau Darwin (Mac OS X) à :\n"
@@ -218,6 +204,14 @@ msgid ""
 msgstr ""
 "Vérifiez que votre noyau Linux comporte l'\"Universal TUNTAP driver\"\n"
 "(option CONFIG_TUN), éventuellement sous forme de module.\n"
+
+#: libtun6/ipv6-tunnel.cpp:891
+msgid ""
+"You can obtain a tunnel driver for the Darwin kernel (Mac OS X) from :\n"
+"http://chrisp.de/en/projects/tunnel.html\n"
+msgstr ""
+"Vous pouvez obtenir un pilote de tunnel pour le noyau Darwin (Mac OS X) à :\n"
+"http://chrisp.de/en/projects/tunnel.html\n"
 
 #: libtun6/ipv6-tunnel.cpp:901
 #, c-format
@@ -395,13 +389,12 @@ msgstr ""
 msgid "Miredo configuration :"
 msgstr ""
 
-#: src/main.c:541
-#, c-format
-msgid "Client/relay UDP port       : %u\n"
+#: src/main.c:540
+msgid "Client/relay UDP port       : "
 msgstr ""
 
 #: src/main.c:544
-msgid "Client/relay UDP port       : default"
+msgid "automatic"
 msgstr ""
 
 #: src/main.c:546
@@ -409,43 +402,43 @@ msgstr ""
 msgid "Client/relay IPv4 address   : %s\n"
 msgstr ""
 
-#: src/main.c:549
-msgid "Client/relay IPv4 address   : any"
+#: src/main.c:547
+msgid "any"
 msgstr ""
 
-#: src/main.c:551
+#: src/main.c:549
 #, c-format
 msgid "Tunnel interface name       : %s\n"
 msgstr ""
 
-#: src/main.c:552 src/main.c:559
+#: src/main.c:550 src/main.c:557
 msgid "default"
 msgstr ""
 
-#: src/main.c:556
+#: src/main.c:554
 #, c-format
 msgid "Server primary IPv4 address : %s\n"
 msgstr ""
 
-#: src/main.c:557
+#: src/main.c:555
 msgid "disabled"
 msgstr ""
 
-#: src/main.c:558
+#: src/main.c:556
 #, c-format
 msgid "Teredo IPv6 prefix          : %s\n"
 msgstr ""
 
-#: src/main.c:560
+#: src/main.c:558
 #, c-format
 msgid "Assumed NAT type            : %s\n"
 msgstr ""
 
-#: src/main.c:562
+#: src/main.c:560
 msgid "none/cone"
 msgstr ""
 
-#: src/main.c:566
+#: src/main.c:564
 #, c-format
 msgid "Server name                 : %s\n"
 msgstr ""
@@ -554,3 +547,12 @@ msgstr ""
 #, c-format
 msgid "Child %d killed by signal %d (%s)"
 msgstr ""
+
+#~ msgid "Couldn't send UDP packet: %m"
+#~ msgstr "Impossible d'envoyer un paquet UDP: %m"
+
+#~ msgid "UDP packet shortened: sent %d bytes instead of %u"
+#~ msgstr "Paquet UDP raccourci: %d octets émis au lieu de %u"
+
+#~ msgid "Error receiving UDP packet: %m"
+#~ msgstr "Erreur de réception d'un paquet UDP: %m"
