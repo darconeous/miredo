@@ -1,6 +1,6 @@
 /*
  * relay.cpp - Teredo relay peers list definition
- * $Id: relay.cpp,v 1.16 2004/08/24 19:03:42 rdenisc Exp $
+ * $Id: relay.cpp,v 1.17 2004/08/24 19:58:23 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -33,6 +33,7 @@
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <netinet/ip6.h> // struct ip6_hdr
+#include <netinet/icmp6.h> // router solicication
 #include <syslog.h>
 
 #include "teredo.h"
@@ -214,6 +215,84 @@ int TeredoRelay::SendBubble (const struct in6_addr *d, bool indirect) const
 	return 0;
 }
 
+/*
+ * Sends a router solication with an Authentication header to the server.
+ * If cone is true, the source IPv6 address will have the cone Teredo flag
+ * enabled. If secondary is true, the packet will be sent to the server's
+ * secondary IPv4 adress instead of the primary one.
+ *
+ * Returns 0 on success, -1 on error.
+ */
+static const struct in6_addr in6addr_allrouters =
+        { { { 0xff, 0x02, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x2 } } };
+
+int TeredoRelay::SendRS (bool cone, bool secondary) const
+{
+	uint8_t packet[13 + sizeof (struct ip6_hdr)
+			+ sizeof (struct nd_router_solicit)
+			+ sizeof (nd_opt_hdr) + 14],
+                *ptr = packet;
+
+	// Authentication header
+	// TODO: secure qualification
+	{
+		struct teredo_simple_auth *auth;
+
+		auth = (struct teredo_simple_auth *)ptr;
+		auth->hdr.hdr.zero = 0;
+		auth->hdr.hdr.code = teredo_auth_hdr;
+		auth->hdr.id_len = auth->hdr.au_len = 0;
+		/* FIXME: put random entropy there */
+		memset (&auth->nonce, 0, 8);
+		auth->confirmation = 0;
+
+		ptr += 13;
+	}
+
+	{
+		struct
+		{
+			struct ip6_hdr ip6;
+			struct nd_router_solicit rs;
+			struct nd_opt_hdr opt;
+			uint8_t lladdr[14];
+		} rs;
+
+		rs.ip6.ip6_flow = htonl (0x60000000);
+		rs.ip6.ip6_plen = htons (sizeof (rs));
+		rs.ip6.ip6_nxt = IPPROTO_ICMPV6;
+		rs.ip6.ip6_hlim = 255;
+		memcpy (&rs.ip6.ip6_src, cone
+			? &teredo_cone : &teredo_restrict,
+			sizeof (rs.ip6.ip6_src));
+		memcpy (&rs.ip6.ip6_dst, &in6addr_allrouters,
+			sizeof (rs.ip6.ip6_dst));
+	
+		rs.rs.nd_rs_type = ND_ROUTER_SOLICIT;
+		rs.rs.nd_rs_code = 0;
+		// Checksums are pre-computed
+		rs.rs.nd_rs_cksum = htons (cone ? 0x114b : 0x914b);
+
+		/*
+		 * Microsoft Windows XP sends a 14 byte nul
+		 * source link-layer address (this is useless) when qualifying.
+		 * Once qualified, it still sends a source link-layer address,
+		 * but it includes sort of an origin indication.
+		 * We keep it nul every time. It avoids having to compute the
+		 * checksum and it is not specified.
+		 */
+		rs.opt.nd_opt_type = ND_OPT_SOURCE_LINKADDR;
+		rs.opt.nd_opt_len = 16;
+
+		memset (rs.lladdr, 0, sizeof (rs.lladdr));
+
+		memcpy (ptr, &rs, sizeof (rs));
+	}
+
+	return sock.SendPacket (packet, sizeof (packet), secondary
+				? htonl (ntohl (server_ip) + 1) : server_ip,
+				htons (IPPORT_TEREDO));
+}
 
 /*
  * Returs true if the packet whose header is passed as a parameter looks
@@ -415,7 +494,7 @@ int TeredoRelay::ReceivePacket (void)
 	 */
 
 	if (server_ip && (sock.GetClientIP () == server_ip)
-	 && (sock.GetClientPort () == IPPORT_TEREDO))
+	 && (sock.GetClientPort () == htons (IPPORT_TEREDO)))
 	{
 		time (&server_interaction);
 
