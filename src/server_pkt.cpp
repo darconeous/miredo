@@ -1,6 +1,6 @@
 /*
  * server_pkt.cpp - Handling of a single Teredo datagram (server-side).
- * $Id: server_pkt.cpp,v 1.2 2004/06/14 21:52:32 rdenisc Exp $
+ * $Id: server_pkt.cpp,v 1.3 2004/06/20 13:53:35 rdenisc Exp $
  */
 
 /***********************************************************************
@@ -25,17 +25,19 @@
 
 #include <stddef.h>
 #include <string.h> /* memcpy(), memset() */
-#include <sys/types.h>
+#include <inttypes.h>
 
-#include <netinet/ip6.h>
+#include <sys/types.h>
+#include <netinet/in.h> // struct in6_addr
+#include <netinet/ip6.h> // struct ip6_hdr
 #include <netinet/icmp6.h>
+
+#include <arpa/inet.h> // inet_ntoa()
+#include <syslog.h> // DEBUG
 
 #include "teredo-udp.h"
 #include "common_pkt.h"
 #include "miredo.h" // conf, TODO: remove that
-
-#include <arpa/inet.h>
-#include <syslog.h> // DEBUG
 
 /*
  * TODO: no longer use the global conf structure, which is a big dirty hack.

@@ -1,7 +1,7 @@
 /*
  * main.c - Unix Teredo server & relay implementation
  *          command line handling and core functions
- * $Id: main.c,v 1.4 2004/06/20 10:02:41 rdenisc Exp $
+ * $Id: main.c,v 1.5 2004/06/20 13:53:35 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -29,12 +29,15 @@
 
 #include <stdio.h>
 #include <stdlib.h> /* strtoul() */
+#include <inttypes.h>
 
 #include <sys/types.h>
+#include <sys/time.h> /* for <sys/resource.h> */
 #include <sys/resource.h> /* getrlimit() */
 #include <unistd.h>
 #include <errno.h> /* errno */
 #include <fcntl.h> /* O_RDONLY */
+
 #ifdef MIREDO_UNPRIV_USER
 # include <pwd.h> /* getpwnam() */
 #endif

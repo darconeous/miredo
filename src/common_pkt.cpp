@@ -1,6 +1,6 @@
 /*
  * common_pkt.cpp - Common server and relay functions
- * $Id: common_pkt.cpp,v 1.1 2004/06/14 14:45:58 rdenisc Exp $
+ * $Id: common_pkt.cpp,v 1.2 2004/06/20 13:53:35 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -30,6 +30,7 @@
 #include "ipv6-tunnel.h"
 
 #include <syslog.h> // DEBUG
+#include <inttypes.h>
 
 int
 ForwardPacket (const MiredoCommonUDP *from, const IPv6Tunnel *to)

@@ -1,6 +1,6 @@
 /*
  * teredo-udp.h - UDP sockets class declaration
- * $Id: teredo-udp.h,v 1.3 2004/06/15 16:09:22 rdenisc Exp $
+ * $Id: teredo-udp.h,v 1.4 2004/06/20 13:53:35 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -30,6 +30,8 @@
 # endif
 
 # include <stddef.h>
+# include <inttypes.h>
+
 # include <sys/types.h>
 # include <sys/select.h> // fd_set
 # include "teredo.h"

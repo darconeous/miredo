@@ -15,7 +15,10 @@ AC_DEFUN([RDC_STRUCT_SOCKADDR_LEN],
 AC_CACHE_CHECK([if struct sockaddr has a sa_len member],
 rdc_cv_struct_sockaddr_len,
 [AC_TRY_COMPILE(
-[#if HAVE_SYS_TYPES_H
+[#if HAVE_INTTYPES_H
+# include <inttypes.h>
+#endif
+#if HAVE_SYS_TYPES_H
 # include <sys/types.h>
 #endif
 #if HAVE_SYS_SOCKET_H

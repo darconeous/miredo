@@ -1,7 +1,7 @@
 /*
  * miredo.cpp - Unix Teredo server & relay implementation
  *              core functions
- * $Id: miredo.cpp,v 1.5 2004/06/20 10:02:41 rdenisc Exp $
+ * $Id: miredo.cpp,v 1.6 2004/06/20 13:53:35 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -28,6 +28,8 @@
 #endif
 
 #include <string.h> // memset()
+#include <stdlib.h> // daemon() on FreeBSD
+#include <inttypes.h>
 
 #include <sys/types.h>
 #include <sys/socket.h>

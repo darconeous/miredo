@@ -1,6 +1,6 @@
 /*
  * relay.h - Teredo relay peers list declaration
- * $Id: relay.h,v 1.1 2004/06/14 14:45:58 rdenisc Exp $
+ * $Id: relay.h,v 1.2 2004/06/20 13:53:35 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -25,9 +25,11 @@
 #ifndef MIREDO_RELAY_H
 # define MIREDO_RELAY_H
 
+# include <inttypes.h>
 # include <time.h> // time_t
-# include <netinet/in.h> // struct in6_addr
 # include <string.h> // memcpy()
+
+# include <netinet/in.h> // struct in6_addr
 
 class MiredoRelayUDP;
 class IPv6Tunnel;

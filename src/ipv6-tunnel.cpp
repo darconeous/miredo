@@ -1,6 +1,6 @@
 /*
  * ipv6-tunnel.cpp - IPv6 interface class definition
- * $Id: ipv6-tunnel.cpp,v 1.5 2004/06/20 10:02:41 rdenisc Exp $
+ * $Id: ipv6-tunnel.cpp,v 1.6 2004/06/20 13:53:35 rdenisc Exp $
  */
 
 /***********************************************************************
@@ -24,6 +24,8 @@
 #endif
 
 #include <string.h>
+#include <stdlib.h>
+#include <inttypes.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -31,33 +33,37 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 #include <syslog.h>
-#include "ipv6-tunnel.h"
 
-#if HAVE_LINUX_IF_TUN_H
-# include <linux/if_tun.h> // TUNSETIFF
-#endif
-#include <net/if.h> // struct ifreq
 #include <sys/socket.h> // socket(PF_INET6, SOCK_DGRAM, 0)
-#include <arpa/inet.h> // inet_ntop()
 #include <netinet/in.h> // htons()
+#include <net/if.h> // struct ifreq
+#include <arpa/inet.h> // inet_ntop()
 
 #ifndef ETH_P_IPV6
 # define ETH_P_IPV6 0x86DD
 #endif
 
+#if HAVE_LINUX_IF_TUN_H
+# include <linux/if_tun.h> // TUNSETIFF
+#endif
+
+
 #if HAVE_NETINET6_IN6_VAR_H
+# include <net/if_var.h>
 # include <netinet6/in6_var.h>
+#elif HAVE_LINUX_IPV6_H
 /*
  * <linux/ipv6.h> conflicts with <netinet/in.h> and <arpa/inet.h>,
  * so we've got to declare this structure by hand.
  */
-#elif HAVE_LINUX_IPV6_H
 struct in6_ifreq {
 	struct in6_addr ifr6_addr;
 	uint32_t ifr6_prefixlen;
 	int ifr6_ifindex;
 };
 #endif
+
+#include "ipv6-tunnel.h"
 
 static int
 socket_udp6 (void)
@@ -105,7 +111,13 @@ IPv6Tunnel::IPv6Tunnel (const char *req_name, const char *tundev)
 		fd = -1;
 	}
 
-	secure_strncpy (ifname, req.ifr_name, IFNAMSIZ);
+	ifname = strdup (req.ifr_name);
+	if (ifname == NULL)
+	{
+		syslog (LOG_ERR, _("Tunnel error: %m\n"));
+		close (fd);
+		fd = -1;
+	}
 	syslog (LOG_INFO, _("Tunneling interface %s created.\n"), ifname);
 }
 
@@ -117,6 +129,7 @@ IPv6Tunnel::~IPv6Tunnel ()
 		syslog (LOG_INFO, _("Tunneling interface %s removed.\n"),
 			ifname);
 		close (fd);
+		free (ifname);
 	}
 }
 
