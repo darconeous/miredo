@@ -693,7 +693,12 @@ main (int argc, char *argv[])
 						ifname);
 
 	if (pidfile != NULL)
-		remove (pidfile);
+	{
+		seteuid (0);
+		unlink (pidfile);
+		seteuid (unpriv_uid);
+	}
+
 
 	return c ? 1 : 0;
 }
