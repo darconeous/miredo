@@ -228,9 +228,9 @@ uid_t unpriv_uid = 0;
 static int
 miredo_run (int mode, const char *ifname,
 		uint16_t bind_port, uint32_t bind_ip,
-		uint32_t server_ip, union teredo_addr *prefix)
+		uint32_t server_ip, union teredo_addr *prefix,
+		bool default_route)
 {
-
 #ifdef MIREDO_TEREDO_RELAY
 	MiredoRelay *relay = NULL;
 #endif
@@ -242,7 +242,7 @@ miredo_run (int mode, const char *ifname,
 	if (seteuid (0))
 		syslog (LOG_WARNING, _("SetUID to root failed: %m"));
 
-	/* 
+	/*
 	 * Tunneling interface initialization
 	 *
 	 * NOTE: The Linux kernel does not allow setting up an address
@@ -272,7 +272,8 @@ miredo_run (int mode, const char *ifname,
 #ifdef MIREDO_TEREDO_CLIENT
 	if (mode == TEREDO_CLIENT)
 	{
-		fd = miredo_privileged_process (tunnel, unpriv_uid);
+		fd = miredo_privileged_process (tunnel, unpriv_uid,
+						default_route);
 		if (fd == -1)
 		{
 			syslog (LOG_ALERT,
@@ -484,6 +485,7 @@ miredo (const char *confpath)
 
 		/* Default settings */
 		int mode = TEREDO_CLIENT;
+		bool default_route = true;
 		char *ifname = NULL;
 		uint32_t bind_ip = INADDR_ANY, server_ip = 0;
 		int newfacility = LOG_DAEMON;
@@ -521,14 +523,13 @@ miredo (const char *confpath)
 
 		if (mode == TEREDO_CLIENT)
 		{
-			if (!ParseIPv4 (cnf, "ServerAddress", &server_ip))
+			if (!ParseIPv4 (cnf, "ServerAddress", &server_ip)
+			 || !cnf.GetBoolean ("DefaultRoute", &default_route))
 			{
 				syslog (LOG_ALERT,
 					_("Fatal configuration error"));
 				continue;
 			}
-
-			/* FIXME: DefaultRoute */
 		}
 		else
 		{
@@ -580,7 +581,8 @@ miredo (const char *confpath)
 				retval = miredo_run (mode, ifname != NULL
 							? ifname : ident,
 							bind_port, bind_ip,
-							server_ip, &prefix);
+							server_ip, &prefix,
+							default_route);
 				if (ifname != NULL)
 					free (ifname);
 				closelog ();

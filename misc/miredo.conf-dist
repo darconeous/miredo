@@ -79,6 +79,15 @@ InterfaceName	teredo
 ServerAddress teredo.via.ecp.fr
 
 #
+# (Client-only)
+# Whether to create a default IPv6 route through the Teredo tunnel
+#
+# Defaults: DefaultRoute On
+# Example:  DefauktRoute Off
+#
+#DefaultRoute Off
+
+#
 # SERVER AND RELAY PARAMETERS
 #
 # If the ServerAddress option is set, Miredo runs as a Teredo client

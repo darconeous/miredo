@@ -38,7 +38,8 @@
 
 
 int
-miredo_privileged_process (IPv6Tunnel& tunnel, uid_t unpriv)
+miredo_privileged_process (IPv6Tunnel& tunnel, uid_t unpriv,
+				bool default_route)
 {
 	int fd[2];
 #ifdef HAVE_LIBCAP
@@ -100,7 +101,8 @@ miredo_privileged_process (IPv6Tunnel& tunnel, uid_t unpriv)
 
 		if (memcmp (&oldter, &in6addr_any, 16))
 		{
-			tunnel.DelRoute (&in6addr_any, 0);
+			if (default_route)
+				tunnel.DelRoute (&in6addr_any, 0);
 			tunnel.DelAddress (&oldter, 32);
 			tunnel.DelAddress (p_oldloc, 64);
 		}
@@ -111,7 +113,8 @@ miredo_privileged_process (IPv6Tunnel& tunnel, uid_t unpriv)
 		{
 			tunnel.AddAddress (p_newloc, 64);
 			tunnel.AddAddress (&newter, 32);
-			tunnel.AddRoute (&in6addr_any, 0);
+			if (default_route)
+				tunnel.AddRoute (&in6addr_any, 0);
 		}
 		else
 			tunnel.BringDown ();
