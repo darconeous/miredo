@@ -50,7 +50,7 @@ class TeredoRelay
 		struct
 		{
 			struct timeval next, serv;
-			unsigned char nonce[8];
+			uint8_t nonce[8];
 			unsigned state:2;
 			unsigned count:3;
 		} probe;

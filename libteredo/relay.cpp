@@ -325,7 +325,7 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
 	if ((length < sizeof (ip6)) || (length > 65507))
 		return 0;
 
-	memcpy (&ip6, packet, sizeof (ip6_hdr));
+	memcpy (&ip6, packet, sizeof (ip6));
 
 	// Sanity check (should we trust the kernel?):
 	// It's no use emitting such a broken packet because the other side

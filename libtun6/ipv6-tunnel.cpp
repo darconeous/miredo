@@ -851,23 +851,25 @@ int libtun6_driver_diagnose (char *errbuf)
 
 	if (errno == ENOENT)
 	{
-		snprintf (errbuf, LIBTUN6_ERRBUF_SIZE - 1,
-			_("Error: %s character device "
-			"not found or unavailable.\n"), tundev);
+		const char *specific;
+
 #if defined (HAVE_LINUX)
-		strncat (errbuf,
-			_("You should run these commands to create it :\n"
+		specific = N_("You should run these commands to create it :\n"
 			"# mkdir -p /dev/net\n"
 			"# mknod /dev/net/tun c 10 200\n"
-			"(you must be root to do that).\n"),
-			LIBTUN6_ERRBUF_SIZE - strlen (errbuf) - 1);
+			"(you must be root to do that).\n");
 #elif defined (HAVE_DARWIN)
-		strncat (errbuf,
-			_("You can obtain a tunnel driver for the "
+		specific = N_("You can obtain a tunnel driver for the "
 			"Darwin kernel (Mac OS X) from :\n"
-			"http://chrisp.de/en/projects/tunnel.html\n"),
-			LIBTUN6_ERRBUF_SIZE - strlen (errbuf) - 1);
+			"http://chrisp.de/en/projects/tunnel.html\n");
+#else
+		specific = NULL;
 #endif
+
+		snprintf (errbuf, LIBTUN6_ERRBUF_SIZE - 1,
+			_("Error: %s character device "
+			"not found or unavailable.\n%s"), tundev,
+			specific != NULL ? gettext (specific) : "");
 		errbuf[LIBTUN6_ERRBUF_SIZE - 1] = '\0';
 		return -1;
 	}
@@ -875,24 +877,25 @@ int libtun6_driver_diagnose (char *errbuf)
 	/* Linux retunrs ENODEV instead of ENXIO */
 	if ((errno == ENXIO) || (errno == ENODEV))
 	{
-		strncpy (errbuf,
+		const char *specific;
+
+#if defined (HAVE_LINUX)
+		specific = N_("Make sure your Linux kernel includes "
+			"the \"Universal TUNTAP driver\"\n"
+			"(CONFIG_TUN option), possibly as a module.\n");
+#elif defined (HAVE_DARWIN)
+		specific = N_("You can obtain a tunnel driver for the "
+			"Darwin kernel (Mac OS X) from :\n"
+			"http://chrisp.de/en/projects/tunnel.html\n");
+#else
+		specific = NULL;
+#endif
+
+		snprintf (errbuf, LIBTUN6_ERRBUF_SIZE - 1,
 			_("Error: your operating system does not "
 			"seem to provide a network tunnneling\n"
-			"device driver, which is required.\n"),
-			LIBTUN6_ERRBUF_SIZE - 1);
-#if defined (HAVE_LINUX)
-		strncat (errbuf,
-			_("Make sure your Linux kernel includes "
-			"the \"Universal TUNTAP driver\"\n"
-			"(CONFIG_TUN option), possibly as a module.\n"),
-			LIBTUN6_ERRBUF_SIZE - strlen (errbuf) - 1);
-#elif defined (HAVE_DARWIN)
-		strncat (errbuf,
-			_("You can obtain a tunnel driver for the "
-			"Darwin kernel (Mac OS X) from :\n"
-			"http://chrisp.de/en/projects/tunnel.html\n"),
-			LIBTUN6_ERRBUF_SIZE - strlen (errbuf) - 1);
-#endif
+			"device driver, which is required.\n%s"),
+			specific != NULL ? gettext (specific) : "");
 		errbuf[LIBTUN6_ERRBUF_SIZE - 1] = '\0';
 		return -1;
 	}
