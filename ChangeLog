@@ -1,3 +1,9 @@
+2004-22-08  Remi Denis-Courmont
+
+	* libteredo/relay.*:
+	- support for relay behind restricted NAT,
+	- partial support for client packet transmission.
+
 2004-08-18  Remi Denis-Courmont
 
 	* src/miredo.cpp, src/privproc.*:

@@ -1,6 +1,6 @@
 /*
  * relay.h - Teredo relay peers list declaration
- * $Id: relay.h,v 1.10 2004/08/22 16:40:05 rdenisc Exp $
+ * $Id: relay.h,v 1.11 2004/08/22 16:58:53 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -96,7 +96,8 @@ class TeredoRelay
 		 * TODO: allow the caller to specify an IPv4 address to bind
 		 * to.
 		 */
-		TeredoRelay (uint32_t pref, uint16_t port = 0);
+		TeredoRelay (uint32_t pref, uint16_t port = 0,
+				bool cone = true);
 
 		/*
 		 * Creates a Teredo client/relay automatically. The client

@@ -1,7 +1,7 @@
 /*
  * main.c - Unix Teredo server & relay implementation
  *          command line handling and core functions
- * $Id: main.c,v 1.19 2004/08/18 09:41:46 rdenisc Exp $
+ * $Id: main.c,v 1.20 2004/08/22 16:58:53 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -388,7 +388,8 @@ main (int argc, char *argv[])
 	
 	const struct option opts[] =
 	{
-		//{ "config",	required_argument,	NULL, 'c' },
+		/* FIXME: option for non-cone relay */
+		/*{ "config",	required_argument,	NULL, 'c' },*/
 		{ "foreground",	no_argument,		NULL, 'f' },
 		{ "help",	no_argument,		NULL, 'h' },
 		{ "iface",	required_argument,	NULL, 'i' },
