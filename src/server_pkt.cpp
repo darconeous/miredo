@@ -1,6 +1,6 @@
 /*
  * server_pkt.cpp - Handling of a single Teredo datagram (server-side).
- * $Id: server_pkt.cpp,v 1.3 2004/06/20 13:53:35 rdenisc Exp $
+ * $Id: server_pkt.cpp,v 1.4 2004/06/22 16:39:53 rdenisc Exp $
  */
 
 /***********************************************************************
@@ -38,6 +38,7 @@
 #include "teredo-udp.h"
 #include "common_pkt.h"
 #include "miredo.h" // conf, TODO: remove that
+#include "server_pkt.h"
 
 /*
  * TODO: no longer use the global conf structure, which is a big dirty hack.

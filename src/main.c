@@ -1,7 +1,7 @@
 /*
  * main.c - Unix Teredo server & relay implementation
  *          command line handling and core functions
- * $Id: main.c,v 1.7 2004/06/21 17:48:55 rdenisc Exp $
+ * $Id: main.c,v 1.8 2004/06/22 16:39:53 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -110,7 +110,7 @@ version (void)
 
 
 static int
-error_dup (char opt, const char *already, const char *additionnal)
+error_dup (int opt, const char *already, const char *additionnal)
 {
 	fprintf (stderr, _(
 "Duplicate parameter `%s' for option -%c\n"
@@ -121,7 +121,7 @@ error_dup (char opt, const char *already, const char *additionnal)
 
 
 static int
-error_qty (char opt, const char *qty)
+error_qty (int opt, const char *qty)
 {
 	fprintf (stderr, _(
 "Invalid number (or capacity exceeded) `%s' for option -%c\n"), qty, opt);
@@ -153,7 +153,8 @@ error_missing (void)
  *  - setuid() to definitely dop root priviledges,
  *  - daemon() to redirect file handles 0, 1 and 2 to /dev/null.
  */
-int init_security (void)
+static int
+init_security (void)
 {
 #ifdef MIREDO_UNPRIV_USER
 	struct passwd *pw;
@@ -163,7 +164,6 @@ int init_security (void)
 #endif
 	struct rlimit lim;
 	int fd;
-	extern uid_t unpriv_uid;
 
 	/*
 	 * We close all file handles, except 0, 1 and 2.

@@ -1,7 +1,7 @@
 /*
  * miredo.cpp - Unix Teredo server & relay implementation
  *              core functions
- * $Id: miredo.cpp,v 1.8 2004/06/21 17:48:55 rdenisc Exp $
+ * $Id: miredo.cpp,v 1.9 2004/06/22 16:39:53 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -53,9 +53,9 @@
 
 struct miredo_setup conf;
 
-MiredoRelayUDP *relay_udp = NULL;
-MiredoServerUDP *server_udp = NULL;
-IPv6Tunnel *ipv6_tunnel = NULL;
+static MiredoRelayUDP *relay_udp = NULL;
+static MiredoServerUDP *server_udp = NULL;
+static IPv6Tunnel *ipv6_tunnel = NULL;
 
 /*
  * Main server function, with UDP datagrams receive loop.
@@ -75,7 +75,8 @@ teredo_server_relay (void)
 	}
 
 	/* Main loop */
-	while (1)
+	int exitcode = 0;
+	while (exitcode == 0)
 	{
 		/* Registers file descriptors */
 		fd_set readset;
@@ -317,7 +318,7 @@ miredo_run (uint16_t client_port, const char *server_name,
 	{
 		syslog (LOG_ALERT,
 			_("Teredo service port failure: "
-			"cannot open UDP port %u\n"), client_port);
+			"cannot open UDP port %u\n"), (unsigned)client_port);
 		syslog (LOG_NOTICE, _("Make sure another instance "
 			"of the program is not already running.\n"));
 		goto abort;
