@@ -601,7 +601,7 @@ miredo (const char *confpath)
 		{
 			retval = WEXITSTATUS (retval);
 			syslog (LOG_NOTICE, _(
-				"Terminated (exit code: %d)."), retval);
+				"Terminated (exit code: %d)"), retval);
 			retval = retval != 0;
 		}
 		else
@@ -609,7 +609,7 @@ miredo (const char *confpath)
 		{
 			retval = WTERMSIG (retval);
 			syslog (LOG_INFO, _(
-				"Child %d killed by signal %d (%s)."),
+				"Child %d killed by signal %d (%s)"),
 				(int)pid, retval, strsignal (retval));
 			retval = 2;
 		}
