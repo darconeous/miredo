@@ -387,12 +387,12 @@ CheckPing (const TeredoPacket& packet, const uint8_t *nonce)
  * packet. The output buffer should be at least 1280 bytes long.
  * Returns the actual size of the generated error message. Never fails.
  *
- * It is assumed that the input and output buffers are properly aligned.
+ * It is assumed that the output buffer is properly aligned.
  */
 int
 BuildICMPv6Error (struct ip6_hdr *out, const struct in6_addr *src,
 			uint8_t type, uint8_t code,
-			const struct ip6_hdr *in, uint16_t inlen)
+			const void *in, uint16_t inlen)
 {
 	if (inlen + sizeof (struct ip6_hdr) + sizeof (icmp6_hdr) > 1280)
 		inlen = 1280 - (sizeof (struct ip6_hdr) + sizeof (icmp6_hdr));
@@ -403,7 +403,8 @@ BuildICMPv6Error (struct ip6_hdr *out, const struct in6_addr *src,
 	out->ip6_nxt = IPPROTO_ICMPV6;
 	out->ip6_hlim = 255;
 	memcpy (&out->ip6_src, src, sizeof (struct in6_addr));
-	memcpy (&out->ip6_dst, &in->ip6_src, sizeof (struct in6_addr));
+	memcpy (&out->ip6_dst, &((const struct ip6_hdr *)in)->ip6_src,
+		sizeof (struct in6_addr));
 	
 	struct icmp6_hdr *h = (struct icmp6_hdr *)(out + 1);
 	h->icmp6_type = type;

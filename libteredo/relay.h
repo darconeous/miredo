@@ -63,8 +63,7 @@ class TeredoRelay
 		struct peer *AllocatePeer (void);
 		struct peer *FindPeer (const struct in6_addr *addr);
 
-		int SendUnreach (int code, const struct ip6_hdr *in,
-					size_t inlen);
+		int SendUnreach (int code, const void *in, size_t inlen);
 
 		/*** Callbacks ***/
 		/*

@@ -284,7 +284,7 @@ struct TeredoRelay::peer *TeredoRelay::FindPeer (const struct in6_addr *addr)
  * quite good.
  */
 int
-TeredoRelay::SendUnreach (int code, const struct ip6_hdr *in, size_t inlen)
+TeredoRelay::SendUnreach (int code, const void *in, size_t inlen)
 {
 	struct
 	{
@@ -319,7 +319,7 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
 {
 	/* Makes sure we are qualified properly */
 	if (!IsRunning ())
-		return -1; // TODO: send ICMPv6 error?
+		return SendUnreach (0, packet, length);
 
 	struct ip6_hdr ip6;
 	if ((length < sizeof (ip6)) || (length > 65507))
