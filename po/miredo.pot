@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: rdenis@simphalempin.com\n"
-"POT-Creation-Date: 2004-11-01 20:12+0100\n"
+"POT-Creation-Date: 2004-11-01 21:05+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -57,7 +57,7 @@ msgstr ""
 msgid "cone"
 msgstr ""
 
-#: libteredo/relay.cpp:581 src/main.c:561
+#: libteredo/relay.cpp:581 src/main.c:562
 msgid "restricted"
 msgstr ""
 
@@ -171,9 +171,9 @@ msgid ""
 "(you must be root to do that).\n"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:866
+#: libtun6/ipv6-tunnel.cpp:866 libtun6/ipv6-tunnel.cpp:891
 msgid ""
-"You can obtain a tunnel device for the Darwin kernel (Mac OS X) from :\n"
+"You can obtain a tunnel driver for the Darwin kernel (Mac OS X) from :\n"
 "http://chrisp.de/en/projects/tunnel.html\n"
 msgstr ""
 
@@ -187,12 +187,6 @@ msgstr ""
 msgid ""
 "Make sure your Linux kernel includes the \"Universal TUNTAP driver\"\n"
 "(CONFIG_TUN option), possibly as a module.\n"
-msgstr ""
-
-#: libtun6/ipv6-tunnel.cpp:891
-msgid ""
-"You can obtain a tunnel driver for the Darwin kernel (Mac OS X) from :\n"
-"http://chrisp.de/en/projects/tunnel.html\n"
 msgstr ""
 
 #: libtun6/ipv6-tunnel.cpp:901
@@ -313,7 +307,7 @@ msgstr ""
 msgid ""
 "Error: This program tried to change its system\n"
 "group(s) security context but it failed.\n"
-"This is usually an indication that you are trying\n"
+"That is usually an indication that you are trying\n"
 "to start the program as an user with insufficient\n"
 "system privileges. This program should normally be\n"
 "started by root.\n"
@@ -333,31 +327,32 @@ msgid ""
 msgstr ""
 
 #: src/main.c:362
-msgid "SetUID to unpriviledged user"
+#, c-format
+msgid "SetUID to user ID %u: %s\n"
 msgstr ""
 
-#: src/main.c:363
+#: src/main.c:364
 msgid ""
 "Error: This program tried to change its system\n"
 "user security context but it failed.\n"
-"This is usually an indication that you are trying\n"
+"That is usually an indication that you are trying\n"
 "to start the program as an unprivileged user.\n"
 "This program should normally be started only by\n"
 "root, the system administrative user.\n"
 msgstr ""
 
-#: src/main.c:378
+#: src/main.c:379
 msgid "Error (daemon)"
 msgstr ""
 
-#: src/main.c:509
+#: src/main.c:510
 #, c-format
 msgid ""
-"Returned unknown option -%c :\n"
+"Read unknown option -%c :\n"
 "That is probably a bug. Please report it.\n"
 msgstr ""
 
-#: src/main.c:521
+#: src/main.c:522
 msgid ""
 "You have selected conflicting parameters.\n"
 "It is not possible to run a Teredo relay and/or\n"
@@ -365,72 +360,67 @@ msgid ""
 "Refer to the manual page for more details.\n"
 msgstr ""
 
-#: src/main.c:538
+#: src/main.c:539
 msgid "Miredo configuration :"
 msgstr ""
 
-#: src/main.c:540
+#: src/main.c:541
 msgid "Client/relay UDP port       : "
 msgstr ""
 
-#: src/main.c:544
+#: src/main.c:545
 msgid "automatic"
 msgstr ""
 
-#: src/main.c:546
+#: src/main.c:547
 #, c-format
 msgid "Client/relay IPv4 address   : %s\n"
 msgstr ""
 
-#: src/main.c:547
+#: src/main.c:548
 msgid "any"
 msgstr ""
 
-#: src/main.c:549
+#: src/main.c:550
 #, c-format
 msgid "Tunnel interface name       : %s\n"
 msgstr ""
 
-#: src/main.c:550 src/main.c:557
+#: src/main.c:551 src/main.c:558
 msgid "default"
 msgstr ""
 
-#: src/main.c:554
+#: src/main.c:555
 #, c-format
 msgid "Server primary IPv4 address : %s\n"
 msgstr ""
 
-#: src/main.c:555
+#: src/main.c:556
 msgid "disabled"
 msgstr ""
 
-#: src/main.c:556
+#: src/main.c:557
 #, c-format
 msgid "Teredo IPv6 prefix          : %s\n"
 msgstr ""
 
-#: src/main.c:558
+#: src/main.c:559
 #, c-format
 msgid "Assumed NAT type            : %s\n"
 msgstr ""
 
-#: src/main.c:560
+#: src/main.c:561
 msgid "none/cone"
 msgstr ""
 
-#: src/main.c:564
+#: src/main.c:565
 #, c-format
 msgid "Server name                 : %s\n"
 msgstr ""
 
-#: src/miredo.cpp:211
+#: src/miredo.cpp:211 src/miredo.cpp:236
 #, c-format
 msgid "Invalid hostname `%s': %s"
-msgstr ""
-
-#: src/miredo.cpp:236
-#, c-format
-msgid "Invalid hostname '%s': %s"
 msgstr ""
 
 #: src/miredo.cpp:297
@@ -505,7 +495,7 @@ msgstr ""
 
 #: src/miredo.cpp:475
 #, c-format
-msgid "Teredo service port failure: cannot open UDP port %u\n"
+msgid "Teredo service port failure: cannot open UDP port %u"
 msgstr ""
 
 #: src/miredo.cpp:552

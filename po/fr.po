@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: miredo 0.3.1\n"
 "Report-Msgid-Bugs-To: rdenis@simphalempin.com\n"
-"POT-Creation-Date: 2004-11-01 20:12+0100\n"
+"POT-Creation-Date: 2004-11-01 21:05+0100\n"
 "PO-Revision-Date: 2004-11-01 18:41+0100\n"
 "Last-Translator: Rémi Denis-Courmont <rdenis@simphalempin.com>\n"
 "Language-Team: N/A\n"
@@ -62,7 +62,7 @@ msgstr "Qualifié (type de NAT: %s)"
 msgid "cone"
 msgstr "cône"
 
-#: libteredo/relay.cpp:581 src/main.c:561
+#: libteredo/relay.cpp:581 src/main.c:562
 msgid "restricted"
 msgstr "restreint"
 
@@ -180,7 +180,7 @@ msgstr ""
 "# mknod /dev/net/tun c 10 200\n"
 "(vous devez être root pour cela).\n"
 
-#: libtun6/ipv6-tunnel.cpp:866
+#: libtun6/ipv6-tunnel.cpp:866 libtun6/ipv6-tunnel.cpp:891
 msgid ""
 "You can obtain a tunnel driver for the Darwin kernel (Mac OS X) from :\n"
 "http://chrisp.de/en/projects/tunnel.html\n"
@@ -249,7 +249,8 @@ msgstr ""
 "  -s, --server     active la fonction de serveur Teredo,\n"
 "                   et spécifie l'adresse IPv4 principale du serveur\n"
 "  -t, --chroot     redéfinit le répertoire racine (chroot)\n"
-"  -u, --user       redéfinit l'utilisateur qui exécute le programme (setuid)\n"
+"  -u, --user       redéfinit l'utilisateur qui exécute le programme "
+"(setuid)\n"
 "  -V, --version    affiche la version du programme et se termine\n"
 "  -v, --verbose    affiche la configuration avant de démarrer\n"
 
@@ -352,7 +353,8 @@ msgstr ""
 "Cela est potentiellement très dangereux (d'autant plus qu'il s'agit de\n"
 "code de qualité \"beta\" qui n'a jamais été audité à la recherche de\n"
 "failles de sécurité). Si vous voulez vraiment l'exécuter en tant que root,\n"
-"lancez le script configure du code source avec l'option --disable-miredo-user\n"
+"lancez le script configure du code source avec l'option --disable-miredo-"
+"user\n"
 "et recompilez le programme.\n"
 
 #: src/main.c:303
@@ -369,7 +371,8 @@ msgid ""
 "system privileges. This program should normally be\n"
 "started by root.\n"
 msgstr ""
-"Erreur: Ce programme a tenté de changer son contexte de sécurité de groupe(s)\n"
+"Erreur: Ce programme a tenté de changer son contexte de sécurité de groupe"
+"(s)\n"
 "système mais il a échoué. Cela signifie, en général, que vous tentez de\n"
 "démarrer le programme en tant qu'utilisateur avec des privilèges systèmes\n"
 "insuffisants. Normalement, ce programme devrait être démarré par root.\n"
@@ -386,15 +389,17 @@ msgid ""
 "Try adding '-a %s/dev/log'\n"
 " to your syslogd command line to fix that.\n"
 msgstr ""
-"Attention: /dev/log non trouvé ou invalide: la journalisation ne fonctionnera\n"
+"Attention: /dev/log non trouvé ou invalide: la journalisation ne "
+"fonctionnera\n"
 "probablement pas. Essayez d'ajouter '-a %s/dev/log'\n"
 " à la ligne de commande de votre syslogd pour rectifier cela.\n"
 
 #: src/main.c:362
-msgid "SetUID to unpriviledged user"
-msgstr "SetUID vers l'utilisateur non privilégié"
+#, fuzzy, c-format
+msgid "SetUID to user ID %u: %s\n"
+msgstr "SetGID vers l'ID de groupe %u: %s\n"
 
-#: src/main.c:363
+#: src/main.c:364
 msgid ""
 "Error: This program tried to change its system\n"
 "user security context but it failed.\n"
@@ -405,15 +410,16 @@ msgid ""
 msgstr ""
 "Erreur: Ce programme a tenté de changer son contexte de sécurité système\n"
 "utilisateur mais il a échoué. Cela signifie, en général, que vous tentez\n"
-"de démarrer le programme en tant qu'utilisateur non privilégié. Normalement,\n"
+"de démarrer le programme en tant qu'utilisateur non privilégié. "
+"Normalement,\n"
 "ce programme devrait être démarré uniquement par root, l'utilisateur\n"
 "d'administration du système.\n"
 
-#: src/main.c:378
+#: src/main.c:379
 msgid "Error (daemon)"
 msgstr "Erreur (daemon)"
 
-#: src/main.c:509
+#: src/main.c:510
 #, c-format
 msgid ""
 "Read unknown option -%c :\n"
@@ -422,7 +428,7 @@ msgstr ""
 "Option lue inconnue -%c :\n"
 "C'est probablement un bogue. Veuillez le signaler.\n"
 
-#: src/main.c:521
+#: src/main.c:522
 msgid ""
 "You have selected conflicting parameters.\n"
 "It is not possible to run a Teredo relay and/or\n"
@@ -433,65 +439,65 @@ msgstr ""
 "d'exécuter un relais Teredo et/ou un serveur Teredo et un client Teredo\n"
 "simultanément. Référez vous au manuel pour plus de détails.\n"
 
-#: src/main.c:538
+#: src/main.c:539
 msgid "Miredo configuration :"
 msgstr "Configuration de Miredo :"
 
-#: src/main.c:540
+#: src/main.c:541
 msgid "Client/relay UDP port       : "
 msgstr "Port UDP du client/relais          : "
 
-#: src/main.c:544
+#: src/main.c:545
 msgid "automatic"
 msgstr ""
 
-#: src/main.c:546
+#: src/main.c:547
 #, c-format
 msgid "Client/relay IPv4 address   : %s\n"
 msgstr "Adresse IPv4 du client/relais      : %s\n"
 
-#: src/main.c:547
+#: src/main.c:548
 msgid "any"
 msgstr "automatique"
 
-#: src/main.c:549
+#: src/main.c:550
 #, c-format
 msgid "Tunnel interface name       : %s\n"
 msgstr "Nom de l'interface tunnel          : %s\n"
 
-#: src/main.c:550 src/main.c:557
+#: src/main.c:551 src/main.c:558
 msgid "default"
 msgstr "par défaut"
 
-#: src/main.c:554
+#: src/main.c:555
 #, c-format
 msgid "Server primary IPv4 address : %s\n"
 msgstr "Adresse IPv4 principale du serveur : %s\n"
 
-#: src/main.c:555
+#: src/main.c:556
 msgid "disabled"
 msgstr "désactivée"
 
-#: src/main.c:556
+#: src/main.c:557
 #, c-format
 msgid "Teredo IPv6 prefix          : %s\n"
 msgstr "Préfixe Teredo IPv6                : %s\n"
 
-#: src/main.c:558
+#: src/main.c:559
 #, c-format
 msgid "Assumed NAT type            : %s\n"
 msgstr "Type de NAT supposé                : %s\n"
 
-#: src/main.c:560
+#: src/main.c:561
 msgid "none/cone"
 msgstr "aucun/cône"
 
-#: src/main.c:564
+#: src/main.c:565
 #, c-format
 msgid "Server name                 : %s\n"
 msgstr "Nom du serveur                     : %s\n"
 
-#: src/miredo.cpp:211
+#: src/miredo.cpp:211 src/miredo.cpp:236
 #, c-format
 msgid "Invalid hostname `%s': %s"
 msgstr "Nom d'hôte invalide `%s': %s"
@@ -594,3 +600,6 @@ msgstr "Arrêt suite au signal %d (%s)"
 #, c-format
 msgid "Child %d killed by signal %d (%s)"
 msgstr "Fils %d tué par le signal %d (%s)"
+
+#~ msgid "SetUID to unpriviledged user"
+#~ msgstr "SetUID vers l'utilisateur non privilégié"
