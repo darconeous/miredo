@@ -1,184 +1,302 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR Remi Denis-Courmont
+# Miredo french translation.
+# Copyright (C) 2004 Remi Denis-Courmont
 # This file is distributed under the same license as the PACKAGE package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# Remi Denis-Courmont <rdenis@simphalempin.com>, 2004.
 #
-#, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
+"Project-Id-Version: miredo 0.3.1\n"
 "Report-Msgid-Bugs-To: rdenis@simphalempin.com\n"
-"POT-Creation-Date: 2004-11-01 19:19+0100\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"POT-Creation-Date: 2004-11-01 18:39+0100\n"
+"PO-Revision-Date: 2004-11-01 18:41+0100\n"
+"Last-Translator: Rémi Denis-Courmont <rdenis@simphalempin.com>\n"
+"Language-Team: N/A\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
 #: libteredo/teredo-udp.cpp:63
 #, c-format
-msgid "Fatal socket error: %m"
-msgstr ""
+msgid "Fatal socket error: %m\n"
+msgstr "Erreur fatale de socket(): %m\n"
 
 #: libteredo/teredo-udp.cpp:69
 #, c-format
-msgid "Fatal bind error: %m"
-msgstr ""
+msgid "Fatal bind error: %m\n"
+msgstr "Erreur fatale de bind(): %m\n"
 
 #: libteredo/teredo-udp.cpp:105
 #, c-format
-msgid "Couldn't send UDP packet: %m"
-msgstr ""
+msgid "Couldn't send UDP packet: %m\n"
+msgstr "Impossible d'envoyer un paquet UDP: %m\n"
 
-#: libteredo/teredo-udp.cpp:111
+#: libteredo/teredo-udp.cpp:110
 #, c-format
-msgid "UDP packet shortened: sent %d bytes instead of %u"
-msgstr ""
+msgid "UDP packet shortened: sent %d bytes instead of %u\n"
+msgstr "Paquet UDP raccourci: %d octets émis au lieu de %u\n"
 
-#: libteredo/teredo-udp.cpp:141
+#: libteredo/teredo-udp.cpp:140
 #, c-format
-msgid "Error receiving UDP packet: %m"
-msgstr ""
+msgid "Error receiving UDP packet: %m\n"
+msgstr "Erreur de réception d'un paquet UDP: %m\n"
 
-#: libteredo/teredo-udp.cpp:274
+#: libteredo/teredo-udp.cpp:273
 msgid ""
 "Teredo server UDP socket error: Server IPv4 addresses must be global unicast."
 msgstr ""
+"Erreur de socket UDP de serveur Teredo: l'adresse IPv4 de serveur doit être globale unicast."
 
-#: libteredo/teredo-udp.cpp:281
+#: libteredo/teredo-udp.cpp:280
 msgid ""
-"Teredo server UDP socket error: Server IPv4 addresses must not be wildcard."
+"Teredo server UDP socket error: Server IPv4 addresses must not be wildcard.\n"
 msgstr ""
+"Erreur de socket UDP du server Teredo: les adresses IPv4 de serveur ne doivent pas être génériques.\n"
 
 #: libteredo/relay.cpp:177
 msgid "Server has a non global IPv4 address. It will most likely not work."
-msgstr ""
+msgstr "Le serveur a une adresse IPv4 non globale. Ça ne fonctionnera vraisemblablement pas."
 
 #: libteredo/relay.cpp:537
 msgid "Authentication refused by server."
-msgstr ""
+msgstr "Authentification refusée par le serveur."
 
 #: libteredo/relay.cpp:567
 msgid "Unsupported symmetric NAT detected."
-msgstr ""
+msgstr "NAT symmétrique non supporté détecté."
 
 #: libteredo/relay.cpp:579
 #, c-format
 msgid "Qualified (NAT type: %s)"
-msgstr ""
+msgstr "Qualifié (type de NAT: %s)"
 
 #: libteredo/relay.cpp:581
 msgid "cone"
-msgstr ""
+msgstr "cône"
 
 #: libteredo/relay.cpp:581 src/main.c:563
 msgid "restricted"
-msgstr ""
+msgstr "restreint"
 
 #: libteredo/relay.cpp:620
 msgid "Teredo address changed"
-msgstr ""
+msgstr "Adresse Teredo changée"
 
 #: libteredo/relay.cpp:931
 msgid "Lost Teredo connectivity"
-msgstr ""
+msgstr "Connectivité Teredo perdue"
+
+#: libteredo/server.cpp:220
+#, c-format
+msgid "Router Advertisement sent to %s (%s)\n"
+msgstr "Router Advertisement envoyé"
+
+#: libteredo/server.cpp:222
+msgid "cone flag set"
+msgstr "flag cône présent"
+
+#: libteredo/server.cpp:223
+msgid "cone flag not set"
+msgstr "flag cône absent"
 
 #: libteredo/security.cpp:52
 #, c-format
 msgid "Error reading %s: %m"
-msgstr ""
+msgstr "Erreur de lecture sur %s: %m"
 
 #: libteredo/packets.cpp:309
 msgid "Invalid Teredo prefix received"
-msgstr ""
+msgstr "Préfixe Teredo reçu invalide"
 
 #: libtun6/ipv6-tunnel.cpp:140
 #, c-format
 msgid "IPv6 stack not available: %m"
-msgstr ""
+msgstr "Pile IPv6 non disponible: %m"
 
 #: libtun6/ipv6-tunnel.cpp:167
 #, c-format
 msgid "Tunneling driver error (%s): %m"
-msgstr ""
+msgstr "Erreur du pilote de tunneling (%s): %m"
 
 #: libtun6/ipv6-tunnel.cpp:181
 #, c-format
 msgid "Tunnel error (TUNSETIFF): %m"
-msgstr ""
+msgstr "Erreur de tunnel (TUNSETIFF): %m"
 
 #: libtun6/ipv6-tunnel.cpp:217
 #, c-format
 msgid "Tunnel error (SIOCSIFNAME): %m"
-msgstr ""
+msgstr "Erreur de tunnel (SIOCSIFNAME): %m"
 
 #: libtun6/ipv6-tunnel.cpp:231
 #, c-format
 msgid "%s tunnel error (TUNSIFHEAD): %m"
-msgstr ""
+msgstr "Erreur du tunnel %s (TUNSIFHEAD): %s"
 
 #: libtun6/ipv6-tunnel.cpp:245
 #, c-format
 msgid "%s tunneling interface %s created"
-msgstr ""
+msgstr "Interface %1$s de tunneling %2$s créée"
 
 #: libtun6/ipv6-tunnel.cpp:248
 #, c-format
 msgid "%s tunneling interface creation failure"
-msgstr ""
+msgstr "Échec de création de l'interface de tunneling %s"
 
 #: libtun6/ipv6-tunnel.cpp:261
 #, c-format
 msgid "Tunneling interface %s removed"
+msgstr "Interface %s de tunneling supprimée"
+
+#: libtun6/ipv6-tunnel.cpp:313
+#, c-format
+msgid "Tunnel error (SIOCGIFFLAGS): %m"
+msgstr "Erreur de tunnel (SIOCGIFFLAGS): %m"
+
+#: libtun6/ipv6-tunnel.cpp:335
+#, c-format
+msgid "%s tunnel error (SIOCSIFFLAGS): %m"
+msgstr "Erreur du tunnel %s (SIOCSIFFLAGS): %m"
+
+#: libtun6/ipv6-tunnel.cpp:386 libtun6/ipv6-tunnel.cpp:510
+#, c-format
+msgid "IPv6 prefix too long: %u"
+msgstr "Préfixe IPv6 trop long! %u"
+
+#: libtun6/ipv6-tunnel.cpp:455
+#, c-format
+msgid ""
+"%s tunnel address setup not supported.\n"
+"Please do it manually."
 msgstr ""
+"Réglage de l'adresse du tunnel %s non supporté.\n"
+"Veuillez le faire manuellement."
 
 #: libtun6/ipv6-tunnel.cpp:467
+msgid "[unknown_address]"
+msgstr "[adresse_inconnue]"
+
+#: libtun6/ipv6-tunnel.cpp:477
 #, c-format
 msgid "%s tunnel address %s/%u setup error: %m"
-msgstr ""
+msgstr "Erreur de réglage de l'adresse %1$s/%2$u pour le tunnel %0$s: %m"
 
-#: libtun6/ipv6-tunnel.cpp:469
+#: libtun6/ipv6-tunnel.cpp:479
 #, c-format
 msgid "%s tunnel address %s/%u removal error: %m"
-msgstr ""
+msgstr "Erreur de suppression de l'adresse %1$s/%2$u pour le tunnel %0$s: %m"
 
-#: libtun6/ipv6-tunnel.cpp:476
+#: libtun6/ipv6-tunnel.cpp:486
 #, c-format
 msgid "%s tunnel address added: %s/%u"
-msgstr ""
+msgstr "Adresse ajoutée au tunnel %s: %s/%u"
 
-#: libtun6/ipv6-tunnel.cpp:478
+#: libtun6/ipv6-tunnel.cpp:488
 #, c-format
 msgid "%s tunnel address deleted: %s/%u"
-msgstr ""
+msgstr "Adresse du tunnel %s supprimée: %s/%u"
 
-#: libtun6/ipv6-tunnel.cpp:638
+#: libtun6/ipv6-tunnel.cpp:611
+#, c-format
+msgid "PF_ROUTE error: %m"
+msgstr "Erreur de PF_ROUTE: %m"
+
+#: libtun6/ipv6-tunnel.cpp:625
+msgid "Setting a route on FreeBSD does not work fine. Please do it by hand."
+msgstr "Le réglage d'une route sur FreeBSD fonctionne mal.\nVeuillez le faire manuellement."
+
+#: libtun6/ipv6-tunnel.cpp:633
+#, c-format
+msgid "socket (PF_ROUTE) error: %m"
+msgstr "Erreur de socket (PF_ROUTE): %m"
+
+#: libtun6/ipv6-tunnel.cpp:635
+#, c-format
+msgid ""
+"%s tunnel route setup not supported.\n"
+"Please do it manually."
+msgstr ""
+"Réglage d'une route pour le tunnel %s non supportée.\n"
+"Veuillez le faire manuellement."
+
+
+#: libtun6/ipv6-tunnel.cpp:642
+msgid "[unknown_route]"
+msgstr "[route_inconnue]"
+
+#: libtun6/ipv6-tunnel.cpp:652
 #, c-format
 msgid "%s tunnel route %s/%u setup error: %m"
-msgstr ""
+msgstr "Erreur de réglage de la route %1$s/%2$u pour le tunnel %0$s: %m"
 
-#: libtun6/ipv6-tunnel.cpp:640
+#: libtun6/ipv6-tunnel.cpp:654
 #, c-format
 msgid "%s tunnel route %s/%u removal error: %m"
-msgstr ""
+msgstr "Erreur de suppression de la route %1$s/%2$u pour le tunnel %0$s: %m"
 
-#: libtun6/ipv6-tunnel.cpp:647
+#: libtun6/ipv6-tunnel.cpp:661
 #, c-format
 msgid "%s tunnel route set: %s/%u"
-msgstr ""
+msgstr "Route définie sur le tunnel %s: %s/%u"
 
-#: libtun6/ipv6-tunnel.cpp:649
+#: libtun6/ipv6-tunnel.cpp:663
 #, c-format
 msgid "%s tunnel route removed: %s/%u"
+msgstr "Route retirée du tunnel %s: %s/%u"
+
+#: libtun6/ipv6-tunnel.cpp:711
+#, c-format
+msgid "IPv6 MTU too small (<1280): %u"
+msgstr "MTU IPv6 trop petit (<1280): %u"
+
+#: libtun6/ipv6-tunnel.cpp:716
+#, c-format
+msgid "IPv6 MTU too big (>65535): %u"
+msgstr "MTU IPv6 trop grand (>65535): %u"
+
+#: libtun6/ipv6-tunnel.cpp:731
+#, c-format
+msgid "%s tunnel MTU error (SIOCSIFMTU): %m"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:855
+#: libtun6/ipv6-tunnel.cpp:737
+#, c-format
+msgid "%s tunnel MTU set to %u"
+msgstr "MTU du tunnel %s réglé à %u"
+
+#: libtun6/ipv6-tunnel.cpp:795
+#, c-format
+msgid "Cannot receive packet: %m"
+msgstr ""
+
+#: libtun6/ipv6-tunnel.cpp:803
+msgid "Received packet too short"
+msgstr ""
+
+#: libtun6/ipv6-tunnel.cpp:830
+#, c-format
+msgid "Packet of %u bytes too big."
+msgstr ""
+
+#: libtun6/ipv6-tunnel.cpp:861
+#, c-format
+msgid "Cannot send packet to tunnel: %m"
+msgstr ""
+
+#: libtun6/ipv6-tunnel.cpp:870
+msgid "Sent packet too short"
+msgstr ""
+
+#: libtun6/ipv6-tunnel.cpp:876
+#, c-format
+msgid "Packet truncated to %d byte(s)"
+msgstr ""
+
+#: libtun6/ipv6-tunnel.cpp:904
 #, c-format
 msgid "Error: %s character device not found or unavailable.\n"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:859
+#: libtun6/ipv6-tunnel.cpp:908
 msgid ""
 "You should run these commands to create it :\n"
 "# mkdir -p /dev/net\n"
@@ -186,25 +304,25 @@ msgid ""
 "(you must be root to do that).\n"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:866 libtun6/ipv6-tunnel.cpp:891
+#: libtun6/ipv6-tunnel.cpp:915 libtun6/ipv6-tunnel.cpp:940
 msgid ""
 "You can obtain a tunnel device for the Darwin kernel (Mac OS X) from :\n"
 "http://chrisp.de/en/projects/tunnel.html\n"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:879
+#: libtun6/ipv6-tunnel.cpp:928
 msgid ""
 "Error: your operating system does not seem to provide a network tunnneling\n"
 "device driver, which is required.\n"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:885
+#: libtun6/ipv6-tunnel.cpp:934
 msgid ""
 "Make sure your Linux kernel includes the \"Universal TUNTAP driver\"\n"
 "(CONFIG_TUN option), possibly as a module.\n"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:901
+#: libtun6/ipv6-tunnel.cpp:950
 #, c-format
 msgid ""
 "Error: cannot open device file %s (%s)\n"
