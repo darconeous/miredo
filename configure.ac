@@ -102,8 +102,10 @@ fi
 
 # Defines for <config.h>
 AH_BOTTOM([
-#define _( str ) (str)
-#define N_( str ) (str)
+#define gettext( str )		(str)
+#define gettext_noop( str )	(str)
+#define _( str )		gettext (str)
+#define N_( str )		gettext_noop (str)
 ])
 
 # END
