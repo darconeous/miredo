@@ -1,6 +1,6 @@
 /*
  * server.cpp - Handling of a single Teredo datagram (server-side).
- * $Id: server.cpp,v 1.1 2004/07/11 10:08:13 rdenisc Exp $
+ * $Id: server.cpp,v 1.2 2004/07/11 10:17:34 rdenisc Exp $
  */
 
 /***********************************************************************
@@ -218,7 +218,7 @@ teredo_send_ra (const MiredoServerUDP *sock, const struct in6_addr *dest_ip6,
  * Forwards a Teredo packet to a client
  */
 static int
-ForwardPacket (const MiredoServerUDP *sock/*, bool insert_orig = false*/)
+ForwardUDPPacket (const MiredoServerUDP *sock, bool insert_orig = true)
 {
 	size_t length;
 	const struct ip6_hdr *p = sock->GetIPv6Header (length);
@@ -246,7 +246,9 @@ ForwardPacket (const MiredoServerUDP *sock/*, bool insert_orig = false*/)
 
 	// Origin indication header
 	// if the Teredo server's address is ours
-	/*if (insert_orig)*/
+	// NOTE: I wonder in which legitimate case insert_orig might be
+	// false... but the spec implies it could
+	if (insert_orig)
 	{
 		struct teredo_orig_ind orig;
 		offset = 8;
@@ -257,8 +259,8 @@ ForwardPacket (const MiredoServerUDP *sock/*, bool insert_orig = false*/)
 		orig.orig_addr = ~sock->GetClientIP (); // obfuscate
 		memcpy (buf, &orig, offset);
 	}
-	/*else
-		offset = 0;*/
+	else
+		offset = 0;
 
 	memcpy (buf + offset, p, length);
 	return sock->SendPacket (buf, length + offset, dest_ip,
@@ -330,6 +332,7 @@ MiredoServer::ReceivePacket (void) const
 		return ForwardPacket (sock, tunnel);
 
 	// forwards packet over Teredo:
-	return ForwardPacket (sock);
+	return ForwardUDPPacket (sock,
+		IN6_TEREDO_SERVER (&ip6->ip6_dst) == GetServerIP ());
 }
 
