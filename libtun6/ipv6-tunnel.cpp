@@ -448,7 +448,7 @@ _iface_addr (const char *ifname, bool add,
 		req = &r.delreq6;
 	}
 #else
-	syslog (LOG_WARN, _("%s tunnel address setup not supported.\n"
+	syslog (LOG_WARNING, _("%s tunnel address setup not supported.\n"
 				"Please do it manually."), ifname);
 	return 0;
 #endif
@@ -626,7 +626,7 @@ _iface_route (const char *ifname, bool add,
 	else
 		syslog (LOG_ERR, _("socket (PF_ROUTE) error: %m"));
 #else
-	syslog (LOG_WAR, _("%s tunnel route setup not supported.\n"
+	syslog (LOG_WARNING, _("%s tunnel route setup not supported.\n"
 				"Please do it manually."), ifname);
 	retval = 0;
 #endif
