@@ -1,11 +1,19 @@
-2004-27-08  Remi Denis-Courmont
+2004-08-28  Remi Denis-Courmont
 
-	* libteredi/teredo-udp.*:
+	* src/privproc.cpp:
+	- fixed nasty memcpy instead of memcmp typing error,
+	- cleaned up.
+	* libteredo/relay.cpp:
+	- initial support for Teredo client qualification.
+
+2004-08-27  Remi Denis-Courmont
+
+	* libteredo/teredo-udp.*:
 	- replaced thread-unsafe by design TeredoCommonUDP class,
 	  with TeredoPacket: Smaller memory footprint,
 	  libteredo nearly thread-safe.
 
-2004-25-08  Remi Denis-Courmont
+2004-08-25  Remi Denis-Courmont
 
 	* libterdo/relay.cpp, configure.ac, src/Makefile.am:
 	- use OpenSSL to sets the authentication nonce,
@@ -15,7 +23,7 @@
 	- use writev()/readv() to avoid using memcpy(),
 	- fixes SendPacket's return value.
 
-2004-24-08  Remi Denis-Courmont
+2004-08-24  Remi Denis-Courmont
 
 	* src/main.c:
 	- option to enable cone relay optimization;
@@ -31,7 +39,7 @@
 	* libteredo/teredu-udp.cpp:
 	- simpler parsing of incoming Teredo packets.
 
-2004-22-08  Remi Denis-Courmont
+2004-08-22  Remi Denis-Courmont
 
 	* libteredo/relay.*:
 	- support for relay behind restricted NAT,
