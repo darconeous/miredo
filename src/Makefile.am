@@ -39,5 +39,5 @@ sbin_PROGRAMS = miredo
 # miredo
 miredo_SOURCES = main.c miredo.cpp miredo.h privproc.cpp privproc.h \
 		relay.cpp relay.h server.cpp server.h
-miredo_LDADD = ../libtun6/libtun6.a ../libteredo/libteredo.a
+miredo_LDADD = ../libtun6/libtun6.a ../libteredo/libteredo.a -lpthread
 
