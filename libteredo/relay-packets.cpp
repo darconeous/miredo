@@ -1,6 +1,6 @@
 /*
  * relay-packets.cpp - helpers to send Teredo packet from relay/client
- * $Id: relay-packets.cpp,v 1.3 2004/08/29 17:30:08 rdenisc Exp $
+ * $Id: relay-packets.cpp,v 1.4 2004/08/29 17:39:04 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -74,44 +74,28 @@ SendBubble (const TeredoRelayUDP& sock, uint32_t ip, uint16_t port,
  * Sends a Teredo Bubble to the server (if indirect is true) or the client (if
  * indirect is false) specified in Teredo address <dst>.
  * Returns 0 on success, -1 on error.
- * FIXME: do not use link-local addresses in bubbles.
  * FIXME: use the previous function
  */
 int
-SendBubble (const TeredoRelayUDP& sock, const struct in6_addr *d,
+SendBubble (const TeredoRelayUDP& sock, const struct in6_addr *dst,
 		bool cone, bool indirect = true)
 {
 	uint32_t ip;
 	uint16_t port;
-	const union teredo_addr *dst = (const union teredo_addr *)d;
 
 	if (indirect)
 	{
-		ip = dst->teredo.server_ip;
+		ip = IN6_TEREDO_SERVER (dst);
 		port = htons (IPPORT_TEREDO);
 	}
 	else
 	{
-		ip = ~dst->teredo.client_ip;
-		port = ~dst->teredo.client_port;
+		ip = IN6_TEREDO_IPV4 (dst);
+		port = IN6_TEREDO_PORT (dst);
 	}
 
-	if (ip && is_ipv4_global_unicast (ip))
-	{
-		struct ip6_hdr hdr;
-
-		hdr.ip6_flow = htonl (0x60000000);
-		hdr.ip6_plen = 0;
-		hdr.ip6_nxt = IPPROTO_NONE;
-		hdr.ip6_hlim = 255;
-		memcpy (&hdr.ip6_src, cone ? &teredo_cone : &teredo_restrict,
-				sizeof (hdr.ip6_src));
-		memcpy (&hdr.ip6_dst, &dst->ip6, sizeof (hdr.ip6_dst));
-
-		return sock.SendPacket (&hdr, sizeof (hdr), ip, port);
-	}
-
-	return 0;
+	return SendBubble (sock, ip, port, cone
+				? &teredo_cone : &teredo_restrict, dst);
 }
 
 

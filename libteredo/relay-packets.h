@@ -1,6 +1,6 @@
 /*
  * relay-packets.h - helpers to send Teredo packet from relay/client
- * $Id: relay-packets.h,v 1.3 2004/08/29 17:30:08 rdenisc Exp $
+ * $Id: relay-packets.h,v 1.4 2004/08/29 17:39:04 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -35,7 +35,6 @@
  * Sends a Teredo Bubble to the server (if indirect is true) or the client (if
  * indirect is false) specified in Teredo address <dst>.
  * Returns 0 on success, -1 on error.
- * FIXME: do not use link-local addresses in bubbles.
  */
 int
 SendBubble (const TeredoRelayUDP& sock, const struct in6_addr *d,
