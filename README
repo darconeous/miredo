@@ -16,7 +16,8 @@ For quick usage instructions, see below.
 
   See INSTALL for general instructions on how to build the package and
 install the program from sources. Additionnal informations may be found
-below.
+below. If you are building from the Subversion repository, run the
+'./bootstrap' script first.
 
   This package is distributed under the terms of the General Public
 License (GPL) version 2 written by the Free Software Foundation, Inc.
@@ -48,55 +49,6 @@ client for Windows XP SP1/SP2 in its "Advanced Networking pack".
 
   For more informations on the Teredo technology, please refer to the
 Microsoft IPv6 : Teredo overview.
-
-
-Setting up Miredo
-==================
-
-1) System user:
-----------------
-  Unless you ran the configure script with command line option
-'--disable-miredo-user', Miredo will try to SetUID as "miredo", so you
-should create a miredo system user if it doesn't exists.
-
-
-2) Chroot jail:
-----------------
-  Unless you started miredo with command line option '-t /', or used
-the already mentioned configure option '--disable-miredo-user', miredo
-will try to chroot itself.
-  Indeed, to mitigate risks and reduce your system's exposure, it is
-recommended to run miredo inside a chroot jail. However, that makes
-installation of the program more complex, so that is not mandatory.
-By the way, miredo will try to chroot to its user's home by default.
-
-  For the chroot jail to work properly, you should put these device
-files (assuming the home directory is /var/lib/miredo):
-
-/var/lib/miredo/dev/null
-/var/lib/miredo/dev/net/tun		(Linux only)
-/var/lib/miredo/dev/tun0, ...tun15	(FreeBSD only)
-/var/lib/miredo/dev/random		(Teredo client only)
-/var/lib/miredo/dev/urandom		(Teredo client only)
-
-  root requires read/write access to these files. The miredo
-unprivileged user doesn't.
-
-  If you wish to use Miredo as a Teredo client, you should additionnaly
-put a copy of these files from /etc into /var/lib/miredo/etc so that
-DNS resolution of the Teredo server works:
-
-/etc/resolv.conf
-/etc/hosts
-/etc/host.conf
-and your system's DNS resolver library. If in doubt, don't chroot if
-you intend to run Miredo as a Teredo client.
-
-  Finally, you must tell your syslog daemon to listen to
-/var/lib/miredo/dev/log. That is usually done by adding that option to
-your syslogd upon start: '-a /var/lib/miredo/dev/log'. If you don't do
-so, you won't get any logging information from Miredo (nor if it hasn't
-read-write access to dev/log, but it should no problem).
 
 
 Quick usage
@@ -140,6 +92,104 @@ behind a "symmetric NAT" for this to work properly.
 Miredo to use optimizations for cone NATs:
 
 # src/miredo -C
+
+
+Securing you Miredo installation
+=================================
+
+  By default, Miredo runs with root privileges, which might be
+disastrous if the program is compromised. You are STRONGLY advised to
+perform the following steps to restrict the impact of a possible
+compromise of the Miredo daemon.
+
+  They are various steps to secure Miredo installation, because they
+are non trivial and non portable they cannot be done automatically.
+
+  If you are packaging Miredo for redistribution, I URGE you to follow
+these steps so that Miredo runs more securely on your customers'
+systems.
+
+1) System user:
+----------------
+  Miredo can leave root privileges before any attempt is made to send
+or receive data to and from the network. They are two ways to achieve
+that:
+
+- You can enable the '--enable-miredo-user' command line option when
+  running the source code configure script. If you are a packager,
+  please use that method. Miredo will try to SetUID as "miredo" by
+  default, though that can be overriden with the '-u' command line
+  option (see man page miredo(8)).
+
+- You can use the '-u' option when starting Miredo. That avoids the
+  cost of recompiling Miredo. For example:
+
+  # /usr/local/sbin/miredo -u miredo -t /
+
+NOTE: If you are running Miredo as a Teredo client, Miredo will spawn a
+separate privileged process whose only job will be the Teredo interface
+parameters (it must be root to do that). If someone breaks Miredo, it
+might still be able to break your IPv6 networking setup, but it should
+not be able to compromise the whole system.
+
+
+2) Chroot jail:
+----------------
+  Unless you started miredo with command line option '-t /', or used
+the already mentioned configure option '--disable-miredo-user', miredo
+will try to chroot itself. By default, it will chroot in the miredo
+user's home directory, but that can be overriden with the '-t' command
+line option.
+  Indeed, to mitigate risks and reduce your system's exposure, it is
+recommended to run miredo inside a chroot jail. However, that makes
+installation of the program more complex, so that is not mandatory.
+
+  For the chroot jail to work properly, you should put these device
+files (assuming the home directory is /var/lib/miredo):
+
+/var/lib/miredo/dev/null
+/var/lib/miredo/dev/net/tun		(Linux only)
+/var/lib/miredo/dev/tun0, ...tun15	(FreeBSD only)
+/var/lib/miredo/dev/random		(Teredo client only)
+/var/lib/miredo/dev/urandom		(Teredo client only)
+
+  root requires read/write access to these files. The miredo
+unprivileged user must be able to read "random" and "urandom".
+
+  If you wish to use Miredo as a Teredo client, you should additionnaly
+put a copy of these files from /etc into /var/lib/miredo/etc so that
+DNS resolution of the Teredo server works:
+
+/etc/resolv.conf
+/etc/hosts
+/etc/host.conf
+and your system's DNS resolver library. If in doubt, don't chroot if
+you intend to run Miredo as a Teredo client.
+
+  Finally, you must tell your syslog daemon to listen to
+/var/lib/miredo/dev/log. That is usually done by adding that option to
+your syslogd upon start: '-a /var/lib/miredo/dev/log'. If you don't do
+so, you won't get any logging information from Miredo (nor if it hasn't
+read-write access to dev/log, but it should no problem). How to do that
+depends on what operating system and which distribution thereof you
+use.
+
+
+3) POSIX capabilities:
+-----------------------
+  Miredo supports POSIX.1e capabilities (at least on Linux), if they
+are available. You should not need to worry as it is entirely
+automatic.
+
+  If you are a packager, you should consider installing your system's
+POSIX capabilities development files, before building Miredo.
+
+
+Feedback:
+==========
+  If you have further questions, you can contact me via email at :
+
+    rdenis (at) simphalempin (dot) com
 
 
 -- 
