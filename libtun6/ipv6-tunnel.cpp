@@ -1,6 +1,6 @@
 /*
  * ipv6-tunnel.cpp - IPv6 interface class definition
- * $Id: ipv6-tunnel.cpp,v 1.6 2004/08/18 09:26:35 rdenisc Exp $
+ * $Id: ipv6-tunnel.cpp,v 1.7 2004/08/24 18:58:32 rdenisc Exp $
  */
 
 /***********************************************************************
@@ -314,7 +314,7 @@ _iface_addr (const char *ifname, bool add,
 
 	if (prefix_len > 128)
 	{
-		syslog (LOG_ERR, _("IPv6 prefix length too long: %d"),
+		syslog (LOG_ERR, _("IPv6 prefix length too long: %u"),
 			prefix_len);
 		return -1;
 	}
@@ -434,7 +434,7 @@ _iface_route (const char *ifname, bool add,
 
 	if (prefix_len > 128)
 	{
-		syslog (LOG_ERR, _("IPv6 prefix length too long: %d"),
+		syslog (LOG_ERR, _("IPv6 prefix length too long: %u"),
 			prefix_len);
 		return -1;
 	}
@@ -456,7 +456,7 @@ _iface_route (const char *ifname, bool add,
 	req6.rtmsg_flags = RTF_UP;
 	req6.rtmsg_ifindex = if_nametoindex (ifname);
 	memcpy (&req6.rtmsg_dst, addr, sizeof (struct in6_addr));
-	req6.rtmsg_dst_len = prefix_len;
+	req6.rtmsg_dst_len = (unsigned short)prefix_len;
 	req6.rtmsg_metric = 1;
 	if (prefix_len == 128)
 		req6.rtmsg_flags |= RTF_HOST;
