@@ -224,9 +224,6 @@ miredo_run (int mode, const char *ifname,
 		InitNonceGenerator ();
 #endif
 
-	if (seteuid (0))
-		syslog (LOG_WARNING, _("SetUID to root failed: %m"));
-
 	/*
 	 * Tunneling interface initialization
 	 *
@@ -296,8 +293,7 @@ miredo_run (int mode, const char *ifname,
 	}
 
 	// Definitely drops privileges
-	//if (setuid (unpriv_uid)) -- won't set saved UID
-	if (setreuid (unpriv_uid, unpriv_uid))
+	if (setuid (unpriv_uid))
 	{
 		syslog (LOG_ALERT, _("Setting UID failed: %m"));
 		goto abort;

@@ -265,7 +265,7 @@ init_security (const char *username, int nodetach)
 
 	/* From then on, it is safe to write to stderr */
 
-	/* Unpriviledged user (step 1) */
+	/* Determines unpriviledged user */
 	errno = 0;
 	pw = getpwnam (username);
 	if (pw == NULL)
@@ -313,19 +313,15 @@ init_security (const char *username, int nodetach)
 
 	/* Leaves other group privileges.
 	 * This fails if the user is not root. */
-	setgroups (0, NULL);
+	(void)setgroups (0, NULL);
 
-	/* Unpriviledged user (step 2) */
-	if (setreuid (unpriv_uid, -1) || seteuid (unpriv_uid))
+	/* Ensure we have root privilege before initialization */
+	if (seteuid (0))
 	{
-		fprintf (stderr, _("SetUID to user ID %u: %s\n"),
-				(unsigned)unpriv_uid, strerror (errno));
-		fputs (_("Error: This program tried to change its system\n"
-			"user security context but it failed.\n"), stderr);
+		perror (_("SetUID to root: %s\n"));
 		setuid_notice ();
 		return -1;
 	}
-	/* Real and effective UIDs are set; only saved UID is 0. */
 
 	/* POSIX.1e capabilities support */
 #ifdef HAVE_LIBCAP
@@ -346,7 +342,8 @@ init_security (const char *username, int nodetach)
 			return -1;
 		}
 
-		if (cap_set_flag (s, CAP_PERMITTED, 3, v, CAP_SET))
+		if (cap_set_flag (s, CAP_PERMITTED, 3, v, CAP_SET)
+		 || cap_set_flag (s, CAP_EFFECTIVE, 3, v, CAP_SET))
 		{
 			/* Unlikely */
 			perror (_("Fatal error"));
@@ -503,17 +500,13 @@ main (int argc, char *argv[])
 #endif
 
 	if (pidfile != NULL)
-	{
-		seteuid (0);
 		/*
 		 * I purposedly don't check create_pidfile for error.
 		 * If the sysadmin fails to setup a directory properly for the
 		 * pidfile, I'd rather make its initscript's stop function
 		 * fail than deny the service completely.
 		 */
-		create_pidfile (pidfile);
-		seteuid (unpriv_uid);
-	}
+		(void)create_pidfile (pidfile);
 
 	/*
 	 * Run
@@ -521,11 +514,7 @@ main (int argc, char *argv[])
 	c = miredo (conffile);
 
 	if (pidfile != NULL)
-	{
-		seteuid (0);
 		unlink (pidfile);
-		seteuid (unpriv_uid);
-	}
 
 
 	return c ? 1 : 0;
