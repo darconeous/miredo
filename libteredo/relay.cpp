@@ -515,6 +515,7 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 
 			gettimeofday (&probe.next, NULL);
 			probe.next.tv_sec += PROBE_DELAY;
+			memcpy (&addr, &newaddr, sizeof (addr));
 		}
 		else
 		if ((probe.state == PROBE_SYMMETRIC)
@@ -537,10 +538,12 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 				? N_("cone") : N_("restricted")));
 			probe.state = QUALIFIED;
 			probe.next.tv_sec += SERVER_PING_DELAY - PROBE_DELAY;
+
+			// call memcpy before NotifyUp for re-entrancy
+			memcpy (&addr, &newaddr, sizeof (addr));
 			NotifyUp (&newaddr.ip6);
 		}
 
-		memcpy (&addr, &newaddr, sizeof (addr));
 		return 0;
 	}
 
@@ -768,6 +771,7 @@ int TeredoRelay::Process (void)
 	  && ((signed)(now.tv_usec - probe.next.tv_usec) > 0)))
 	{
 		unsigned delay;
+		bool down = false;
 
 		if (probe.state == QUALIFIED)
 		{
@@ -782,6 +786,7 @@ int TeredoRelay::Process (void)
 				probe.count = 1;
 				probe.state = IsCone () ? PROBE_CONE
 							: PROBE_RESTRICT;
+				down = true;
 			}
 		}
 		else
@@ -832,6 +837,13 @@ int TeredoRelay::Process (void)
 
 		gettimeofday (&probe.next, NULL);
 		probe.next.tv_sec += delay;
+
+		if (down)
+		{
+			syslog (LOG_NOTICE, _("Lost Teredo connectivity"));
+			// do this at the end to allow re-entrancy
+			NotifyDown ();
+		}
 	}
 
 	return 0;
