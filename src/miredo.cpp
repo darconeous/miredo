@@ -301,13 +301,10 @@ miredo_run (uint16_t bind_port, uint32_t bind_ip, uint32_t server_ip,
 	}
 	else
 #endif
-	// FIXME: support for being server only
-	// (in that case, don't set route to the Teredo prefix)
-	if (relay_on)
 	{
 		if (tunnel.BringUp ()
 		 || tunnel.AddAddress (cone ? &teredo_cone : &teredo_restrict)
-		 || tunnel.AddRoute (&prefix->ip6, 32))
+		 || (relay_on && tunnel.AddRoute (&prefix->ip6, 32)))
 		{
 			syslog (LOG_ALERT, _("Teredo routing failed:\n %s"),
 				_("You should be root to do that."));
