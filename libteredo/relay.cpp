@@ -1,6 +1,6 @@
 /*
  * relay.cpp - Teredo relay peers list definition
- * $Id: relay.cpp,v 1.36 2004/08/29 15:33:53 rdenisc Exp $
+ * $Id: relay.cpp,v 1.37 2004/08/29 16:15:32 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -68,15 +68,19 @@ struct __TeredoRelay_peer
 			unsigned trusted:1;
 			unsigned replied:1;
 			unsigned bubbles:2;
+			unsigned nonce:1; // mapped_* unset, nonce set
 		} flags;
 		uint16_t all_flags;
 	} flags;
-	/* nonce: only for client */
+	// TODO: nonce and mapped_* could be union-ed
+	uint8_t nonce[8]; /* only for client toward non-client */
 	time_t last_rx;
 	time_t last_xmit;
 
 	uint8_t *queue;
 	size_t queuelen;
+
+	// TODO: implement incoming queue
 };
 
 #define PROBE_CONE	1
@@ -281,7 +285,7 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
 		}
 	}
 	
-	/* Unknown, possibly invalid, peer */
+	/* Unknown or untrusted peer */
 	if (dst->teredo.prefix != GetPrefix ())
 	{
 		/* Unkown or untrusted non-Teredo node */
@@ -303,9 +307,25 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
 			return 0;
 			
 		/* Client case 2: direct IPv6 connectivity test */
-		// FIXME: implement that before next release
-		syslog (LOG_WARNING, "DEBUG: FIXME: should send echo request");
-		return 0;
+		if (p == NULL)
+		{
+			p = AllocatePeer ();
+			if (p == NULL)
+				return -1; // memory error
+			memcpy (&p->addr, &ip6.ip6_dst, sizeof (struct in6_addr));
+			p->mapped_port = 0;
+			p->mapped_addr = 0;
+			p->flags.all_flags = 0;
+			time (&p->last_xmit);
+			p->queue = NULL;
+		}
+
+		p->flags.flags.nonce = 1;
+
+		// FIXME: queue packet
+		// FIXME: re-send echo request if needed
+		// FIXME: re-use the same nonce
+		return SendPing (sock, &addr, &dst->ip6, p->nonce);
 	}
 
 	/* Unknown or untrusted Teredo client */
@@ -326,8 +346,8 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
 		if (p == NULL)
 			return -1; // insufficient memory
 		memcpy (&p->addr, &ip6.ip6_dst, sizeof (struct in6_addr));
-		p->mapped_addr = ~dst->teredo.client_ip;
-		p->mapped_port = ~dst->teredo.client_port;
+		p->mapped_port = IN6_TEREDO_PORT (dst);
+		p->mapped_addr = IN6_TEREDO_IPV4 (dst);
 		p->flags.all_flags = 0;
 		time (&p->last_xmit);
 		p->queue = NULL;
@@ -347,7 +367,14 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
 	 * (and do this in separate functions) */
 	if (p->queue == NULL)
 	{
-		p->queue = new uint8_t[length];
+		try
+		{
+			p->queue = new uint8_t[length];
+		}
+		catch (...)
+		{
+			p->queue = NULL; // memory error
+		}
 
 		memcpy (p->queue, packet, length);
 		p->queuelen = length;
@@ -530,6 +557,7 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 
 		const struct teredo_orig_ind *ind = packet.GetOrigInd ();
 		if (ind != NULL)
+			// TODO: avoid code duplication
 			/* FIXME: perform direct IPv6 connectivity test */;
 
 		/*
@@ -559,9 +587,11 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 
 		// Client case 2 (untrusted non-Teredo node):
 		// FIXME: or maybe untrusted non-cone Teredo client
-		if ((!p->flags.flags.trusted) /* && FIXME: nonce match? */)
+		if ((!p->flags.flags.trusted) && p->flags.flags.nonce
+		/* && FIXME: nonce match? */)
 		{
 			p->flags.flags.trusted = p->flags.flags.replied = 1;
+			p->flags.flags.nonce = 0;
 
 			p->mapped_port = packet.GetClientPort ();
 			p->mapped_addr = packet.GetClientIP ();

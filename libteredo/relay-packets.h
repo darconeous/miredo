@@ -1,6 +1,6 @@
 /*
  * relay-packets.h - helpers to send Teredo packet from relay/client
- * $Id: relay-packets.h,v 1.1 2004/08/28 13:49:53 rdenisc Exp $
+ * $Id: relay-packets.h,v 1.2 2004/08/29 16:15:32 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -64,5 +64,9 @@ SendRS (const TeredoRelayUDP& sock, uint32_t server_ip, unsigned char *nonce,
  */
 bool
 ParseRA (const TeredoPacket& packet, union teredo_addr *newaddr, bool cone);
+
+int
+SendPing (const TeredoRelayUDP& sock, const union teredo_addr *src,
+		const struct in6_addr *dst, uint8_t *nonce);
 
 #endif
