@@ -1,103 +1,286 @@
 ------------------------------------------------------------------------
+r191 | remi | 2004-10-27 23:09:37 +0200 (Wed, 27 Oct 2004) | 2 lines
+Changed paths:
+   M /trunk/TODO
+
+More pending issues to be resolved
+
+------------------------------------------------------------------------
+r190 | remi | 2004-10-27 22:53:51 +0200 (Wed, 27 Oct 2004) | 2 lines
+Changed paths:
+   D /trunk/.cvsignore
+   D /trunk/admin/.cvsignore
+   D /trunk/libteredo/.cvsignore
+   D /trunk/libtun6/.cvsignore
+   D /trunk/m4/.cvsignore
+   D /trunk/src/.cvsignore
+
+Meanling less with Subversion
+
+------------------------------------------------------------------------
+r189 | remi | 2004-10-24 18:02:24 +0200 (Sun, 24 Oct 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+
+Fix comments
+
+------------------------------------------------------------------------
+r188 | remi | 2004-10-24 00:14:08 +0200 (Sun, 24 Oct 2004) | 2 lines
+Changed paths:
+   M /trunk/bootstrap
+
+Fixed
+
+------------------------------------------------------------------------
+r187 | remi | 2004-10-23 23:01:00 +0200 (Sat, 23 Oct 2004) | 2 lines
+Changed paths:
+   M /trunk/NEWS
+   M /trunk/TODO
+   M /trunk/miredo.8
+
+Reflect changes
+
+------------------------------------------------------------------------
+r186 | remi | 2004-10-23 22:49:33 +0200 (Sat, 23 Oct 2004) | 2 lines
+Changed paths:
+   M /trunk/src/privproc.cpp
+
+Add a default route through the tunnel
+
+------------------------------------------------------------------------
+r185 | remi | 2004-10-23 22:49:18 +0200 (Sat, 23 Oct 2004) | 2 lines
+Changed paths:
+   M /trunk/src/miredo.cpp
+
+Remove a unused variable which caused a bug
+
+------------------------------------------------------------------------
+r184 | remi | 2004-10-23 22:48:46 +0200 (Sat, 23 Oct 2004) | 2 lines
+Changed paths:
+   M /trunk/libtun6/ipv6-tunnel.cpp
+
+Linux driver: Use the same automatic metric as the Linux kernel
+
+------------------------------------------------------------------------
+r183 | remi | 2004-10-23 18:16:44 +0200 (Sat, 23 Oct 2004) | 2 lines
+Changed paths:
+   M /trunk/src/main.c
+
+Avoid warning message on Mac OS X
+
+------------------------------------------------------------------------
+r182 | remi | 2004-10-23 18:13:41 +0200 (Sat, 23 Oct 2004) | 2 lines
+Changed paths:
+   M /trunk/libtun6/ipv6-tunnel.cpp
+
+Typos
+
+------------------------------------------------------------------------
+r181 | remi | 2004-10-23 18:07:20 +0200 (Sat, 23 Oct 2004) | 3 lines
+Changed paths:
+   M /trunk/configure.ac
+   M /trunk/libtun6/ipv6-tunnel.cpp
+
+Untested (probably not working) support for OpenBSD, NetBSD and Darwin
+kernels tunneling
+
+------------------------------------------------------------------------
+r180 | remi | 2004-10-23 15:28:26 +0200 (Sat, 23 Oct 2004) | 2 lines
+Changed paths:
+   M /trunk/configure.ac
+
+Next release number
+
+------------------------------------------------------------------------
+r179 | remi | 2004-10-23 15:28:14 +0200 (Sat, 23 Oct 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/teredo.c
+
+Mac OS X compilation fix
+
+------------------------------------------------------------------------
+r178 | remi | 2004-10-16 12:11:11 +0200 (Sat, 16 Oct 2004) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog
+
+Updated ChangeLog
+
+------------------------------------------------------------------------
 r177 | remi | 2004-10-16 12:09:29 +0200 (Sat, 16 Oct 2004) | 2 lines
+Changed paths:
+   M /trunk/NEWS
+   M /trunk/configure.ac
+   M /trunk/miredo.8
 
 Update documentation for new --bind option
 
 ------------------------------------------------------------------------
 r176 | remi | 2004-10-16 11:57:15 +0200 (Sat, 16 Oct 2004) | 3 lines
+Changed paths:
+   M /trunk/src/main.c
 
 Support for setting the relay/client bind address through the command line,
 print that setting with -v
 
 ------------------------------------------------------------------------
 r175 | remi | 2004-10-16 11:48:22 +0200 (Sat, 16 Oct 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/relay.h
+   M /trunk/libteredo/teredo-udp.cpp
+   M /trunk/libteredo/teredo-udp.h
+   M /trunk/src/main.c
+   M /trunk/src/miredo.cpp
+   M /trunk/src/miredo.h
+   M /trunk/src/relay.cpp
+   M /trunk/src/relay.h
 
 Support for binding client/relay to a specific IPv4 address
 
 ------------------------------------------------------------------------
 r174 | remi | 2004-10-16 11:27:09 +0200 (Sat, 16 Oct 2004) | 2 lines
+Changed paths:
+   M /trunk/THANKS
 
 Updated thanks
 
 ------------------------------------------------------------------------
 r173 | remi | 2004-10-15 10:47:53 +0200 (Fri, 15 Oct 2004) | 2 lines
+Changed paths:
+   M /trunk/src/Makefile.am
 
 Define _GNU_SOURCE for old glibc
 
 ------------------------------------------------------------------------
 r172 | remi | 2004-09-25 15:12:03 +0200 (Sat, 25 Sep 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/teredo.c
 
 FreeBSD compile fix
 
 ------------------------------------------------------------------------
 r171 | remi | 2004-09-25 15:07:42 +0200 (Sat, 25 Sep 2004) | 2 lines
+Changed paths:
+   M /trunk/NEWS
 
 Updates for upcoming release
 
 ------------------------------------------------------------------------
 r170 | remi | 2004-09-25 12:40:15 +0200 (Sat, 25 Sep 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/server.cpp
 
 Fix transmission of ICMP6 echo request through server
 
 ------------------------------------------------------------------------
 r169 | remi | 2004-09-25 12:32:55 +0200 (Sat, 25 Sep 2004) | 2 lines
+Changed paths:
+   M /trunk/src/miredo.cpp
+   M /trunk/src/server.cpp
+   M /trunk/src/server.h
 
 Fix segfault in server code
 
 ------------------------------------------------------------------------
 r168 | remi | 2004-09-25 11:50:38 +0200 (Sat, 25 Sep 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/packets.cpp
 
 Fixed ICMP6 router solicitation payload length
 
 ------------------------------------------------------------------------
 r167 | remi | 2004-09-04 12:48:58 +0200 (Sat, 04 Sep 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/packets.cpp
+   M /trunk/libteredo/packets.h
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/relay.h
+   M /trunk/libteredo/security.cpp
+   M /trunk/libteredo/server.cpp
+   M /trunk/libteredo/server.h
+   M /trunk/libteredo/teredo-udp.cpp
+   M /trunk/libteredo/teredo-udp.h
+   M /trunk/libteredo/teredo.c
+   M /trunk/libteredo/teredo.h
+   M /trunk/libteredo/v4global.c
+   M /trunk/libteredo/v4global.h
+   M /trunk/libtun6/ipv6-tunnel.cpp
+   M /trunk/libtun6/ipv6-tunnel.h
+   M /trunk/src/main.c
+   M /trunk/src/miredo.cpp
+   M /trunk/src/miredo.h
+   M /trunk/src/relay.cpp
+   M /trunk/src/relay.h
+   M /trunk/src/server.cpp
+   M /trunk/src/server.h
 
 #include clean up
 
 ------------------------------------------------------------------------
 r166 | remi | 2004-09-03 18:06:23 +0200 (Fri, 03 Sep 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
 
 Support for server that do not insert an origin indication in bubbles
 
 ------------------------------------------------------------------------
 r165 | remi | 2004-09-03 16:59:03 +0200 (Fri, 03 Sep 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
 
 Fix generation of nonce value for unknown peer
 
 ------------------------------------------------------------------------
 r164 | remi | 2004-09-03 16:28:10 +0200 (Fri, 03 Sep 2004) | 3 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
 
 Fix frequent connectivity lost with cone NAT.
 Fix some weaknesses/problems in handling of server packets
 
 ------------------------------------------------------------------------
 r163 | remi | 2004-09-03 15:31:57 +0200 (Fri, 03 Sep 2004) | 2 lines
+Changed paths:
+   M /trunk/libtun6/ipv6-tunnel.cpp
 
 Print log message only once when removing tunnel
 
 ------------------------------------------------------------------------
 r158 | remi | 2004-09-03 14:05:51 +0200 (Fri, 03 Sep 2004) | 2 lines
+Changed paths:
+   M /trunk/configure.ac
 
 Update release number
 
 ------------------------------------------------------------------------
 r157 | remi | 2004-09-03 14:03:31 +0200 (Fri, 03 Sep 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/relay.h
 
 Fix maintenance of connectivity to server in case of cone NAT
 
 ------------------------------------------------------------------------
 r156 | remi | 2004-09-03 13:55:20 +0200 (Fri, 03 Sep 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
 
 Fixed restart delay when symmetric NAT is detected
 
 ------------------------------------------------------------------------
 r155 | remi | 2004-09-01 19:15:34 +0200 (Wed, 01 Sep 2004) | 3 lines
+Changed paths:
+   M /trunk/README
+   M /trunk/libteredo/relay.cpp
+   M /trunk/src/miredo.cpp
 
 Fix typo in GenerateNonce that prevented the Teredo client from
 functionning at all
 
 ------------------------------------------------------------------------
 r154 | remi | 2004-09-01 13:59:32 +0200 (Wed, 01 Sep 2004) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog
 
 Updated ChangeLog
 

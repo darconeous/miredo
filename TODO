@@ -8,6 +8,7 @@ Features:
   (e.g. when /dev/net/tun is not found).
 - help with chroot setup,
 - easy support for DNS resolution when chrooted,
+- fix connectivity loss detection,
 - some statistics,
 - fixed TODOs in source code,
 - better support for lossy IPv4 connectivity,
