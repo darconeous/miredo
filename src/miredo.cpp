@@ -424,7 +424,7 @@ miredo_run (uint16_t bind_port, const char *bind_ip, const char *server_name,
 	if (mode & MIREDO_CLIENT)
 	{
 		// Sets up client
-		uint32_t server_ipv4, bind_ipv4;
+		uint32_t server_ipv4;
 
 		if (getipv4byname (server_name, &server_ipv4))
 		{
