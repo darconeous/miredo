@@ -898,9 +898,9 @@ int libtun6_driver_diagnose (char *errbuf)
 
 	if (errno == ENOENT)
 	{
-		strncpy (errbuf, _("Error: /dev/net/tun character device "
-			"not found or unavailable.\n"),
-			LIBTUN6_ERRBUF_SIZE - 1);
+		snprintf (errbuf, LIBTUN6_ERRBUF_SIZE - 1,
+			_("Error: %s character device "
+			"not found or unavailable.\n"), tundev);
 #if defined (HAVE_LINUX)
 		strncat (errbuf,
 			_("You should run these commands to create it :\n"
