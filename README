@@ -1,9 +1,9 @@
 Miredo : Teredo for Linux
 ==========================
-$Id: README,v 1.9 2004/08/29 19:28:03 rdenisc Exp $
+$Id$
 Copyright (C) 2004 Remi Denis-Courmont.
 
-  Welcome to Miredo's introduction manual!
+  Welcome to Miredo's user's guide!
 
 Where to go?
 =============
@@ -12,18 +12,23 @@ for a summary of the most recent updates and changes.
 
   For detailled usage instructions, you should refer to the Unix manual
 page miredo(8) which should be provided with your copy of the program.
-In fact, it was not written yet, so you're out of luck.
+For quick usage instructions, see below.
 
-  See INSTALL for instructions on how to build the package and install
-the program from sources.
+  See INSTALL for general instructions on how to build the package and
+install the program from sources. Additionnal informations may be found
+below.
 
   This package is distributed under the terms of the General Public
 License (GPL) version 2 written by the Free Software Foundation, Inc.
 for full licensing details, please read COPYING.
 
   This software is at a very early development stage. Do NOT use it in
-production/critical environment.
-  Contributions, feedback and bug reports are most welcome.
+production/critical environment. Contributions, feedback and bug
+reports are most welcome. You might get additonnal informations from
+the website at : http://www.simphalempin.com/dev/miredo/
+
+  If you have further questions, you can contact me via email at :
+    rdenis (at) simphalempin (dot) com
 
 
 What is Miredo?
@@ -82,8 +87,8 @@ so, you won't get any logging information from Miredo (nor if it hasn't
 read-write access to dev/log, but it should no problem).
 
 
-Usage
-======
+Quick usage
+============
   Miredo must be started by root. Miredo will always detach and run in the
 background. Read your system logs to see what happens.
 
