@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: rdenis@simphalempin.com\n"
-"POT-Creation-Date: 2004-12-17 17:11+0100\n"
+"POT-Creation-Date: 2004-12-25 17:26+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -36,36 +36,36 @@ msgid ""
 "Teredo server UDP socket error: Server IPv4 addresses must not be wildcard."
 msgstr ""
 
-#: libteredo/relay.cpp:177
+#: libteredo/relay.cpp:178
 msgid "Server has a non global IPv4 address. It will most likely not work."
 msgstr ""
 
-#: libteredo/relay.cpp:537
+#: libteredo/relay.cpp:541
 msgid "Authentication refused by server."
 msgstr ""
 
-#: libteredo/relay.cpp:567
+#: libteredo/relay.cpp:571
 msgid "Unsupported symmetric NAT detected."
 msgstr ""
 
-#: libteredo/relay.cpp:579
+#: libteredo/relay.cpp:583
 #, c-format
 msgid "Qualified (NAT type: %s)"
 msgstr ""
 
-#: libteredo/relay.cpp:581
+#: libteredo/relay.cpp:585
 msgid "cone"
 msgstr ""
 
-#: libteredo/relay.cpp:581 src/main.c:632
+#: libteredo/relay.cpp:585 src/main.c:632
 msgid "restricted"
 msgstr ""
 
-#: libteredo/relay.cpp:620
+#: libteredo/relay.cpp:624
 msgid "Teredo address changed"
 msgstr ""
 
-#: libteredo/relay.cpp:931
+#: libteredo/relay.cpp:945
 msgid "Lost Teredo connectivity"
 msgstr ""
 
@@ -79,7 +79,7 @@ msgstr ""
 msgid "Error opening %s: %m"
 msgstr ""
 
-#: libteredo/packets.cpp:309
+#: libteredo/packets.cpp:310
 msgid "Invalid Teredo prefix received"
 msgstr ""
 
@@ -439,106 +439,111 @@ msgstr ""
 msgid "Server name                 : %s\n"
 msgstr ""
 
-#: src/miredo.cpp:211 src/miredo.cpp:236
+#: src/miredo.cpp:237 src/miredo.cpp:262
 #, c-format
 msgid "Invalid hostname \"%s\": %s"
 msgstr ""
 
-#: src/miredo.cpp:295
+#: src/miredo.cpp:321
 msgid "Teredo IPv6 prefix not properly set."
 msgstr ""
 
-#: src/miredo.cpp:302
+#: src/miredo.cpp:328
 #, c-format
 msgid "Invalid Teredo IPv6 prefix: %s."
 msgstr ""
 
-#: src/miredo.cpp:316
+#: src/miredo.cpp:346
 #, c-format
 msgid "SetUID to root failed: %m"
 msgstr ""
 
-#: src/miredo.cpp:340
+#: src/miredo.cpp:370
 #, c-format
 msgid ""
 "Teredo tunnel setup failed:\n"
 " %s"
 msgstr ""
 
-#: src/miredo.cpp:341 src/miredo.cpp:363
+#: src/miredo.cpp:371 src/miredo.cpp:397
 msgid "You should be root to do that."
 msgstr ""
 
-#: src/miredo.cpp:351
+#: src/miredo.cpp:384
 #, c-format
 msgid "Privileged process setup failed: %m"
 msgstr ""
 
-#: src/miredo.cpp:362
+#: src/miredo.cpp:396
 #, c-format
 msgid ""
 "Teredo routing failed:\n"
 " %s"
 msgstr ""
 
-#: src/miredo.cpp:371
+#: src/miredo.cpp:405
 #, c-format
 msgid "Setting UID failed: %m"
 msgstr ""
 
-#: src/miredo.cpp:382
+#: src/miredo.cpp:417
 msgid "Fatal configuration error"
 msgstr ""
 
-#: src/miredo.cpp:394
+#: src/miredo.cpp:429
 msgid "Teredo server failure"
 msgstr ""
 
-#: src/miredo.cpp:407
+#: src/miredo.cpp:442
 msgid "Teredo UDP port failure"
 msgstr ""
 
-#: src/miredo.cpp:408 src/miredo.cpp:483
+#: src/miredo.cpp:443 src/miredo.cpp:522
 msgid "Make sure another instance of the program is not already running."
 msgstr ""
 
-#: src/miredo.cpp:423
+#: src/miredo.cpp:459
 msgid "Fatal bind IPv4 address error"
 msgstr ""
 
-#: src/miredo.cpp:435
+#: src/miredo.cpp:473
 msgid "Fatal server IPv4 address error"
 msgstr ""
 
-#: src/miredo.cpp:467
+#: src/miredo.cpp:506
 msgid "Teredo service failure"
 msgstr ""
 
-#: src/miredo.cpp:475
+#: src/miredo.cpp:514
 #, c-format
 msgid "Teredo service port failure: cannot open UDP port %u"
 msgstr ""
 
-#: src/miredo.cpp:480
+#: src/miredo.cpp:519
 msgid "Teredo service port failure: cannot open an UDP port"
 msgstr ""
 
 #: src/miredo.cpp:557
 #, c-format
+msgid "pipe failed: %m"
+msgstr ""
+
+#: src/miredo.cpp:606
+#, c-format
 msgid "Reloading configuration on signal %d (%s)"
 msgstr ""
 
-#: src/miredo.cpp:580
+#: src/miredo.cpp:629
 #, c-format
 msgid "fork failed: %m"
 msgstr ""
 
-#: src/miredo.cpp:600
+#: src/miredo.cpp:649
 #, c-format
 msgid "Exiting on signal %d (%s)"
 msgstr ""
 
-#: src/miredo.cpp:617
+#: src/miredo.cpp:666
 #, c-format
 msgid "Child %d killed by signal %d (%s)"
 msgstr ""
