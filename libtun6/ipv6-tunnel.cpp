@@ -1,6 +1,6 @@
 /*
  * ipv6-tunnel.cpp - IPv6 interface class definition
- * $Id: ipv6-tunnel.cpp,v 1.8 2004/08/26 17:19:28 rdenisc Exp $
+ * $Id: ipv6-tunnel.cpp,v 1.9 2004/08/26 19:54:36 rdenisc Exp $
  */
 
 /***********************************************************************
@@ -696,35 +696,45 @@ IPv6Tunnel::ReceivePacket (const fd_set *readset, void *buffer, size_t maxlen)
 	if ((fd == -1) || !FD_ISSET (fd, readset))
 		return -1;
 
-	struct iovec vect[2];
-	union
-	{
-		uint32_t dword;
-		uint16_t word[2];
-	} head;
+#if defined (TUNSETIFF)
+	uint16_t head[2];
+#elif defined (TUNSIFHEAD)
+	uint32_t head;
+#else
+# error Your platform is not supported!
+#endif
 
+	struct iovec vect[2];
 	vect[0].iov_base = &head;
 	vect[0].iov_len = 4;
 	vect[1].iov_base = buffer;
 	vect[1].iov_len = maxlen;
-	
+
 	int len = readv (fd, vect, 2);
-	if (len < 4)
+	if (len == -1)
+	{
+		syslog (LOG_ERR, _("Cannot receive packet: %m"));
 		return -1;
+	}
+	if (len < (int)sizeof (head))
+	{
+		syslog (LOG_ERR, _("Received packet too short"));
+		return -1;
+	}
 
 #if defined (TUNSETIFF)
 	/* TUNTAP driver */
-	if (head.word[1] != htons (ETH_P_IPV6))
+	if (head[1] != htons (ETH_P_IPV6))
 		return -1; // only accept IPv6 packets
-
 #elif defined (TUNSIFHEAD)
 	/* FreeBSD driver */
-	if (head.dword != htonl (AF_INET6))
+	if (head != htonl (AF_INET6))
 		return -1;
-
+#else
+# error Your platform is not supported!
 #endif
 
-	return len - 4;
+	return len - sizeof (head);
 }
 
 
@@ -743,40 +753,44 @@ IPv6Tunnel::SendPacket (const void *packet, size_t len) const
 	if (fd == -1)
 		return -1;
 
-	struct iovec vect[2];
-	union
-	{
-		uint32_t dword;
-		uint16_t word[2];
-	} head;
-
-	vect[0].iov_base = &head;
-	vect[0].iov_len = 4;
-	vect[1].iov_base = (void *)packet; // necessary cast to non-const
-	vect[1].iov_len = len;
-
 #if defined (TUNSETIFF)
 	/* TUNTAP driver */
-	head.word[0] = 0;
-	head.word[1] = htons (ETH_P_IPV6);
+	uint16_t head[2];
+	head[0] = 0;
+	head[1] = htons (ETH_P_IPV6);
 
 #elif defined (TUNSIFHEAD)
 	/* FreeBSD tunnel driver */
-	head.dword = htonl (AF_INET6);
+	uint32_t head = htonl (AF_INET6);
 
+#else
+# error Your platform is not supported!
 #endif
 
+	struct iovec vect[2];
+	vect[0].iov_base = &head;
+	vect[0].iov_len = sizeof (head);
+	vect[1].iov_base = (void *)packet; // necessary cast to non-const
+	vect[1].iov_len = len;
+
 	int val = writev (fd, vect, 2);
-	
+
 	if (val < 0)
 	{
 		syslog (LOG_ERR, _("Cannot send packet to tunnel: %m"));
 		return -1;
 	}
-	else
-	if (((size_t)val) < len)
+	val -= sizeof (head);
+
+	if (val < 0)
+	{
+		syslog (LOG_ERR, _("Sent packet too short"));
+		return -1;
+	}
+
+	if (val < (int)len)
 		syslog (LOG_ERR, _("Packet truncated to %d byte(s)"), val);
 
-	return val - 4;
+	return val;
 }
 
