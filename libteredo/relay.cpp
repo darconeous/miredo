@@ -1,6 +1,6 @@
 /*
  * relay.cpp - Teredo relay peers list definition
- * $Id: relay.cpp,v 1.15 2004/08/24 18:52:49 rdenisc Exp $
+ * $Id: relay.cpp,v 1.16 2004/08/24 19:03:42 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -394,7 +394,7 @@ int TeredoRelay::ReceivePacket (void)
 	size_t length;
 	const struct ip6_hdr *buf = sock.GetIPv6Header (length);
 	struct ip6_hdr ip6;
-	union teredo_addr src;
+	const union teredo_addr *src;
 
 	// Checks packet
 	if ((length < sizeof (ip6)) || (length > 65507))
@@ -424,15 +424,16 @@ int TeredoRelay::ReceivePacket (void)
 			/* FIXME: perform direct IPv6 connectivity test */;
 	}
 
+	src = (const union teredo_addr *)&ip6.ip6_src;
+
 	// Checks source IPv6 address
-	memcpy (&src, &ip6.ip6_src, sizeof (src));
-	if ((src.teredo.prefix != GetPrefix ())
-	 || !IN6_MATCHES_TEREDO_CLIENT (&src, sock.GetClientIP (),
+	if ((src->teredo.prefix != GetPrefix ())
+	 || !IN6_MATCHES_TEREDO_CLIENT (src, sock.GetClientIP (),
 		 			sock.GetClientPort ()))
 		return 0;
 
 	// Checks peers list
-	struct __TeredoRelay_peer *p = FindPeer (&src.ip6);
+	struct __TeredoRelay_peer *p = FindPeer (&ip6.ip6_src);
 	/* 
 	 * We are explicitly allowed to drop packet from unknown peers
 	 * and it is surely much safer.
