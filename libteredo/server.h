@@ -29,7 +29,7 @@
 #ifndef LIBTEREDO_SERVER_H
 # define LIBTEREDO_SERVER_H
 
-# include <libteredo/teredo-udp.h>
+# include <libteredo/server-udp.h>
 
 
 /*

@@ -28,7 +28,11 @@
 
 #include <gettext.h>
 
-#include <inttypes.h>
+#if HAVE_STDINT_H
+# include <stdint.h>
+#elif HAVE_INTTYPES_H
+# include <inttypes.h>
+#endif
 #include <string.h> // memset()
 
 #include <sys/types.h>
@@ -39,7 +43,6 @@
 
 #include <syslog.h> // syslog()
 
-#include <libteredo/v4global.h> // is_ipv4_global_unicast()
 #include "teredo-udp.h"
 
 /*
@@ -273,79 +276,3 @@ TeredoClientUDP::RegisterReadSet (fd_set *readset) const
 }
 # endif
 #endif
-
-
-/*** TeredoServerUDP implementation ***/
-#ifdef MIREDO_TEREDO_SERVER
-TeredoServerUDP::~TeredoServerUDP ()
-{
-	TeredoPacket::CloseSocket (fd_primary);
-	TeredoPacket::CloseSocket (fd_secondary);
-}
-
-
-int TeredoServerUDP::ListenIP (uint32_t ip1, uint32_t ip2)
-{
-	if (!is_ipv4_global_unicast (ip1)
-	 || !is_ipv4_global_unicast (ip2))
-	{
-		syslog (LOG_ERR, _("Teredo server UDP socket error: "
-			"Server IPv4 addresses must be global unicast."));
-		return -1;
-	}
-
-	if (ip1 == INADDR_ANY || ip2 == INADDR_ANY)
-	{
-		syslog (LOG_ERR, _("Teredo server UDP socket error: "
-			"Server IPv4 addresses must not be wildcard."));
-		return -1;
-	}
-
-	TeredoPacket::CloseSocket (fd_primary);
-	TeredoPacket::CloseSocket (fd_secondary);
-
-	fd_primary = TeredoPacket::OpenSocket (ip1, htons (IPPORT_TEREDO));
-	if (fd_primary == -1)
-		return -1;
-
-	fd_secondary = TeredoPacket::OpenSocket (ip2, htons (IPPORT_TEREDO));
-	if (fd_secondary == -1)
-	{
-		TeredoPacket::CloseSocket (fd_primary);
-		return -1;
-	}
-
-	return 0;
-}
-
-
-int TeredoServerUDP::RegisterReadSet (fd_set *readset) const
-{
-	int maxfd = -1;
-	if (fd_primary != -1)
-	{
-		FD_SET (fd_primary, readset);
-		if (fd_primary > maxfd)
-			maxfd = fd_primary;
-	}
-	
-	if (fd_secondary != -1)
-	{
-		FD_SET (fd_secondary, readset);
-		if (fd_secondary > maxfd)
-			maxfd = fd_secondary;
-	}
-	return maxfd;
-}
-
-
-int
-TeredoServerUDP::SendPacket (const void *packet, size_t len,
-				uint32_t dest_ip, uint16_t dest_port,
-				bool use_secondary_ip) const
-{
-	return TeredoPacket::Send (use_secondary_ip
-					? fd_secondary : fd_primary,
-					packet, len, dest_ip, dest_port);
-}
-#endif /* MIREDO_TEREDO_SERVER */

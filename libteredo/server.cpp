@@ -36,9 +36,7 @@
 #include <netinet/ip6.h> // struct ip6_hdr
 #include <netinet/icmp6.h>
 
-#include <arpa/inet.h> // inet_ntoa()
-
-#include "teredo-udp.h"
+#include <libteredo/server-udp.h>
 #include <libteredo/server.h>
 #include <libteredo/v4global.h>
 

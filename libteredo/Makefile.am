@@ -34,6 +34,6 @@ endif
 endif
 
 if TEREDO_SERVER
-libteredo_a_SOURCES += server.cpp server.h
+libteredo_a_SOURCES += server-udp.cpp server-udp.h server.cpp server.h
 endif
 
