@@ -470,10 +470,16 @@ miredo_run (uint16_t bind_port, const char *bind_ip, const char *server_name,
 
 	if (!*relay)
 	{
-		syslog (LOG_ALERT,
-			_("Teredo service port failure: "
-			"cannot open UDP port %u"),
-			(unsigned int)ntohs (bind_port));
+		if (bind_port)
+			syslog (LOG_ALERT,
+				_("Teredo service port failure: "
+				"cannot open UDP port %u"),
+				(unsigned int)ntohs (bind_port));
+		else
+			syslog (LOG_ALERT,
+				_("Teredo service port failure: "
+				"cannot open an UDP port"));
+
 		syslog (LOG_NOTICE, _("Make sure another instance "
 			"of the program is not already running."));
 		goto abort;
