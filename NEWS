@@ -1,5 +1,5 @@
 RELEASE NOTES for Miredo
-version 0.4.0 (beta version)
+version 0.4.1 (beta version)
 =============================
 $Id$
 
@@ -22,6 +22,16 @@ Thanks for your help.
 informations on this program, see README. For syntax details and
 changes, run 'miredo -h' to get help. For detailled internal changes, see
 ChangeLog.
+
+=============================================================================
+BETA RELEASE 0.4.1 : Minor bugfixes
+
+# Fixed privileges separation issue on Linux with grsecurity patch.
+# Work-around a Linux kernel panic bug when bringing an interface down.
+# Fixed use of "RelayType disabled" - Miredo would always fail in that mode.
+# Improved sample configuration file comments.
+# Print logging information on the console with option -f (foreground run).
+# Complain when no sever was specified in client mode.
 
 =============================================================================
 BETA RELEASE 0.4.0 : Major feature enhancement
