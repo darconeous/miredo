@@ -1,6 +1,6 @@
 /*
  * relay.h - Teredo relay peers list declaration
- * $Id: relay.h,v 1.3 2004/07/31 19:58:43 rdenisc Exp $
+ * $Id: relay.h,v 1.4 2004/08/17 16:40:03 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -26,14 +26,13 @@
 # define LIBTEREDO_RELAY_H
 
 # include <inttypes.h>
-# include <time.h> // time_t
-
-# include <netinet/in.h> // struct in6_addr
 
 # include <libteredo/teredo-udp.h>
 
 struct ip6_hdr;
 union teredo_addr;
+
+struct __TeredoRelay_peer;
 
 
 class TeredoRelay
@@ -43,35 +42,12 @@ class TeredoRelay
 		bool is_cone;
 		uint32_t prefix;
 
-		struct peer
-		{
-			struct peer *next;
-
-			struct in6_addr addr;
-			uint32_t mapped_addr;
-			uint16_t mapped_port;
-			union
-			{
-				struct
-				{
-					unsigned trusted:1;
-					unsigned replied:1;
-					unsigned bubbles:2;
-				} flags;
-				uint16_t all_flags;
-			} flags;
-			/* nonce: only for client */
-			time_t last_rx;
-			time_t last_xmit;
-
-			uint8_t *queue;
-			size_t queuelen;
-		} *head;
+		struct __TeredoRelay_peer *head;
 
 		TeredoRelayUDP sock;
 
-		struct peer *AllocatePeer (void);
-		struct peer *FindPeer (const struct in6_addr *addr);
+		struct __TeredoRelay_peer *AllocatePeer (void);
+		struct __TeredoRelay_peer *FindPeer (const struct in6_addr *addr);
 
 		int SendBubble (const union teredo_addr *dst,
 				bool indirect) const;
@@ -81,6 +57,8 @@ class TeredoRelay
 		 * Tries to receive a packet from IPv6 Internet.
 		 * On success, packet and length attributes must be set to
 		 * the address and length of the IPv6 packet.
+		 * FIXME: that is thread-UNSAFE by design (not that I pretend
+		 * to make this thing thread-safe shortly).
 		 *
 		 * Returns 0 on sucess, -1 on error.
 		 */
@@ -94,15 +72,42 @@ class TeredoRelay
 		virtual int SendIPv6Packet (const void *packet,
 						size_t length) = 0;
 
+		/*
+		 * Tries to define the Teredo client IPv6 address.
+		 * The default implementation in base class TeredoRelay does
+		 * nothing.
+		 *
+		 * Returns 0 on success, -1 on error.
+		 * TODO: handle error in calling function.
+		 */
+		virtual int SetIPv6Address (const struct in6_addr *addr)
+		{
+			return 0;
+		}
+
 	protected:
 		const struct ip6_hdr *packet;
 		size_t length;
 
-		TeredoRelay (uint32_t pref, uint16_t port);
+		/*
+		 * Creates a Teredo relay manually (ie. one that does not
+		 * qualify with a Teredo server and has no Teredo IPv6
+		 * address). The prefix must therefore be specified.
+		 *
+		 * If port is nul, the OS will choose an available UDP port
+		 * for communication. This is NOT a good idea if you are
+		 * behind a fascist firewall, as the port might be blocked.
+		 *
+		 * TODO: allow the caller to specify an IPv4 address to bind
+		 * to.
+		 */
+		TeredoRelay (uint32_t pref, uint16_t port = 0);
 
 	public:
 		virtual ~TeredoRelay ();
 
+		/* TODO: return false if qualification is pending or if it
+		 failed. */
 		int operator! (void) const
 		{
 			return !sock;
@@ -118,12 +123,11 @@ class TeredoRelay
 		 */
 		int ProcessTunnelPacket (void);
 
-		// Sets and gets cone flag setting
-		void SetCone (bool cone = true)
-		{
-			is_cone = true;
-		}
-
+		/*
+		 * Returns true if the relay/client is behind a cone NAT.
+		 * The result is not meaningful if the client is not fully
+		 * qualified.
+		 */
 		bool IsCone (void) const
 		{
 			return is_cone;

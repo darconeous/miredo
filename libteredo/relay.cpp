@@ -1,6 +1,6 @@
 /*
  * relay.cpp - Teredo relay peers list definition
- * $Id: relay.cpp,v 1.3 2004/07/31 19:58:43 rdenisc Exp $
+ * $Id: relay.cpp,v 1.4 2004/08/17 16:40:03 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -48,6 +48,31 @@
 					? EXPIRED (peer->last_rx, now) \
 					: EXPIRED (peer->last_xmit, now))
 
+struct __TeredoRelay_peer
+{
+	struct __TeredoRelay_peer *next;
+
+	struct in6_addr addr;
+	uint32_t mapped_addr;
+	uint16_t mapped_port;
+	union
+	{
+		struct
+		{
+			unsigned trusted:1;
+			unsigned replied:1;
+			unsigned bubbles:2;
+		} flags;
+		uint16_t all_flags;
+	} flags;
+	/* nonce: only for client */
+	time_t last_rx;
+	time_t last_xmit;
+
+	uint8_t *queue;
+	size_t queuelen;
+};
+
 TeredoRelay::TeredoRelay (uint32_t pref, uint16_t port)
 	: is_cone (true), prefix (pref), head (NULL)
 {
@@ -58,11 +83,11 @@ TeredoRelay::TeredoRelay (uint32_t pref, uint16_t port)
 /* Releases peers list entries */
 TeredoRelay::~TeredoRelay (void)
 {
-	struct peer *p = head;
+	struct __TeredoRelay_peer *p = head;
 
 	while (p != NULL)
 	{
-		struct peer *buf = p->next;
+		struct __TeredoRelay_peer *buf = p->next;
 		if (p->queue != NULL)
 			delete p->queue;
 		delete p;
@@ -77,18 +102,18 @@ TeredoRelay::~TeredoRelay (void)
  *
  * FIXME: number of entry should be bound
  */
-struct TeredoRelay::peer *TeredoRelay::AllocatePeer (void)
+struct __TeredoRelay_peer *TeredoRelay::AllocatePeer (void)
 {
 	time_t now;
 	time (&now);
 
 	/* Tries to recycle a timed-out peer entry */
-	for (struct peer *p = head; p != NULL; p = p->next)
+	for (struct __TeredoRelay_peer *p = head; p != NULL; p = p->next)
 		if (ENTRY_EXPIRED (p, now))
 			return p;
 
 	/* Otherwise allocates a new peer entry */
-	struct peer *p = new struct peer;
+	struct __TeredoRelay_peer *p = new struct __TeredoRelay_peer;
 
 	/* Puts new entry at the head of the list */
 	p->next = head;
@@ -101,13 +126,13 @@ struct TeredoRelay::peer *TeredoRelay::AllocatePeer (void)
  * Returns a pointer to the first peer entry matching <addr>,
  * or NULL if none were found.
  */
-struct TeredoRelay::peer *TeredoRelay::FindPeer (const struct in6_addr *addr)
+struct __TeredoRelay_peer *TeredoRelay::FindPeer (const struct in6_addr *addr)
 {
 	time_t now;
 
 	time(&now);
 
-	for (struct peer *p = head; p != NULL; p = p->next)
+	for (struct __TeredoRelay_peer *p = head; p != NULL; p = p->next)
 		if (memcmp (&p->addr, addr, sizeof (struct in6_addr)) == 0)
 			if (!ENTRY_EXPIRED (p, now))
 				return p; // found!
@@ -214,7 +239,7 @@ int TeredoRelay::ProcessIPv6Packet (void)
 		return 0;
 
 	/* Case 1 (paragraph 5.4.1) */
-	struct peer *p = FindPeer (&addr.ip6);
+	struct __TeredoRelay_peer *p = FindPeer (&addr.ip6);
 #if 0
 	{
 		struct in_addr a;
@@ -321,7 +346,7 @@ int TeredoRelay::ProcessTunnelPacket (void)
 		return 0;
 
 	// Checks peers list
-	struct peer *p = FindPeer (&src.ip6);
+	struct __TeredoRelay_peer *p = FindPeer (&src.ip6);
 	/* 
 	 * We are explicitly allowed to drop packet from unknown peers
 	 * and it surely much safer.
