@@ -684,8 +684,8 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 	}
 
 	/*
-	 * At this point, we have either a trusted mapping mismatch or an
-	 * unlisted peer.
+	 * At this point, we have either a trusted mapping mismatch,
+	 * an unlisted peer, or an un-trusted client peer.
 	 */
 
 	if (IN6_TEREDO_PREFIX (&ip6.ip6_src) == GetPrefix ())
@@ -698,7 +698,7 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 			if (p == NULL)
 			{
 				/*
-				 * Relays We are explicitly allowed to drop
+				 * Relays are explicitly allowed to drop
 				 * packets from unknown peers and it is surely
 				 * much better. It prevents routing of packet
 				 * through the wrong relay.
