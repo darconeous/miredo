@@ -1,34 +1,50 @@
 Incomplete raw ToDo list:
 ==========================
-$Id: TODO,v 1.11 2004/08/22 16:58:53 rdenisc Exp $
+$Id: TODO,v 1.12 2004/08/26 09:47:08 rdenisc Exp $
 
 Features:
 ----------
 - some statistics,
 - (incomplete yet) automatic relay IPv6 address configuration,
 - automatic relay IPv6 address re-configuration/update,
-- support for being a relay behind a restricted NAT,
 - Teredo client support,
+- fixed TODOs in source code,
 
 Security:
 ----------
 - secure qualification support,
 - access control,
+- peer list size limit,
 
 Conformance:
 -------------
 - queueing of more than one packet toward restricted NATs,
 - implement proper/draft-compliant timeouts,
+- fixed FIXMEs in source code,
 
 Testing:
 ---------
-[Nothing]
+[ Never ending ]
+- tests for possible regressions in upcoming release,
+- tests for new features,
+
+Performance/scalibility:
+-------------------------
+- minimum usage of memcpy()/memmove(),
+- faster peer lists lookups/updates,
+
+Re-usability:
+--------------
+- libteredo API stabilization,
+- thread-safety in libteredo,
+- libteredo C bindings,
 
 Portability:
 -------------
 - big-endianess/byte-alignment compatibility tests,
 - Solaris compilation,
 - FreeBSD tunneling tests,
+- libteredo on Windows (?)
 
 Compatibility:
 ---------------
