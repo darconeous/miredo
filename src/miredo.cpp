@@ -581,9 +581,14 @@ miredo (const char *confpath)
 							? ifname : ident,
 							bind_port, bind_ip,
 							server_ip, &prefix);
+				if (ifname != NULL)
+					free (ifname);
 				closelog ();
 				exit (-retval);
 		}
+
+		if (ifname != NULL)
+			free (ifname);
 
 		// Waits until the miredo process terminates
 		while (waitpid (pid, &retval, 0) == -1);
