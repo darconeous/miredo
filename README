@@ -1,6 +1,6 @@
 Miredo : Teredo for Linux
 ==========================
-$Id: README,v 1.2 2004/06/14 21:52:31 rdenisc Exp $
+$Id: README,v 1.3 2004/06/26 15:47:26 rdenisc Exp $
 Copyright (C) 2004 Remi Denis-Courmont.
 
   Welcome to Miredo's introduction manual!
@@ -46,16 +46,30 @@ Microsoft IPv6 : Teredo overview.
 
 Usage
 ------
-  At the moment, the program expect to run both as a server and a relay
-and there is no way to disable either mode yet. To start the program,
-type the following command:
+  Miredo must be started by root. It expects to find a system user
+"miredo" and a group "nogroup" which to run. It will fail if either of
+these are missing. Moreover, Miredo will always detach and run in the
+background. Read your system logs to see what happens.
 
-# miredo 9.0.0.2 9.0.0.3
 
-where 9.0.0.2 will be your server's primary IPv4 address, and your
-relay's IPv4 address, and 9.0.0.3 will be your server's secondary IPv4
-address. It is not likely to work if the secondary address is not
-the primary plus one; that was not tested.
+  If you have two subsequent static IPv4 addresses on your system, you
+may be able to run a Teredo server. To start the program as a Teredo
+server, type the following command:
+
+# src/miredo -s 9.0.0.2
+
+where it is assumed that 9.0.0.2 will be your server's primary IPv4
+address, and 9.0.0.3 will be your server's secondary IPv4 address.
+
+
+  Otherwise, it is possible to run a Teredo relay. To do so, you only
+need to start miredo without parameters:
+
+# src/miredo
+
+  That will created a virtual "teredo" networking interface which will
+accept IPv6 traffic toward Teredo clients. Note that you must NOT be
+behind a "restricted NAT" for this to work properly.
 
 
 Remi Denis-Courmont <rdenis (at) simphalempin (dot) com>

@@ -36,7 +36,7 @@
 	* src/miredo.cpp, src/ipv6-tunnel.cpp:
 	- set Teredo interface MTU to 1280 bytes,
 	- setup Teredo interface address,
-	- support for changing Teredo''s prefix,
+	- support for changing Teredo's prefix,
 	- detach in the background.
 
 2004-05-15  Remi Denis-Courmont

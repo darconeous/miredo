@@ -1,4 +1,55 @@
-This is the very first release of the program,
-which was created from scratch.
-Every thing is new.
+RELEASE NOTES for Miredo
+version 0.1.1 (beta version)
+=============================
+$Id: NEWS,v 1.2 2004/06/26 15:47:26 rdenisc Exp $
+
+  This is an early release of the program. It is not finished and might not
+work properly. It is not suited for use in production environment.
+Users of the previous initial release 0.1.0 are encouraged to upgrade.
+
+  There are no known issues at the moment, but missing features. Please
+report any problem by email at address :
+rdenis (at) simphalempin (dot) com
+Thanks for your help.
+
+  You can find major changes since version 0.1.0 below. For more general
+informations on this program, see README. For syntax details and
+changes, run 'miredo -h' to get help. For detailled internal changes, see
+ChangeLog.
+
+=============================================================================
+BETA RELEASE 0.1.1 : Major feature enhancement
+
+# Partial support for FreeBSD:
+    Miredo should compile fine on FreeBSD, however it was not yet tested on
+  that platform. Feedback is most welcome.
+
+# Ability to disable server functionality:
+    The server is now disabled by default.
+
+# Ability to change the Teredo prefix (with -P).
+
+# Ability to change the Teredo relay port (with -p).
+
+# Automatic Teredo tunneling interface configuration:
+    Miredo will automatically set the interface local IPv6 address, and set
+  up an IPv6 route toward Teredo clients through the tunneling interface.
+  Additionnaly, the interface MTU will be set to 1280 as suggested by the
+  latest Teredo draft specification, and is automatically brought up and
+  running.
+
+# Possible vulnerabilities impact mitigation:
+    Miredo will drop its root privileges as soon as possible, setuid to
+  "miredo" user (which you should create, or change at configure time),
+  and setgid to "nogroup".
+
+# Background run:
+    Miredo will automatically detach and run in the background as a "daemon".
+
+# Automatic relay address configuration:
+    One no longer has to specify the relay IPv4 and IPv6 addresses. This is
+  no longer needed.
+
+# Build-time support for Intel C++ Compiler 8.0.
+=============================================================================
 
