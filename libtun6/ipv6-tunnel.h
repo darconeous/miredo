@@ -1,6 +1,6 @@
 /*
  * ipv6-tunnel.h - IPv6 interface class declaration
- * $Id: ipv6-tunnel.h,v 1.3 2004/08/17 17:31:14 rdenisc Exp $
+ * $Id: ipv6-tunnel.h,v 1.4 2004/08/18 09:33:24 rdenisc Exp $
  */
 
 /***********************************************************************
@@ -35,7 +35,12 @@
 struct ip6_hdr;
 
 /*
- * All methods, except the constructors and the destructor, are thread-safe.
+ * All methods are thread-safe.
+ * The constructors and the destructor must be called only one time per
+ * process (NOT per thread) and object
+ *
+ * All methods will report error messages via syslog(). Make sure you called
+ * openlog() before you create a tunnel.
  */
 
 class IPv6Tunnel
@@ -45,7 +50,23 @@ class IPv6Tunnel
 		char *ifname;
 
 	public:
+		/*
+		 * Tries to allocate a tunnel interface from the kernel.
+		 * req_name may be an interface name for the virtual network
+		 * device (it might be ignored on some OSes).
+		 *
+		 * If it failed, operator! will return true.
+		 */
 		IPv6Tunnel (const char *req_name = NULL);
+
+		/*
+		 * Removes a tunnel from the kernel.
+		 * BEWARE: if you fork, child processes must call the
+		 * destructor too.
+		 *
+		 * The kernel will destroy the tunnel interface once all
+		 * process called the destructor and/or terminated.
+		 */
 		~IPv6Tunnel ();
 
 		int operator! (void)
@@ -88,6 +109,8 @@ class IPv6Tunnel
 		 * Checks an fd_set, receives a packet and puts the result in
 		 * <buffer>. <maxlen>, which is the length of the buffer in
 		 * bytes, should be 65535.
+		 *
+		 * This function will block if there is no input.
 		 *
 		 * Returns the packet length on success,
 		 * -1 if no packet were to be received.
