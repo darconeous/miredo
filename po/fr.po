@@ -395,9 +395,9 @@ msgstr ""
 " à la ligne de commande de votre syslogd pour rectifier cela.\n"
 
 #: src/main.c:362
-#, fuzzy, c-format
+#, c-format
 msgid "SetUID to user ID %u: %s\n"
-msgstr "SetGID vers l'ID de groupe %u: %s\n"
+msgstr "SetUID vers l'ID d'utilisateur %u: %s\n"
 
 #: src/main.c:364
 msgid ""
@@ -449,7 +449,7 @@ msgstr "Port UDP du client/relais          : "
 
 #: src/main.c:545
 msgid "automatic"
-msgstr ""
+msgstr "automatique"
 
 #: src/main.c:547
 #, c-format
@@ -600,6 +600,3 @@ msgstr "Arrêt suite au signal %d (%s)"
 #, c-format
 msgid "Child %d killed by signal %d (%s)"
 msgstr "Fils %d tué par le signal %d (%s)"
-
-#~ msgid "SetUID to unpriviledged user"
-#~ msgstr "SetUID vers l'utilisateur non privilégié"
