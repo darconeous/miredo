@@ -1,4 +1,5 @@
 libteredo/teredo-udp.cpp
+libteredo/server-udp.cpp
 libteredo/relay.cpp
 libteredo/security.cpp
 libteredo/packets.cpp
