@@ -25,7 +25,11 @@ libteredo_a_SOURCES =	teredo.c teredo.h \
 			v4global.c v4global.h \
 			teredo-udp.cpp teredo-udp.h \
 			relay.cpp relay.h \
-			server.cpp server.h \
 			packets.cpp packets.h \
 			security.cpp security.h \
 			queue.cpp queue.h
+
+if TEREDO_SERVER
+libteredo_a_SOURCES += server.cpp server.h
+endif
+

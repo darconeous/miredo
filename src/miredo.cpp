@@ -56,7 +56,11 @@
 #include <libtun6/ipv6-tunnel.h>
 
 #include <libteredo/teredo.h>
-#include "server.h"
+#ifdef MIREDO_TEREDO_SERVER
+# include "server.h"
+#else
+# define teredo_server_relay( t, r, s ) teredo_relay( t, r )
+#endif
 #include "relay.h"
 #include <privproc.h>
 
@@ -127,12 +131,14 @@ teredo_server_relay (IPv6Tunnel& tunnel, TeredoRelay *relay = NULL,
 
 		int maxfd = -1;
 
+#ifdef MIREDO_TEREDO_SERVER
 		if (server != NULL)
 		{
 			int val = server->RegisterReadSet (&readset);
 			if (val > maxfd)
 				maxfd = val;
 		}
+#endif
 
 		if (relay != NULL)
 		{
@@ -157,8 +163,10 @@ teredo_server_relay (IPv6Tunnel& tunnel, TeredoRelay *relay = NULL,
 			continue;
 
 		/* Handle incoming data */
+#ifdef MIREDO_TEREDO_SERVER
 		if (server != NULL)
 			server->ProcessTunnelPacket (&readset);
+#endif
 
 		if (relay != NULL)
 		{
@@ -309,7 +317,9 @@ miredo_run (uint16_t bind_port, const char *bind_ip, const char *server_name,
 	}
 
 	MiredoRelay *relay = NULL;
+#ifdef MIREDO_TEREDO_SERVER
 	MiredoServer *server = NULL;
+#endif
 	int fd = -1, retval = -1;
 
 	if (seteuid (0))
@@ -372,6 +382,7 @@ miredo_run (uint16_t bind_port, const char *bind_ip, const char *server_name,
 		goto abort;
 	}
 
+#ifdef MIREDO_TEREDO_SERVER
 	// Sets up server sockets
 	if (((mode & MIREDO_CLIENT) == 0) && (server_name != NULL))
 	{
@@ -413,6 +424,7 @@ miredo_run (uint16_t bind_port, const char *bind_ip, const char *server_name,
 		server->SetPrefix (prefix.teredo.prefix);
 		server->SetTunnel (&tunnel);
 	}
+#endif
 
 	// Sets up relay or client
 	// TODO: ability to not be a relay at all
@@ -492,8 +504,10 @@ abort:
 		close (fd);
 	if (relay != NULL)
 		delete relay;
+#ifdef MIREDO_TEREDO_SERVER
 	if (server != NULL)
 		delete server;
+#endif
 	if (fd != -1)
 		wait (NULL); // wait for privsep process
 

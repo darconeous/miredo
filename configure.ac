@@ -111,6 +111,16 @@ AC_CHECK_FUNCS([clearenv])
 
 
 # Checks for optionnal features
+AC_ARG_ENABLE([server],
+	      AS_HELP_STRING([--disable-teredo-server],
+			     [do not compile Teredo server (enabled by default)]))
+AH_TEMPLATE(MIREDO_TEREDO_SERVER,
+	    [Define to 1 if the Teredo server support is enabled])
+AS_IF([test "x${enable_teredo_server}" != "xno"],
+	AC_DEFINE(MIREDO_TEREDO_SERVER))
+AM_CONDITIONAL(TEREDO_SERVER, [test "x${enable_teredo_server}" != "xno"])
+
+# unprivileged user
 AC_ARG_ENABLE([miredo-user],
 	      AS_HELP_STRING([--enable-miredo-user],
 			     [user to run as (disabled by default)]))
@@ -121,6 +131,7 @@ AH_TEMPLATE(MIREDO_DEFAULT_USERNAME,
 AS_IF([test "x${enable_miredo_user}" != "x" && test "${enable_miredo_user}" != "no"],
 	AC_DEFINE_UNQUOTED(MIREDO_DEFAULT_USERNAME, "$enable_miredo_user"))
 
+# pidfile path
 AC_ARG_ENABLE([pidfile],
 	      AS_HELP_STRING([--enable-pidfile],
 			     [path to the pidfile (enabled by default)]))
