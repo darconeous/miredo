@@ -192,7 +192,8 @@ int clearenv (void)
 #endif
 
 
-void chroot_notice (void)
+static void
+chroot_notice (void)
 {
 	fputs (_("Chroot directory was probably not set up correctly.\n"
 		"NOTE: You can use command line option '-t /'\n"

@@ -208,7 +208,7 @@ TeredoRelay::~TeredoRelay (void)
 }
 
 
-int TeredoRelay::NotifyUp (const struct in6_addr *addr)
+int TeredoRelay::NotifyUp (const struct in6_addr *)
 {
 	return 0;
 }
