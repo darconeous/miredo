@@ -347,8 +347,7 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
 		 * We also drop link-local unicast and multicast packets as
 		 * they can't be routed through Teredo properly.
 		 */
-		// TODO: maybe, send a ICMP adminstrative error
-		return 0;
+		return SendUnreach (1, packet, length);
 
 
 	struct peer *p = FindPeer (&ip6.ip6_dst);
@@ -385,15 +384,15 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
 		 * cannot route packets toward non-Teredo IPv6 addresses, and
 		 * we are not allowed to do it by the specification either.
 		 *
-		 * TODO:
+		 * NOTE:
 		 * The specification mandates silently ignoring such
 		 * packets. However, this only happens in case of
 		 * misconfiguration, so I believe it could be better to
-		 * notify the user. An alternative might be to send an
-		 * ICMPv6 error back to the kernel.
+		 * notify the user. An alternative is to send an ICMPv6 error
+		 * back to the kernel.
 		 */
 		if (IsRelay ())
-			return 0;
+			return SendUnreach (1, packet, length);
 			
 		/* Client case 2: direct IPv6 connectivity test */
 		// TODO: avoid code duplication
