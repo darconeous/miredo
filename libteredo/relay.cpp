@@ -319,10 +319,6 @@ inline bool IsBubble (const struct ip6_hdr *hdr)
  */
 int TeredoRelay::SendPacket (const void *packet, size_t length)
 {
-	/* Makes sure we are qualified properly */
-	if (!IsRunning ())
-		return SendUnreach (0, packet, length);
-
 	struct ip6_hdr ip6;
 	if ((length < sizeof (ip6)) || (length > 65507))
 		return 0;
@@ -335,6 +331,10 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
 	if (((ip6.ip6_vfc >> 4) != 6)
 	 || ((sizeof (ip6) + ntohs (ip6.ip6_plen)) != length))
 		return 0; // invalid IPv6 packet
+
+	/* Makes sure we are qualified properly */
+	if (!IsRunning ())
+		return SendUnreach (0, packet, length);
 
 	const union teredo_addr *dst = (union teredo_addr *)&ip6.ip6_dst,
 				*src = (union teredo_addr *)&ip6.ip6_src;
@@ -353,14 +353,6 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
 
 
 	struct peer *p = FindPeer (&ip6.ip6_dst);
-#ifdef DEBUG
-	{
-		struct in_addr a;
-		a.s_addr = ~addr.teredo.client_ip;
-		syslog (LOG_DEBUG, "DEBUG: packet for %s:%hu\n", inet_ntoa (a),
-				~addr.teredo.client_port);
-	}
-#endif
 
 	if (p != NULL)
 	{
@@ -430,7 +422,7 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
 	if (!is_ipv4_global_unicast (IN6_TEREDO_SERVER (&ip6.ip6_dst))
 	 || (IN6_TEREDO_SERVER (&ip6.ip6_dst) == 0))
 		return 0;
-		
+
 	/* Client case 3: TODO: implement local discovery */
 
 	if (p == NULL)
@@ -447,7 +439,7 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
 		p->outqueue.SetMapping (p->mapped_addr, p->mapped_port);
 		p->flags.all_flags = 0;
 		time (&p->last_xmit);
-	
+
 		/* Client case 4 & relay case 2: new cone peer */
 		if (IN6_IS_TEREDO_ADDR_CONE (&ip6.ip6_dst))
 		{
