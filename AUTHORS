@@ -1,8 +1,8 @@
 Started as a study by:
-Rémi Denis-Courmont <deniscr6 (at) cti (dot) ecp.fr>,
+RÃ©mi Denis-Courmont <deniscr6 (at) cti (dot) ecp.fr>,
 engineering student at Ecole Centrale Paris, March-April 2004.
 
-Maintained by Rémi Denis-Courmont <rdenis (at) simphalempin (dot) com>
+Maintained by RÃ©mi Denis-Courmont <rdenis (at) simphalempin (dot) com>
 
 Some parts that might fall under the Ecole Centrale Paris's large
 innovation protection rules for students were carefully stripped from the
@@ -14,7 +14,7 @@ The school namely preempts copyrights on works done either:
 1/ as part af the scholarship, _with_ the intervention of someone working for
    the university:
      That is the case for some additionnal (french) documentation written
-     about the study, which was supervised by François Xavier Potel, which I
+     about the study, which was supervised by FranÃ§ois Xavier Potel, which I
      thank a lot for his help along the initial project.
 
      That is fortunately not really the case for the program's source code,
