@@ -4,7 +4,6 @@ $Id$
 
 Features:
 ----------
-- easy support for DNS resolution when chrooted,
 - fix connectivity loss detection,
 - some statistics,
 - fixed TODOs in source code,
