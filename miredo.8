@@ -13,7 +13,7 @@
 .\" *  along with this program; if not, you can get it from:              *
 .\" *  http://www.gnu.org/copyleft/gpl.html                               *
 .\" ***********************************************************************
-.TH "MIREDO" "8" "$Date: 2004/08/26 09:37:53 $" "miredo" "System Manager's Manual"
+.TH "MIREDO" "8" "$Date: 2004/08/29 19:28:03 $" "miredo" "System Manager's Manual"
 .SH NAME
 miredo \- Teredo IPv6 tunneling for Unix
 .SH SYNOPSIS
@@ -118,14 +118,22 @@ This enable Miredo to serve as a Teredo client.
 .\".SH DIAGNOSTICS
 .SH BUGS
 Miredo should chroot() for increased security.
-.RI "Miredo should support " "client mode" "."
 
 Miredo does not queue more than one IPv6 packet per Teredo clients.
-That might break some IPv6-enabled applications.
+That might break some IPv6-enabled applications which are not
+packet loss tolerant enough.
 
 .RB "Miredo does not support " "secure qualification" "."
-I don't know any client implementation that supports it either, so it
-is not a real problem at the moment.
+I don't know any client or server implementation that supports it
+either, so it is not a real problem at the moment.
+
+Miredo does not set up a default IPv6 route through its tunneling
+interface automatically yet. You have to do set it up by hand.
+On Linux, it can be done this way :
+
+# ip -6 ro add default dev teredo via 3ffe:831f::1
+
+(if 3ffe:831f::/32 is you Teredo prefix, which is the default).
 
 .RB "The Internet draft specification for " "Teredo" " has not yet"
 been validated. As such it is subject to change and miredo might not
@@ -143,6 +151,11 @@ it up properly. Once its initialization is complete, it will drop
 .RB "privileges, setuid (see option " "-u" "), setgid and possibly"
 .RB "chroot (see option " "-t" ") so as to decrease your system"
 to potential security issues.
+If Miredo runs as a Teredo client, it needs root privileges when
+running, so as to change the tunneling network interface settings
+automatically. To prevent possible root compromises, Miredo implements
+.IR "priveleges separation" ". The process that handles input from"
+the outside has is not privileged.
 
 Miredo is still beta quality code. As such, it should not be deployed
 in production or security-sensitive environment. It is supposedly easy
@@ -165,7 +178,7 @@ ng_teredo(4), ipv6(7), route(8), ip(8)
 .SH AUTHOR
 Remi Denis-Courmont <rdenis at simphalempin.com>
 
-$Id: miredo.8,v 1.9 2004/08/26 09:37:53 rdenisc Exp $
+$Id: miredo.8,v 1.10 2004/08/29 19:28:03 rdenisc Exp $
 
 http://www.simphalempin.com/dev/miredo/
 

@@ -1,7 +1,7 @@
 RELEASE NOTES for Miredo
 version 0.1.2 (beta version)
 =============================
-$Id: NEWS,v 1.4 2004/08/24 09:49:39 rdenisc Exp $
+$Id: NEWS,v 1.5 2004/08/29 19:28:03 rdenisc Exp $
 
   This is an early release of the program. It is not finished and might not
 work properly. It is not suited for use in production environment.
@@ -18,7 +18,15 @@ changes, run 'miredo -h' to get help. For detailled internal changes, see
 ChangeLog.
 
 =============================================================================
-ALPHA RELEASE 0.1.2 : Minor feature enhancement
+ALPHA RELEASE 0.1.2 : Major feature enhancement
+
+# Ability to run as a Teredo client:
+    Miredo can now server as a Teredo client. It will set up its Teredo
+  address automatically from a server then forward packets. However, you
+  have to add a default route to the Teredo tunneling interface if you want
+  to use Miredo to access the IPv6 Internet as a whole, instead of only other
+  Teredo clients. Of course, a server name to must be specified for the
+  client mode to work.
 
 # Ability to run behind a restricted NAT device:
     Miredo's Teredo relaying functions should now work fine from behind a

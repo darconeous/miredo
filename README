@@ -1,12 +1,12 @@
 Miredo : Teredo for Linux
 ==========================
-$Id: README,v 1.8 2004/08/24 09:49:39 rdenisc Exp $
+$Id: README,v 1.9 2004/08/29 19:28:03 rdenisc Exp $
 Copyright (C) 2004 Remi Denis-Courmont.
 
   Welcome to Miredo's introduction manual!
 
 Where to go?
--------------
+=============
   If you've used olders versions of this program, you should read NEWS
 for a summary of the most recent updates and changes.
 
@@ -27,42 +27,43 @@ production/critical environment.
 
 
 What is Miredo?
-----------------
+================
 
   Miredo is an Unix daemon program which implements the "Teredo:
 Tunneling IPv6 over UDP through NATs" Internet draft specification.
 At the moment, Miredo runs fine on GNU/Linux 2.4.x/2.6.x and not so
-fine on FreeBSD 4.x/5.x. It can provide both server and relay
+fine on FreeBSD 4.x/5.x. It can provide either client, relay and server
 functionnality.
 
   It can be used to provide IPv6 connectivity to users behind NAT which
 do not support IPv6, and not even proto-41 forwarding. For this to
 work, users need to have a Teredo client running on their system.
-Microsoft provides a Teredo client for Windows XP SP1 in its
-"Advanced Networking pack". 
+That can be Miredo itself on Linux/FreeBSD. Microsoft provides a Teredo
+client for Windows XP SP1/SP2 in its "Advanced Networking pack". 
 
   For more informations on the Teredo technology, please refer to the
 Microsoft IPv6 : Teredo overview.
 
 
 Setting up Miredo
-------------------
+==================
 
 1) System user:
-
+----------------
   Unless you ran the configure script with command line option
 '--disable-miredo-user', Miredo will try to SetUID as "miredo", so you
 should create a miredo system user if it doesn't exists.
 
 
 2) Chroot jail:
-
+----------------
   Unless you started miredo with command line option '-t /', or used
 the already mentioned configure option '--disable-miredo-user', miredo
 will try to chroot itself.
   Indeed, to mitigate risks and reduce your system's exposure, it is
-recommended to run miredo inside a chroot jail. By the way, miredo will
-try to chroot to its user's home by default.
+recommended to run miredo inside a chroot jail. However, that makes
+installation of the program more complex, so that is not mandatory.
+By the way, miredo will try to chroot to its user's home by default.
 
   For the chroot jail to work properly, you should put these device
 files (assuming the home directory is /var/run/miredo):
@@ -82,11 +83,22 @@ read-write access to dev/log, but it should no problem).
 
 
 Usage
-------
+======
   Miredo must be started by root. Miredo will always detach and run in the
 background. Read your system logs to see what happens.
 
 
+a) as a Teredo client:
+-----------------------
+  If you want to use Miredo as a Teredo client, so as to access the IPv6
+Internet from behind a NAT, you must tell Miredo which Teredo server it
+should use. For example:
+
+# src/miredo teredo.ipv6.microsoft.com
+
+
+b) as a Teredo server and relay:
+---------------------------------
   If you have two subsequent static IPv4 addresses on your system, you
 may be able to run a Teredo server. To start the program as a Teredo
 server, type the following command:
@@ -97,6 +109,8 @@ where it is assumed that 9.0.0.2 will be your server's primary IPv4
 address, and 9.0.0.3 will be your server's secondary IPv4 address.
 
 
+c) as a stand-alone Teredo relay:
+----------------------------------
   Otherwise, it is possible to run a Teredo relay. To do so, you only
 need to start miredo without parameters:
 
@@ -105,6 +119,10 @@ need to start miredo without parameters:
   That will created a virtual "teredo" networking interface which will
 accept IPv6 traffic toward Teredo clients. Note that you must NOT be
 behind a "symmetric NAT" for this to work properly.
+  If you are behind a cone NAT or no NAT device at all, you should tell
+Miredo to use optimizations for cone NATs:
+
+# src/miredo -C
 
 
 -- 
