@@ -1,6 +1,6 @@
 /*
  * relay.cpp - Teredo relay peers list definition
- * $Id: relay.cpp,v 1.9 2004/08/22 15:38:26 rdenisc Exp $
+ * $Id: relay.cpp,v 1.10 2004/08/22 16:40:05 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -160,11 +160,11 @@ struct __TeredoRelay_peer *TeredoRelay::FindPeer (const struct in6_addr *addr)
  * TODO: ability to send direct bubbles as well as indirect ones
  * (at the moment we can only send indirect bubbles)
  */
-int TeredoRelay::SendBubble (const union teredo_addr *dst,
-				bool indirect) const
+int TeredoRelay::SendBubble (const struct in6_addr *d, bool indirect) const
 {
 	uint32_t ip;
 	uint16_t port;
+	const union teredo_addr *dst = (const union teredo_addr *)d;
 
 	if (indirect)
 	{
@@ -228,44 +228,25 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
 	 || ((sizeof (ip6) + ntohs (ip6.ip6_plen)) != length))
 		return 0; // invalid IPv6 packet
 
-	union teredo_addr addr;
-	memcpy (&addr.ip6, &ip6.ip6_dst, sizeof (struct in6_addr));
+	const union teredo_addr *dst = (union teredo_addr *)&ip6.ip6_dst,
+				*src = (union teredo_addr *)&ip6.ip6_src;
 
-	/* Initial destination address checks */
-	if (addr.teredo.prefix != GetPrefix ())
-	{
-		if (addr.ip6.s6_addr[0] != 0xff)
-		{
-			/*
-			 * NOTE:
-			 * Print a warning except for multicast packets,
-			 * which the kernel tend to send automatically
-			 * for IPv6 autoconfiguration (which won't work in our
-			 * case, though).
-			 *
-			 * FIXME:
-			 * This breaks the specification: it mandates silently
-			 * ignoring such packets. However, this only happens
-			 * in case of misconfiguration, so I believe it's
-			 * better to notify the user. An alternative might be
-			 * to send an ICMPv6 error back to the kernel.
-			 */
-			syslog (LOG_WARNING,
-				_("Dropped packet with non-Teredo address"
-				" (prefix %08lx instead of %08lx):\n"
-				" Possible routing table misconfiguration."),
-				(unsigned long)ntohl (addr.teredo.prefix),
-				(unsigned long)ntohl (GetPrefix ()));
-		}
-		return 0;
-	}
-
-	if (!is_ipv4_global_unicast (~addr.teredo.client_ip))
+	if (dst->teredo.prefix != GetPrefix ()
+	 && src->teredo.prefix != GetPrefix ())
+		/*
+		 * Routing packets not from a Teredo client,
+		 * neither toward a Teredo client through a Teredo tunnel
+		 * is NOT allowed.
+		 *
+		 * We also drop link-local unicast and multicast packets as
+		 * they can't be routed through Teredo properly.
+		 */
+		// TODO: maybe, send a ICMP adminstrative error
 		return 0;
 
-	/* Case 1 (paragraph 5.4.1) */
-	struct __TeredoRelay_peer *p = FindPeer (&addr.ip6);
-#if 0
+	/* Case 1 (paragraphs 5.2.4 & 5.4.1): trusted peer */
+	struct __TeredoRelay_peer *p = FindPeer (&ip6.ip6_dst);
+#ifdef DEBUG
 	{
 		struct in_addr a;
 		a.s_addr = ~addr.teredo.client_ip;
@@ -276,36 +257,67 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
 
 	if (p != NULL)
 	{
+		/* Already known -valid- peer */
 		if (p->flags.flags.trusted)
 		{
 			time (&p->last_rx);
 			return sock.SendPacket (packet, length,
-							p->mapped_addr,
-							p->mapped_port);
+						p->mapped_addr,
+						p->mapped_port);
 		}
 	}
 	else
 	{
-		// Creates an entry
-		p = AllocatePeer ();
-		memcpy (&p->addr, &addr.ip6, sizeof (addr.ip6));
-		p->mapped_addr = ~addr.teredo.client_ip;
-		p->mapped_port = ~addr.teredo.client_port;
-		p->flags.all_flags = 0;
-		time (&p->last_xmit);
-		p->queue = NULL;
+		/* Unknown, possibly invalid, peer */
+		if (dst->teredo.prefix != GetPrefix ())
+		{
+			/*
+			 * TODO:
+			 * The specification mandates silently ignoring such
+			 * packets. However, this only happens in case of
+			 * misconfiguration, so I believe it's better to
+			 * notify the user. An alternative might be to send an
+			 * ICMPv6 error back to the kernel.
+			 */
+			if (server_ip == 0)
+				return 0;
+			
+			/* Client case 2: direct IPv6 connectivity test */
+			// FIXME: implement that test before next release
+			syslog (LOG_WARNING, "DEBUG: FIXME: should send echo request");
+			return 0;
+		}
+		else
+		{
+			// Ignores Teredo clients with incorrect server IPv4
+			if (!is_ipv4_global_unicast (~dst->teredo.client_ip))
+				return 0;
+		
+			/* Client case 3: TODO: implement local discovery */
+
+			// Creates a new entry
+			p = AllocatePeer ();
+			memcpy (&p->addr, &ip6.ip6_dst,
+				sizeof (struct in6_addr));
+			p->mapped_addr = ~dst->teredo.client_ip;
+			p->mapped_port = ~dst->teredo.client_port;
+			p->flags.all_flags = 0;
+			time (&p->last_xmit);
+			p->queue = NULL;
+	
+			/* Client case 4 & relay case 2: new cone peer */
+			/* TODO: send bubble if IsCone () is false */
+			if (IN6_IS_TEREDO_ADDR_CONE (&ip6.ip6_dst))
+			{
+				p->flags.flags.trusted = 1;
+				return sock.SendPacket (packet, length,
+							p->mapped_addr,
+							p->mapped_port);
+			}
+		}
 	}
 
-	/* Case 2 */
-	/* TODO: send bubble if IsCone () is true */
-	if (IN6_IS_TEREDO_ADDR_CONE (&addr.ip6))
-	{
-		p->flags.flags.trusted = 1;
-		return sock.SendPacket (packet, length, p->mapped_addr,
-						p->mapped_port);
-	}
-
-	/* Case 3 */
+	/* Client case 5 & relay case 3: untrusted non-cone peer */
 	/* TODO: enqueue more than one packet 
 	 * (and do this in separate functions) */
 	if (p->queue == NULL)
@@ -315,9 +327,10 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
 		memcpy (p->queue, packet, length);
 		p->queuelen = length;
 	}
+#ifdef DEBUG
 	else
-		/*syslog (LOG_DEBUG, _("FIXME: packet not queued\n"))*/;
-
+		syslog (LOG_DEBUG, _("FIXME: packet not queued\n"));
+#endif
 
 	// Sends no more than one bubble every 2 seconds,
 	// and 3 bubbles every 30 secondes
@@ -330,7 +343,7 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
 		{
 			p->flags.flags.bubbles ++;
 			memcpy (&p->last_xmit, &now, sizeof (p->last_xmit));
-			return SendBubble (&addr, true);
+			return SendBubble (&ip6.ip6_dst, true);
 		}
 	}
 

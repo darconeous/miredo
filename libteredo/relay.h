@@ -1,6 +1,6 @@
 /*
  * relay.h - Teredo relay peers list declaration
- * $Id: relay.h,v 1.9 2004/08/22 15:38:26 rdenisc Exp $
+ * $Id: relay.h,v 1.10 2004/08/22 16:40:05 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -30,6 +30,7 @@
 # include <libteredo/teredo-udp.h>
 
 struct ip6_hdr;
+struct in6_addr;
 union teredo_addr;
 
 struct __TeredoRelay_peer;
@@ -51,7 +52,7 @@ class TeredoRelay
 		struct __TeredoRelay_peer *AllocatePeer (void);
 		struct __TeredoRelay_peer *FindPeer (const struct in6_addr *addr);
 
-		int SendBubble (const union teredo_addr *dst,
+		int SendBubble (const struct in6_addr *dst,
 				bool indirect) const;
 
 		/*** Callbacks ***/
