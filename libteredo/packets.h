@@ -81,4 +81,11 @@ SendPing (const TeredoRelayUDP& sock, const union teredo_addr *src,
 bool
 CheckPing (const TeredoPacket& packet, const uint8_t *nonce);
 
+
+int
+BuildICMPv6Error (struct ip6_hdr *out, const struct in6_addr *src,
+			uint8_t type, uint8_t code,
+			const struct ip6_hdr *in, uint16_t inlen);
+
+
 #endif

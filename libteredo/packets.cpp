@@ -75,7 +75,6 @@ SendBubble (const TeredoRelayUDP& sock, uint32_t ip, uint16_t port,
  * Sends a Teredo Bubble to the server (if indirect is true) or the client (if
  * indirect is false) specified in Teredo address <dst>.
  * Returns 0 on success, -1 on error.
- * FIXME: use the previous function
  */
 int
 SendBubble (const TeredoRelayUDP& sock, const struct in6_addr *dst,
@@ -117,7 +116,7 @@ sum16 (const uint8_t *data, size_t length, uint32_t sum32 = 0)
 }
 
 /*
- * Computes an IPv6 16-bits checksum
+ * Computes an IPv6 Pseudo-header 16-bits checksum
  */
 static uint16_t 
 ipv6_sum (const struct ip6_hdr *ip6)
@@ -138,7 +137,9 @@ ipv6_sum (const struct ip6_hdr *ip6)
 	return sum32;
 }
 
-
+/*
+ * Computes an ICMPv6 over IPv6 packet checksum
+ */
 static uint16_t
 icmp6_checksum (const struct ip6_hdr *ip6, const struct icmp6_hdr *icmp6)
 {
@@ -378,4 +379,40 @@ CheckPing (const TeredoPacket& packet, const uint8_t *nonce)
 		return false;
 
 	return true;
+}
+
+
+/*
+ * Builds an ICMPv6 error message with specified type and code from an IPv6
+ * packet. The output buffer should be at least 1280 bytes long.
+ * Returns the actual size of the generated error message. Never fails.
+ *
+ * It is assumed that the input and output buffers are properly aligned.
+ */
+int
+BuildICMPv6Error (struct ip6_hdr *out, const struct in6_addr *src,
+			uint8_t type, uint8_t code,
+			const struct ip6_hdr *in, uint16_t inlen)
+{
+	if (inlen + sizeof (struct ip6_hdr) + sizeof (icmp6_hdr) > 1280)
+		inlen = 1280 - (sizeof (struct ip6_hdr) + sizeof (icmp6_hdr));
+	uint16_t len = sizeof (struct ip6_hdr) + sizeof (icmp6_hdr) + inlen;
+
+	out->ip6_flow = htonl (0x60000000);
+	out->ip6_plen = htons (len);
+	out->ip6_nxt = IPPROTO_ICMPV6;
+	out->ip6_hlim = 255;
+	memcpy (&out->ip6_src, src, sizeof (struct in6_addr));
+	memcpy (&out->ip6_dst, &in->ip6_src, sizeof (struct in6_addr));
+	
+	struct icmp6_hdr *h = (struct icmp6_hdr *)(out + 1);
+	h->icmp6_type = type;
+	h->icmp6_code = code;
+	h->icmp6_cksum = 0;
+	h->icmp6_data32[0] = 0;
+
+	memcpy (h + 1, in, inlen);
+
+	h->icmp6_cksum = icmp6_checksum (out, h);
+	return len;
 }
