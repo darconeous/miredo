@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: rdenis@simphalempin.com\n"
-"POT-Creation-Date: 2005-01-02 14:45+0100\n"
+"POT-Creation-Date: 2005-01-05 23:04+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -69,14 +69,14 @@ msgstr ""
 msgid "Lost Teredo connectivity"
 msgstr ""
 
-#: libteredo/security.cpp:52
-#, c-format
-msgid "Error reading %s: %m"
-msgstr ""
-
-#: libteredo/security.cpp:63
+#: libteredo/security.cpp:43
 #, c-format
 msgid "Error opening %s: %m"
+msgstr ""
+
+#: libteredo/security.cpp:88
+#, c-format
+msgid "Error reading random data: %m"
 msgstr ""
 
 #: libteredo/packets.cpp:315
@@ -205,11 +205,11 @@ msgid ""
 "IPv6 tunneling will not work.\n"
 msgstr ""
 
-#: src/main.c:74
+#: src/main.c:68
 msgid "Try \"miredo -h | more\" for more information.\n"
 msgstr ""
 
-#: src/main.c:83
+#: src/main.c:77
 msgid ""
 "Usage: miredo [OPTIONS]\n"
 "Creates a Teredo tunneling interface for encapsulation of IPv6 over UDP.\n"
@@ -217,74 +217,57 @@ msgid ""
 "  -f, --foreground run in the foreground\n"
 "  -h, --help       display this help and exit\n"
 "  -p, --pidfile    override the pidfile path\n"
-"  -t, --chroot     override the chroot directory\n"
 "  -u, --user       override the user to set UID to\n"
 "  -V, --version    display program version and exit\n"
 msgstr ""
 
-#: src/main.c:93
-#, c-format
-msgid "Default Teredo prefix: %s:/32\n"
-msgstr ""
-
-#: src/main.c:110
+#: src/main.c:100
 msgid ""
 "This is free software; see the source for copying conditions.\n"
 "There is NO warranty; not even for MERCHANTABILITY or\n"
 "FITNESS FOR A PARTICULAR PURPOSE.\n"
 msgstr ""
 
-#: src/main.c:113
+#: src/main.c:103
 #, c-format
 msgid ""
 "Written by %s.\n"
 "Configured with: %s\n"
 msgstr ""
 
-#: src/main.c:123
+#: src/main.c:113
 #, c-format
 msgid ""
 "Duplicate parameter \"%s\" for option -%c\n"
 "would override previous value \"%s\".\n"
 msgstr ""
 
-#: src/main.c:135
+#: src/main.c:125
 #, c-format
 msgid "Invalid number (or capacity exceeded) \"%s\" for option -%c\n"
 msgstr ""
 
-#: src/main.c:144
+#: src/main.c:134
 #, c-format
 msgid "%s: unexpected extra parameter\n"
 msgstr ""
 
-#: src/main.c:153
+#: src/main.c:143
 msgid "Error: missing command line parameter\n"
 msgstr ""
 
-#: src/main.c:248
-msgid ""
-"Chroot directory was probably not set up correctly.\n"
-"NOTE: You can use command line option \"-t /\"\n"
-"if you don't want to run the program inside a chroot jail.\n"
-"\n"
-"Not using a chroot jail is far easier though less secure.\n"
-"\n"
-"\n"
-msgstr ""
-
-#: src/main.c:263
+#: src/main.c:214
 msgid ""
 "That is usually an indication that you are trying to start\n"
 "the program as an user with insufficient system privileges.\n"
 "This program should normally be started by root.\n"
 msgstr ""
 
-#: src/main.c:325
+#: src/main.c:269
 msgid "User not found"
 msgstr ""
 
-#: src/main.c:327
+#: src/main.c:271
 #, c-format
 msgid ""
 "Error: This program was asked to run in the\n"
@@ -293,10 +276,10 @@ msgid ""
 "\n"
 "Use command line option \"-u <username>\" to run\n"
 "this program in the security context of another\n"
-"user. Running as root is STRONGLY DISCOURAGED.\n"
+"user.\n"
 msgstr ""
 
-#: src/main.c:340
+#: src/main.c:284
 msgid ""
 "Error: This program is not supposed to keep root\n"
 "privileges. That is potentially very dangerous\n"
@@ -306,167 +289,153 @@ msgid ""
 "privileges are kept.\n"
 msgstr ""
 
-#: src/main.c:355
+#: src/main.c:299
 #, c-format
 msgid "SetGID to group ID %u: %s\n"
 msgstr ""
 
-#: src/main.c:357
+#: src/main.c:301
 msgid ""
 "Error: This program tried to change its system\n"
 "group(s) security context but it failed.\n"
 msgstr ""
 
-#: src/main.c:374
+#: src/main.c:315
 #, c-format
-msgid "Root directory jail in %s: %s\n"
+msgid "SetUID to root: %s\n"
 msgstr ""
 
-#: src/main.c:391
-#, c-format
-msgid ""
-"Warning: /dev/log not found or invalid: logging will probably not work.\n"
-"Try adding \"-a %s/dev/log\"\n"
-" to your syslogd command line to fix that.\n"
-msgstr ""
-
-#: src/main.c:412
-#, c-format
-msgid "SetUID to user ID %u: %s\n"
-msgstr ""
-
-#: src/main.c:414
-msgid ""
-"Error: This program tried to change its system\n"
-"user security context but it failed.\n"
-msgstr ""
-
-#: src/main.c:431 src/main.c:438
+#: src/main.c:335 src/main.c:343
 msgid "Fatal error"
 msgstr ""
 
-#: src/main.c:445
-msgid "Getting networking privileges"
+#: src/main.c:350
+msgid "Getting required capabilities"
 msgstr ""
 
-#: src/main.c:447
+#: src/main.c:352
 msgid ""
-"Error: This program tried to obtain system networking administration\n"
+"Error: This program tried to obtain required system administration\n"
 "privileges but it failed.\n"
 msgstr ""
 
-#: src/main.c:463
+#: src/main.c:368
 msgid "Error (daemon)"
 msgstr ""
 
-#: src/main.c:555
+#: src/main.c:467
 #, c-format
 msgid ""
 "Read unknown option -%c :\n"
 "That is probably a bug. Please report it.\n"
 msgstr ""
 
-#: src/miredo.cpp:262
+#: src/main.c:484
 #, c-format
-msgid "SetUID to root failed: %m"
+msgid "Reading configuration from %s: %s\n"
 msgstr ""
 
-#: src/miredo.cpp:286
+#: src/main.c:502
+#, c-format
+msgid "Checking chroot directory %s: %s\n"
+msgstr ""
+
+#: src/miredo.cpp:255
 #, c-format
 msgid ""
 "Teredo tunnel setup failed:\n"
 " %s"
 msgstr ""
 
-#: src/miredo.cpp:287 src/miredo.cpp:310
+#: src/miredo.cpp:256 src/miredo.cpp:289
 msgid "You should be root to do that."
 msgstr ""
 
-#: src/miredo.cpp:298
+#: src/miredo.cpp:276
 #, c-format
 msgid "Privileged process setup failed: %m"
 msgstr ""
 
-#: src/miredo.cpp:309
+#: src/miredo.cpp:288
 #, c-format
 msgid ""
 "Teredo routing failed:\n"
 " %s"
 msgstr ""
 
-#: src/miredo.cpp:319
+#: src/miredo.cpp:297
 #, c-format
 msgid "Setting UID failed: %m"
 msgstr ""
 
-#: src/miredo.cpp:335
+#: src/miredo.cpp:313
 msgid "Teredo server failure"
 msgstr ""
 
-#: src/miredo.cpp:348
+#: src/miredo.cpp:326
 msgid "Teredo UDP port failure"
 msgstr ""
 
-#: src/miredo.cpp:349 src/miredo.cpp:413
+#: src/miredo.cpp:327 src/miredo.cpp:392
 msgid "Make sure another instance of the program is not already running."
 msgstr ""
 
-#: src/miredo.cpp:397
+#: src/miredo.cpp:376
 msgid "Teredo service failure"
 msgstr ""
 
-#: src/miredo.cpp:405
+#: src/miredo.cpp:384
 #, c-format
 msgid "Teredo service port failure: cannot open UDP port %u"
 msgstr ""
 
-#: src/miredo.cpp:410
+#: src/miredo.cpp:389
 msgid "Teredo service port failure: cannot open an UDP port"
 msgstr ""
 
-#: src/miredo.cpp:448
+#: src/miredo.cpp:433
 #, c-format
 msgid "pipe failed: %m"
 msgstr ""
 
-#: src/miredo.cpp:497
+#: src/miredo.cpp:505
 #, c-format
 msgid "Loading configuration from %s failed"
 msgstr ""
 
-#: src/miredo.cpp:523 src/miredo.cpp:535 src/miredo.cpp:560
+#: src/miredo.cpp:544 src/miredo.cpp:554 src/miredo.cpp:564 src/miredo.cpp:589
 msgid "Fatal configuration error"
 msgstr ""
 
-#: src/miredo.cpp:545
+#: src/miredo.cpp:574
 msgid "Fatal bind IPv4 address error"
 msgstr ""
 
-#: src/miredo.cpp:552
+#: src/miredo.cpp:581
 msgid "Fatal bind UDP port error"
-msgstr ""
-
-#: src/miredo.cpp:572
-#, c-format
-msgid "fork failed: %m"
-msgstr ""
-
-#: src/miredo.cpp:592
-#, c-format
-msgid "Exiting on signal %d (%s)"
 msgstr ""
 
 #: src/miredo.cpp:601
 #, c-format
+msgid "fork failed: %m"
+msgstr ""
+
+#: src/miredo.cpp:627
+#, c-format
+msgid "Exiting on signal %d (%s)"
+msgstr ""
+
+#: src/miredo.cpp:635
+#, c-format
 msgid "Reloading configuration on signal %d (%s)"
 msgstr ""
 
-#: src/miredo.cpp:610
+#: src/miredo.cpp:644
 #, c-format
 msgid "Terminated (exit code: %d)"
 msgstr ""
 
-#: src/miredo.cpp:618
+#: src/miredo.cpp:652
 #, c-format
 msgid "Child %d killed by signal %d (%s)"
 msgstr ""
@@ -501,17 +470,22 @@ msgstr ""
 msgid "Invalid integer value \"%s\" for %s: %m"
 msgstr ""
 
-#: src/conf.cpp:257 src/conf.cpp:288
+#: src/conf.cpp:272
+#, c-format
+msgid "Invalid boolean value \"%s\" for %s"
+msgstr ""
+
+#: src/conf.cpp:301 src/conf.cpp:332
 #, c-format
 msgid "Invalid hostname \"%s\" at line %u: %s"
 msgstr ""
 
-#: src/conf.cpp:312
+#: src/conf.cpp:356
 #, c-format
 msgid "Invalid Teredo IPv6 prefix: %x::/32"
 msgstr ""
 
-#: src/conf.cpp:344
+#: src/conf.cpp:386
 #, c-format
 msgid "Invalid relay type \"%s\" at line %u"
 msgstr ""
