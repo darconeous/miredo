@@ -314,6 +314,8 @@ init_security (const char *username, const char *rootdir, int nodetach)
 	}
 
 	errno = 0;
+#if defined(HAVE_LINUX)
+	/* TODO: which other OS does this warning apply to ? */
 	{
 		struct stat s;
 
@@ -327,6 +329,7 @@ init_security (const char *username, const char *rootdir, int nodetach)
 			chroot_notice ();
 		}
 	}
+#endif
 
 	/* TODO: use POSIX capabilities */
 	/* Unpriviledged user (step 2) */
