@@ -1,0 +1,119 @@
+#!/bin/sh
+#
+# Miredo start/stop script for Mandrake GNU/Linux
+# Author: Remi Denis-Courmont <rdenis (at) simphalempin (dot) com>
+#
+# chkconfig: 345 17 83
+# description: Starts and stops the Miredo daemon \
+#	       used to provide IPv6 tunneling over UDP through NAT.
+#
+### BEGIN INIT INFO
+# Provides: teredo ipv6
+# Requires: $local_fs $network $syslog $time
+# Short-Description: Teredo IPv6 tunnel
+# Description: Miredo daemon for tunneling of IPv6 through NAT
+#	within UDP/IPv4, as specified by the Teredo mechanism.
+# Default-Start: 3 4 5
+# Default-Stop: 0 1 2 6
+### END INIT INFO
+
+# (This init script is not strictly LSB-compliant).
+
+# Source function library.
+if [ -f /etc/init.d/functions ] ; then
+  . /etc/init.d/functions
+elif [ -f /etc/rc.d/init.d/functions ] ; then
+  . /etc/rc.d/init.d/functions
+else
+  exit 0
+fi
+
+# Source networking configuration.
+. /etc/sysconfig/network
+
+# Check that networking is up.
+[ ${NETWORKING} = "no" ] && exit 0
+
+
+
+LOCK_FILE=/var/lock/subsys/miredo
+#CONF_FILE=/etc/miredo/miredo.xml
+PATH=/sbin:/usr/sbin:/bin:/usr/bin
+
+# Check that masqmail.conf exists.
+if [ ! -f $CONF_FILE ]; then
+	gprintf "Service not configured\n"
+	exit 6 # not configured
+fi
+
+# Check that masqmail exists
+if [ ! -x /usr/sbin/miredo ]; then
+	gprintf "Service not installed\n"
+	exit 5 # not installed
+fi
+
+RETVAL=0
+
+start() {
+	gprintf "Starting Miredo services: "
+	daemon /usr/sbin/miredo #-bd
+	RETVAL=$?
+	echo
+	if [ $RETVAL -eq 0 ]; then
+		touch $LOCK_FILE
+	else
+		RETVAL=1
+	fi
+	return $RETVAL
+}	
+stop() {
+	gprintf "Shutting down Miredo services: "
+	killproc /usr/sbin/miredo
+	RETVAL=$?
+	echo
+	[ $RETVAL -eq 0 ] && rm -f $LOCK_FILE
+	return $RETVAL
+}	
+restart() {
+	stop
+	start
+}	
+reload() {
+	gprintf "Reloading miredo.xml: Not supported\n"
+	#RETVAL=$?
+	RETVAL=3 # unimplemented feature
+	return $RETVAL
+}	
+mdkstatus() {
+	status miredo
+}	
+
+case "$1" in
+  start)
+  	start
+	;;
+  stop)
+  	stop
+	;;
+  restart)
+  	restart
+	;;
+  reload)
+  	reload
+	;;
+  force-reload)
+	#reload # is not supported
+  	restart
+	;;
+  status)
+  	mdkstatus
+	;;
+  condrestart)
+  	[ -f $LOCK_FILE ] && restart || :
+	;;
+  *)
+	gprintf "Usage: %s {start|stop|restart|status|condrestart}\n" "$0"
+	exit 3 # unimplemented feature
+esac
+
+exit $?
