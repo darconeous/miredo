@@ -343,7 +343,7 @@ TeredoServer::ProcessTunnelPacket (const fd_set *readset)
 	// Accepts packet:
 	if (IN6_TEREDO_PREFIX(&ip6->ip6_dst) != GetPrefix ())
 		// forwards packet to native IPv6:
-		return SendIPv6Packet (ip6, ip6len);
+		return SendIPv6Packet (ip6, ip6len + 40);
 
 	// forwards packet over Teredo:
 	return ForwardUDPPacket (sock, packet,
