@@ -111,6 +111,8 @@ AC_CHECK_FUNCS(clearenv)
 
 
 # Checks for optionnal features
+AC_MSG_CHECKING([enabled Miredo features])
+miredo_features=""
 # Teredo server
 AC_ARG_ENABLE(teredo-server,
 	      [AS_HELP_STRING(--disable-teredo-server,
@@ -118,8 +120,35 @@ AC_ARG_ENABLE(teredo-server,
 AH_TEMPLATE(MIREDO_TEREDO_SERVER,
 	    [Define to 1 if the Teredo server support is enabled])
 AS_IF([test "x${enable_teredo_server}" != "xno"],
-	[AC_DEFINE(MIREDO_TEREDO_SERVER)])
+	[AC_DEFINE(MIREDO_TEREDO_SERVER)
+	miredo_features="server ${miredo_features}"])
 AM_CONDITIONAL(TEREDO_SERVER, [test "x${enable_teredo_server}" != "xno"])
+
+# Teredo relay (includes Teredo client)
+AC_ARG_ENABLE(teredo-relay,
+	      [AS_HELP_STRING(--disable-teredo-relay,
+			      [do not compile Teredo relay & client (enabled by default)])])
+AH_TEMPLATE(MIREDO_TEREDO_RELAY,
+	    [Define to 1 if the Teredo relay/client support is enabled])
+AS_IF([test "x${enable_teredo_relay}" != "xno"],
+	[AC_DEFINE(MIREDO_TEREDO_RELAY)
+	miredo_features="relay ${miredo_features}"])
+AM_CONDITIONAL(TEREDO_RELAY, [test "x${enable_teredo_relay}" != "xno"])
+
+# Teredo client (requires Teredo relay)
+AC_ARG_ENABLE(teredo-client,
+	      [AS_HELP_STRING(--disable-teredo-client,
+			      [do not compile Teredo client (enabled by default)])])
+AH_TEMPLATE(MIREDO_TEREDO_CLIENT,
+	    [Define to 1 if the Teredo client support is enabled])
+AS_IF([test "x${enable_teredo_relay}" != "xno" && test "x${enable_teredo_client}" != "xno"],
+	[AC_DEFINE(MIREDO_TEREDO_CLIENT)
+	miredo_features="client ${miredo_features}"])
+AM_CONDITIONAL(TEREDO_CLIENT, [test "x${enable_teredo_relay}" != "xno" && test "x${enable_teredo_client}" != "xno"])
+
+AS_IF([test "x${miredo_features}" = "x"],
+	[AC_MSG_ERROR([all components disabled])])
+AC_MSG_RESULT([Teredo ${miredo_features}])
 
 # unprivileged user
 AC_ARG_ENABLE(miredo-user,
