@@ -43,7 +43,9 @@ class TeredoRelay
 	private:
 		struct peer;
 		class OutQueue;
+		friend class OutQueue;
 		class InQueue;
+		friend class InQueue;
 
 		/*** Internal stuff ***/
 		union teredo_addr addr;
@@ -65,7 +67,6 @@ class TeredoRelay
 
 		int SendUnreach (int code, const void *in, size_t inlen);
 
-	protected:
 		/*** Callbacks ***/
 		/*
 		 * Sends an IPv6 packet from Teredo toward the IPv6 Internet.
@@ -94,6 +95,7 @@ class TeredoRelay
 		 */
 		virtual int NotifyDown (void);
 
+	protected:
 		/*
 		 * Creates a Teredo relay manually (ie. one that does not
 		 * qualify with a Teredo server and has no Teredo IPv6
