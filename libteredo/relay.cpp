@@ -1,6 +1,6 @@
 /*
  * relay.cpp - Teredo relay peers list definition
- * $Id: relay.cpp,v 1.1 2004/07/22 17:38:29 rdenisc Exp $
+ * $Id: relay.cpp,v 1.2 2004/07/23 16:44:52 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -116,11 +116,24 @@ struct MiredoRelay::peer *MiredoRelay::FindPeer (const struct in6_addr *addr)
  * TODO: ability to send direct bubbles as well as indirect ones
  * (at the moment we can only send indirect bubbles)
  */
-int MiredoRelay::SendBubble (const union teredo_addr *dst) const
+int MiredoRelay::SendBubble (const union teredo_addr *dst,
+				bool indirect) const
 {
-	uint32_t dest_ip = dst->teredo.server_ip;
+	uint32_t ip;
+	uint16_t port;
+	
+	if (indirect)
+	{
+		ip = dst->teredo.server_ip;
+		port = htons (IPPORT_TEREDO);
+	}
+	else
+	{
+		ip = ~dst->teredo.client_ip;
+		port = ~dst->teredo.client_port;
+	}
 
-	if (dest_ip && is_ipv4_global_unicast (dest_ip))
+	if (ip && is_ipv4_global_unicast (ip))
 	{
 		struct ip6_hdr hdr;
 
@@ -129,12 +142,11 @@ int MiredoRelay::SendBubble (const union teredo_addr *dst) const
 		hdr.ip6_nxt = IPPROTO_NONE;
 		hdr.ip6_hlim = 255;
 		memcpy (&hdr.ip6_src, IsCone ()
-				? &teredo_cone
-				: &teredo_restrict, sizeof (hdr.ip6_src));
+				? &teredo_cone : &teredo_restrict,
+				sizeof (hdr.ip6_src));
 		memcpy (&hdr.ip6_dst, &dst->ip6, sizeof (hdr.ip6_dst));
 
-		return sock->SendPacket (&hdr, sizeof (hdr),
-				dest_ip, htons (IPPORT_TEREDO));
+		return sock->SendPacket (&hdr, sizeof (hdr), ip, port);
 	}
 
 	return 0;
@@ -261,7 +273,7 @@ int MiredoRelay::TransmitPacket (void)
 		{
 			p->flags.flags.bubbles ++;
 			memcpy (&p->last_xmit, &now, sizeof (p->last_xmit));
-			return SendBubble (&addr);
+			return SendBubble (&addr, true);
 		}
 	}
 
