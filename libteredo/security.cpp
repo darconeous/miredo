@@ -32,15 +32,50 @@
 
 #include "security.h"
 
+static const char *randfile = "/dev/random", *urandfile = "/dev/urandom";
+static int devfd[2] = { -1, -1 };
+
+static int
+random_open (bool critical)
+{
+	int fd = open (critical ? randfile : urandfile, 0);
+	if (fd == -1)
+		syslog (LOG_ERR, _("Error opening %s: %m"),
+			critical ? randfile : urandfile);
+
+	return fd;
+}
+
+
+void
+InitNonceGenerator (void)
+{
+	if (devfd[0] == -1)
+		devfd[0] = random_open (true);
+	if (devfd[1] == -1)
+		devfd[1] = random_open (false);
+}
+
+
+void
+DeinitNonceGenerator (void)
+{
+	if (devfd[0] != -1)
+		(void)close (devfd[0]);
+
+	if (devfd[1] != -1)
+		(void)close (devfd[1]);
+}
+
+
 /*
  * Generates a random nonce value (8 bytes).
  * Thread-safe. Returns true on success, false on error
  */
-bool GenerateNonce (unsigned char *b, bool critical)
+bool
+GenerateNonce (unsigned char *b, bool critical)
 {
-	const char *dev = critical ? "/dev/random" : "/dev/urandom";
-
-	int fd = open (dev, 0);
+	int fd = devfd[critical ? 0 : 1];
 	if (fd != -1)
 	{
 		ssize_t tot = 0, val;
@@ -49,18 +84,15 @@ bool GenerateNonce (unsigned char *b, bool critical)
 		{
 			val = read (fd, b + tot, 8 - tot);
 			if (val <= 0)
-				syslog (LOG_ERR, _("Error reading %s: %m"),
-					dev);
+				syslog (LOG_ERR,
+					_("Error reading random data: %m"));
 			else
 				tot += val;
 		}
 		while ((tot < 8) && (val > 0));
 
-		close (fd);
-
 		return tot == 8;
 	}
-	syslog (LOG_ERR, _("Error opening %s: %m"), dev);
 
 	return false;
 }

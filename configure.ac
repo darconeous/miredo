@@ -150,6 +150,16 @@ AS_IF([test "x${miredo_features}" = "x"],
 	[AC_MSG_ERROR([all components disabled])])
 AC_MSG_RESULT([Teredo ${miredo_features}])
 
+# chroot path
+AC_ARG_ENABLE(chroot,
+	      [AS_HELP_STRING(--enable-chroot,
+	      		      [path to chroot to (/var/run/miredo by default)])])
+AS_IF([test "x${enable_chroot}" = "x" || test "${enable_chroot}" = "yes"],
+	[enable_chroot="/var/run/miredo"])
+AH_TEMPLATE(MIREDO_CHROOT_PATH, [Define to the path in which to chroot])
+AS_IF([test "${enable_chroot}" != "no"],
+	[AC_DEFINE_UNQUOTED(MIREDO_CHROOT_PATH, "$enable_chroot")])
+
 # unprivileged user
 AC_ARG_ENABLE(miredo-user,
 	      [AS_HELP_STRING(--enable-miredo-user,

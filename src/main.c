@@ -89,9 +89,6 @@ usage (void)
 "  -t, --chroot     override the chroot directory\n"
 "  -u, --user       override the user to set UID to\n"
 "  -V, --version    display program version and exit\n"));
-
-	printf (_("Default Teredo prefix: %s:/32\n"),
-		DEFAULT_TEREDO_PREFIX_STR);
 	return 0;
 }
 
@@ -265,6 +262,7 @@ setuid_notice (void)
 "This program should normally be started by root.\n"), stderr);
 }
 
+
 static int
 init_security (const char *username, const char *rootdir, int nodetach)
 {
@@ -422,7 +420,7 @@ init_security (const char *username, const char *rootdir, int nodetach)
 #ifdef HAVE_LIBCAP
 	{
 		cap_t s;
-		cap_value_t v = CAP_NET_ADMIN;
+		cap_value_t v[] = { CAP_SYS_CHROOT, CAP_NET_ADMIN };
 
 		s = cap_init ();
 		if (s == NULL)
@@ -432,7 +430,7 @@ init_security (const char *username, const char *rootdir, int nodetach)
 			return -1;
 		}
 
-		if (cap_set_flag (s, CAP_PERMITTED, 1, &v, CAP_SET))
+		if (cap_set_flag (s, CAP_PERMITTED, 2, v, CAP_SET))
 		{
 			/* Unlikely */
 			perror (_("Fatal error"));

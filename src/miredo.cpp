@@ -69,10 +69,13 @@
 # include "relay.h"
 # ifdef MIREDO_TEREDO_CLIENT
 #  include <privproc.h>
+#  include <libteredo/security.h> // FIXME: dirty
 # endif
 #else
 # define teredo_server_relay(t, r, s ) teredo_server( t, s )
 #endif
+
+/* FIXME: this file needs a lot of cleanup */
 
 /*
  * Signal handlers
@@ -231,13 +234,10 @@ miredo_run (int mode, const char *ifname,
 		uint32_t server_ip, union teredo_addr *prefix,
 		bool default_route)
 {
-#ifdef MIREDO_TEREDO_RELAY
-	MiredoRelay *relay = NULL;
+#ifdef MIREDO_TEREDO_CLIENT
+	if (mode == TEREDO_CLIENT)
+		InitNonceGenerator ();
 #endif
-#ifdef MIREDO_TEREDO_SERVER
-	MiredoServer *server = NULL;
-#endif
-	int fd = -1, retval = -1;
 
 	if (seteuid (0))
 		syslog (LOG_WARNING, _("SetUID to root failed: %m"));
@@ -257,6 +257,12 @@ miredo_run (int mode, const char *ifname,
 	 */
 	IPv6Tunnel tunnel (ifname);
 
+#ifdef MIREDO_CHROOT_PATH
+	if (chroot (MIREDO_CHROOT_PATH) || chdir ("/"))
+		syslog (LOG_WARNING, "chroot to %s failed: %m",
+			MIREDO_CHROOT_PATH);
+#endif
+
 	/*
 	 * Must be root to do that.
 	 * TODO: move SetMTU() to privsep, as it may be overriden by the
@@ -266,8 +272,17 @@ miredo_run (int mode, const char *ifname,
 	{
 		syslog (LOG_ALERT, _("Teredo tunnel setup failed:\n %s"),
 				_("You should be root to do that."));
-		goto abort;
+		return -1;
 	}
+
+#ifdef MIREDO_TEREDO_RELAY
+	MiredoRelay *relay = NULL;
+#endif
+#ifdef MIREDO_TEREDO_SERVER
+	MiredoServer *server = NULL;
+#endif
+	int fd = -1, retval = -1;
+
 
 #ifdef MIREDO_TEREDO_CLIENT
 	if (mode == TEREDO_CLIENT)
@@ -408,11 +423,16 @@ abort:
 #ifdef MIREDO_TEREDO_RELAY
 	if (relay != NULL)
 		delete relay;
+# ifdef MIREDO_TEREDO_CLIENT
+	if (mode == TEREDO_CLIENT)
+		DeinitNonceGenerator ();
+# endif
 #endif
 #ifdef MIREDO_TEREDO_SERVER
 	if (server != NULL)
 		delete server;
 #endif
+
 	if (fd != -1)
 		wait (NULL); // wait for privsep process
 

@@ -27,6 +27,18 @@
 # endif
 
 /*
+ * MUST be called before any call to GenerateNonce().
+ * Not thread-safe.
+ */
+void InitNonceGenerator (void);
+
+/*
+ * Should be called after use of GenerateNonce().
+ * Not thread-safe.
+ */
+void DeinitNonceGenerator (void);
+
+/*
  * Generates a random nonce value (8 bytes). Thread-safe.
  */
 bool GenerateNonce (unsigned char *b, bool critical = false);

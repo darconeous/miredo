@@ -11,6 +11,7 @@ Features:
 - local Teredo discovery,
 - ability to run a non-relay Teredo server
 - "automatic sunset" / "exit strategy" -- quite complicated,
+- SyslogFacility config directive,
 
 Security:
 ----------
