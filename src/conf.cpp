@@ -84,7 +84,6 @@ MiredoConf::Set (const char *name, const char *value, unsigned line)
 				tail = parm;
 				/* unlock here */
 
-				printf ("DEBUG: added value(%u): %s = %s\n", line, name, value);
 				return true;
 			}
 			free (parm->name);
@@ -119,7 +118,6 @@ MiredoConf::ReadFile (FILE *stream)
 		lbuf[len] = '\0';
 		char nbuf[32], vbuf[1024];
 
-		printf ("DEBUG: read: \"%s\"\n", lbuf);
 		switch (sscanf (lbuf, " %31s %1023s", nbuf, vbuf))
 		{
 			case 2:
@@ -129,9 +127,10 @@ MiredoConf::ReadFile (FILE *stream)
 				break;
 
 			case 1:
-				syslog (LOG_WARNING,
-					_("Ignoring junk at line %u: %s"),
-					line, nbuf);
+				if (*nbuf != '#')
+					syslog (LOG_WARNING,
+						_("Ignoring line %u: %s"),
+						line, nbuf);
 				break;
 		}
 	}
