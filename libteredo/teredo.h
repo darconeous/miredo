@@ -28,6 +28,9 @@
 
 #define IPPORT_TEREDO 3544 /* UDP Teredo port number */
 
+#define TEREDO_DISCOVERY_STR	"224.0.0.252"
+#define TEREDO_DISCOVERY_IP	0xe00000fc
+
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <netinet/ip6.h>
