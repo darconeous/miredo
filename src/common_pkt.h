@@ -1,6 +1,6 @@
 /*
  * common_pkt.h - Declarations for common_pkt.cpp
- * $Id: common_pkt.h,v 1.1 2004/06/14 14:45:58 rdenisc Exp $
+ * $Id: common_pkt.h,v 1.2 2004/07/21 16:37:41 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -25,15 +25,10 @@
 #ifndef MIREDO_COMMON_PKT_H
 # define MIREDO_COMMON_PKT_H
 
-class MiredoCommonUDP;
-class IPv6Tunnel;
+# include <inttypes.h>
 
-/*
- * Forwards a Teredo-encapsulated packet on IPv6 tunnel.
- */
-int ForwardPacket (const MiredoCommonUDP *from, const IPv6Tunnel *to);
-
-bool is_ipv4_global_unicast (u_long ip);
+extern "C"
+bool is_ipv4_global_unicast (uint32_t ip);
 
 #endif /* ifndef MIREDO_COMMON_PKT_H */
 

@@ -1,6 +1,6 @@
 /*
  * common_pkt.cpp - Common server and relay functions
- * $Id: common_pkt.cpp,v 1.5 2004/06/27 15:27:12 rdenisc Exp $
+ * $Id: common_pkt.cpp,v 1.6 2004/07/21 16:37:41 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -26,31 +26,18 @@
 # include <config.h>
 #endif
 
-#include "teredo-udp.h"
-#include "libtun6/ipv6-tunnel.h"
 #include "common_pkt.h"
 
-#include <syslog.h> // DEBUG
 #include <inttypes.h>
-
-int
-ForwardPacket (const MiredoCommonUDP *from, const IPv6Tunnel *to)
-{
-	size_t length;
-	const void *p = from->GetIPv6Header (length);
-	if (p == NULL)
-		return -1;
-
-	syslog (LOG_DEBUG, "Sending raw IPv6 packet\n");
-	return to->SendPacket (p, length);
-}
+#include <netinet/in.h> // ntohl()
 
 /*
  * Checks that ip is a global unicast IPv4 address
  * (Values shoud maybe not be hardcoded that way).
  */
+extern "C"
 bool
-is_ipv4_global_unicast (u_long ip)
+is_ipv4_global_unicast (uint32_t ip)
 {
 	ip = ntohl (ip);
 	return

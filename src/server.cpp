@@ -1,6 +1,6 @@
 /*
  * server.cpp - Handling of a single Teredo datagram (server-side).
- * $Id: server.cpp,v 1.5 2004/07/12 09:34:51 rdenisc Exp $
+ * $Id: server.cpp,v 1.6 2004/07/21 16:37:41 rdenisc Exp $
  */
 
 /***********************************************************************
@@ -35,8 +35,9 @@
 #include <arpa/inet.h> // inet_ntoa()
 
 #include "teredo-udp.h"
-#include "common_pkt.h" // TODO: remove
 #include "server.h"
+#include "libtun6/ipv6-tunnel.h" // FIXME: remove
+#include "common_pkt.h" // FIXME: rename
 
 static uint16_t
 sum16 (const uint8_t *data, size_t length, uint32_t sum32 = 0)
@@ -324,11 +325,11 @@ MiredoServer::ReceivePacket (void) const
 	// (ie 2000::/3). That's not in the spec.
 	if ((ip6->ip6_dst.s6_addr[0] & 0xe0) != 0x20)
 		return 0; // must be discarded
-	
+
 	// Accepts packet:
 	if (IN6_TEREDO_PREFIX(&ip6->ip6_dst) != GetPrefix ())
 		// forwards packet to native IPv6:
-		return ForwardPacket (sock, tunnel);
+		return tunnel->SendPacket (ip6, ip6len);
 
 	// forwards packet over Teredo:
 	return ForwardUDPPacket (sock,
