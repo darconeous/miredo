@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: miredo 0.4.0\n"
 "Report-Msgid-Bugs-To: rdenis@simphalempin.com\n"
-"POT-Creation-Date: 2005-02-08 23:19+0100\n"
+"POT-Creation-Date: 2005-03-17 20:12+0100\n"
 "PO-Revision-Date: 2005-02-08 23:18+0100\n"
 "Last-Translator: Rémi Denis-Courmont <rdenis (at) simphalempin (dot) com>\n"
 "Language-Team: N/A\n"
@@ -438,126 +438,138 @@ msgstr "Défaillance du serveur Teredo"
 msgid "Teredo UDP port failure"
 msgstr "Défaillance du port UDP Teredo"
 
-#: src/miredo.cpp:332 src/miredo.cpp:399
+#: src/miredo.cpp:332 src/miredo.cpp:401
 msgid "Make sure another instance of the program is not already running."
 msgstr "Vérifiez qu'une autre instance du programme n'est pas déjà en marche."
 
-#: src/miredo.cpp:383
+#: src/miredo.cpp:385
 msgid "Teredo service failure"
 msgstr "Défaillance du service Teredo"
 
-#: src/miredo.cpp:391
+#: src/miredo.cpp:393
 #, c-format
 msgid "Teredo service port failure: cannot open UDP port %u"
 msgstr "Échec du port de service Teredo: ouverture du port UDP %u impossible"
 
-#: src/miredo.cpp:396
+#: src/miredo.cpp:398
 msgid "Teredo service port failure: cannot open an UDP port"
 msgstr "Échec du port de service Teredo: ouverture d'un port UDP impossible"
 
-#: src/miredo.cpp:439
+#: src/miredo.cpp:442
 #, c-format
 msgid "pipe failed: %m"
 msgstr "Échec de pipe: %m"
 
-#: src/miredo.cpp:495
+#: src/miredo.cpp:498
 #, c-format
 msgid "Loading configuration from %s failed"
 msgstr "Échec du chargement de la configuration depuis %s"
 
-#: src/miredo.cpp:505 src/miredo.cpp:514 src/miredo.cpp:523
+#: src/miredo.cpp:508 src/miredo.cpp:517 src/miredo.cpp:532
 msgid "Fatal configuration error"
 msgstr "Erreur fatale de configuration"
 
-#: src/miredo.cpp:532
+#: src/miredo.cpp:523
+msgid "Server address not specified"
+msgstr "Adresse du serveur non indiquée"
+
+#: src/miredo.cpp:541
 msgid "Fatal bind IPv4 address error"
 msgstr "Erreur fatale d'adresse IPv4"
 
-#: src/miredo.cpp:539
+#: src/miredo.cpp:548
 msgid "Fatal bind UDP port error"
 msgstr "Erreur fatale de port UDP"
 
-#: src/miredo.cpp:612
+#: src/miredo.cpp:622
 #, c-format
 msgid "fork failed: %m"
 msgstr "Échec de fork: %m"
 
-#: src/miredo.cpp:634
+#: src/miredo.cpp:644
 #, c-format
 msgid "Exiting on signal %d (%s)"
 msgstr "Arrêt suite au signal %d (%s)"
 
-#: src/miredo.cpp:642
+#: src/miredo.cpp:652
 #, c-format
 msgid "Reloading configuration on signal %d (%s)"
 msgstr "Rechargement de la configuration suite au signal %d (%s)"
 
-#: src/miredo.cpp:651
+#: src/miredo.cpp:661
 #, c-format
 msgid "Terminated (exit code: %d)"
 msgstr "Terminé (code de retour: %d)"
 
-#: src/miredo.cpp:659
+#: src/miredo.cpp:669
 #, c-format
 msgid "Child %d killed by signal %d (%s)"
 msgstr "Fils %d tué par le signal %d (%s)"
 
-#: src/conf.cpp:62
+#: src/miredo.cpp:677
+msgid "Terminated with error(s)."
+msgstr "Terminé avec une/des erreur(s)."
+
+#: src/miredo.cpp:679
+msgid "Terminated with no error."
+msgstr "Terminé sans erreur."
+
+#: src/conf.cpp:70
 #, c-format
 msgid "Superfluous directive %s at line %u"
 msgstr "Directive %s superflue à la ligne %u"
 
-#: src/conf.cpp:105
+#: src/conf.cpp:113
 #, c-format
 msgid "Memory problem: %m"
 msgstr "Problème de mémoire: %m"
 
-#: src/conf.cpp:128
+#: src/conf.cpp:136
 #, c-format
 msgid "Skipped overly long line %u"
 msgstr "Ligne %u trop longue ignorée"
 
-#: src/conf.cpp:146
+#: src/conf.cpp:154
 #, c-format
 msgid "Ignoring line %u: %s"
 msgstr "Line %u ignorée: %s"
 
-#: src/conf.cpp:154
+#: src/conf.cpp:162
 #, c-format
 msgid "Error reading configuration file: %m"
 msgstr "Erreur de lecture du fichier de configuration: %m"
 
-#: src/conf.cpp:171
+#: src/conf.cpp:179
 #, c-format
 msgid "Error opening configuration file %s: %m"
 msgstr "Erreur d'ouverture du fichier de configuration %s: %m"
 
-#: src/conf.cpp:222
+#: src/conf.cpp:230
 #, c-format
 msgid "Invalid integer value \"%s\" for %s: %m"
 msgstr "Valeur entière invalide «%s» pour %s: %m"
 
-#: src/conf.cpp:276
+#: src/conf.cpp:284
 #, c-format
 msgid "Invalid boolean value \"%s\" for %s"
 msgstr "Valeur booléenne incorrecte «%s» pour %s"
 
-#: src/conf.cpp:306 src/conf.cpp:339
+#: src/conf.cpp:314 src/conf.cpp:347
 #, c-format
 msgid "Invalid hostname \"%s\" at line %u: %s"
 msgstr "Nom d'hôte invalide «%s» à la ligne %u: %s"
 
-#: src/conf.cpp:365
+#: src/conf.cpp:373
 #, c-format
 msgid "Invalid Teredo IPv6 prefix: %x::/32"
 msgstr "Préfixe Teredo IPv6 invalide: %x::/32"
 
-#: src/conf.cpp:400
+#: src/conf.cpp:404
 #, c-format
 msgid "Invalid relay type \"%s\" at line %u"
 msgstr "Type de relais invalide «%s» à la ligne %u"
 
-#: src/conf.cpp:480
+#: src/conf.cpp:484
 #, c-format
 msgid "Unknown syslog facility \"%s\" at line %u"
 msgstr "Catégorie syslog «%s» inconnue à la ligne %u"
