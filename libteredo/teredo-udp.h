@@ -117,6 +117,7 @@ class TeredoPacket
 };
 
 
+# ifdef MIREDO_TEREDO_RELAY
 class TeredoRelayUDP
 {
 	private:
@@ -127,7 +128,7 @@ class TeredoRelayUDP
 		{
 		}
 
-		~TeredoRelayUDP (void);
+		virtual ~TeredoRelayUDP (void);
 
 		// Not thread-safe (you MUST lock the object when calling):
 		int ListenPort (uint16_t port = 0, uint32_t ipv4 = 0);
@@ -149,6 +150,34 @@ class TeredoRelayUDP
 		}	
 };
 
+#  ifdef MIREDO_TEREDO_CLIENT
+class TeredoClientUDP : TeredoRelayUDP
+{
+	private:
+		int mfd;
+
+	public:
+		TeredoClientUDP (void);
+		virtual ~TeredoClientUDP (void);
+
+		// Thread safe functions:
+		int RegisterReadSet (fd_set *readset) const;
+		int ReceiveMulticastPacket (const fd_set *readset,
+						TeredoPacket& packet) const
+		{
+			return packet.Receive (readset, mfd);
+		}
+
+		int SendPacket (const void *packet, size_t len,
+				uint32_t dest_ip, uint16_t dest_port) const;
+
+		int operator! (void) const
+		{
+			return mfd == -1 || TeredoRelayUDP::operator! ();
+		}	
+};
+#  endif /* ifdef MIREDO_TEREDO_CLIENT */
+# endif /* ifdef MIREDO_TEREDO_RELAY */
 
 # ifdef MIREDO_TEREDO_SERVER
 class TeredoServerUDP

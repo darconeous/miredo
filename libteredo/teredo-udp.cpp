@@ -202,6 +202,7 @@ TeredoPacket::Receive (const fd_set *readset, int fd)
 
 
 /*** TeredoRelayUDP implementation ***/
+#ifdef MIREDO_TEREDO_RELAY
 TeredoRelayUDP::~TeredoRelayUDP (void)
 {
 	if (fd != -1)
@@ -237,6 +238,35 @@ TeredoRelayUDP::SendPacket (const void *packet, size_t len,
 		? SendUDPPacket (fd, packet, len, dest_ip, dest_port)
 		: -1;
 }
+
+
+/*** TeredoClientUDP implementation ***/
+# ifdef MIREDO_TEREDO_CLIENT
+TeredoClientUDP::TeredoClientUDP (void)
+{
+	mfd = OpenTeredoSocket (htonl (TEREDO_DISCOVERY_IP),
+				htons (IPPORT_TEREDO));
+}
+
+
+TeredoClientUDP::~TeredoClientUDP (void)
+{
+	if (mfd != -1)
+		close (mfd);
+}
+
+
+int
+TeredoClientUDP::RegisterReadSet (fd_set *readset) const
+{
+	if (mfd != -1)
+		FD_SET (mfd, readset);
+
+	int maxfd = TeredoRelayUDP::RegisterReadSet (readset);
+	return (maxfd > mfd) ? maxfd : mfd;
+}
+# endif
+#endif
 
 
 /*** TeredoServerUDP implementation ***/
