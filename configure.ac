@@ -95,6 +95,9 @@ RDC_FUNC_SOCKET
 AC_SEARCH_LIBS(inet_ntoa, [nsl])
 dnl AC_SEARCH_LIBS(inet_aton, [resolv])
 
+# POSIX threads
+AC_SEARCH_LIBS(pthread_create, [pthread libc_c lthread])
+
 # POSIX capabilities
 AC_CHECK_LIB(cap, cap_set_proc)
 AH_BOTTOM([
