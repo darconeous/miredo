@@ -234,7 +234,9 @@ ForwardUDPPacket (const TeredoServerUDP& sock, const TeredoPacket& packet,
 			bool insert_orig = true)
 {
 	size_t length;
-	const struct ip6_hdr *p = packet.GetIPv6Header (length);
+	const struct ip6_hdr *p =
+		(const struct ip6_hdr *)packet.GetIPv6Packet (length);
+		/* might not be aligned */
 
 	if ((p == NULL) || (length > 65507))
 		return -1;
@@ -277,6 +279,8 @@ ForwardUDPPacket (const TeredoServerUDP& sock, const TeredoPacket& packet,
 	else
 		offset = 0;
 
+	// TODO: could be gotten rid of through writev()
+	// but it's very dirty from an API perspective
 	memcpy (buf + offset, p, length);
 	return sock.SendPacket (buf, length + offset, dest_ip,
 					~dst.teredo.client_port);
@@ -302,55 +306,59 @@ TeredoServer::ProcessTunnelPacket (const fd_set *readset)
 
 	// Check IPv6 packet (Teredo server check number 1)
 	size_t ip6len;
-	const struct ip6_hdr *ip6 = packet.GetIPv6Header (ip6len);
-	if (ip6len < 40)
+	const uint8_t *buf = packet.GetIPv6Packet (ip6len);
+	struct ip6_hdr ip6;
+	
+	if (ip6len < sizeof(ip6_hdr))
 		return 0; // too small
-	ip6len -= 40;
+	memcpy(&ip6, buf, sizeof (ip6));
+	ip6len -= sizeof(ip6_hdr);
 
-	if (((ip6->ip6_vfc >> 4) != 6)
-	 || (ntohs (ip6->ip6_plen) != ip6len))
+	if (((ip6.ip6_vfc >> 4) != 6)
+	 || (ntohs (ip6.ip6_plen) != ip6len))
 		return 0; // not an IPv6 packet
 
-	uint8_t *buf = ((uint8_t *)ip6) + 40;
+	const uint8_t *upper = buf + sizeof (ip6);
+	// NOTE: upper is not aligned, read single bytes only
 
 	// Teredo server check number 2
-	uint8_t proto = ip6->ip6_nxt;
-	if ((proto != IPPROTO_NONE || ip6len > 0)	// neither a bubble...
-	 && proto != IPPROTO_ICMPV6)	// nor an ICMPv6 message
+	uint8_t proto = ip6.ip6_nxt;
+	if ((proto != IPPROTO_NONE || ip6len > 0) // neither a bubble...
+	 && proto != IPPROTO_ICMPV6) // nor an ICMPv6 message
 		return 0; // packet not allowed through server
 
 	// Teredo server check number 4
-	if (IN6_IS_ADDR_LINKLOCAL(&ip6->ip6_src)
-	 && IN6_ARE_ADDR_EQUAL (&in6addr_allrouters, &ip6->ip6_dst)
+	if (IN6_IS_ADDR_LINKLOCAL(&ip6.ip6_src)
+	 && IN6_ARE_ADDR_EQUAL (&in6addr_allrouters, &ip6.ip6_dst)
 	 && (proto == IPPROTO_ICMPV6)
 	 && (ip6len > sizeof (nd_router_solicit))
-	 && (((struct icmp6_hdr *)buf)->icmp6_type == ND_ROUTER_SOLICIT))
+	 && (((struct icmp6_hdr *)upper)->icmp6_type == ND_ROUTER_SOLICIT))
 		// sends a Router Advertisement
-		return teredo_send_ra (sock, packet, &ip6->ip6_src,
+		return teredo_send_ra (sock, packet, &ip6.ip6_src,
 					GetPrefix (), GetServerIP ());
 
 	// Teredo server check number 5 (in the negative)
-	if (!IN6_MATCHES_TEREDO_CLIENT (&ip6->ip6_src, packet.GetClientIP (),
+	if (!IN6_MATCHES_TEREDO_CLIENT (&ip6.ip6_src, packet.GetClientIP (),
 						packet.GetClientPort ())
 	// Teredo server check number 6 (in the negative)
-	 && (IN6_TEREDO_PREFIX (&ip6->ip6_src) == GetPrefix ()
-	  || IN6_TEREDO_SERVER (&ip6->ip6_dst) != GetServerIP ()))
+	 && (IN6_TEREDO_PREFIX (&ip6.ip6_src) == GetPrefix ()
+	  || IN6_TEREDO_SERVER (&ip6.ip6_dst) != GetServerIP ()))
 		// Teredo server check number 7
 		return 0; // packet not allowed through server
 
 	// Ensures that the packet destination has a global scope
 	// (ie 2000::/3). That's not in the spec.
-	if ((ip6->ip6_dst.s6_addr[0] & 0xe0) != 0x20)
+	if ((ip6.ip6_dst.s6_addr[0] & 0xe0) != 0x20)
 		return 0; // must be discarded
 
 	// Accepts packet:
-	if (IN6_TEREDO_PREFIX(&ip6->ip6_dst) != GetPrefix ())
+	if (IN6_TEREDO_PREFIX(&ip6.ip6_dst) != GetPrefix ())
 		// forwards packet to native IPv6:
-		return SendIPv6Packet (ip6, ip6len + 40);
+		return SendIPv6Packet (buf, ip6len + 40);
 
 	// forwards packet over Teredo:
 	return ForwardUDPPacket (sock, packet,
-		IN6_TEREDO_SERVER (&ip6->ip6_dst) == GetServerIP ());
+		IN6_TEREDO_SERVER (&ip6.ip6_dst) == GetServerIP ());
 }
 
 
