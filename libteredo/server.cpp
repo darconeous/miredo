@@ -291,6 +291,7 @@ static const struct in6_addr in6addr_allrouters =
 
 /*
  * Checks and handles an Teredo-encapsulated packet.
+ * Thread-safety note: prefix might be changed by another thread
  */
 int
 TeredoServer::ProcessTunnelPacket (const fd_set *readset)
@@ -300,7 +301,7 @@ TeredoServer::ProcessTunnelPacket (const fd_set *readset)
 	if (sock.ReceivePacket (readset, packet))
 		return -1;
 
-	// Teredo server check number 3
+	// Teredo server case number 3
 	if (!is_ipv4_global_unicast (packet.GetClientIP ()))
 		return 0;
 
@@ -321,13 +322,15 @@ TeredoServer::ProcessTunnelPacket (const fd_set *readset)
 	const uint8_t *upper = buf + sizeof (ip6);
 	// NOTE: upper is not aligned, read single bytes only
 
-	// Teredo server check number 2
+	// Teredo server case number 2
 	uint8_t proto = ip6.ip6_nxt;
 	if ((proto != IPPROTO_NONE || ip6len > 0) // neither a bubble...
 	 && proto != IPPROTO_ICMPV6) // nor an ICMPv6 message
 		return 0; // packet not allowed through server
 
-	// Teredo server check number 4
+	uint32_t prefix = GetPrefix ();
+
+	// Teredo server case number 4
 	if (IN6_IS_ADDR_LINKLOCAL(&ip6.ip6_src)
 	 && IN6_ARE_ADDR_EQUAL (&in6addr_allrouters, &ip6.ip6_dst)
 	 && (proto == IPPROTO_ICMPV6)
@@ -335,15 +338,15 @@ TeredoServer::ProcessTunnelPacket (const fd_set *readset)
 	 && (((struct icmp6_hdr *)upper)->icmp6_type == ND_ROUTER_SOLICIT))
 		// sends a Router Advertisement
 		return teredo_send_ra (sock, packet, &ip6.ip6_src,
-					GetPrefix (), GetServerIP ());
+					prefix, GetServerIP ());
 
-	// Teredo server check number 5 (in the negative)
+	// Teredo server case number 5 (in the negative)
 	if (!IN6_MATCHES_TEREDO_CLIENT (&ip6.ip6_src, packet.GetClientIP (),
 						packet.GetClientPort ())
-	// Teredo server check number 6 (in the negative)
-	 && (IN6_TEREDO_PREFIX (&ip6.ip6_src) == GetPrefix ()
+	// Teredo server case number 6 (in the negative)
+	 && (IN6_TEREDO_PREFIX (&ip6.ip6_src) == prefix
 	  || IN6_TEREDO_SERVER (&ip6.ip6_dst) != GetServerIP ()))
-		// Teredo server check number 7
+		// Teredo server case number 7
 		return 0; // packet not allowed through server
 
 	// Ensures that the packet destination has a global scope
@@ -352,7 +355,7 @@ TeredoServer::ProcessTunnelPacket (const fd_set *readset)
 		return 0; // must be discarded
 
 	// Accepts packet:
-	if (IN6_TEREDO_PREFIX(&ip6.ip6_dst) != GetPrefix ())
+	if (IN6_TEREDO_PREFIX(&ip6.ip6_dst) != prefix)
 		// forwards packet to native IPv6:
 		return SendIPv6Packet (buf, ip6len + 40);
 
