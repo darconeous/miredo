@@ -1,5 +1,5 @@
-# Makefile.am - master Makefile for miredo
-# $Id$
+# Makefile.am - include/ directory Makefile for miredo
+# $Id: Makefile.am 228 2004-11-01 17:23:55Z remi $
 
 # ***********************************************************************
 # *  Copyright (C) 2004 Remi Denis-Courmont.                            *
@@ -17,9 +17,5 @@
 # *  http://www.gnu.org/copyleft/gpl.html                               *
 # ***********************************************************************
 
-SUBDIRS = m4 po include libtun6 libteredo src
-man8_MANS = miredo.8
-EXTRA_DIST = admin/config.rpath admin/mkinstalldirs  $(man8_MANS)
-# doc -- it might not be a good idea to include the doc directory inside
-#        official releases.
-ACLOCAL_AMFLAGS = -I m4
+noinst_HEADERS = gettext.h
+
