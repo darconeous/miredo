@@ -1,6 +1,6 @@
 Miredo : Teredo for Linux
 ==========================
-$Id: README,v 1.3 2004/06/26 15:47:26 rdenisc Exp $
+$Id: README,v 1.4 2004/06/26 19:55:28 rdenisc Exp $
 Copyright (C) 2004 Remi Denis-Courmont.
 
   Welcome to Miredo's introduction manual!
@@ -31,8 +31,9 @@ What is Miredo?
 
   Miredo is an Unix daemon program which implements the "Teredo:
 Tunneling IPv6 over UDP through NATs" Internet draft specification.
-At the moment, Miredo only runs on GNU/Linux.
-It can provide both server and relay functionnality.
+At the moment, Miredo runs fine on GNU/Linux 2.4.x/2.6.x and not so
+fine on FreeBSD 4.x/5.x. It can provide both server and relay
+functionnality.
 
   It can be used to provide IPv6 connectivity to users behind NAT which
 do not support IPv6, and not even proto-41 forwarding. For this to
@@ -70,8 +71,12 @@ need to start miredo without parameters:
   That will created a virtual "teredo" networking interface which will
 accept IPv6 traffic toward Teredo clients. Note that you must NOT be
 behind a "restricted NAT" for this to work properly.
+NOTE: If you are using FreeBSD, you will probably have to create a
+route to the Teredo prefix (3ffe:831f::/32 at the moment) through the
+tunnel by hand.
 
 
+-- 
 Remi Denis-Courmont <rdenis (at) simphalempin (dot) com>
 http://www.simphalempin.com/dev/miredo/
 

@@ -1,5 +1,5 @@
 # Makefile.am - master Makefile for miredo
-# $Id: Makefile.am,v 1.2 2004/06/14 21:52:31 rdenisc Exp $
+# $Id: Makefile.am,v 1.3 2004/06/26 19:55:28 rdenisc Exp $
 
 # ***********************************************************************
 # *  Copyright (C) 2004 Remi Denis-Courmont.                            *
@@ -18,6 +18,8 @@
 # ***********************************************************************
 
 SUBDIRS = m4 include src
+man8_MANS = miredo.8
+EXTRA_DIST = $(man8_MANS)
 # doc -- it might not be a good idea to include the doc directory inside
 #        official releases.
 ACLOCAL_AMFLAGS = -I m4

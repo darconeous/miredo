@@ -1,6 +1,6 @@
 /*
  * relay.cpp - Teredo relay peers list definition
- * $Id: relay.cpp,v 1.5 2004/06/26 08:51:32 rdenisc Exp $
+ * $Id: relay.cpp,v 1.6 2004/06/26 19:55:33 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -127,7 +127,9 @@ int MiredoRelay::SendBubble (const union teredo_addr *dst) const
 		hdr.ip6_plen = 0;
 		hdr.ip6_nxt = IPPROTO_NONE;
 		hdr.ip6_hlim = 255;
-		memcpy (&hdr.ip6_src, &teredo_restrict, sizeof (hdr.ip6_src));
+		// TODO: use teredo_cone of teredo_restrict
+		// according to some setting
+		memcpy (&hdr.ip6_src, &teredo_cone, sizeof (hdr.ip6_src));
 		memcpy (&hdr.ip6_dst, &dst->ip6, sizeof (hdr.ip6_dst));
 
 		return sock->SendPacket (&hdr, sizeof (hdr),

@@ -1,7 +1,7 @@
 /*
  * miredo.cpp - Unix Teredo server & relay implementation
  *              core functions
- * $Id: miredo.cpp,v 1.13 2004/06/26 15:24:26 rdenisc Exp $
+ * $Id: miredo.cpp,v 1.14 2004/06/26 19:55:33 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -244,7 +244,8 @@ miredo_run (uint16_t client_port, const char *server_name,
 	// FIXME: should be done by TeredoRelay
 	// FIXME: but we need root, and later we are not root
 	// FIXME: should set cone flag as appropriate
-		|| tunnel.AddAddress (&teredo_restrict, 64)
+		//|| tunnel.AddAddress (&teredo_restrict)
+		|| tunnel.AddAddress (&teredo_cone)
 		|| tunnel.AddRoute (&prefix, 32);
 
 	// Definitely drops privileges

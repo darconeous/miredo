@@ -1,5 +1,7 @@
 2004-06-26  Remi Denis-Courmont
 
+	* miredo.8, Makefile.am:
+	- initial man page,
 	* src/miredo.cpp, src/relay.cpp:
 	- removed useless memory checks (the program will be killed if we run
 	  out of memory anyway),

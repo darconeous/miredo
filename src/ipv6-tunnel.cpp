@@ -1,6 +1,6 @@
 /*
  * ipv6-tunnel.cpp - IPv6 interface class definition
- * $Id: ipv6-tunnel.cpp,v 1.14 2004/06/26 15:24:26 rdenisc Exp $
+ * $Id: ipv6-tunnel.cpp,v 1.15 2004/06/26 19:55:28 rdenisc Exp $
  */
 
 /***********************************************************************
@@ -36,7 +36,7 @@
 
 #include <sys/socket.h> // socket(PF_INET6, SOCK_DGRAM, 0)
 #include <netinet/in.h> // htons()
-#include <net/if.h> // struct ifreq
+#include <net/if.h> // struct ifreq, if_nametoindex()
 
 #if HAVE_LINUX_IF_TUN_H
 /* Linux includes */
@@ -65,7 +65,11 @@ struct in6_ifreq {
 # define ND6_INFINITE_LIFETIME 0xffffffff
 
 # include <net/if_tun.h> // TUNSIFHEAD - FreeBSD tunnel driver
-# include <stdio.h> // asprintf(), snprintf()
+# include <stdio.h> // snprintf()
+# include <net/route.h> // AF_ROUTE things
+# include <errno.h> // errno
+
+#include <net/if_dl.h> // struct sockaddr_dl
 #endif
 
 #include <arpa/inet.h> // inet_ntop()
@@ -273,6 +277,18 @@ plen_to_mask (unsigned plen, struct in6_addr *mask)
 	if (d.rem)
 		mask->s6_addr[i] = 0xff << (8 - d.rem);
 }
+
+static void
+plen_to_sin6 (unsigned plen, struct sockaddr_in6 *sin6)
+{
+	memset (sin6, 0, sizeof (struct sockaddr_in6));
+
+	sin6->sin6_family = AF_INET6;
+# if HAVE_SA_LEN
+	sin6->sin6_len = sizeof (struct sockaddr_in6);
+# endif
+	plen_to_mask (plen, &sin6->sin6_addr);
+}
 #endif
 
 /*
@@ -300,34 +316,19 @@ _iface_addr (const char *ifname, bool add,
 	/*
 	 * Linux ioctl interface
 	 */
-	// Gets kernel's interface index
-	union
-	{
-		struct ifreq req;
-		struct in6_ifreq req6;
-	} r;
+	struct in6_ifreq req6;
 
-	memset (&r.req, 0, sizeof (r.req));
-	secure_strncpy (r.req.ifr_name, ifname, IFNAMSIZ);
-	if (ioctl (reqfd, SIOCGIFINDEX, &r.req) == 0)
-	{
-		// Sets interface address
-		int ifindex = r.req.ifr_ifindex;
+	memset (&req6, 0, sizeof (req6));
+	req6.ifr6_ifindex = if_nametoindex (ifname);
+	memcpy (&req6.ifr6_addr, addr, sizeof (req6.ifr6_addr));
+	req6.ifr6_prefixlen = prefix_len;
 
-		memset (&r.req6, 0, sizeof (r.req6));
-		r.req6.ifr6_ifindex = ifindex;
-		memcpy (&r.req6.ifr6_addr, addr,
-			sizeof (r.req6.ifr6_addr));
-		r.req6.ifr6_prefixlen = prefix_len;
-
-		cmd = add ? SIOCSIFADDR : SIOCDIFADDR;
-		req = &r.req6;
-	}
+	cmd = add ? SIOCSIFADDR : SIOCDIFADDR;
+	req = &req6;
 #elif defined (SIOCAIFADDR_IN6)
 	/*
 	 * FreeBSD ioctl interface
 	 */
-	// Sets interface address
 	union
 	{
 		struct in6_aliasreq addreq6;
@@ -343,11 +344,7 @@ _iface_addr (const char *ifname, bool add,
 		memcpy (&r.addreq6.ifra_addr.sin6_addr, addr,
 			sizeof (r.addreq6.ifra_addr.sin6_addr));
 
-		r.addreq6.ifra_prefixmask.sin6_family = AF_INET6;
-		r.addreq6.ifra_prefixmask.sin6_len =
-					sizeof (r.addreq6.ifra_prefixmask);
-		plen_to_mask (prefix_len,
-				&r.addreq6.ifra_prefixmask.sin6_addr);
+		plen_to_sin6 (prefix_len, &r.addreq6.ifra_prefixmask);
 
 		r.addreq6.ifra_lifetime.ia6t_vltime = ND6_INFINITE_LIFETIME;
 		r.addreq6.ifra_lifetime.ia6t_pltime = ND6_INFINITE_LIFETIME;
@@ -438,40 +435,117 @@ _iface_route (const char *ifname, bool add,
 	if (reqfd == -1)
 		return -1;
 
-	// Gets kernel's interface index
-	struct ifreq req;
-	memset (&req, 0, sizeof (req));
-	secure_strncpy (req.ifr_name, ifname, IFNAMSIZ);
-	if (ioctl (reqfd, SIOCGIFINDEX, &req) == 0)
-	{
-		// Adds/deletes route
-		struct in6_rtmsg req6;
+	// Adds/deletes route
+	struct in6_rtmsg req6;
 
-		memset (&req6, 0, sizeof (req6));
-		req6.rtmsg_flags = RTF_UP;
-		req6.rtmsg_ifindex = req.ifr_ifindex;
-		memcpy (&req6.rtmsg_dst, addr, sizeof (struct in6_addr));
-		req6.rtmsg_dst_len = prefix_len;
-		req6.rtmsg_metric = 1;
-		if (prefix_len == 128)
-			req6.rtmsg_flags |= RTF_HOST;
-		// no gateway
+	memset (&req6, 0, sizeof (req6));
+	req6.rtmsg_flags = RTF_UP;
+	req6.rtmsg_ifindex = if_nametoindex (ifname);
+	memcpy (&req6.rtmsg_dst, addr, sizeof (struct in6_addr));
+	req6.rtmsg_dst_len = prefix_len;
+	req6.rtmsg_metric = 1;
+	if (prefix_len == 128)
+		req6.rtmsg_flags |= RTF_HOST;
+	// no gateway
 
-		if (ioctl (reqfd, add ? SIOCADDRT : SIOCDELRT, &req6) == 0)
-			retval = 0;
-	}
+	if (ioctl (reqfd, add ? SIOCADDRT : SIOCDELRT, &req6) == 0)
+		retval = 0;
+
 	close (reqfd);
 #elif defined (RTM_ADD)
 	/*
 	 * BSD routing socket interface
 	 */
-	int sock = socket (PF_ROUTE, SOCKET_DGRAM, 0);
-	
-	close (sock);
+	int s = socket (PF_ROUTE, SOCK_RAW, AF_INET6);
+	if (s != -1)
+	{
+		shutdown (s, 0);
+		
+		const unsigned length = sizeof (rt_msghdr)
+					+ 2 * sizeof (struct sockaddr_in6)
+					+ 2 * sizeof (struct sockaddr_dl);
+
+		struct rt_msghdr *msg = (struct rt_msghdr *)malloc (length);
+		uint8_t *ptr = (uint8_t *)msg;
+
+		{
+			static int rtm_seq = 0;
+			struct rt_msghdr hdr;
+
+			memset (&hdr, 0, sizeof (hdr));
+			hdr.rtm_msglen =  length;
+			hdr.rtm_version = RTM_VERSION;
+			hdr.rtm_type = add ? RTM_ADD : RTM_DELETE;
+			hdr.rtm_index = if_nametoindex (ifname);
+			hdr.rtm_flags = RTF_UP | RTF_GATEWAY;
+			hdr.rtm_addrs = RTA_DST | RTA_NETMASK | RTA_GATEWAY | RTA_IFP;
+			hdr.rtm_pid = getpid ();
+			hdr.rtm_seq = rtm_seq++;
+		
+			memcpy (ptr, &hdr, sizeof (hdr));
+			ptr += sizeof (hdr);
+		}
+		{
+			struct sockaddr_in6 dst;
+			memset (&dst, 0, sizeof (dst));
+			dst.sin6_family = AF_INET6;
+			dst.sin6_len = sizeof (dst);
+			memcpy (&dst.sin6_addr, addr, sizeof (dst.sin6_addr));
+
+			memcpy (ptr, &dst, sizeof (dst));
+			ptr += sizeof (dst);
+		}
+		{
+			struct sockaddr_in6 mask;
+			plen_to_sin6 (prefix_len, &mask);
+
+			memcpy (ptr, &mask, sizeof (mask));
+			ptr += sizeof (mask);
+		}
+		{
+			struct sockaddr_dl ifp;
+			memset (&ifp, 0, sizeof (ifp));
+			ifp.sdl_family = AF_LINK;
+			ifp.sdl_len = sizeof (ifp);
+			ifp.sdl_index = if_nametoindex (ifname);
+
+			memcpy (ptr, &ifp, sizeof (ifp));
+			ptr += sizeof (ifp);
+			memcpy (ptr, &ifp, sizeof (ifp));
+		}
+
+		errno = 0;
+
+		if ((write (s, msg, length) == length) && (errno == 0))
+			retval = 0;
+		else
+			syslog (LOG_ERR, _("PF_ROUTE error: %m"));
+
+		/*
+		 * Setting a route on FreeBSD is a real pain, with which I am
+		 * fed up. You can't just say "route this network prefix
+		 * through that interface" as with Linux. Unless a FreeBSD
+		 * guru gets it right, it is probably not going to work
+		 * anytime soon.
+		 * TODO: Have someone else do it. I've lost enough time with
+		 * that silly thing.
+		 */
+		if (retval)
+		{
+			syslog (LOG_ERR,
+				_("Setting a route on FreeBSD does not work "
+				"fine. Please do it by hand."));
+			retval = 0;
+		}
+
+		close (s);
+	}
+	else
+		syslog (LOG_ERR, _("socket (PF_ROUTE) error: %m"));
 #else
-	syslog (LOG_WARN, _("%s tunnel route setup not supported.\n"
+	syslog (LOG_WAR, _("%s tunnel route setup not supported.\n"
 				"Please do it manually."), ifname);
-	return 0;
+	retval = 0;
 #endif
 
 	char str[INET6_ADDRSTRLEN];

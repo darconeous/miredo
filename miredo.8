@@ -1,0 +1,106 @@
+.\" ***********************************************************************
+.\" *  Copyright (C) 2004 Remi Denis-Courmont.                            *
+.\" *  This program is free software; you can redistribute and/or modify  *
+.\" *  it under the terms of the GNU General Public License as published  *
+.\" *  by the Free Software Foundation; version 2 of the license.         *
+.\" *                                                                     *
+.\" *  This program is distributed in the hope that it will be useful,    *
+.\" *  but WITHOUT ANY WARRANTY; without even the implied warranty of     *
+.\" *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.               *
+.\" *  See the GNU General Public License for more details.               *
+.\" *                                                                     *
+.\" *  You should have received a copy of the GNU General Public License  *
+.\" *  along with this program; if not, you can get it from:              *
+.\" *  http://www.gnu.org/copyleft/gpl.html                               *
+.\" ***********************************************************************
+.TH "MIREDO" "8" "$Date: 2004/06/26 19:55:28 $" "miredo" "System Manager's Manual"
+.SH NAME
+miredo \- Teredo IPv6 tunneling for Unix
+.SH SYNOPSIS
+.BR "miredo" " [" "-i ifname" "] [" "-p relay_port" "] ["
+.BR "-P prefix" "] [" "-s server_ip" "]"
+
+.SH DESCRIPTON
+.B Miredo
+is an Unix daemon program which implements the "Teredo:
+Tunneling IPv6 over UDP through NATs" Internet draft specification.
+It can provide both server and relay functionnality.
+
+It can be used to provide IPv6 connectivity to users behind NAT which
+do not support IPv6, and not even proto-41 forwarding. For this to
+work, users need to have a Teredo client running on their system.
+
+A Teredo relay is an IPv6 router which forwards IPv6 packets between
+the IPv6 Internet and Teredo clients through UDP/IPv4.
+
+A Teredo client is an IPv6-enabled host which is located behind an
+IPv4-only Network Address Translator (a.k.a. NAT), and encapsulates its
+IPv6 traffic inside UDP over IPv4 packets.
+
+A Teredo server is a special Teredo relay which is required for Teredo
+clients to setup their IPv6 connectivity through Teredo. A Teredo
+server must have to global static subsequent IPv4 addresses. It
+receives packets from Teredo clients and Teredo relays on UDP port
+3544.
+
+.SH OPTIONS
+
+.TP
+.BR "\-h" " or " "\-\-help"
+Display some help and exit.
+
+.TP
+.BR "\-i ifname" ", " "\-\-iface ifname"
+Specify the name of the Teredo tunneling interface which Miredo will
+create ("teredo" by default). On some systems, it is not possible to
+redefine the tunnel name.
+
+.TP
+.BR "\-p port" " or " "\-\-port port"
+Define the UDP (over IPv4) port number to be used by the relay or
+client (3545 by default, but this is entirely non-standard). You can
+specify 0 (zero) to use an arbitrary available port, but this is
+discouraged as it can cause trouble if the selected port is firewalled.
+
+.TP
+.BR "\-P prefix" " or " "\-\-prefix prefix"
+Override the Teredo prefix (3ffe:831f:: at the moment).
+.BR "Do not use that feature" " if you don't know what you are doing, "
+as it is more than likely to break your IPv6 connectivity.
+
+.TP
+.BR "\-s server_ip" " or " "\-\-server server_ip"
+.RI "Turn on " "Teredo server mode" "."
+With this option, Miredo will behave as a Teredo server on IPv4, with
+.RB "primary IPv4 address " "server_ip" " and secondary IPv4 address"
+.RB "server_ip + 1" "."
+
+.TP
+.BR "\-V" " or " "\-\-version"
+Display program version and license and exit.
+
+.\".SH DIAGNOSTICS
+.SH BUGS
+Miredo should chroot() for increased security.
+.RI "Miredo should support " "client mode" "."
+
+.\"
+.SH SECURITY
+.B Miredo
+requires
+.I root
+privileges to be create its IPv6 tunneling network interface, and to
+set it up properly. Once it initialization is complete, it will drop
+.RI "privileges setuid to " "miredo" " and setgid to " "nogroup"
+(Unix user and group names may differ if your vendor has customized
+those).
+
+.SH "SEE ALSO"
+ng_teredo(4), ipv6(7), route(8), ip(8)
+
+.SH AUTHOR
+Remi Denis-Courmont <rdenis at simphalempin.com>
+$Id: miredo.8,v 1.1 2004/06/26 19:55:28 rdenisc Exp $
+
+http://www.simphalempin.com/dev/miredo/
+
