@@ -1,6 +1,6 @@
 /*
  * relay.cpp - Teredo relay peers list definition
- * $Id: relay.cpp,v 1.38 2004/08/29 16:59:37 rdenisc Exp $
+ * $Id: relay.cpp,v 1.39 2004/08/29 17:31:06 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -307,6 +307,7 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
 			return 0;
 			
 		/* Client case 2: direct IPv6 connectivity test */
+		// TODO: avoid code duplication
 		if (p == NULL)
 		{
 			p = AllocatePeer ();
@@ -558,8 +559,9 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 
 		const struct teredo_orig_ind *ind = packet.GetOrigInd ();
 		if (ind != NULL)
-			// TODO: avoid code duplication
-			/* FIXME: perform direct IPv6 connectivity test */;
+			return SendBubble (sock, ~ind->orig_addr,
+						~ind->orig_port,
+						&ip6.ip6_dst, &ip6.ip6_src);
 
 		/*
 		 * Normal reception of packet must only occur if it does not
@@ -599,8 +601,12 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 			time (&p->last_rx);
 
 			// FIXME: dequeue incoming and outgoing packets
-			// NOTE/FIXME: this means the kernel will see our Echo
-			// replies
+			/*
+			 * NOTE:
+			 * This implies the kernel will see Echo replies sent
+			 * for Teredo tunneling maintenance. It's not really
+			 * an issue, as IPv6 stacks ignore them.
+			 */
 			return SendIPv6Packet (buf, length);
 		}
 	}
@@ -676,10 +682,27 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 	 * actually the Teredo tunnel).
 	 */
 
-	// FIXME: queue packet in incoming queue
-	//        and perform direct IPv6 connectivity test
+	// TODO: avoid code duplication (direct IPv6 connectivity test)
+	if (p == NULL)
+	{
+		p = AllocatePeer ();
+		if (p == NULL)
+			return -1; // memory error
+		memcpy (&p->addr, &ip6.ip6_src, sizeof (struct in6_addr));
+		p->mapped_port = 0;
+		p->mapped_addr = 0;
+		p->flags.all_flags = 0;
+		time (&p->last_rx);
+		time (&p->last_xmit);
+		p->queue = NULL;
+	}
 
-	return 0;
+	p->flags.flags.nonce = 1;
+
+	// FIXME: queue packet in incoming queue
+	// FIXME: re-send echo request if no response
+	// FIXME: re-use the same nonce
+	return SendPing (sock, &addr, &ip6.ip6_src, p->nonce);
 }
 
 
