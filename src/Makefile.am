@@ -1,5 +1,5 @@
 # Makefile.am - src/ directory Makefile for miredo
-# $Id: Makefile.am,v 1.1 2004/06/14 14:45:58 rdenisc Exp $
+# $Id: Makefile.am,v 1.2 2004/06/14 21:52:32 rdenisc Exp $
 
 # ***********************************************************************
 # *  Copyright (C) 2004 Remi Denis-Courmont.                            *
@@ -21,7 +21,18 @@ AM_CPPFLAGS = -I@top_srcdir@/include
 
 sbin_PROGRAMS = miredo
 
-miredo_SOURCES = ../include/teredo.c main.cpp conf.h \
+#FIXME: don't rebuild every time
+#BUILT_SOURCES = host.h
+#CLEANFILES = $(BUILT_SOURCES)
+
+#host.h: Makefile
+#	{ \
+#		echo '#define PACKAGE_HOST "$(host)"' ; \
+#		echo '#define PACKAGE_BUILD "$(build)"' ; \
+#	} > $@
+
+# miredo
+miredo_SOURCES = ../include/teredo.c main.c miredo.cpp miredo.h \
 			teredo-udp.cpp teredo-udp.h \
 			ipv6-tunnel.cpp ipv6-tunnel.h \
 			relay.cpp relay.h \

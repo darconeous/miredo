@@ -1,6 +1,6 @@
 /*
- * conf.h - Configuration structure declaration
- * $Id: conf.h,v 1.1 2004/06/14 14:45:58 rdenisc Exp $
+ * miredo.h - header for miredo.cpp
+ * $Id: miredo.h,v 1.1 2004/06/14 21:52:32 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -22,25 +22,34 @@
  *  http://www.gnu.org/copyleft/gpl.html                               *
  ***********************************************************************/
 
-#ifndef MIREDO_CONF_H
-# define MIREDO_CONF_H
+#ifndef MIREDO_MIREDO_H
+# define MIREDO_MIREDO_H
 
-# include <netinet/in.h> // struct in6_addr
+# ifdef __cplusplus
+#  include "teredo.h" // union teredo_addr
 
 class IPv6Tunnel;
 class MiredoServerUDP;
 class MiredoRelayUDP;
 
-struct miredo_configuration
+// TODO: get rid of that:
+struct miredo_setup
 {
 	uint32_t server_ip, server_ip2;
 	IPv6Tunnel *tunnel;
 	MiredoServerUDP *server_udp;
 	MiredoRelayUDP *relay_udp;
-	struct in6_addr addr;
+	union teredo_addr addr;
 };
 
-extern struct miredo_configuration conf;
+extern struct miredo_setup conf;
+
+extern "C"
+# endif
+int miredo_run (const char *ipv6_name,
+		const char *relay_name, const char *server_name,
+		const char *prefix_name, const char *ifname,
+		const char *tundev_name);
 
 #endif /* ifndef MIREDO_CONF_H */
 

@@ -20,12 +20,19 @@ dnl *  http://www.gnu.org/copyleft/gpl.html                               *
 dnl ***********************************************************************
 
 AC_COPYRIGHT([Copyright (C) 2004 Rémi Denis-Courmont])
-AC_INIT([miredo], [0.1.0], [rdenis@simphalempin.com])
+AC_INIT([miredo], [0.1.1], [rdenis@simphalempin.com])
+INVOCATION="$0 $*"
 
 AS_MESSAGE(checking system...)
 AC_CONFIG_SRCDIR([configure.ac])
 AC_CONFIG_AUX_DIR(admin)
+AC_CONFIG_MACRO_DIR(m4)
 AC_CONFIG_HEADERS([config.h])
+
+AC_DEFINE_UNQUOTED(PACKAGE_CONFIGURE_INVOCATION, "$INVOCATION",
+                [Define to the command line used to invoke the configure script.])
+RDC_BUILD_HOSTNAME
+
 
 # Checks for programs.
 AS_MESSAGE(checking required programs...)
@@ -36,14 +43,54 @@ AM_INIT_AUTOMAKE([dist-bzip2])
 # Checks for libraries.
 
 # Checks for header files.
+AC_CHECK_HEADERS([linux/if_tun.h linux/ipv6.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
+AC_C_BIGENDIAN
 RDC_STRUCT_SOCKADDR_LEN
 
 # Checks for library functions.
 RDC_FUNC_SOCKET
 AC_SEARCH_LIBS(inet_ntoa, [nsl])
-AC_SEARCH_LIBS(inet_aton, [resolv])
+dnl AC_SEARCH_LIBS(inet_aton, [resolv])
+RDC_REPLACE_FUNC_GETOPT_LONG
+
+
+# Checks for optionnal features
+AH_TEMPLATE(MIREDO_UNPRIV_USER,
+	    [Define to the system user name to be used by miredo.])
+AC_ARG_ENABLE([miredo-user],
+	      AS_HELP_STRING([--enable-miredo-user],
+			     [make miredo setuid to a non-root user (default 'miredo')]),
+	      [case "${enableval}" in
+		  yes) ac_cv_miredo_user="miredo" ;;
+		  *) ac_cv_miredo_user="${enableval}" ;;
+	       esac],
+	      [ac_cv_miredo_user="miredo"])
+AC_CACHE_CHECK([whether to use a non-root system user],
+	       [ac_cv_miredo_user],
+	       [ac_cv_miredo_user="miredo"])
+if test x$ac_cv_miredo_user != xno; then
+    AC_DEFINE_UNQUOTED(MIREDO_UNPRIV_USER, "$ac_cv_miredo_user")
+fi
+
+AH_TEMPLATE(MIREDO_UNPRIV_GROUP,
+	    [Define to the system group name to be used by miredo.])
+AC_ARG_ENABLE([miredo-group],
+	      AS_HELP_STRING([--enable-miredo-group],
+			     [make miredo setgid to that group (default 'nogroup')]),
+	      [case "${enableval}" in
+		  yes) ac_cv_miredo_group="nogroup" ;;
+		  *) ac_cv_miredo_group="${enableval}" ;;
+	       esac],
+	      [ac_cv_miredo_group="nogroup"])
+AC_CACHE_CHECK([whether to use a non-root system group],
+	       [ac_cv_miredo_group],
+	       [ac_cv_miredo_group="nogroup"])
+if test x$ac_cv_miredo_group != xno; then
+    AC_DEFINE_UNQUOTED(MIREDO_UNPRIV_GROUP, "$ac_cv_miredo_group")
+fi
+
 
 # Defines for <config.h>
 AH_BOTTOM([
@@ -53,6 +100,6 @@ AH_BOTTOM([
 
 # END
 AS_MESSAGE(writing results...)
-AC_CONFIG_FILES([Makefile include/Makefile src/Makefile])
+AC_CONFIG_FILES([Makefile m4/Makefile include/Makefile src/Makefile])
 AC_OUTPUT
 

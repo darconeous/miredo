@@ -1,5 +1,5 @@
 # Makefile.am - master Makefile for miredo
-# $Id: Makefile.am,v 1.1 2004/06/14 14:45:58 rdenisc Exp $
+# $Id: Makefile.am,v 1.2 2004/06/14 21:52:31 rdenisc Exp $
 
 # ***********************************************************************
 # *  Copyright (C) 2004 Remi Denis-Courmont.                            *
@@ -17,7 +17,7 @@
 # *  http://www.gnu.org/copyleft/gpl.html                               *
 # ***********************************************************************
 
-SUBDIRS = include src
+SUBDIRS = m4 include src
 # doc -- it might not be a good idea to include the doc directory inside
 #        official releases.
 ACLOCAL_AMFLAGS = -I m4

@@ -1,6 +1,6 @@
 /*
  * ipv6-tunnel.h - IPv6 interface class declaration
- * $Id: ipv6-tunnel.h,v 1.1 2004/06/14 14:45:58 rdenisc Exp $
+ * $Id: ipv6-tunnel.h,v 1.2 2004/06/14 21:52:32 rdenisc Exp $
  */
 
 /***********************************************************************
@@ -30,6 +30,7 @@
 # include <stdint.h>
 # include <sys/types.h>
 # include <sys/select.h>
+# include <net/if.h> // IFNAMSIZ
 
 struct ip6_hdr;
 
@@ -39,10 +40,11 @@ class IPv6Tunnel
 		int fd;
 		uint8_t pbuf[65535 + 4];
 		size_t plen;
+		char ifname[IFNAMSIZ];
 
 	public:
-		IPv6Tunnel (const char *ifname,
-				const char *tundev = "/dev/net/tun");
+		IPv6Tunnel (const char *req_name = NULL,
+				const char *tundev = NULL);
 		~IPv6Tunnel ();
 
 		int operator! (void)

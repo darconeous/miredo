@@ -1,6 +1,6 @@
 /*
  * server_pkt.cpp - Handling of a single Teredo datagram (server-side).
- * $Id: server_pkt.cpp,v 1.1 2004/06/14 14:45:58 rdenisc Exp $
+ * $Id: server_pkt.cpp,v 1.2 2004/06/14 21:52:32 rdenisc Exp $
  */
 
 /***********************************************************************
@@ -32,7 +32,7 @@
 
 #include "teredo-udp.h"
 #include "common_pkt.h"
-#include "conf.h" // conf
+#include "miredo.h" // conf, TODO: remove that
 
 #include <arpa/inet.h>
 #include <syslog.h> // DEBUG

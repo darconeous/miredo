@@ -1,6 +1,6 @@
 /*
  * teredo-udp.cpp - UDP sockets class definition
- * $Id: teredo-udp.cpp,v 1.1 2004/06/14 14:45:58 rdenisc Exp $
+ * $Id: teredo-udp.cpp,v 1.2 2004/06/14 21:52:32 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -212,20 +212,13 @@ MiredoRelayUDP::~MiredoRelayUDP (void)
 }
 
 
-int MiredoRelayUDP::ListenIP (uint32_t ip)
+int MiredoRelayUDP::ListenIP (uint32_t ip, uint16_t port)
 {
 	// Closes former socket:
 	if (fd != -1)
 		close (fd);
 
-	/*
-	 * We use 3545 as a Teredo service port.
-	 * It is better to use a fixed port number for the
-	 * purpose of firewalling, rather than a pseudo-random one
-	 * (all the more as it might be a "dangerous" often firewalled
-	 * port, such as 1214 as it happened to me once).
-	 */
-	fd = OpenTeredoSocket (ip, htons (IPPORT_TEREDO + 1));
+	fd = OpenTeredoSocket (ip, port);
 	return fd != -1 ? 0 : -1;
 }
 

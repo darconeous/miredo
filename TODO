@@ -1,21 +1,20 @@
 Incomplete raw ToDo list:
 ==========================
+$Id: TODO,v 1.2 2004/06/14 21:52:31 rdenisc Exp $
 
 Features:
 ----------
 - improvements of the overall program structure,
-- ability to disable server,
-- ability to disabled relay?
 - Teredo prefix override,
 - some statistics,
 - automatic teredo interface configuration,
-- teredo interface name override,
-- init.d sample script,
+- automatic relay IPv4 and IPv6 addresses configuration,
+- signals handling,
+- Teredo client support.
 
 Security:
 ----------
 - chroot() support,
-- better setuid() support,
 - proper incoming IPv6 packets checks,
 
 Conformance:
@@ -33,7 +32,9 @@ Compatibility:
 - investigate deeper into relay possible incompatibility with
   ng_teredo's server,
 
-Documentation:
----------------
+Documentation & support:
+-------------------------
+- init.d sample script,
+- RPM and Debian packaging,
 - man page.
 

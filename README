@@ -1,6 +1,6 @@
 Miredo : Teredo for Linux
 ==========================
-$Id: README,v 1.1 2004/06/14 14:45:58 rdenisc Exp $
+$Id: README,v 1.2 2004/06/14 21:52:31 rdenisc Exp $
 Copyright (C) 2004 Remi Denis-Courmont.
 
   Welcome to Miredo's introduction manual!
@@ -46,33 +46,17 @@ Microsoft IPv6 : Teredo overview.
 
 Usage
 ------
-  Make sure you have enabled the "Universal TUNTAP driver" (CONFIG_TUN)
-in your Linux kernel. Create the /dev/net/tun character device if it is
-not already present:
-
-# mkdir -p /dev/net
-# mknod /dev/net/tun c 10 200
-
   At the moment, the program expect to run both as a server and a relay
 and there is no way to disable either mode yet. To start the program,
-type the following command, as root:
+type the following command:
 
-# /usr/local/sbin/miredo 9.0.0.2 2001:dede::dead:beef &
-# /sbin/ip -6 link set teredo up
-# /sbin/ip -6 address add "TEREDO_PREFIX_STR":1/32 dev teredo
+# miredo 9.0.0.2 9.0.0.3
 
-where:
-* 9.0.0.2 will be your server's primary IPv4 address, and your
-relay's IPv4 address as well. 9.0.0.3 (ie 9.0.0.2 + 1) will be your
-server's secondary IPv4 address.
-* 2001:dede::dead:beef will be your relay IPv6 address (which is only
-used to send bubbles).
+where 9.0.0.2 will be your server's primary IPv4 address, and your
+relay's IPv4 address, and 9.0.0.3 will be your server's secondary IPv4
+address. It is not likely to work if the secondary address is not
+the primary plus one; that was not tested.
 
-If you haven't installed miredo, run "src/miredo" instead of
-"/usr/local/sbin/miredo".
-
-Future versions of the program should configure the teredo interface
-manually.
 
 Remi Denis-Courmont <rdenis (at) simphalempin (dot) com>
 http://www.simphalempin.com/dev/miredo/

@@ -1,3 +1,18 @@
+2004-05-14  Remi Denis-Courmont
+
+	* src/main.c, configure.ac:
+	- support for non-root miredo user/group,
+	* src/ipv6-tunnel.cpp:
+	- automatically bring tunnel interface up.
+
+2004-05-12  Remi Denis-Courmont
+
+	* main.c:
+	- getopt-based command line handling: in particular,
+	  support for disabling server and/or relay,
+	* miredo.cpp, main.c:
+	- split from main.cpp, partial code cleanup.
+
 2004-05-07  Remi Denis-Courmont
 
 	* README:
