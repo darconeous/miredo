@@ -1,6 +1,6 @@
 /*
  * teredo-udp.h - UDP sockets class declaration
- * $Id: teredo-udp.h,v 1.3 2004/08/22 15:38:26 rdenisc Exp $
+ * $Id: teredo-udp.h,v 1.4 2004/08/24 18:50:53 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -96,6 +96,7 @@ class TeredoCommonUDP
 		 * Returns a pointer to the Origin Indication header of
 		 * the last received Teredo packet, or NULL if there was
 		 * none.
+		 * This structure is properly aligned.
 		 */
 		const struct teredo_orig_ind *GetOrigInd (void) const
 		{
