@@ -198,6 +198,9 @@ class TeredoRelay
 		{
 			return sock.RegisterReadSet (rs);
 		}
+
+		static unsigned QualificationRetries;
+		static unsigned QualificationDelay;
 };
 
 #endif /* ifndef MIREDO_RELAY_H */
