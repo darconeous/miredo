@@ -57,6 +57,8 @@
 
 #include <libteredo/teredo.h>
 
+#include "conf.h"
+
 #ifdef MIREDO_TEREDO_SERVER
 # include "server.h"
 #else
@@ -217,63 +219,6 @@ teredo_server_relay (IPv6Tunnel& tunnel, TeredoRelay *relay = NULL,
 
 
 /*
- * Returns an IPv4 address (network byte order) associated with hostname
- * <name>. Returns -1 on error.
- */
-static int
-getipv4byname (const char *name, uint32_t *ipv4)
-{
-	struct addrinfo help, *res;
-
-	memset (&help, 0, sizeof (help));
-	help.ai_family = AF_INET;
-	help.ai_socktype = SOCK_DGRAM;
-	help.ai_protocol = IPPROTO_UDP;
-
-	int check = getaddrinfo (name, NULL, &help, &res);
-
-	if (check)
-	{
-		syslog (LOG_ERR, _("Invalid hostname \"%s\": %s"),
-			name, gai_strerror (check));
-		return -1;
-	}
-
-	*ipv4 = ((const struct sockaddr_in *)res->ai_addr)->sin_addr.s_addr;
-	freeaddrinfo (res);
-	return 0;
-}
-
-
-static int
-getipv6byname (const char *name, struct in6_addr *ipv6)
-{
-	struct addrinfo help, *res;
-
-	memset (&help, 0, sizeof (help));
-	help.ai_family = PF_INET6;
-	help.ai_socktype = SOCK_DGRAM;
-	help.ai_protocol = IPPROTO_UDP;
-
-	int check = getaddrinfo (name, NULL, &help, &res);
-
-	if (check)
-	{
-		syslog (LOG_ERR, _("Invalid hostname \"%s\": %s"),
-			name, gai_strerror (check));
-		return -1;
-	}
-
-	memcpy (ipv6,
-		&((const struct sockaddr_in6*)(res->ai_addr))->sin6_addr,
-		sizeof (struct in6_addr));
-
-	freeaddrinfo (res);
-	return 0;
-}
-
-
-/*
  * Initialization stuff
  * (bind_port is in host byte order)
  */
@@ -284,8 +229,9 @@ uid_t unpriv_uid = 0;
 #define MIREDO_CONE   1
 
 static int
-miredo_run (uint16_t bind_port, const char *bind_ip, const char *server_name,
-		const char *prefix_name, const char *ifname, int mode)
+miredo_run (uint16_t bind_port, uint32_t bind_ip, uint32_t server_ip,
+		bool client, union teredo_addr *prefix, const char *ifname,
+		bool relay_on, bool cone)
 {
 	/* default values */
 #if 0
@@ -300,39 +246,9 @@ miredo_run (uint16_t bind_port, const char *bind_ip, const char *server_name,
 		 */
 		bind_port = IPPORT_TEREDO + 1;
 #endif
-	if (bind_ip == NULL)
-		bind_ip = "0.0.0.0";
 
-	// server_name may be NULL, this is legal
-
-	if (ifname == NULL)
-		ifname = "teredo";
-
-	union teredo_addr prefix;
-	if ((mode & MIREDO_CLIENT) == 0)
-	{
-		if (prefix_name == NULL)
-			prefix_name = DEFAULT_TEREDO_PREFIX_STR":";
-
-
-		if (getipv6byname (prefix_name, &prefix.ip6))
-		{
-			syslog (LOG_ALERT,
-				_("Teredo IPv6 prefix not properly set."));
-			return -1;
-		}
-
-		if (!is_valid_teredo_prefix (prefix.teredo.prefix))
-		{
-			syslog (LOG_ALERT,
-				_("Invalid Teredo IPv6 prefix: %s."),
-				prefix_name);
-			return -1;
-		}
-
-		if (server_name != NULL)
-			mode |= MIREDO_CONE; // server mode implies no NAT
-	}
+	if (!client && server_ip)
+			cone = true; // server mode implies no NAT
 
 #ifdef MIREDO_TEREDO_RELAY
 	MiredoRelay *relay = NULL;
@@ -373,9 +289,7 @@ miredo_run (uint16_t bind_port, const char *bind_ip, const char *server_name,
 	}
 
 #ifdef MIREDO_TEREDO_CLIENT
-	// FIXME: support for being server only
-	// (in that case, don't set route to the Teredo prefix)
-	if (mode & MIREDO_CLIENT)
+	if (client)
 	{
 		fd = miredo_privileged_process (tunnel, unpriv_uid);
 		if (fd == -1)
@@ -387,11 +301,13 @@ miredo_run (uint16_t bind_port, const char *bind_ip, const char *server_name,
 	}
 	else
 #endif
+	// FIXME: support for being server only
+	// (in that case, don't set route to the Teredo prefix)
+	if (relay_on)
 	{
 		if (tunnel.BringUp ()
-		 || tunnel.AddAddress ((mode & MIREDO_CONE) ? &teredo_cone
-			 				: &teredo_restrict)
-		 || tunnel.AddRoute (&prefix.ip6, 32))
+		 || tunnel.AddAddress (cone ? &teredo_cone : &teredo_restrict)
+		 || tunnel.AddRoute (&prefix->ip6, 32))
 		{
 			syslog (LOG_ALERT, _("Teredo routing failed:\n %s"),
 				_("You should be root to do that."));
@@ -409,20 +325,12 @@ miredo_run (uint16_t bind_port, const char *bind_ip, const char *server_name,
 
 #ifdef MIREDO_TEREDO_SERVER
 	// Sets up server sockets
-	if (((mode & MIREDO_CLIENT) == 0) && (server_name != NULL))
+	if (!client && server_ip)
 	{
-		uint32_t ipv4;
-		 
-		if (getipv4byname (server_name, &ipv4))
-		{
-			syslog (LOG_ALERT, _("Fatal configuration error"));
-			goto abort;
-		}
-
 		try
 		{
-			server = new MiredoServer (ipv4, htonl (ntohl (
-							ipv4) + 1));
+			server = new MiredoServer (server_ip, htonl (ntohl (
+							server_ip) + 1));
 		}
 		catch (...)
 		{
@@ -446,39 +354,24 @@ miredo_run (uint16_t bind_port, const char *bind_ip, const char *server_name,
 			goto abort;
 		}
 
-		server->SetPrefix (prefix.teredo.prefix);
+		// FIXME: read union teredo_addr instead of prefix ?
+		server->SetPrefix (prefix->teredo.prefix);
 		server->SetTunnel (&tunnel);
 	}
 #endif
 
 	// Sets up relay or client
 	// TODO: ability to not be a relay at all
-	bind_port = htons (bind_port);
-	uint32_t bind_ipv4;
-	if (getipv4byname (bind_ip, &bind_ipv4))
-	{
-		syslog (LOG_ALERT, _("Fatal bind IPv4 address error"));
-		goto abort;
-	}
 
 #ifdef MIREDO_TEREDO_RELAY
 # ifdef MIREDO_TEREDO_CLIENT
-	if (mode & MIREDO_CLIENT)
+	if (client)
 	{
 		// Sets up client
-		uint32_t server_ipv4;
-
-		if (getipv4byname (server_name, &server_ipv4))
-		{
-			syslog (LOG_ALERT,
-				_("Fatal server IPv4 address error"));
-			goto abort;
-		}
-
 		try
 		{
-			relay = new MiredoRelay (fd, &tunnel, server_ipv4,
-						 bind_port, bind_ipv4);
+			relay = new MiredoRelay (fd, &tunnel, server_ip,
+						 bind_port, bind_ip);
 		}
 		catch (...)
 		{
@@ -491,10 +384,10 @@ miredo_run (uint16_t bind_port, const char *bind_ip, const char *server_name,
 		// Sets up relay
 		try
 		{
+			// FIXME: read union teredo_addr instead of prefix ?
 			relay = new MiredoRelay (&tunnel,
-						 prefix.teredo.prefix,
-						 bind_port, bind_ipv4,
-						 mode & MIREDO_CONE != 0);
+						 prefix->teredo.prefix,
+						 bind_port, bind_ip, cone);
 		}
 		catch (...)
 		{
@@ -585,14 +478,11 @@ init_signals (void)
 
 /*
  * Configuration and respawning stuff
- * TODO: really implement reloading
  */
 static const char *const daemon_ident = "miredo";
 
 extern "C" int
-miredo_main (uint16_t client_port, const char *client_ip,
-		const char *server_name, const char *prefix_name,
-		const char *ifname, int mode)
+miredo (const char *confpath)
 {
 	int facility = LOG_DAEMON;
 	openlog (daemon_ident, LOG_PID, facility);
@@ -609,11 +499,71 @@ miredo_main (uint16_t client_port, const char *client_ip,
 			should_reload = 0;
 		}
 
-		/* TODO: really implement configuration parsing */
+		retval = -1;
+
+		MiredoConf cnf;
+		if (!cnf.ReadFile (confpath))
+		{
+			syslog (LOG_ALERT,
+				_("Loading configuration from %s failed"),
+				confpath);
+			continue;
+		}
+
+		/* Default settings */
+		const char *ifname = daemon_ident;
+		uint16_t bind_port = 0;
+		uint32_t bind_ip = INADDR_ANY, server_ip = 0;
+		bool relay_on = true, relay_cone = false, client = true;
+		int newfacility = LOG_DAEMON;
+		union teredo_addr prefix;
+		memset (&prefix, 0, sizeof (prefix));
+		prefix.teredo.prefix = htonl (DEFAULT_TEREDO_PREFIX);
+
+		bind_port = htons (bind_port);
+		if (!cnf.GetInt16 ("BindPort", &bind_port))
+		{
+			syslog (LOG_ALERT,
+				_("Fatal bind UDP port error"));
+			continue;
+		}
+
+
+		if (!ParseIPv4 (cnf, "BindAddress", &bind_ip))
+		{
+			syslog (LOG_ALERT,
+				_("Fatal bind IPv4 address error"));
+			continue;
+		}
+
+		if (!ParseIPv4 (cnf, "ServerAddress", &server_ip))
+		{
+			syslog (LOG_ALERT, _("Fatal configuration error"));
+			continue;
+		}
+		if (server_ip == 0)
+		{
+			client = false;
+			if (!ParseIPv4 (cnf, "ServerBindAddress", &server_ip))
+			{
+				syslog (LOG_ALERT,
+					_("Fatal configuration error"));
+				continue;
+			}
+
+			if (!ParseRelayType (cnf, "RelayType",
+						&relay_on, &relay_cone))
+			{
+				syslog (LOG_ALERT,
+					_("Fatal configuration error"));
+				continue;
+			}
+		}
+		/* FIXME: prefix, ifname, newfacility */
+
+		cnf.~MiredoConf ();
 
 		// Apply syslog facility change if needed
-		int newfacility = LOG_DAEMON;
-
 		if (newfacility != facility)
 		{
 			closelog ();
@@ -632,10 +582,10 @@ miredo_main (uint16_t client_port, const char *client_ip,
 
 			case 0:
 			{
-				retval = miredo_run (client_port, client_ip,
-							server_name,
-							prefix_name, ifname,
-							mode);
+				retval = miredo_run (bind_port, bind_ip,
+							client, server_ip,
+							&prefix, ifname,
+							relay_on, relay_cone);
 				closelog ();
 				exit (-retval);
 			}
@@ -651,6 +601,7 @@ miredo_main (uint16_t client_port, const char *client_ip,
 					should_exit, strsignal (should_exit));
 				wait (NULL); // child exited
 
+				// FIXME: cleanup
 				closelog ();
 				return 0;
 			}
@@ -673,22 +624,4 @@ miredo_main (uint16_t client_port, const char *client_ip,
 
 	closelog ();
 	return retval;
-}
-
-
-extern "C" int
-miredo (uint16_t relay_port, const char *relay_ip, const char *server_name,
-	const char *prefix_name, const char *ifname, int cone)
-{
-	return miredo_main (relay_port, relay_ip, server_name, prefix_name,
-				ifname, cone ? MIREDO_CONE : 0);
-}
-
-
-extern "C" int
-miredo_client (const char *server_name, uint16_t client_port,
-		const char *client_ip, const char *ifname)
-{
-	return miredo_main (client_port, client_ip, server_name, NULL, ifname,
-				MIREDO_CLIENT);
 }

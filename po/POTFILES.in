@@ -6,3 +6,4 @@ libteredo/packets.cpp
 libtun6/ipv6-tunnel.cpp
 src/main.c
 src/miredo.cpp
+src/conf.cpp

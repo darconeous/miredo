@@ -686,11 +686,7 @@ main (int argc, char *argv[])
 	/*
 	 * Run
 	 */
-	c = flags.manual
-			? miredo (client_port, client_ip, server, prefix,
-					ifname, flags.cone)
-			: miredo_client (server, client_port, client_ip,
-						ifname);
+	c = miredo ("/etc/miredo.conf");
 
 	if (pidfile != NULL)
 	{
