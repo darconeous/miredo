@@ -2,11 +2,6 @@ Incomplete raw ToDo list:
 ==========================
 $Id$
 
-Outstanding issues:
---------------------
-- Warning about incorrect config directive,
-
-
 Features:
 ----------
 - fix connectivity loss detection,

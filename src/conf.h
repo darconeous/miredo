@@ -48,18 +48,11 @@ class MiredoConf
 		bool ReadFile (FILE *stream);
 		bool ReadFile (const char *path);
 
-		/* Looks up a setting by name. Returns NULL if not found. */
-		const char *GetRawValue (const char *name,
-						unsigned *line = NULL);
-
-		/* 
-		 * Looks up a setting by name. Returns false on memory error.
-		 * If the setting was found, *value will be a dynamically
-		 * dynamically allocated copy of the setting (call free() to
-		 * release. If it was not found *value will be unchanged.
+		/*
+		 * Looks up a setting by name. Returns NULL if not found.
+		 * Otherwise, return value must be free()d by caller.
 		 */
-		bool GetString (const char *name, char **value,
-						unsigned *line = NULL);
+		char *GetRawValue (const char *name, unsigned *line = NULL);
 
 		/*
 		 * Looks up an unsigned 16-bits integer. Returns false if the

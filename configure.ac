@@ -92,7 +92,7 @@ RDC_STRUCT_SOCKADDR_LEN
 
 # Socket stuff
 RDC_FUNC_SOCKET
-AC_SEARCH_LIBS(inet_ntoa, [nsl])
+AC_SEARCH_LIBS(inet_ntop, [nsl])
 dnl AC_SEARCH_LIBS(inet_aton, [resolv])
 
 # POSIX threads

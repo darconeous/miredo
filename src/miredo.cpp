@@ -480,6 +480,70 @@ DeinitSignals (void)
 }
 
 
+static bool
+ParseConf (const char *path, int *newfac, int *mode, uint32_t *server_ip,
+		bool *default_route, union teredo_addr *prefix,
+		uint32_t *bind_ip, uint16_t *bind_port, char **ifname)
+{
+	MiredoConf cnf;
+	if (!cnf.ReadFile (path))
+	{
+		syslog (LOG_ALERT, _("Loading configuration from %s failed"),
+			path);
+		return false;
+	}
+
+	// TODO: support for disabling logging completely
+	(void)ParseSyslogFacility (cnf, "SyslogFacility", newfac);
+
+	if (!ParseRelayType (cnf, "RelayType", mode))
+	{
+		syslog (LOG_ALERT, _("Fatal configuration error"));
+		return false;
+	}
+
+	if (*mode == TEREDO_CLIENT)
+	{
+		if (!ParseIPv4 (cnf, "ServerAddress", server_ip)
+		 || !cnf.GetBoolean ("DefaultRoute", default_route))
+		{
+			syslog (LOG_ALERT, _("Fatal configuration error"));
+			return false;
+		}
+	}
+	else
+	{
+		if (!ParseIPv4 (cnf, "ServerBindAddress", server_ip)
+		 || !ParseIPv6 (cnf, "Prefix", &prefix->ip6))
+		{
+			syslog (LOG_ALERT, _("Fatal configuration error"));
+			return false;
+		}
+	}
+
+	if (mode != TEREDO_DISABLED)
+	{
+		if (!ParseIPv4 (cnf, "BindAddress", bind_ip))
+		{
+			syslog (LOG_ALERT, _("Fatal bind IPv4 address error"));
+			return false;
+		}
+
+		uint16_t port = htons (*bind_port);
+		if (!cnf.GetInt16 ("BindPort", &port))
+		{
+			syslog (LOG_ALERT, _("Fatal bind UDP port error"));
+			return false;
+		}
+		*bind_port = htons (port);
+	}
+
+	*ifname = cnf.GetRawValue ("InterfaceName");
+
+	return true;
+}
+
+
 /*
  * Configuration and respawning stuff
  */
@@ -497,15 +561,6 @@ miredo (const char *confpath)
 
 		if (!InitSignals ())
 			continue;
-
-		MiredoConf cnf;
-		if (!cnf.ReadFile (confpath))
-		{
-			syslog (LOG_ALERT,
-				_("Loading configuration from %s failed"),
-				confpath);
-			continue;
-		}
 
 		/* Default settings */
 		int mode = TEREDO_CLIENT;
@@ -525,13 +580,15 @@ miredo (const char *confpath)
 		 * often firewalled port, such as 1214 as it happened
 		 * to me once).
 		 */
-		uint16_t bind_port = IPPORT_TEREDO + 1;
+		uint16_t bind_port = htons (IPPORT_TEREDO + 1);
 #else
 		uint16_t bind_port = 0;
 #endif
 
-		// TODO: support for disabling logging completely
-		(void)ParseSyslogFacility (cnf, "SyslogFacility", &newfac);
+		if (!ParseConf (confpath, &newfac, &mode, &server_ip,
+				&default_route, &prefix, &bind_ip, &bind_port,
+				&ifname))
+			continue;
 
 		// Apply syslog facility change if needed
 		if (newfac != facility)
@@ -540,59 +597,6 @@ miredo (const char *confpath)
 			facility = newfac;
 			openlog (ident, LOG_PID, facility);
 		}
-
-		if (!ParseRelayType (cnf, "RelayType", &mode))
-		{
-			syslog (LOG_ALERT, _("Fatal configuration error"));
-			continue;
-		}
-
-		if (mode == TEREDO_CLIENT)
-		{
-			if (!ParseIPv4 (cnf, "ServerAddress", &server_ip)
-			 || !cnf.GetBoolean ("DefaultRoute", &default_route))
-			{
-				syslog (LOG_ALERT,
-					_("Fatal configuration error"));
-				continue;
-			}
-		}
-		else
-		{
-			if (!ParseIPv4 (cnf, "ServerBindAddress", &server_ip)
-			 || !ParseIPv6 (cnf, "Prefix", &prefix.ip6))
-			{
-				syslog (LOG_ALERT,
-					_("Fatal configuration error"));
-				continue;
-			}
-		}
-
-		if (mode != TEREDO_DISABLED)
-		{
-			if (!ParseIPv4 (cnf, "BindAddress", &bind_ip))
-			{
-				syslog (LOG_ALERT,
-					_("Fatal bind IPv4 address error"));
-				continue;
-			}
-
-			if (!cnf.GetInt16 ("BindPort", &bind_port))
-			{
-				syslog (LOG_ALERT,
-					_("Fatal bind UDP port error"));
-				continue;
-			}
-			bind_port = htons (bind_port);
-		}
-
-		if (!cnf.GetString ("InterfaceName", &ifname))
-		{
-			syslog (LOG_ALERT, _("Fatal configuration error"));
-			continue;
-		}
-
-		cnf.~MiredoConf ();
 
 		// Starts the main miredo process
 		pid_t pid = fork ();

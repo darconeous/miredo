@@ -51,10 +51,18 @@ MiredoConf::MiredoConf (void) : head (NULL)
 MiredoConf::~MiredoConf (void)
 {
 	struct setting *ptr = head;
+	int disp = 5;
 
 	while (ptr != NULL)
 	{
 		struct setting *buf = ptr->next;
+		if (disp > 0)
+		{
+			syslog (LOG_WARNING,
+				_("Superfluous directive %s at line %u"),
+				ptr->name, ptr->line);
+			disp--;
+		}
 		free (ptr->name);
 		free (ptr->value);
 		free (ptr);
@@ -104,11 +112,12 @@ bool
 MiredoConf::ReadFile (FILE *stream)
 {
 	char lbuf[1056];
-	unsigned line = 1;
+	unsigned line = 0;
 
 	while (fgets (lbuf, sizeof (lbuf), stream) != NULL)
 	{
 		size_t len = strlen (lbuf) - 1;
+		line++;
 
 		if (lbuf[len] != '\n')
 		{
@@ -117,6 +126,7 @@ MiredoConf::ReadFile (FILE *stream)
 					break;
 			syslog (LOG_WARNING,
 				_("Skipped overly long line %u"), line);
+			continue;
 		}
 
 		lbuf[len] = '\0';
@@ -163,7 +173,7 @@ MiredoConf::ReadFile (const char *path)
 }
 
 
-const char *
+char *
 MiredoConf::GetRawValue (const char *name, unsigned *line)
 {
 	struct setting *prev = NULL;
@@ -172,7 +182,7 @@ MiredoConf::GetRawValue (const char *name, unsigned *line)
 	{
 		if (stricmp (p->name, name) == 0)
 		{
-			const char *buf = p->value;
+			char *buf = p->value;
 
 			if (line != NULL)
 				*line = p->line;
@@ -182,6 +192,7 @@ MiredoConf::GetRawValue (const char *name, unsigned *line)
 			else
 				head = p->next;
 
+			free (p->name);
 			free (p);
 			return buf;
 		}
@@ -193,25 +204,9 @@ MiredoConf::GetRawValue (const char *name, unsigned *line)
 
 
 bool
-MiredoConf::GetString (const char *name, char **value, unsigned *line)
-{
-	const char *val = GetRawValue (name, line);
-	if (val == NULL)
-		return true;
-
-	char *buf = strdup (val);
-	if (buf == NULL)
-		return false;
-
-	*value = buf;
-	return true;
-}
-
-
-bool
 MiredoConf::GetInt16 (const char *name, uint16_t *value, unsigned *line)
 {
-	const char *val = GetRawValue (name, line);
+	char *val = GetRawValue (name, line);
 
 	if (val == NULL)
 		return true;
@@ -226,9 +221,11 @@ MiredoConf::GetInt16 (const char *name, uint16_t *value, unsigned *line)
 		syslog (LOG_ERR,
 			_("Invalid integer value \"%s\" for %s: %m"),
 			val, name);
+		free (val);
 		return false;
 	}
 	*value = (uint16_t)l;
+	free (val);
 	return true;
 }
 
@@ -240,7 +237,7 @@ const char *false_strings[] = { "no", "false", "off", "disabled", NULL };
 bool
 MiredoConf::GetBoolean (const char *name, bool *value, unsigned *line)
 {
-	const char *val = GetRawValue (name, line);
+	char *val = GetRawValue (name, line);
 
 	if (val == NULL)
 		return true;
@@ -255,6 +252,7 @@ MiredoConf::GetBoolean (const char *name, bool *value, unsigned *line)
 		if (*end == '\0') // success
 		{
 			*value = (l != 0);
+			free (val);
 			return true;
 		}
 	}
@@ -263,6 +261,7 @@ MiredoConf::GetBoolean (const char *name, bool *value, unsigned *line)
 		if (!stricmp (val, *ptr))
 		{
 			*value = true;
+			free (val);
 			return true;
 		}
 
@@ -270,10 +269,12 @@ MiredoConf::GetBoolean (const char *name, bool *value, unsigned *line)
 		if (!stricmp (val, *ptr))
 		{
 			*value = false;
+			free (val);
 			return true;
 		}
 
 	syslog (LOG_ERR, _("Invalid boolean value \"%s\" for %s"), val, name);
+	free (val);
 	return false;
 }
 
@@ -286,7 +287,7 @@ bool
 ParseIPv4 (MiredoConf& conf, const char *name, uint32_t *value)
 {
 	unsigned line;
-	const char *val = conf.GetRawValue (name, &line);
+	char *val = conf.GetRawValue (name, &line);
 
 	if (val == NULL)
 		return true;
@@ -303,12 +304,14 @@ ParseIPv4 (MiredoConf& conf, const char *name, uint32_t *value)
 	if (check)
 	{
 		syslog (LOG_ERR, _("Invalid hostname \"%s\" at line %u: %s"),
-			name, line, gai_strerror (check));
+			val, line, gai_strerror (check));
+		free (val);
 		return false;
 	}
 
 	*value = ((const struct sockaddr_in *)res->ai_addr)->sin_addr.s_addr;
 	freeaddrinfo (res);
+	free (val);
 	return true;
 }
 
@@ -317,7 +320,7 @@ bool
 ParseIPv6 (MiredoConf& conf, const char *name, struct in6_addr *value)
 {
 	unsigned line;
-	const char *val = conf.GetRawValue (name, &line);
+	char *val = conf.GetRawValue (name, &line);
 
 	if (val == NULL)
 		return true;
@@ -334,7 +337,8 @@ ParseIPv6 (MiredoConf& conf, const char *name, struct in6_addr *value)
 	if (check)
 	{
 		syslog (LOG_ERR, _("Invalid hostname \"%s\" at line %u: %s"),
-			name, line, gai_strerror (check));
+			val, line, gai_strerror (check));
+		free (val);
 		return false;
 	}
 
@@ -343,6 +347,7 @@ ParseIPv6 (MiredoConf& conf, const char *name, struct in6_addr *value)
 		sizeof (struct in6_addr));
 
 	freeaddrinfo (res);
+	free (val);
 	return true;
 }
 
@@ -373,7 +378,7 @@ bool
 ParseRelayType (MiredoConf& conf, const char *name, int *type)
 {
 	unsigned line;
-	const char *val = conf.GetRawValue (name, &line);
+	char *val = conf.GetRawValue (name, &line);
 
 	if (val == NULL)
 		return true;
@@ -381,7 +386,7 @@ ParseRelayType (MiredoConf& conf, const char *name, int *type)
 	if (stricmp (val, "disabled") == 0)
 		*type = TEREDO_DISABLED;
 	else if (stricmp (val, "client") == 0)
-		*type = TEREDO_RESTRICT;
+		*type = TEREDO_CLIENT;
 	else if (stricmp (val, "cone") == 0)
 		*type = TEREDO_CONE;
 	else if (stricmp (val, "restricted") == 0)
@@ -390,8 +395,10 @@ ParseRelayType (MiredoConf& conf, const char *name, int *type)
 	{
 		syslog (LOG_ERR, _("Invalid relay type \"%s\" at line %u"),
 			val, line);
+		free (val);
 		return false;
 	}
+	free (val);
 	return true;
 }
 
@@ -452,7 +459,7 @@ bool
 ParseSyslogFacility (MiredoConf& conf, const char *name, int *facility)
 {
 	unsigned line;
-	const char *str = conf.GetRawValue (name, &line);
+	char *str = conf.GetRawValue (name, &line);
 
 	if (str == NULL)
 		return true;
@@ -462,10 +469,12 @@ ParseSyslogFacility (MiredoConf& conf, const char *name, int *facility)
 		if (!stricmp (str, ptr->str))
 		{
 			*facility = ptr->facility;
+			free (str);
 			return true;
 		}
 
 	syslog (LOG_ERR, _("Unknown syslog facility \"%s\" at line %u"),
 		str, line);
+	free (str);
 	return false;
 }
