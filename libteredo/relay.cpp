@@ -213,7 +213,7 @@ struct __TeredoRelay_peer *TeredoRelay::FindPeer (const struct in6_addr *addr)
 		if (memcmp (&p->addr, addr, sizeof (struct in6_addr)) == 0)
 			if (!ENTRY_EXPIRED (p, now))
 				return p; // found!
-	
+
 	return NULL;
 }
 
@@ -576,14 +576,34 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 
 		const struct teredo_orig_ind *ind = packet.GetOrigInd ();
 		if (ind != NULL)
+		{
 			SendBubble (sock, ~ind->orig_addr, ~ind->orig_port,
 					&ip6.ip6_dst, &ip6.ip6_src);
+			if (IsBubble (&ip6))
+				return 0; // don't pass bubble to kernel
+		}
+		else
+		if (IsBubble (&ip6))
+		{
+			/*
+			 * Some servers do not insert an origin indication.
+			 * When the source IPv6 address is a Teredo address,
+			 * we can guess the mapping. Otherwise, we're stuck.
+			 */
+		 	if (IN6_TEREDO_PREFIX (&ip6.ip6_src) == GetPrefix ())
+				SendBubble (sock,
+					IN6_TEREDO_IPV4 (&ip6.ip6_src),
+					IN6_TEREDO_PORT (&ip6.ip6_src),
+					&ip6.ip6_dst, &ip6.ip6_src);
+			return 0; // don't pass bubble to kernel
+		}
 
 		/*
 		 * Normal reception of packet must only occur if it does not
 		 * come from the server, as specified. However, it is not
 		 * unlikely that our server is a relay too. Hence, we must
 		 * further process packets from it.
+		 * At the moment, we only drop bubble (see above).
 		return 0;
 		 */
 	}
@@ -712,6 +732,9 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 				return 0; // discard Teredo bubble
 			return SendIPv6Packet (buf, length);
 		}
+
+		// TODO: remove this line if we implement local teredo
+		return 0;
 	}
 
 	// Relays only accept packet from Teredo clients;
@@ -740,12 +763,11 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 		p->mapped_addr = 0;
 		p->flags.all_flags = 0;
 		time (&p->last_rx);
-		time (&p->last_xmit);
 		p->queue = NULL;
 	}
 
 	// FIXME: queue packet in incoming queue
-	syslog (LOG_DEBUG, "FIXME: incoming paquet should queued!");
+	syslog (LOG_DEBUG, "FIXME: incoming paquet should be queued!");
 	// FIXME: re-send echo request if no response
 	if (!p->flags.flags.nonce)
 	{
@@ -753,6 +775,9 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 			return -1;
 		p->flags.flags.nonce = 1;
 	}
+
+	p->flags.flags.replied = 1;
+	time (&p->last_xmit);
 	return SendPing (sock, &addr, &ip6.ip6_src, p->nonce);
 }
 
