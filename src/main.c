@@ -5,7 +5,7 @@
  */
 
 /***********************************************************************
- *  Copyright (C) 2004 Remi Denis-Courmont.                            *
+ *  Copyright (C) 2004-2005 Remi Denis-Courmont.                       *
  *  This program is free software; you can redistribute and/or modify  *
  *  it under the terms of the GNU General Public License as published  *
  *  by the Free Software Foundation; version 2 of the license.         *
@@ -81,17 +81,11 @@ usage (void)
 {
 	puts (_(
 "Usage: miredo [OPTION] [server name]...\n"
-"Creates a Teredo tunneling interface for encapsulation of IPv6.\n"
+"Creates a Teredo tunneling interface for encapsulation of IPv6 over UDP.\n"
 "\n"
-"  -b, --bind       bind relay/client to a specific IPv4 address\n"
-"  -C, --cone       assume that we are relaying behind a cone NAT\n"
 "  -f, --foreground run in the foreground\n"
 "  -h, --help       display this help and exit\n"
-"  -i, --iface      define the Teredo tunneling interface name\n"
-"  -p, --port       define the UDP port to be used by relay/client\n"
-"  -P, --prefix     define the Teredo prefix to be used\n"
-"  -s, --server     enable Teredo server,\n"
-"                   and specify primary server IPv4 address\n"
+"  -p, --pidfile    override the pidfile path\n"
 "  -t, --chroot     override the chroot directory\n"
 "  -u, --user       override the user to set UID to\n"
 "  -V, --version    display program version and exit\n"
@@ -134,6 +128,7 @@ error_dup (int opt, const char *already, const char *additionnal)
 }
 
 
+#if 0
 static int
 error_qty (int opt, const char *qty)
 {
@@ -141,6 +136,7 @@ error_qty (int opt, const char *qty)
 "Invalid number (or capacity exceeded) \"%s\" for option -%c\n"), qty, opt);
 	return 2;
 }
+#endif
 
 
 static int
@@ -478,37 +474,30 @@ init_security (const char *username, const char *rootdir, int nodetach)
 # define MIREDO_DEFAULT_PIDFILE NULL
 #endif
 
+#ifndef MIREDO_DEFAULT_CONFFILE
+# define MIREDO_DEFAULT_CONFFILE SYSCONFDIR "/miredo.conf"
+#endif
+
 int
 main (int argc, char *argv[])
 {
-	const char *server = NULL, *prefix = NULL, *ifname = NULL,
-			*username = NULL, *rootdir = NULL, *client_ip = NULL,
+	const char *username = NULL, *rootdir = NULL,
+			*conffile = MIREDO_DEFAULT_CONFFILE,
 			*pidfile = MIREDO_DEFAULT_PIDFILE;
-	uint16_t client_port = 0;
 	struct
 	{
 		unsigned foreground:1; /* Run in the foreground */
-		unsigned cone:1; /* Assume cone NAT or no NAT */
-		unsigned verbose:1; /* Be verbose at startup */
-		unsigned manual:1; /* A non-client option was used */
 	} flags;
 
 	const struct option opts[] =
 	{
-		{ "bind",	required_argument,	NULL, 'b' },
-		/*{ "config",	required_argument,	NULL, 'c' },*/
-		{ "cone",	no_argument,		NULL, 'C' },
+		{ "config",	required_argument,	NULL, 'c' },
 		{ "foreground",	no_argument,		NULL, 'f' },
 		{ "help",	no_argument,		NULL, 'h' },
-		{ "iface",	required_argument,	NULL, 'i' },
-		{ "interface",	required_argument,	NULL, 'i' },
-		{ "port",	required_argument,	NULL, 'p' },
-		{ "prefix",	required_argument,	NULL, 'P' },
-		{ "server",	required_argument,	NULL, 's' },
+		{ "pidfile",	required_argument,	NULL, 'p' },
 		{ "chroot",	required_argument,	NULL, 't' },
 		{ "user",	required_argument,	NULL, 'u' },
 		{ "version",	no_argument,		NULL, 'V' },
-		{ "verbose",	no_argument,		NULL, 'v' },
 		{ NULL,		no_argument,		NULL, '\0'}
 	};
 
@@ -526,62 +515,26 @@ main (int argc, char *argv[])
 
 	memset (&flags, 0, sizeof (flags));
 
-	while ((c = getopt_long (argc, argv, "b:Cfhi:p:P:s:t:u:Vv", opts,
+	while ((c = getopt_long (argc, argv, "c:fhp:t:u:Vv", opts,
 					NULL)) != -1)
 		switch (c)
 		{
 			case '?':
 				return quick_usage ();
 
-			case 'b':
-				ONETIME_SETTING (client_ip);
-				break;
-
-			case 'C':
-				flags.cone = 1;
-				flags.manual = 1;
-				break;
-
 			case 'f':
 				flags.foreground = 1;
+				break;
+
+			case 'c':
+				ONETIME_SETTING (conffile);
 				break;
 
 			case 'h':
 				return usage ();
 
-			case 'i':
-				ONETIME_SETTING (ifname);
-				break;
-
 			case 'p':
-			{
-				unsigned long l;
-				char *end;
-
-				l = strtoul (optarg, &end, 0);
-				if ((*end != '\0') || (l == 0)
-				 || (l > 65535))
-					return error_qty (c, optarg);
-				if (client_port != 0)
-				{
-					char buf[6];
-					snprintf (buf, 6, "%u",
-						  (unsigned)client_port);
-					buf[5] = 0;
-					return error_dup (c,  optarg, buf);
-				}
-				client_port = (uint16_t)l;
-			}
-				break;
-				
-			case 'P':
-				ONETIME_SETTING (prefix);
-				flags.manual = 1;
-				break;
-
-			case 's':
-				ONETIME_SETTING (server);
-				flags.manual = 1;
+				ONETIME_SETTING (pidfile);
 				break;
 
 			case 't':
@@ -595,10 +548,6 @@ main (int argc, char *argv[])
 			case 'V':
 				return version ();
 
-			case 'v':
-				flags.verbose = 1;
-				break;
-
 			default:
 				fprintf (stderr, _(
 "Read unknown option -%c :\n"
@@ -607,59 +556,7 @@ main (int argc, char *argv[])
 		}
 
 	if (optind < argc)
-	{
-		server = argv[optind];
-		optind++;
-
-		if (flags.manual)
-		{
-			fputs (_("You have selected conflicting parameters.\n"
-			"It is not possible to run a Teredo relay and/or\n"
-			"Teredo server and a Teredo client simultaneously.\n"
-			"Refer to the manual page for more details.\n"),
-			stderr);
-		}
-		if (optind < argc)
-			return error_extra (argv[optind]);
-	}
-	else
-		flags.manual = 1; /* No servers to qualify with */
-
-	/*
-	 * Display configuration
-	 */
-	if (flags.verbose)
-	{
-		puts (_("Miredo configuration :"));
-		puts ("----------------------------------------------------");
-		fputs (_("Client/relay UDP port       : "), stdout);
-		if (client_port)
-			printf ("%u\n", (unsigned)client_port);
-		else
-			puts (_("automatic"));
-
-		printf (_("Client/relay IPv4 address   : %s\n"),
-			(client_ip != NULL) ? (client_ip) : _("any"));
-
-		printf (_("Tunnel interface name       : %s\n"),
-			(ifname != NULL) ? ifname : _("default"));
-
-		if (flags.manual)
-		{
-			printf (_("Server primary IPv4 address : %s\n"),
-				server != NULL ? server : _("disabled"));
-			printf (_("Teredo IPv6 prefix          : %s\n"),
-				prefix != NULL ? prefix : _("default"));
-			printf (_("Assumed NAT type            : %s\n"),
-				gettext (flags.cone
-				? N_("none/cone")
-				: N_("restricted")));
-		}
-		else
-			printf (_("Server name                 : %s\n"),
-				server);
-		puts ("----------------------------------------------------");
-	}
+		return error_extra (argv[optind]);
 
 	/*
 	 * Initialize POSIX context
@@ -667,9 +564,6 @@ main (int argc, char *argv[])
 	if (init_security (username, rootdir, flags.foreground))
 		return 1;
 
-	/* TODO: ability to change the file path
-	 * => we'll use -p once there is support for configuration file
-	 * and --port got obsoleted */
 	if (pidfile != NULL)
 	{
 		seteuid (0);
@@ -686,7 +580,7 @@ main (int argc, char *argv[])
 	/*
 	 * Run
 	 */
-	c = miredo ("/etc/miredo.conf");
+	c = miredo (conffile);
 
 	if (pidfile != NULL)
 	{
