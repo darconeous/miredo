@@ -1,6 +1,6 @@
 /*
  * server_pkt.cpp - Handling of a single Teredo datagram (server-side).
- * $Id: server_pkt.cpp,v 1.4 2004/06/22 16:39:53 rdenisc Exp $
+ * $Id: server_pkt.cpp,v 1.5 2004/06/27 10:25:24 rdenisc Exp $
  */
 
 /***********************************************************************
@@ -139,6 +139,7 @@ teredo_send_ra (const MiredoServerUDP *sock, const struct in6_addr *dest_ip6)
 					+ sizeof (struct nd_opt_prefix_info));
 	ip6->ip6_nxt = IPPROTO_ICMPV6;
 	ip6->ip6_hlim = 255;
+	// FIXME: use server_ip and server_port
 	memcpy (&ip6->ip6_src, "\xfe\x80\x00\x00\x00\x00\x00\x00"
 		"\x80\x00\xf2\x27\xbf\xfb\xe6\xad", 16);
 	memcpy (&ip6->ip6_dst, dest_ip6, sizeof (struct in6_addr));
@@ -304,6 +305,11 @@ handle_server_packet (const MiredoServerUDP *sock)
 			return 0; // packet not allowed through server
 		}
 	}
+
+	// Ensures that the packet destination has a global scope
+	// (ie 2000::/3)
+	if ((ip6->ip6_dst.s6_addr[0] & 0xe0) != 0x20)
+		return 0; // must be discarded
 	
 	// Accepts packet:
 	if (!IN6_IS_ADDR_TEREDO(&ip6->ip6_dst))

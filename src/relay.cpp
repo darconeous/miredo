@@ -1,6 +1,6 @@
 /*
  * relay.cpp - Teredo relay peers list definition
- * $Id: relay.cpp,v 1.6 2004/06/26 19:55:33 rdenisc Exp $
+ * $Id: relay.cpp,v 1.7 2004/06/27 10:25:24 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -174,6 +174,7 @@ int MiredoRelay::TransmitPacket (void)
 	memcpy (&addr.ip6, &ip6.ip6_dst, sizeof (struct in6_addr));
 
 	/* Initial destination address checks */
+	// FIXME: should use run-time prefix
 	if (addr.teredo.prefix != htonl (TEREDO_PREFIX))
 	{
 		// FIXME: no warning for autoconf packets
@@ -296,6 +297,7 @@ int MiredoRelay::ReceivePacket (void)
 
 	// Checks source IPv6 address
 	memcpy (&src, &ip6.ip6_src, sizeof (src));
+	// FIXME: shoud use run-time prefix
 	if ((src.teredo.prefix != htonl (TEREDO_PREFIX))
 	 || !IN6_MATCHES_TEREDO_CLIENT (&src, sock->GetClientIP (),
 		 			sock->GetClientPort ()))
@@ -329,14 +331,17 @@ int MiredoRelay::ReceivePacket (void)
 		p->queue = NULL;
 	}
 	
-
 	if (IsBubble (&ip6))
 		return 0; // do not relay bubbles
 
 	// TODO: check "range of IPv6 adresses served by the relay"
-	// (which may for example be, at most, 2000::/3)
+	// (that should be a run-time option)
+	// Ensures that the packet destination has a global scope
+	// (ie 2000::/3)
+	if ((ip6.ip6_dst.s6_addr[0] & 0xe0) != 0x20)
+		return 0; // must be discarded
+
 	syslog (LOG_DEBUG, "DEBUG: sending packet!\n");
 	return tunnel->SendPacket (buf, length);
 }
-
 

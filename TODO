@@ -1,6 +1,6 @@
 Incomplete raw ToDo list:
 ==========================
-$Id: TODO,v 1.5 2004/06/26 19:55:28 rdenisc Exp $
+$Id: TODO,v 1.6 2004/06/27 10:25:24 rdenisc Exp $
 
 Features:
 ----------
@@ -8,14 +8,14 @@ Features:
 - some statistics,
 - automatic relay IPv6 address configuration,
 - automatic relay IPv6 address re-configuration/update,
-- automatic relay IPv4 and IPv6 addresses configuration,
 - signals handling,
 - Teredo client support.
 
 Security:
 ----------
 - chroot() support,
-- proper incoming IPv6 packets checks,
+- secure qualification support,
+- access control,
 
 Conformance:
 -------------
@@ -25,7 +25,7 @@ Conformance:
 Testing:
 ---------
 - fe80::/64 IPv6 relay address bubble,
-- unassigned relay IPv4 address.
+- unassigned relay IPv4 address,
 
 Portability:
 -------------
@@ -41,6 +41,5 @@ Compatibility:
 Documentation & support:
 -------------------------
 - init.d sample script,
-- RPM and Debian packaging,
-- man page.
+- RPM and Debian packaging.
 
