@@ -1,6 +1,6 @@
 /*
  * relay.h - Teredo relay peers list declaration
- * $Id: relay.h,v 1.15 2004/08/26 08:02:22 rdenisc Exp $
+ * $Id: relay.h,v 1.16 2004/08/26 09:37:53 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -46,8 +46,6 @@ class TeredoRelay
 		bool is_cone;
 		uint32_t prefix, server_ip;
 		time_t server_interaction;
-		const char *const *server_names;
-		const char *server_name;
 
 		struct __TeredoRelay_peer *head;
 
@@ -102,17 +100,17 @@ class TeredoRelay
 		 * TODO: allow the caller to specify an IPv4 address to bind
 		 * to.
 		 */
-		TeredoRelay (uint32_t pref, uint16_t port = 0,
-				bool cone = true);
+		TeredoRelay (uint32_t pref, uint16_t port /*= 0*/,
+				bool cone /*= true*/);
 
 		/*
 		 * Creates a Teredo client/relay automatically. The client
-		 * will try to qualify and get a Teredo IPv6 address from each
-		 * of the servers until one of them works.
+		 * will try to qualify and get a Teredo IPv6 address from the
+		 * server.
 		 *
 		 * TODO: support for secure qualification
 		 */
-		TeredoRelay (const char * const* servers, uint16_t port = 0);
+		TeredoRelay (uint32_t server_ip, uint16_t port = 0);
 
 	public:
 		virtual ~TeredoRelay ();
@@ -145,6 +143,21 @@ class TeredoRelay
 		bool IsCone (void) const
 		{
 			return is_cone;
+		}
+
+		bool IsClient (void) const
+		{
+			return server_ip != 0;
+		}
+
+		bool IsRelay (void) const
+		{
+			return server_ip == 0;
+		}
+
+		bool IsRunning (void) const
+		{
+			return is_valid_teredo_prefix (prefix);
 		}
 
 		uint32_t GetPrefix (void) const

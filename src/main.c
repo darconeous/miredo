@@ -1,7 +1,7 @@
 /*
  * main.c - Unix Teredo server & relay implementation
  *          command line handling and core functions
- * $Id: main.c,v 1.22 2004/08/24 14:25:34 rdenisc Exp $
+ * $Id: main.c,v 1.23 2004/08/26 09:37:54 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -71,7 +71,7 @@ static int
 usage (void)
 {
         puts (_(
-"Usage: miredo [OPTION] [SERVER NAME 1]...\n"
+"Usage: miredo [OPTION] [server name]...\n"
 "Creates a Teredo tunneling interface for encapsulation of IPv6.\n"
 "\n"
 "  -C, --cone       assume that we are relaying behind a cone NAT\n"
@@ -498,16 +498,24 @@ main (int argc, char *argv[])
 				return 1;
 		}
 
-	if (optind >= argc)
-		flags.manual = 1; /* No servers to qualify with */
-
-	if (flags.manual && (optind < argc))
+	if (optind < argc)
 	{
-		fputs (_("You have selected conflicting parameters.\n"
+		server = argv[optind];
+		optind++;
+
+		if (flags.manual)
+		{
+			fputs (_("You have selected conflicting parameters.\n"
+			"It is not possible to run a Teredo relay and/or\n"
+			"Teredo server and a Teredo client simultaneously.\n"
 			"Refer to the manual page for more details.\n"),
 			stderr);
-		return error_extra (argv[optind]);
+		}
+		if (optind < argc)
+			return error_extra (argv[optind]);
 	}
+	else
+		flags.manual = 1; /* No servers to qualify with */
 
 	/*
 	 * Display configuration
@@ -537,15 +545,8 @@ main (int argc, char *argv[])
 				: N_("restricted")));
 		}
 		else
-		{
-			int i;
-
-			puts (_("Server(s) list:"));
-			for (i = optind; i < argc; i++)
-				printf ("%2d: %s\n", i + 1 - optind, argv[i]);
-			puts ("CLIENT MODE NOT SUPPORTED YET");
-			return 2;
-		}
+			printf (_("Server name                 : %s\n"),
+				server);
 		puts ("----------------------------------------------------");
 	}
 
@@ -561,8 +562,7 @@ main (int argc, char *argv[])
 	if (flags.manual
 			? miredo (client_port, server, prefix, ifname,
 					flags.cone)
-			: miredo_client ((const char *const *)&argv[optind],
-						client_port, ifname))
+			: miredo_client (server, client_port, ifname))
 		return 1;
 	else
 		return 0;

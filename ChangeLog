@@ -1,7 +1,9 @@
 2004-25-08  Remi Denis-Courmont
 
 	* libterdo/relay.cpp, configure.ac, src/Makefile.am:
-	- use OpenSSL to sets the authentication nonce.
+	- use OpenSSL to sets the authentication nonce,
+	* libteredo/relay.*, src/relay.*, src/main.cpp, src/miredo.*:
+	- only specify one server name for client, much less confusing.
 
 2004-24-08  Remi Denis-Courmont
 

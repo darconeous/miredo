@@ -1,6 +1,6 @@
 /*
  * relay.cpp - Teredo relay peers list definition
- * $Id: relay.cpp,v 1.18 2004/08/26 08:02:21 rdenisc Exp $
+ * $Id: relay.cpp,v 1.19 2004/08/26 09:37:53 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -85,17 +85,15 @@ struct __TeredoRelay_peer
 
 TeredoRelay::TeredoRelay (uint32_t pref, uint16_t port, bool cone)
 	: is_cone (cone), prefix (pref), server_ip (0),
-	server_interaction (0), server_names (NULL), server_name (NULL),
-	head (NULL)
+	server_interaction (0), head (NULL)
 {
 	sock.ListenPort (port);
 }
 
 
-TeredoRelay::TeredoRelay (const char * const* servers, uint16_t port)
-	: is_cone (true), prefix (PREFIX_UNSET), server_ip (0),
-	server_interaction (0), server_names (servers), server_name (NULL),
-	head (NULL)
+TeredoRelay::TeredoRelay (uint32_t server_ip, uint16_t port)
+	: is_cone (true), prefix (PREFIX_UNSET), server_ip (server_ip),
+	server_interaction (0), head (NULL)
 {
 	sock.ListenPort (port);
 }
@@ -334,7 +332,7 @@ inline bool IsBubble (const struct ip6_hdr *hdr)
 int TeredoRelay::SendPacket (const void *packet, size_t length)
 {
 	/* Makes sure we are qualified properly */
-	if (!is_valid_teredo_prefix (GetPrefix ()))
+	if (!IsRunning ())
 		return -1; // TODO: send ICMPv6 error?
 
 	struct ip6_hdr ip6;
@@ -404,7 +402,7 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
 		 * notify the user. An alternative might be to send an
 		 * ICMPv6 error back to the kernel.
 		 */
-		if (server_ip == 0)
+		if (IsRelay ())
 			return 0;
 			
 		/* Client case 2: direct IPv6 connectivity test */
@@ -514,7 +512,7 @@ int TeredoRelay::ReceivePacket (void)
 	 * absolutely NOT check that.
 	 */
 
-	if (server_ip && (sock.GetClientIP () == server_ip)
+	if (IsClient () && (sock.GetClientIP () == server_ip)
 	 && (sock.GetClientPort () == htons (IPPORT_TEREDO)))
 	{
 		time (&server_interaction);

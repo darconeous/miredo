@@ -1,6 +1,6 @@
 /*
  * miredo.h - header for miredo.cpp
- * $Id: miredo.h,v 1.13 2004/08/24 14:25:35 rdenisc Exp $
+ * $Id: miredo.h,v 1.14 2004/08/26 09:37:54 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -36,7 +36,7 @@ extern "C"
 int miredo (uint16_t client_port, const char *server_name,
 		const char *prefix_name, const char *ifname,
 		int cone);
-int miredo_client (const char *const *server_names, uint16_t client_port, 
+int miredo_client (const char *server_name, uint16_t client_port,
 			const char *ifname);
 
 # ifdef __cplusplus

@@ -1,7 +1,7 @@
 /*
  * miredo.cpp - Unix Teredo server & relay implementation
  *              core functions
- * $Id: miredo.cpp,v 1.33 2004/08/24 18:49:40 rdenisc Exp $
+ * $Id: miredo.cpp,v 1.34 2004/08/26 09:37:54 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -245,9 +245,8 @@ uid_t unpriv_uid = 0;
 #define MIREDO_CONE   1
 
 static int
-miredo_run (uint16_t client_port, const char *const *server_names,
-		const char *prefix_name, const char *ifname,
-		int mode)
+miredo_run (uint16_t client_port, const char *server_name,
+		const char *prefix_name, const char *ifname, int mode)
 {
 	seteuid (unpriv_uid);
 
@@ -338,11 +337,11 @@ miredo_run (uint16_t client_port, const char *const *server_names,
 	}
 
 	// Sets up server sockets
-	if ((mode & MIREDO_CLIENT == 0) && (*server_names != NULL))
+	if (((mode & MIREDO_CLIENT) == 0) && (server_name != NULL))
 	{
 		uint32_t ipv4;
 		 
-		if (getipv4byname (*server_names, &ipv4))
+		if (getipv4byname (server_name, &ipv4))
 		{
 			syslog (LOG_ALERT, _("Fatal configuration error"));
 			goto abort;
@@ -378,33 +377,62 @@ miredo_run (uint16_t client_port, const char *const *server_names,
 		server->SetPrefix (prefix.teredo.prefix);
 	}
 
-	// Sets up relay
+	// Sets up relay or client
 	// TODO: ability to not be a relay at all
-	try
+	client_port = htons (client_port);
+
+	if (mode & MIREDO_CLIENT)
 	{
-		relay = (mode & MIREDO_CLIENT)
-			? new MiredoRelay (&tunnel, server_names,
-						htons (client_port))
-			: new MiredoRelay (&tunnel, prefix.teredo.prefix,
-					 htons (client_port),
-					 mode & MIREDO_CONE != 0);
+		// Sets up client
+		uint32_t ipv4;
+
+		if (getipv4byname (server_name, &ipv4))
+		{
+			syslog (LOG_ALERT, _("Fatal configuration error"));
+			goto abort;
+		}
+
+		try
+		{
+			relay = new MiredoRelay (fd, &tunnel, ipv4,
+						 client_port);
+		}
+		catch (...)
+		{
+			relay = NULL;
+		}
 	}
-	catch (...)
+	else
 	{
-		relay = NULL;
+		// Sets up relay
+		try
+		{
+			relay = new MiredoRelay (&tunnel,
+						 prefix.teredo.prefix,
+						 client_port,
+						 mode & MIREDO_CONE != 0);
+		}
+		catch (...)
+		{
+			relay = NULL;
+		}
+
+		/*
+		 * In this case, the privileged process is useless, since we won't
+		 * get an IPv6 Teredo address, and won't change our tunnel interface
+		 * IPv6 address.
+		 * FIXME: should (try to?) use the privileged process to set our
+		 * addres and _then_ close our pipe.
+		 */
+		close (fd); // privileged process will exit
+		wait (NULL); // privileged process exited
+	}
+
+	if (relay == NULL)
+	{
 		syslog (LOG_ALERT, _("Teredo service failure"));
 		goto abort;
 	}
-
-	/*
-	 * In this case, the privileged process is useless, since we won't
-	 * get an IPv6 Teredo address, and won't change our tunnel interface
-	 * IPv6 address.
-	 * FIXME: should (try to?) use the privileged process to set our
-	 * addres and _then_ close our pipe.
-	 */
-	close (fd); // privileged process will exit
-	wait (NULL); // privileged process exited
 
 	if (!*relay)
 	{
@@ -425,6 +453,8 @@ abort:
 		delete relay;
 	if (server != NULL)
 		delete server;
+	if (fd != -1)
+		wait (NULL); // wait for privsep process
 
 	return retval;
 }
@@ -467,7 +497,7 @@ init_signals (void)
 static const char *const daemon_ident = "miredo";
 
 extern "C" int
-miredo_main (uint16_t client_port, const char *const *server_names,
+miredo_main (uint16_t client_port, const char *server_name,
 		const char *prefix_name, const char *ifname,
 		int mode)
 {
@@ -511,8 +541,7 @@ miredo_main (uint16_t client_port, const char *const *server_names,
 
 			case 0:
 			{
-				retval = miredo_run (client_port,
-							server_names,
+				retval = miredo_run (client_port, server_name,
 							prefix_name, ifname,
 							mode);
 				closelog ();
@@ -560,15 +589,15 @@ extern "C" int
 miredo (uint16_t client_port, const char *server_name,
 	const char *prefix_name, const char *ifname, int cone)
 {
-	return miredo_main (client_port, &server_name, prefix_name, ifname,
+	return miredo_main (client_port, server_name, prefix_name, ifname,
 				cone ? MIREDO_CONE : 0);
 }
 
 
 extern "C" int
-miredo_client (const char *const *server_names, uint16_t client_port,
+miredo_client (const char *server_name, uint16_t client_port,
 		const char *ifname)
 {
-	return miredo_main (client_port, server_names, NULL, ifname,
+	return miredo_main (client_port, server_name, NULL, ifname,
 				MIREDO_CLIENT);
 }
