@@ -1,6 +1,6 @@
 /*
  * relay.h - Teredo relay peers list declaration
- * $Id: relay.h,v 1.12 2004/08/24 16:00:26 rdenisc Exp $
+ * $Id: relay.h,v 1.13 2004/08/24 18:52:04 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -26,6 +26,7 @@
 # define LIBTEREDO_RELAY_H
 
 # include <inttypes.h>
+# include <time.h> // time_t
 
 # include <libteredo/teredo-udp.h>
 
@@ -44,6 +45,7 @@ class TeredoRelay
 		/*** Internal stuff ***/
 		bool is_cone;
 		uint32_t prefix, server_ip;
+		time_t server_interaction;
 
 		struct __TeredoRelay_peer *head;
 
@@ -111,8 +113,6 @@ class TeredoRelay
 	public:
 		virtual ~TeredoRelay ();
 
-		/* TODO: return false if qualification is pending or if it
-		 failed. */
 		int operator! (void) const
 		{
 			return !sock;
@@ -147,7 +147,7 @@ class TeredoRelay
 		{
 			return prefix;
 		}
-		
+
 		int RegisterReadSet (fd_set *rs) const
 		{
 			return sock.RegisterReadSet (rs);
