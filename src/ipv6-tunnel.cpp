@@ -1,6 +1,6 @@
 /*
  * ipv6-tunnel.cpp - IPv6 interface class definition
- * $Id: ipv6-tunnel.cpp,v 1.8 2004/06/21 17:48:55 rdenisc Exp $
+ * $Id: ipv6-tunnel.cpp,v 1.9 2004/06/22 16:20:25 rdenisc Exp $
  */
 
 /***********************************************************************
@@ -169,12 +169,12 @@ IPv6Tunnel::SetState (bool up) const
 
 	secure_strncpy (req.ifr_name, ifname, IFNAMSIZ);
 	// settings we want/don't want:
-	req.ifr_flags |= IFF_POINTOPOINT | IFF_NOARP;
+	req.ifr_flags |= IFF_NOARP;
 	if (up)
 		req.ifr_flags |= IFF_UP | IFF_RUNNING;
 	else
-		req.ifr_flags &= ~IFF_UP;
-	req.ifr_flags &= ~(IFF_MULTICAST | IFF_BROADCAST);
+		req.ifr_flags &= ~IFF_UP | IFF_RUNNING;
+	req.ifr_flags &= ~(IFF_MULTICAST | IFF_BROADCAST | IFF_POINTOPOINT);
 
 	if (ioctl (reqfd, SIOCSIFFLAGS, &req))
 	{

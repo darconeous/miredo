@@ -21,6 +21,7 @@ dnl ***********************************************************************
 
 AC_COPYRIGHT([Copyright (C) 2004 Rémi Denis-Courmont])
 AC_INIT([miredo], [0.1.1], [rdenis@simphalempin.com])
+AC_PREREQ(2.59)
 INVOCATION="$0 $*"
 
 AS_MESSAGE(checking system...)
