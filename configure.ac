@@ -20,15 +20,15 @@ dnl *  http://www.gnu.org/copyleft/gpl.html                               *
 dnl ***********************************************************************
 
 AC_COPYRIGHT([Copyright (C) 2004 Remi Denis-Courmont])
-AC_INIT([miredo], [0.3.3], [rdenis@simphalempin.com])
+AC_INIT(miredo, 0.3.3, rdenis@simphalempin.com)
 AC_PREREQ(2.59)
 INVOCATION="$0 $*"
 
 AS_MESSAGE(checking system...)
-AC_CONFIG_SRCDIR([configure.ac])
+AC_CONFIG_SRCDIR(configure.ac)
 AC_CONFIG_AUX_DIR(admin)
 AC_CONFIG_MACRO_DIR(m4)
-AC_CONFIG_HEADERS([config.h])
+AC_CONFIG_HEADERS(config.h)
 
 AC_DEFINE_UNQUOTED(PACKAGE_CONFIGURE_INVOCATION, "$INVOCATION",
                 [Define to the command line used to invoke the configure script.])
@@ -80,7 +80,7 @@ case $host_os in
 esac
 
 # Checks for header files.
-AC_CHECK_HEADERS([sys/capability.h])
+AC_CHECK_HEADERS(sys/capability.h)
 
 
 # Checks for typedefs, structures, and compiler characteristics.
@@ -107,40 +107,41 @@ AH_BOTTOM([
 ])
 
 RDC_REPLACE_FUNC_GETOPT_LONG
-AC_CHECK_FUNCS([clearenv])
+AC_CHECK_FUNCS(clearenv)
 
 
 # Checks for optionnal features
-AC_ARG_ENABLE([server],
-	      AS_HELP_STRING([--disable-teredo-server],
-			     [do not compile Teredo server (enabled by default)]))
+# Teredo server
+AC_ARG_ENABLE(teredo-server,
+	      [AS_HELP_STRING(--disable-teredo-server,
+			      [do not compile Teredo server (enabled by default)])])
 AH_TEMPLATE(MIREDO_TEREDO_SERVER,
 	    [Define to 1 if the Teredo server support is enabled])
 AS_IF([test "x${enable_teredo_server}" != "xno"],
-	AC_DEFINE(MIREDO_TEREDO_SERVER))
+	[AC_DEFINE(MIREDO_TEREDO_SERVER)])
 AM_CONDITIONAL(TEREDO_SERVER, [test "x${enable_teredo_server}" != "xno"])
 
 # unprivileged user
-AC_ARG_ENABLE([miredo-user],
-	      AS_HELP_STRING([--enable-miredo-user],
-			     [user to run as (disabled by default)]))
+AC_ARG_ENABLE(miredo-user,
+	      [AS_HELP_STRING(--enable-miredo-user,
+			      [user to run as (disabled by default)])])
 AS_IF([test "${enable_miredo_user}" = "yes"],
 	[enable_miredo_user="miredo"])
 AH_TEMPLATE(MIREDO_DEFAULT_USERNAME,
             [Define to the system user name to be used by miredo.])
 AS_IF([test "x${enable_miredo_user}" != "x" && test "${enable_miredo_user}" != "no"],
-	AC_DEFINE_UNQUOTED(MIREDO_DEFAULT_USERNAME, "$enable_miredo_user"))
+	[AC_DEFINE_UNQUOTED(MIREDO_DEFAULT_USERNAME, "$enable_miredo_user")])
 
 # pidfile path
-AC_ARG_ENABLE([pidfile],
-	      AS_HELP_STRING([--enable-pidfile],
-			     [path to the pidfile (enabled by default)]))
+AC_ARG_ENABLE(pidfile,
+	      [AS_HELP_STRING([--enable-pidfile],
+			      [path to the pidfile (enabled by default)])])
 AS_IF([test "x${enable_pidfile}" = "x" || test "${enable_pidfile}" = "yes"],
 	[enable_pidfile="/var/run/miredo/miredo.pid"])
 AH_TEMPLATE(MIREDO_DEFAULT_PIDFILE,
             [Define to the default pidfile path created by miredo.])
 AS_IF([test "${enable_pidfile}" != "no"],
-	AC_DEFINE_UNQUOTED(MIREDO_DEFAULT_PIDFILE, "$enable_pidfile"))
+	[AC_DEFINE_UNQUOTED(MIREDO_DEFAULT_PIDFILE, "$enable_pidfile")])
 
 
 # Defines for <config.h>
