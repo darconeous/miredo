@@ -1,6 +1,6 @@
 /*
  * teredo.h - Common Teredo protocol typedefs
- * $Id: teredo.h,v 1.5 2004/08/27 16:58:57 rdenisc Exp $
+ * $Id: teredo.h,v 1.6 2004/08/28 09:56:19 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -58,6 +58,7 @@ union teredo_addr
 
 #define ip6_teredo( ip6 ) (((union teredo_addr *)ip6)->teredo)
 
+/* NOTE: these macros expect 4-byte aligned addresses structs */
 #define IN6_MATCHES_TEREDO_CLIENT( ip6, ip4, port ) \
 	in6_matches_teredo_client ((const union teredo_addr *)ip6, ip4, port)
 
