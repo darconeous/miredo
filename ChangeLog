@@ -1,4 +1,144 @@
 ------------------------------------------------------------------------
+r297 | remi | 2004-12-17 17:09:53 +0100 (Fri, 17 Dec 2004) | 2 lines
+Changed paths:
+   M /trunk/NEWS
+
+Fill NEWS for 0.3.2
+
+------------------------------------------------------------------------
+r296 | remi | 2004-12-17 17:01:50 +0100 (Fri, 17 Dec 2004) | 2 lines
+Changed paths:
+   M /trunk/configure.ac
+
+Check for library providing POSIX threads
+
+------------------------------------------------------------------------
+r295 | remi | 2004-12-13 00:29:38 +0100 (Mon, 13 Dec 2004) | 2 lines
+Changed paths:
+   M /trunk/NEWS
+
+First news for 0.3.2
+
+------------------------------------------------------------------------
+r294 | remi | 2004-12-12 17:59:00 +0100 (Sun, 12 Dec 2004) | 3 lines
+Changed paths:
+   M /trunk/configure.ac
+   M /trunk/src/main.c
+
+Configure-time option to change the default pidfile path
+or disable the pidfile by default
+
+------------------------------------------------------------------------
+r293 | remi | 2004-12-06 14:01:30 +0100 (Mon, 06 Dec 2004) | 2 lines
+Changed paths:
+   M /trunk/TODO
+   M /trunk/miredo.8
+
+Update to Teredo Internet draft 03
+
+------------------------------------------------------------------------
+r292 | remi | 2004-12-05 10:38:37 +0100 (Sun, 05 Dec 2004) | 2 lines
+Changed paths:
+   M /trunk/src/Makefile.am
+
+Fix libintl linkage on non-GNU platforms
+
+------------------------------------------------------------------------
+r291 | remi | 2004-12-05 10:32:06 +0100 (Sun, 05 Dec 2004) | 3 lines
+Changed paths:
+   M /trunk/src/Makefile.am
+
+Link with -lpthread explictly
+=> fix FreeBSD linker error
+
+------------------------------------------------------------------------
+r290 | remi | 2004-12-04 10:51:34 +0100 (Sat, 04 Dec 2004) | 4 lines
+Changed paths:
+   M /trunk/libteredo/relay.h
+
+Really fix access control for nested classes
+(I used a feature of C++ which is not even standard yet)
+Will work with G++2.95
+
+------------------------------------------------------------------------
+r289 | remi | 2004-12-03 22:54:44 +0100 (Fri, 03 Dec 2004) | 2 lines
+Changed paths:
+   M /trunk/po/fr.po
+   M /trunk/po/miredo.pot
+
+Updated PO files
+
+------------------------------------------------------------------------
+r288 | remi | 2004-12-03 22:51:41 +0100 (Fri, 03 Dec 2004) | 2 lines
+Changed paths:
+   M /trunk/README
+
+Update security informations with the new nobody UID stuff
+
+------------------------------------------------------------------------
+r287 | remi | 2004-12-03 22:44:51 +0100 (Fri, 03 Dec 2004) | 3 lines
+Changed paths:
+   M /trunk/src/main.c
+
+Setuid to nobody by default instead of keeping root.
+Portable, easy for user, far more secure and more simple for me.
+
+------------------------------------------------------------------------
+r286 | remi | 2004-12-03 17:13:19 +0100 (Fri, 03 Dec 2004) | 3 lines
+Changed paths:
+   M /trunk/libteredo/relay.h
+
+Fixed TeredoRelay::SendIPv6Packet access qualifier from private to protected
+=> fixes a FreeBSD compile error
+
+------------------------------------------------------------------------
+r285 | remi | 2004-12-03 15:47:31 +0100 (Fri, 03 Dec 2004) | 2 lines
+Changed paths:
+   M /trunk/TODO
+   M /trunk/configure.ac
+
+Bump version number
+
+------------------------------------------------------------------------
+r284 | remi | 2004-12-02 21:43:15 +0100 (Thu, 02 Dec 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/relay.h
+   M /trunk/libtun6/ipv6-tunnel.cpp
+
+Cleanup for security scanners
+
+------------------------------------------------------------------------
+r282 | remi | 2004-12-02 21:11:48 +0100 (Thu, 02 Dec 2004) | 1 line
+Changed paths:
+   M /trunk/libtun6/ipv6-tunnel.cpp
+
+
+------------------------------------------------------------------------
+r281 | remi | 2004-12-02 16:08:40 +0100 (Thu, 02 Dec 2004) | 2 lines
+Changed paths:
+   M /trunk/po/fr.po
+   M /trunk/po/miredo.pot
+
+Resync with source
+
+------------------------------------------------------------------------
+r280 | remi | 2004-12-02 16:07:35 +0100 (Thu, 02 Dec 2004) | 2 lines
+Changed paths:
+   M /trunk/Makefile.am
+   M /trunk/configure.ac
+   A /trunk/misc/Makefile.am
+
+Added misc directory to tarball
+
+------------------------------------------------------------------------
+r279 | remi | 2004-12-02 16:00:26 +0100 (Thu, 02 Dec 2004) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog
+
+Updated for release 0.3.1
+
+------------------------------------------------------------------------
 r278 | remi | 2004-12-02 15:55:56 +0100 (Thu, 02 Dec 2004) | 3 lines
 Changed paths:
    M /trunk/README
