@@ -1,6 +1,6 @@
 /*
  * relay.cpp - Teredo relay peers list definition
- * $Id: relay.cpp,v 1.8 2004/08/22 15:19:32 rdenisc Exp $
+ * $Id: relay.cpp,v 1.9 2004/08/22 15:38:26 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -221,6 +221,9 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
 
 	memcpy (&ip6, packet, sizeof (ip6_hdr));
 
+	// Sanity check (should we trust the kernel?):
+	// It's no use emitting such a broken packet because the other side
+	// will drop it anyway.
 	if (((ip6.ip6_vfc >> 4) != 6)
 	 || ((sizeof (ip6) + ntohs (ip6.ip6_plen)) != length))
 		return 0; // invalid IPv6 packet
@@ -233,9 +236,20 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
 	{
 		if (addr.ip6.s6_addr[0] != 0xff)
 		{
-			// NOTE:
-			// Print a warning except for multicast packets,
-			// which the kernel tend to send automatically.
+			/*
+			 * NOTE:
+			 * Print a warning except for multicast packets,
+			 * which the kernel tend to send automatically
+			 * for IPv6 autoconfiguration (which won't work in our
+			 * case, though).
+			 *
+			 * FIXME:
+			 * This breaks the specification: it mandates silently
+			 * ignoring such packets. However, this only happens
+			 * in case of misconfiguration, so I believe it's
+			 * better to notify the user. An alternative might be
+			 * to send an ICMPv6 error back to the kernel.
+			 */
 			syslog (LOG_WARNING,
 				_("Dropped packet with non-Teredo address"
 				" (prefix %08lx instead of %08lx):\n"

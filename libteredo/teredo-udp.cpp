@@ -1,6 +1,6 @@
 /*
  * teredo-udp.cpp - UDP sockets class definition
- * $Id: teredo-udp.cpp,v 1.2 2004/07/31 19:58:43 rdenisc Exp $
+ * $Id: teredo-udp.cpp,v 1.3 2004/08/22 15:38:26 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -121,8 +121,8 @@ TeredoCommonUDP::~TeredoCommonUDP (void)
 
 
 /*
- * Parses a Teredo packet header.
- * Use memmove to keep results properly aligned.
+ * Parses a Teredo packet header. Blocking function.
+ * FIXME: re-entrancy
  */
 int
 TeredoCommonUDP::ReceivePacket (int fd)
@@ -270,6 +270,11 @@ TeredoRelayUDP::ReceivePacket (void)
 		tv.tv_sec = 0;
 		tv.tv_usec = 0;
 
+		// FIXME:
+		// decide whether we should block or not
+		// (at the moment: non-blocking but documented as
+		// blocking!!)
+		// and make this thread-blocking-safe.
 		if (select (fd + 1, &set, NULL, NULL, &tv) == 1)
 			return TeredoCommonUDP::ReceivePacket (fd);
 	}

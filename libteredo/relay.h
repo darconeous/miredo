@@ -1,6 +1,6 @@
 /*
  * relay.h - Teredo relay peers list declaration
- * $Id: relay.h,v 1.8 2004/08/22 15:19:32 rdenisc Exp $
+ * $Id: relay.h,v 1.9 2004/08/22 15:38:26 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -117,12 +117,17 @@ class TeredoRelay
 		}
 
 		/*
-		 * Transmits a packet from IPv6 Internet via Teredo.
+		 * Transmits a packet from IPv6 Internet via Teredo,
+		 * i.e. performs "Packet transmission".
+		 * This function will not block because normal IPv4 stacks do
+		 * not block when sending UDP packets.
 		 */
 		int SendPacket (const void *packet, size_t len);
 
 		/*
-		 * Receives a packet from Teredo to IPv6 Internet.
+		 * Receives a packet from Teredo to IPv6 Internet, i.e.
+		 * performs "Packet reception". This function will block until
+		 * a Teredo packet is received.
 		 */
 		int ReceivePacket (void);
 

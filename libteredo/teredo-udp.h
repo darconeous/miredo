@@ -1,6 +1,6 @@
 /*
  * teredo-udp.h - UDP sockets class declaration
- * $Id: teredo-udp.h,v 1.2 2004/07/31 19:58:43 rdenisc Exp $
+ * $Id: teredo-udp.h,v 1.3 2004/08/22 15:38:26 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -57,6 +57,10 @@ class TeredoCommonUDP
 		struct teredo_orig_ind orig_buf;
 
 	protected:
+		/*
+		 * Receive a packet. Blocking function.
+		 * FIXME: re-entrancy
+		 */
 		int ReceivePacket (int fd);
 
 	public:
@@ -69,6 +73,7 @@ class TeredoCommonUDP
 		/*
 		 * Returns a pointer to the IPv6 header of the packet
 		 * last received with ReceivePacket().
+		 * FIXME: this is utterly contradictory with re-entrant design
 		 */
 		const struct ip6_hdr *GetIPv6Header (size_t& len) const
 		{
