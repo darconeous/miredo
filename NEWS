@@ -18,7 +18,7 @@ changes, run 'miredo -h' to get help. For detailled internal changes, see
 ChangeLog.
 
 =============================================================================
-BETA RELEASE 0.3.0 : Major feature enhancement
+BETA RELEASE 0.3.0 : Minor feature enhancement
 
 # POSIX.1e capabilities support :
   If you have libcap on your system, miredo will now use POSIX.1e
