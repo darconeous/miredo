@@ -674,8 +674,8 @@ main (int argc, char *argv[])
 		/*
 		 * I puporsedly don't check create_pidfile for error.
 		 * If the sysadmin fails to setup a directory properly for the
-		 * pidfile, it's better to make its initscript's stop function
-		 * than deny the service completely.
+		 * pidfile, I'd rather make its initscript's stop function
+		 * fail than deny the service completely.
 		 */
 		create_pidfile (pidfile);
 
