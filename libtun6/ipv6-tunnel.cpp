@@ -1,6 +1,6 @@
 /*
  * ipv6-tunnel.cpp - IPv6 interface class definition
- * $Id: ipv6-tunnel.cpp,v 1.3 2004/07/10 16:28:34 rdenisc Exp $
+ * $Id: ipv6-tunnel.cpp,v 1.4 2004/07/12 08:48:30 rdenisc Exp $
  */
 
 /***********************************************************************
@@ -428,9 +428,6 @@ _iface_route (const char *ifname, bool add,
 		const struct in6_addr *addr, unsigned prefix_len)
 {
 	if (ifname == NULL)
-		return -1;
-
-	if (prefix_len < 0)
 		return -1;
 
 	if (prefix_len > 128)

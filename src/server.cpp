@@ -1,6 +1,6 @@
 /*
  * server.cpp - Handling of a single Teredo datagram (server-side).
- * $Id: server.cpp,v 1.3 2004/07/11 10:43:29 rdenisc Exp $
+ * $Id: server.cpp,v 1.4 2004/07/12 08:48:30 rdenisc Exp $
  */
 
 /***********************************************************************
@@ -283,7 +283,6 @@ MiredoServer::ReceivePacket (void) const
 		return 0;
 
 	// Check IPv6 packet (Teredo server check number 1)
-	// FIXME: byte alignment (see MiredoCommonUDP::ReceivePacket)
 	size_t ip6len;
 	const struct ip6_hdr *ip6 = sock->GetIPv6Header (ip6len);
 	if (ip6len < 40)

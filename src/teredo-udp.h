@@ -1,6 +1,6 @@
 /*
  * teredo-udp.h - UDP sockets class declaration
- * $Id: teredo-udp.h,v 1.5 2004/07/11 13:52:22 rdenisc Exp $
+ * $Id: teredo-udp.h,v 1.6 2004/07/12 08:48:30 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -34,20 +34,26 @@
 
 # include <sys/types.h>
 # include <sys/select.h> // fd_set
-# include "teredo.h"
+# include <netinet/ip6.h> // struct ip6_hdr
 
-struct ip6_hdr;
+# include "teredo.h"
 
 class MiredoCommonUDP
 {
 	private:
-		uint32_t last_ip;
-		uint16_t last_port;
-		uint8_t pbuf[65507];
-		struct ip6_hdr *ip6;
-		size_t ip6len;
 		struct teredo_orig_ind *orig;
 		uint8_t *nonce;
+		uint32_t last_ip;
+		int ip6len;
+		uint16_t last_port;
+
+		union
+		{
+			struct ip6_hdr ip6;
+			uint8_t fill[65507];
+		} ipv6_buf;
+		uint8_t nonce_buf[8];
+		struct teredo_orig_ind orig_buf;
 
 	protected:
 		int ReceivePacket (int fd);
@@ -56,8 +62,7 @@ class MiredoCommonUDP
 					uint32_t dest_ip, uint16_t port);
 
 	public:
-		MiredoCommonUDP () : last_ip (0), last_port (0),
-			ip6 (NULL), ip6len (0), orig (NULL), nonce (NULL)
+		MiredoCommonUDP ()
 		{
 		}
 
@@ -75,7 +80,7 @@ class MiredoCommonUDP
 		const struct ip6_hdr *GetIPv6Header (size_t& len) const
 		{
 			len = ip6len;
-			return ip6;
+			return &ipv6_buf.ip6;
 		}
 
 		/*

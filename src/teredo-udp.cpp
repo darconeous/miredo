@@ -1,6 +1,6 @@
 /*
  * teredo-udp.cpp - UDP sockets class definition
- * $Id: teredo-udp.cpp,v 1.6 2004/07/11 10:08:13 rdenisc Exp $
+ * $Id: teredo-udp.cpp,v 1.7 2004/07/12 08:48:30 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -87,80 +87,97 @@ MiredoCommonUDP::OpenTeredoSocket (uint32_t bind_ip, uint16_t port)
 }
 
 
+/*
+ * Parses a Teredo packet header.
+ * Use memmove to keep results properly aligned.
+ */
 int
 MiredoCommonUDP::ReceivePacket (int fd)
 {
-	// Receive a UDP packet
-	struct sockaddr_in ad;
-	socklen_t alen = sizeof (ad);
-	int check = recvfrom (fd, pbuf, sizeof (pbuf), 0,
-				(struct sockaddr *)&ad, &alen);
+	uint8_t buffer[65507];
+	int length;
 
-	if (check == -1)
+	// Receive a UDP packet
 	{
-		syslog (LOG_WARNING, _("Error receiving UDP packet: %m\n"));
-		return -1;
+		struct sockaddr_in ad;
+		socklen_t alen = sizeof (ad);
+
+		length = recvfrom (fd, buffer, sizeof (buffer), 0,
+					(struct sockaddr *)&ad, &alen);
+
+		if (length < 0)
+		{
+			syslog (LOG_WARNING,
+				_("Error receiving UDP packet: %m\n"));
+			return -1;
+		}
+
+		last_ip = ad.sin_addr.s_addr;
+		last_port = ad.sin_port;
 	}
 
-	ip6len = check;
-	last_ip = ad.sin_addr.s_addr;
-	last_port = ad.sin_port;
-
 	// Check type of Teredo header:
-	uint8_t *buf = pbuf;
+	uint8_t *ptr = buffer;
 	orig = NULL;
 	nonce = NULL;
-	ip6 = NULL;
 
-	if (ip6len < 1)
+	if (length < 1)
 		return -1; // bogus empty packet
 
 	// Parse Teredo headers
-	while (*buf == 0)
+	while (*(ptr++) == 0)
 	{
-		buf++;
-		ip6len--;
-
-		if (ip6len < 1)
+		length -= 2;
+		if (length < 0)
 			return -1; // too small
 
-		uint8_t code = *buf;
-		buf++;
-		ip6len--;
-
+		uint8_t code = *(ptr++);
 		switch (code)
 		{
 			// Teredo Authentication header
 			case teredo_auth_hdr:
 			{
-				if (ip6len < 11)
+				/* ID and Auth */
+				length -= 2;
+				if (length < 0)
 					return -1; // too small
-				uint8_t id_len = *(buf++);
-				uint8_t au_len = *(buf++);
-				ip6len -= 11;
 
-				if (ip6len < (size_t)(id_len + au_len))
+				uint8_t id_len = *(ptr++);
+				uint8_t au_len = *(ptr++);
+				length -= id_len + au_len;
+				/* TODO: secure qualification */
+				ptr += id_len + au_len;
+
+				/* Nonce */
+				length -= sizeof (nonce_buf);
+				if (length < 0)
 					return -1;
-				buf += id_len + au_len;
-				ip6len -= id_len + au_len;
-				nonce = buf;
-				buf += 8;
-				if (/* confirmation = */ *buf)
+
+				memcpy (nonce_buf, ptr, sizeof (nonce_buf));
+				nonce = nonce_buf;
+				ptr += sizeof (nonce_buf);
+
+				/* Confirmation */
+				length --;
+				if (length < 0)
 					return -1;
-						// confirmation byte MUST be 0
-				buf++;
+
+				if (/* confirmation = */ *(ptr++))
+					// confirmation byte MUST be 0
+					return -1;
 				break;
 			}
 
 			// Teredo Origin Indication
-			// FIXME: may cause Bus Error later
 			case teredo_orig_ind:
 			{
-				if (ip6len < 6)
+				length -= sizeof (orig_buf) - 2;
+				if (length < 0)
 					return -1; // too small
-				orig = (struct teredo_orig_ind *)(buf - 2);
-				ip6len -= 6;
-				buf += 6;
+
+				memcpy (&orig_buf, ptr - 2, sizeof (orig_buf));
+				orig = &orig_buf;
+				ptr += sizeof (orig_buf) - 2;
 				break;
 			}
 
@@ -170,8 +187,9 @@ MiredoCommonUDP::ReceivePacket (int fd)
 		}
 	}
 
-	// FIXME: may cause Bus Error later
-	ip6 = (struct ip6_hdr *)buf;
+	// length >= 0 and length <= 65507
+	memcpy (&ipv6_buf.ip6, ptr, length);
+	ip6len = length;
 
 	return 0;
 }

@@ -1,7 +1,7 @@
 /*
  * miredo.cpp - Unix Teredo server & relay implementation
  *              core functions
- * $Id: miredo.cpp,v 1.20 2004/07/11 13:52:22 rdenisc Exp $
+ * $Id: miredo.cpp,v 1.21 2004/07/12 08:48:30 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -45,7 +45,7 @@
 # define LOG_PERROR 0
 #endif
 
-#include "miredo.h" // FIXME: remove conf
+#include "miredo.h"
 #include "teredo.h" // FIXME: move AddRoute to <relay.cpp>
 #include "teredo-udp.h"
 #include "libtun6/ipv6-tunnel.h"
@@ -117,18 +117,27 @@ static IPv6Tunnel *ipv6_tunnel = NULL;
 static int
 teredo_server_relay (void)
 {
-	MiredoRelay relay (conf.prefix, relay_udp);
-	// TODO; probably setup earlier; dynamic (relay_udp == NULL ?)
-	relay.SetTunnel (ipv6_tunnel);
+	MiredoRelay *relay;
+	MiredoServer *server;
 
-	MiredoServer server; // FIXME: not always needed
+	if (relay_udp != NULL)
+	{
+		relay = new MiredoRelay (conf.prefix, relay_udp);
+		relay->SetTunnel (ipv6_tunnel);
+	}
+	else
+		relay = NULL;
+
 	if (server_udp != NULL)
 	{
-		server.SetPrefix (conf.prefix);
-		server.SetServerIP (conf.server_ip);
-		server.SetTunnel (ipv6_tunnel);
-		server.SetSocket (server_udp);
-	}	
+		server = new MiredoServer;
+		server->SetPrefix (conf.prefix);
+		server->SetServerIP (conf.server_ip);
+		server->SetTunnel (ipv6_tunnel);
+		server->SetSocket (server_udp);
+	}
+	else
+		server = NULL;
 
 	/* Main loop */
 	int exitcode = 0;
@@ -141,14 +150,14 @@ teredo_server_relay (void)
 
 		int maxfd = -1;
 
-		if (server_udp != NULL)
+		if (server != NULL)
 		{
 			int val = server_udp->RegisterReadSet (&readset);
 			if (val > maxfd)
 				maxfd = val;
 		}
 
-		if (relay_udp != NULL)
+		if (relay != NULL)
 		{
 			int val = ipv6_tunnel->RegisterReadSet (&readset);
 			if (val > maxfd)
@@ -165,20 +174,25 @@ teredo_server_relay (void)
 			continue;
 
 		/* Handle incoming data */
-		if (server_udp != NULL)
+		if (server != NULL)
 		{
 			if (server_udp->ReceivePacket (&readset) == 0)
-				server.ReceivePacket ();
+				server->ReceivePacket ();
 		}
 		
-		if (relay_udp != NULL)
+		if (relay != NULL)
 		{
 			if (ipv6_tunnel->ReceivePacket (&readset) == 0)
-				relay.TransmitPacket ();
+				relay->TransmitPacket ();
 			if (relay_udp->ReceivePacket (&readset) == 0)
-				relay.ReceivePacket ();
+				relay->ReceivePacket ();
 		}
 	}
+
+	if (server != NULL)
+		delete server;
+	if (relay != NULL)
+		delete relay;
 
 	/* Termination */
 	if (exitcode)

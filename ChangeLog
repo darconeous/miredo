@@ -1,3 +1,10 @@
+2004-07-12  Remi Denis-Courmont
+
+	* src/teredo-udp.cpp (MiredoCommonUDP::ReceivePacket):
+	- supposedly fixed alignments issues.
+	* src/main.c:
+	- more explicit error messages.
+
 2004-07-11  Remi Denis-Courmont
 
 	* src/teredo-udp.cpp:
