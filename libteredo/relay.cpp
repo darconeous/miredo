@@ -706,8 +706,10 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 	 * prevent the kernel from receiving faked Router Advertisement which
 	 * could break IPv6 routing completely. Router advertisements MUST
 	 * have a link-local source address (RFC 2461).
+	 *
+	 * Note: only Linux defines convenient s6_addr16, so we don't use it.
 	 */
-	if ((ip6.ip6_src.s6_addr16[0] & 0xfec0) == 0xfe80)
+	if ((((uint16_t *)ip6.ip6_src.s6_addr)[0] & 0xfec0) == 0xfe80)
 		return 0;
 
 	/* Actual packet reception, either as a relay or a client */

@@ -45,6 +45,10 @@
 
 #include "teredo-udp.h"
 
+#ifndef SOL_IP
+# define SOL_IP IPPROTO_IP
+#endif
+
 /*
  * Opens a Teredo UDP/IPv4 socket.
  */
