@@ -28,9 +28,6 @@
 # include <sys/types.h>
 # include <netinet/in.h>
 
-# include <libteredo/teredo.h>
-# include "teredo-udp.h"
-
 /*
  * Sends a Teredo Bubble to the server (if indirect is true) or the client (if
  * indirect is false) specified in Teredo address <dst>.

@@ -32,7 +32,6 @@
 # include <sys/types.h>
 # include <sys/select.h> // fd_set
 
-# include <libteredo/teredo.h>
 # include <libteredo/teredo-udp.h>
 
 class TeredoRelayUDP

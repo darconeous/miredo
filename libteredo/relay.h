@@ -27,7 +27,6 @@
 
 # include <sys/time.h> // struct timeval
 
-# include <libteredo/teredo.h>
 # include <libteredo/relay-udp.h>
 
 struct ip6_hdr;
