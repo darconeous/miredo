@@ -1,6 +1,6 @@
 /*
  * privproc.cpp - Privileged process for Miredo
- * $Id: privproc.cpp,v 1.6 2004/08/28 12:07:23 rdenisc Exp $
+ * $Id: privproc.cpp,v 1.7 2004/08/28 12:23:06 rdenisc Exp $
  */
 
 /***********************************************************************
@@ -63,19 +63,20 @@ miredo_privileged_process (IPv6Tunnel& tunnel,
 	struct in6_addr oldter, newter;
 	const struct in6_addr *p_oldloc, *p_newloc = &teredo_cone;
 
-	/*
-	 * TODO: fix this is a dirty kludge.
-	 * But, it makes my life easier, and works on FreeBSD
-	 * (which won't accept my routes through libtun6).
-	 */
+	memcpy (&oldter, &in6addr_any, 16);
 	memcpy (&newter, initial_addr, 16);
 	seteuid (0);
 
 	while (1)
 	{
-		tunnel.AddAddress (p_newloc, 64);
 		if (memcmp (&newter, &in6addr_any, 16))
+		{
+			if (memcmp (&oldter, &in6addr_any, 16) == 0)
+				tunnel.BringUp ();
+
+			tunnel.AddAddress (p_newloc, 64);
 			tunnel.AddAddress (&newter, 32);
+		}
 		// TODO: create a default route for client?
 		seteuid (unpriv);
 
@@ -91,9 +92,14 @@ miredo_privileged_process (IPv6Tunnel& tunnel,
 				? &teredo_cone : &teredo_restrict;
 
 		seteuid (0);
-		tunnel.DelAddress (p_oldloc, 64);
 		if (memcmp (&oldter, &in6addr_any, 16))
+		{
+			tunnel.DelAddress (p_oldloc, 64);
 			tunnel.DelAddress (&oldter, 32);
+
+			if (memcmp (&newter, &in6addr_any, 16) == 0)
+				tunnel.BringDown ();
+		}
 	}
 
 die:
