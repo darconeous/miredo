@@ -76,11 +76,19 @@ files (assuming the home directory is /var/run/miredo):
 /var/run/miredo/dev/null
 /var/run/miredo/dev/net/tun		(Linux only)
 /var/run/miredo/dev/tun0, ...tun15	(FreeBSD only)
+/var/run/miredo/dev/urandom		(Teredo client only)
 
   root requires read/write access to these files. The miredo
 unprivileged user doesn't.
 
-  Additionnaly, you must tell your syslog daemon to listen to
+  If you wish to use Miredo as a Teredo client, you should additionnaly
+put a copy of these files from /etc into /var/run/miredo/etc so that
+DNS resolution of the Teredo server works:
+
+/etc/resolv.conf
+/etc/hosts
+
+  Finally, you must tell your syslog daemon to listen to
 /var/run/miredo/dev/log. That is usually done by adding that option to
 your syslogd upon start: '-a /var/run/miredo/dev/log'. If you don't do
 so, you won't get any logging information from Miredo (nor if it hasn't
