@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: rdenis@simphalempin.com\n"
-"POT-Creation-Date: 2004-12-03 22:51+0100\n"
+"POT-Creation-Date: 2004-12-17 17:11+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -57,7 +57,7 @@ msgstr ""
 msgid "cone"
 msgstr ""
 
-#: libteredo/relay.cpp:581 src/main.c:628
+#: libteredo/relay.cpp:581 src/main.c:632
 msgid "restricted"
 msgstr ""
 
@@ -366,14 +366,14 @@ msgstr ""
 msgid "Error (daemon)"
 msgstr ""
 
-#: src/main.c:576
+#: src/main.c:580
 #, c-format
 msgid ""
 "Read unknown option -%c :\n"
 "That is probably a bug. Please report it.\n"
 msgstr ""
 
-#: src/main.c:588
+#: src/main.c:592
 msgid ""
 "You have selected conflicting parameters.\n"
 "It is not possible to run a Teredo relay and/or\n"
@@ -381,60 +381,60 @@ msgid ""
 "Refer to the manual page for more details.\n"
 msgstr ""
 
-#: src/main.c:605
+#: src/main.c:609
 msgid "Miredo configuration :"
 msgstr ""
 
-#: src/main.c:607
+#: src/main.c:611
 msgid "Client/relay UDP port       : "
 msgstr ""
 
-#: src/main.c:611
+#: src/main.c:615
 msgid "automatic"
 msgstr ""
 
-#: src/main.c:613
+#: src/main.c:617
 #, c-format
 msgid "Client/relay IPv4 address   : %s\n"
 msgstr ""
 
-#: src/main.c:614
+#: src/main.c:618
 msgid "any"
 msgstr ""
 
-#: src/main.c:616
+#: src/main.c:620
 #, c-format
 msgid "Tunnel interface name       : %s\n"
 msgstr ""
 
-#: src/main.c:617 src/main.c:624
+#: src/main.c:621 src/main.c:628
 msgid "default"
-msgstr ""
-
-#: src/main.c:621
-#, c-format
-msgid "Server primary IPv4 address : %s\n"
-msgstr ""
-
-#: src/main.c:622
-msgid "disabled"
-msgstr ""
-
-#: src/main.c:623
-#, c-format
-msgid "Teredo IPv6 prefix          : %s\n"
 msgstr ""
 
 #: src/main.c:625
 #, c-format
-msgid "Assumed NAT type            : %s\n"
+msgid "Server primary IPv4 address : %s\n"
+msgstr ""
+
+#: src/main.c:626
+msgid "disabled"
 msgstr ""
 
 #: src/main.c:627
-msgid "none/cone"
+#, c-format
+msgid "Teredo IPv6 prefix          : %s\n"
+msgstr ""
+
+#: src/main.c:629
+#, c-format
+msgid "Assumed NAT type            : %s\n"
 msgstr ""
 
 #: src/main.c:631
+msgid "none/cone"
+msgstr ""
+
+#: src/main.c:635
 #, c-format
 msgid "Server name                 : %s\n"
 msgstr ""
