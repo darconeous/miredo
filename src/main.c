@@ -404,6 +404,21 @@ init_security (const char *username, const char *rootdir, int nodetach)
 			return -1;
 		}
 
+		/*
+		 * If running as root, we must make CAP_NET_ADMIN effective
+		 * because calling seteuid (0) will not make it so.
+		 */
+		if (unpriv_uid == 0)
+		{
+			v = CAP_NET_ADMIN;
+			if (cap_set_flag (s, CAP_EFFECTIVE, 1, &v, CAP_SET))
+			{
+				perror (_("Fatal error"));
+				cap_free (s);
+				return -1;
+			}
+		}
+
 		if (cap_set_proc (s))
 		{
 			perror (_("Getting networking privileges"));
