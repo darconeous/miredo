@@ -1,6 +1,6 @@
 /*
  * ipv6-tunnel.h - IPv6 interface class declaration
- * $Id: ipv6-tunnel.h,v 1.2 2004/07/11 13:52:22 rdenisc Exp $
+ * $Id: ipv6-tunnel.h,v 1.3 2004/08/17 17:31:14 rdenisc Exp $
  */
 
 /***********************************************************************
@@ -34,12 +34,14 @@
 
 struct ip6_hdr;
 
+/*
+ * All methods, except the constructors and the destructor, are thread-safe.
+ */
+
 class IPv6Tunnel
 {
 	private:
 		int fd;
-		uint8_t pbuf[65535 + 4];
-		size_t plen;
 		char *ifname;
 
 	public:
@@ -83,30 +85,20 @@ class IPv6Tunnel
 		int RegisterReadSet (fd_set *readset) const;
 
 		/*
-		 * Checks an fd_set, receives a packet.
+		 * Checks an fd_set, receives a packet and puts the result in
+		 * <buffer>. <maxlen>, which is the length of the buffer in
+		 * bytes, should be 65535.
 		 *
-		 * Returns 0 on success, -1 if no packet were to be received.
-		 *
-		 * In case of success, one can use GetPacket() function.
-		 * Otherwise, that function will return bogus values.
+		 * Returns the packet length on success,
+		 * -1 if no packet were to be received.
 		 */
-		int ReceivePacket (const fd_set *readset);
+		int ReceivePacket (const fd_set *readset, void *buffer,
+					size_t maxlen);
 
 		/*
 		 * Sends an IPv6 packet at <packet>, of length <len>.
 		 */
 		int SendPacket (const void *packet, size_t len) const;
-
-		/*
-		 * Returns a pointer to the last received packet
-		 * (by ReceivePacket()).
-		 * UNDEFINED if no packet received so far.
-		 */
-		const uint8_t *GetPacket (size_t& length) const
-		{
-			length = plen - 4;
-			return pbuf + 4;
-		}
 };
 
 

@@ -1,4 +1,12 @@
-2004-97-31  Remi Denis-Courmont
+2004-08-17  Remi Denis-Courmont
+
+	* libtun6/ipv6-tunnel.*:
+	- libtun6 made thread-safe
+	* libteredo/relay.*:
+	- removed ReceiveIPv6Packet callback (one step toward
+	re-entrancy and thread-safety).
+
+2004-07-31  Remi Denis-Courmont
 
 	* libteredo/*, src/*:
 	- huge code split: libteredo handles teredo in userland

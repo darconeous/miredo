@@ -1,6 +1,6 @@
 /*
  * relay.cpp - Linux Teredo relay implementation
- * $Id: relay.cpp,v 1.15 2004/07/31 19:58:44 rdenisc Exp $
+ * $Id: relay.cpp,v 1.16 2004/08/17 17:31:14 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -30,15 +30,7 @@
 #include "relay.h"
 
 
-int MiredoRelay::ReceiveIPv6Packet (void)
+int MiredoRelay::SendIPv6Packet (const void *packet, size_t length)
 {
-	// FIXME: does not handle error. API design problem
-	packet = (const struct ip6_hdr *)tunnel->GetPacket (length);
-	return 0;
-}
-
-
-int MiredoRelay::SendIPv6Packet (const void *_packet, size_t _length)
-{
-	return tunnel->SendPacket (_packet, _length);
+	return tunnel->SendPacket (packet, length);
 }

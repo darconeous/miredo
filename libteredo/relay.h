@@ -1,6 +1,6 @@
 /*
  * relay.h - Teredo relay peers list declaration
- * $Id: relay.h,v 1.6 2004/08/17 16:55:41 rdenisc Exp $
+ * $Id: relay.h,v 1.7 2004/08/17 17:31:14 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -56,17 +56,6 @@ class TeredoRelay
 
 		/*** Callbacks ***/
 		/*
-		 * Tries to receive a packet from IPv6 Internet.
-		 * On success, packet and length attributes must be set to
-		 * the address and length of the IPv6 packet.
-		 * FIXME: that is thread-UNSAFE by design (not that I pretend
-		 * to make this thing thread-safe shortly).
-		 *
-		 * Returns 0 on sucess, -1 on error.
-		 */
-		virtual int ReceiveIPv6Packet (void) = 0;
-
-		/*
 		 * Sends an IPv6 packet from Teredo toward the IPv6 Internet.
 		 *
 		 * Returns 0 on success, -1 on error.
@@ -94,9 +83,6 @@ class TeredoRelay
 		virtual int NotifyDown (void);
 
 	protected:
-		const struct ip6_hdr *packet;
-		size_t length;
-
 		/*
 		 * Creates a Teredo relay manually (ie. one that does not
 		 * qualify with a Teredo server and has no Teredo IPv6
@@ -133,7 +119,7 @@ class TeredoRelay
 		/*
 		 * Transmits a packet from IPv6 Internet via Teredo.
 		 */
-		int ProcessIPv6Packet (void);
+		int SendPacket (const void *packet, size_t len);
 
 		/*
 		 * Receives a packet from Teredo to IPv6 Internet.

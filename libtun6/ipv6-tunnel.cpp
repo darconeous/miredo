@@ -1,6 +1,6 @@
 /*
  * ipv6-tunnel.cpp - IPv6 interface class definition
- * $Id: ipv6-tunnel.cpp,v 1.4 2004/07/12 08:48:30 rdenisc Exp $
+ * $Id: ipv6-tunnel.cpp,v 1.5 2004/08/17 17:31:14 rdenisc Exp $
  */
 
 /***********************************************************************
@@ -686,16 +686,15 @@ IPv6Tunnel::RegisterReadSet (fd_set *readset) const
  * returns.
  */
 int
-IPv6Tunnel::ReceivePacket (const fd_set *readset)
+IPv6Tunnel::ReceivePacket (const fd_set *readset, void *buffer, size_t maxlen)
 {
 	if ((fd == -1) || !FD_ISSET (fd, readset))
 		return -1;
 
+	uint8_t pbuf[65535 + 4];
 	int len = read (fd, pbuf, sizeof (pbuf));
 	if (len == -1)
 		return -1;
-
-	plen = len;
 
 #if defined (TUNSETIFF)
 	/* TUNTAP driver */
@@ -714,7 +713,8 @@ IPv6Tunnel::ReceivePacket (const fd_set *readset)
 	
 #endif
 
-	return 0;
+	memcpy (buffer, pbuf + 4, len - 4);
+	return len - 4;
 }
 
 
@@ -724,41 +724,45 @@ IPv6Tunnel::ReceivePacket (const fd_set *readset)
 int
 IPv6Tunnel::SendPacket (const void *packet, size_t len) const
 {
-	if ((fd != -1) && (len <= 65535))
+	if (len > 65535)
 	{
-		uint8_t buf[65535 + 4];
+		syslog (LOG_ERR, _("Packet of %u bytes too big."), len);
+		return -1;
+	}
+	
+	if (fd == -1)
+		return -1;
+
+	uint8_t buf[65535 + 4];
 
 #if defined (TUNSETIFF)
-		/* TUNTAP driver */
-		uint16_t word;
+	/* TUNTAP driver */
+	uint16_t word;
 
-		word = 0;
-		memcpy (buf, &word, 2);
+	word = 0;
+	memcpy (buf, &word, 2);
 
-		word = htons (ETH_P_IPV6);
-		memcpy (buf + 2, &word, 2);
+	word = htons (ETH_P_IPV6);
+	memcpy (buf + 2, &word, 2);
 
 #elif defined (TUNSIFHEAD)
-		/* FreeBSD tunnel driver */
-		uint32_t af = htonl (AF_INET6);
+	/* FreeBSD tunnel driver */
+	uint32_t af = htonl (AF_INET6);
 
-		memcpy (buf, &af, 4);
+	memcpy (buf, &af, 4);
 
 #endif
 
-		memcpy (buf + 4, packet, len);
-		len += 4;
+	memcpy (buf + 4, packet, len);
+	len += 4;
 
-		if (write (fd, buf, len) == (int)len)
-			return 0;
-		if ((int)len == -1)
-			syslog (LOG_ERR,
-				_("Cannot send packet to tunnel: %m"));
-		else
-			syslog (LOG_ERR,
-				_("Packet truncated to %u byte(s)"), len);
-	}
+	if (write (fd, buf, len) == (int)len)
+		return 0;
+	if ((int)len == -1)
+		syslog (LOG_ERR, _("Cannot send packet to tunnel: %m"));
+	else
+		syslog (LOG_ERR, _("Packet truncated to %u byte(s)"), len);
 
-	return -1;
+	return len - 4;
 }
 

@@ -1,6 +1,6 @@
 /*
  * relay.cpp - Teredo relay peers list definition
- * $Id: relay.cpp,v 1.6 2004/08/17 16:55:41 rdenisc Exp $
+ * $Id: relay.cpp,v 1.7 2004/08/17 17:31:14 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -212,15 +212,12 @@ inline bool IsBubble (const struct ip6_hdr *hdr)
  * (as specified per paragraph 5.4.1).
  * Returns 0 on success, -1 on error.
  */
-int TeredoRelay::ProcessIPv6Packet (void)
+int TeredoRelay::SendPacket (const void *packet, size_t length)
 {
-	if (ReceiveIPv6Packet ())
-		return -1;
-
 	struct ip6_hdr ip6;
 	if ((length < sizeof (ip6)) || (length > 65507))
 		return 0;
-	
+
 	memcpy (&ip6, packet, sizeof (ip6_hdr));
 
 	if (((ip6.ip6_vfc >> 4) != 6)
