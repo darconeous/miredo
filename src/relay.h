@@ -41,17 +41,20 @@ class MiredoRelay : public TeredoRelay
 
 		virtual int SendIPv6Packet (const void *packet,
 						size_t length);
+#ifdef MIREDO_TEREDO_CLIENT
 		virtual int NotifyUp (const struct in6_addr *addr);
 		virtual int NotifyDown (void);
+#endif
 
 	public:
 		MiredoRelay (const IPv6Tunnel *tun, uint32_t prefix,
 				uint16_t port = 0, uint32_t ipv4 = 0,
 				bool cone = true);
+#ifdef MIREDO_TEREDO_CLIENT
 		MiredoRelay (int fd, const IPv6Tunnel *tun,
 				uint32_t server_ip, uint16_t port = 0,
 				uint32_t ipv4 = 0);
-
+#endif
 		//virtual void ~MiredoRelay (void);
 };
 

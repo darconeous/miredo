@@ -169,6 +169,7 @@ TeredoRelay::TeredoRelay (uint32_t pref, uint16_t port, uint32_t ipv4,
 }
 
 
+#ifdef MIREDO_TEREDO_CLIENT
 TeredoRelay::TeredoRelay (uint32_t server_ip, uint16_t port, uint32_t ipv4)
 	: head (NULL)
 {
@@ -194,7 +195,7 @@ TeredoRelay::TeredoRelay (uint32_t server_ip, uint16_t port, uint32_t ipv4)
 		Process ();
 	}
 }
-
+#endif
 
 /* Releases peers list entries */
 TeredoRelay::~TeredoRelay (void)
@@ -389,7 +390,8 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
 		 */
 		if (IsRelay ())
 			return SendUnreach (1, packet, length);
-			
+
+#ifdef MIREDO_TEREDO_CLIENT
 		/* Client case 2: direct IPv6 connectivity test */
 		// TODO: avoid code duplication
 		if (p == NULL)
@@ -416,6 +418,7 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
 			p->flags.flags.nonce = 1;
 		}
 		return SendPing (sock, &addr, &dst->ip6, p->nonce);
+#endif
 	}
 
 	/* Unknown or untrusted Teredo client */
@@ -517,6 +520,7 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 	 || ((ntohs (ip6.ip6_plen) + sizeof (ip6)) != length))
 		return 0; // malformatted IPv6 packet
 
+#ifdef MIREDO_TEREDO_CLIENT
 	if (!IsRunning ())
 	{
 		/* Handle router advertisement for qualification */
@@ -664,6 +668,7 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 		return 0;
 		 */
 	}
+#endif /* MIREDO_TEREDO_CLIENT */
 
 	/*
 	 * TODO:
@@ -712,6 +717,7 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 			return SendIPv6Packet (buf, length);
 		}
 
+#ifdef MIREDO_TEREDO_CLIENT
 		// Client case 2 (untrusted non-Teredo node):
 		if ((!p->flags.flags.trusted) && p->flags.flags.nonce
 		 && CheckPing (packet, p->nonce))
@@ -738,6 +744,7 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 			 */
 			return SendIPv6Packet (buf, length);
 		}
+#endif /* ifdef MIREDO_TEREDO_CLIENT */
 	}
 
 	/*
@@ -763,6 +770,7 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 				if (IsRelay ())
 					return 0;
 
+#ifdef MIREDO_TEREDO_CLIENT
 				// TODO: do not duplicate this code
 				p = AllocatePeer ();
 				if (p == NULL)
@@ -777,6 +785,7 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 				p->outqueue.SetMapping (p->mapped_addr,
 							p->mapped_port);
 				p->flags.all_flags = 0;
+#endif
 			}
 			else
 			{
@@ -796,6 +805,7 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 		return 0;
 	}
 
+#ifdef MIREDO_TEREDO_CLIENT
 	// Relays only accept packet from Teredo clients;
 	if (IsRelay ())
 		return 0;
@@ -837,6 +847,9 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 	p->flags.flags.replied = 1;
 	time (&p->last_xmit);
 	return SendPing (sock, &addr, &ip6.ip6_src, p->nonce);
+#else /* ifdef MIREDO_TEREDO_CLIENT */
+	return 0;
+#endif
 }
 
 
@@ -852,6 +865,7 @@ int TeredoRelay::Process (void)
 	if (IsRelay ())
 		return 0;
 
+#ifdef MIREDO_TEREDO_CLIENT
 	/* Qualification or server refresh (only for client) */
 	if (((signed)(now.tv_sec - probe.next.tv_sec) > 0)
 	 || ((now.tv_sec == probe.next.tv_sec)
@@ -933,6 +947,7 @@ int TeredoRelay::Process (void)
 			NotifyDown ();
 		}
 	}
+#endif /* ifdef MIREDO_TEREDO_CLIENT */
 
 	return 0;
 }

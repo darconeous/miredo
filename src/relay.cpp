@@ -43,13 +43,13 @@ MiredoRelay::MiredoRelay (const IPv6Tunnel *tun, uint32_t prefix,
 {
 }
 
-
+#ifdef MIREDO_TEREDO_CLIENT
 MiredoRelay::MiredoRelay (int fd, const IPv6Tunnel *tun, uint32_t server_ip,
 				uint16_t port, uint32_t ipv4)
 	: TeredoRelay (server_ip, port, ipv4), tunnel (tun), priv_fd (fd)
 {
 }
-
+#endif
 
 int MiredoRelay::SendIPv6Packet (const void *packet, size_t length)
 {
@@ -57,6 +57,7 @@ int MiredoRelay::SendIPv6Packet (const void *packet, size_t length)
 }
 
 
+#ifdef MIREDO_TEREDO_CLIENT
 int MiredoRelay::NotifyUp (const struct in6_addr *addr)
 {
 	return priv_fd != -1
@@ -70,3 +71,4 @@ int MiredoRelay::NotifyDown (void)
 {
 	return NotifyUp (&in6addr_any);
 }
+#endif

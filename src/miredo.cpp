@@ -65,7 +65,9 @@
 
 #ifdef MIREDO_TEREDO_RELAY
 # include "relay.h"
-# include <privproc.h>
+# ifdef MIREDO_TEREDO_CLIENT
+#  include <privproc.h>
+# endif
 #else
 # define teredo_server_relay(t, r, s ) teredo_server( t, s )
 #endif
@@ -370,7 +372,7 @@ miredo_run (uint16_t bind_port, const char *bind_ip, const char *server_name,
 		goto abort;
 	}
 
-#ifdef MIREDO_TEREDO_RELAY
+#ifdef MIREDO_TEREDO_CLIENT
 	// FIXME: support for being server only
 	// (in that case, don't set route to the Teredo prefix)
 	if (mode & MIREDO_CLIENT)
@@ -459,6 +461,7 @@ miredo_run (uint16_t bind_port, const char *bind_ip, const char *server_name,
 	}
 
 #ifdef MIREDO_TEREDO_RELAY
+# ifdef MIREDO_TEREDO_CLIENT
 	if (mode & MIREDO_CLIENT)
 	{
 		// Sets up client
@@ -482,6 +485,7 @@ miredo_run (uint16_t bind_port, const char *bind_ip, const char *server_name,
 		}
 	}
 	else
+# endif /* ifdef MIREDO_TEREDO_CLIENT */
 	{
 		// Sets up relay
 		try
@@ -519,7 +523,7 @@ miredo_run (uint16_t bind_port, const char *bind_ip, const char *server_name,
 			"of the program is not already running."));
 		goto abort;
 	}
-#endif
+#endif /* ifdef MIREDO_TEREDO_RELAY */
 
 	retval = teredo_server_relay (tunnel, relay, server);
 

@@ -150,6 +150,7 @@ icmp6_checksum (const struct ip6_hdr *ip6, const struct icmp6_hdr *icmp6)
 }
 
 
+#ifdef MIREDO_TEREDO_CLIENT
 /*
  * Sends a router solication with an Authentication header to the server.
  * If secondary is true, the packet will be sent to the server's secondary
@@ -382,6 +383,7 @@ CheckPing (const TeredoPacket& packet, const uint8_t *nonce)
 
 	return true;
 }
+#endif
 
 
 /*
