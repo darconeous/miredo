@@ -86,7 +86,6 @@ usage (void)
 "  -f, --foreground run in the foreground\n"
 "  -h, --help       display this help and exit\n"
 "  -p, --pidfile    override the pidfile path\n"
-"  -t, --chroot     override the chroot directory\n"
 "  -u, --user       override the user to set UID to\n"
 "  -V, --version    display program version and exit\n"));
 	return 0;
@@ -153,7 +152,8 @@ error_missing (void)
 #endif
 
 
-static FILE *safe_fopen_w (const char *path)
+static FILE *
+safe_fopen_w (const char *path)
 {
 	int fd;
 
@@ -201,56 +201,16 @@ create_pidfile (const char *path)
 }
 
 
-/*
- * Initialize daemon security settings.
- *
- * We can't setuid to non-root yet. That's done later.
- */
-static int open_null (void)
-{
-	int fd;
-	
-	fd = open ("/dev/null", O_RDWR);
-	if (fd != -1)
-	{
-		struct stat s;
-
-		/* Cannot check major and minor as they are inconsistent
-		 * across platforms */
-		if (fstat (fd, &s) || !S_ISCHR(s.st_mode))
-		{
-			close (fd);
-			return -1;
-		}
-	}
-
-	return fd;
-}
-
-
 #ifndef HAVE_CLEARENV
 extern char **environ;
 
-int clearenv (void)
+static int
+clearenv (void)
 {
 	environ = NULL;
 	return 0;
 }
 #endif
-
-
-static void
-chroot_notice (void)
-{
-	fputs (_("Chroot directory was probably not set up correctly.\n"
-		"NOTE: You can use command line option \"-t /\"\n"
-		"if you don't want to run the program inside a chroot jail.\n"
-		"\n"
-		"Not using a chroot jail is far easier though less secure.\n"
-		"\n"
-		"\n"
-		), stderr);
-}
 
 
 static void
@@ -263,26 +223,18 @@ setuid_notice (void)
 }
 
 
+/*
+ * Initialize daemon security settings.
+ */
 static int
-init_security (const char *username, const char *rootdir, int nodetach)
+init_security (const char *username, int nodetach)
 {
 	struct passwd *pw;
 	struct rlimit lim;
 	int fd;
 
-	if (username == NULL)
-	{
-#ifdef MIREDO_DEFAULT_USERNAME
-		username = MIREDO_DEFAULT_USERNAME; // default user name
-#else
-		username = "nobody";
-		if (rootdir == NULL) // do not chroot to "~root"
-			rootdir = "/";
-#endif	
-	}
-
 	/* Clears environment */
-	clearenv ();
+	(void)clearenv ();
 
 	/*
 	 * We close all file handles, except 0, 1 and 2.
@@ -293,12 +245,12 @@ init_security (const char *username, const char *rootdir, int nodetach)
 		return -1;
 
 	for (fd = 3; fd < lim.rlim_cur; fd++)
-		close (fd);
+		(void)close (fd);
 
 	/*
 	 * Make sure that 0, 1 and 2 are opened.
 	 */
-	fd = open_null ();
+	fd = open ("/dev/null", O_RDWR);
 	if (fd == -1)
 		return -1;
 	
@@ -309,7 +261,7 @@ init_security (const char *username, const char *rootdir, int nodetach)
 			return -1;
 	}
 
-	close (fd); // fd > 2
+	(void)close (fd); // fd > 2
 
 	/* From then on, it is safe to write to stderr */
 
@@ -328,7 +280,7 @@ init_security (const char *username, const char *rootdir, int nodetach)
 			"\n"
 			"Use command line option \"-u <username>\" to run\n"
 			"this program in the security context of another\n"
-			"user. Running as root is STRONGLY DISCOURAGED.\n"
+			"user.\n"
 			), username);
 		return -1;
 	}
@@ -363,38 +315,6 @@ init_security (const char *username, const char *rootdir, int nodetach)
 	 * This fails if the user is not root. */
 	setgroups (0, NULL);
 
-	/* Changes root directory to rootdir (if it is not "/"),
-	 * then current directory to "/" */
-	if (rootdir == NULL)
-		rootdir = pw->pw_dir;
-	if (strcmp ("/", rootdir) && chroot (rootdir))
-	{
-		fprintf (stderr, _("Root directory jail in %s: %s\n"),
-				rootdir, strerror (errno));
-		chroot_notice ();
-		return -1;
-	}
-
-	errno = 0;
-#if defined(HAVE_LINUX)
-	/* TODO: which other OS does this warning apply to ? */
-	/* TODO: do similar thing for other OS */
-	if (rootdir != NULL)
-	{
-		struct stat s;
-
-		if (stat ("/dev/log", &s) || !S_ISSOCK (s.st_mode))
-		{
-			fprintf (stderr, _(
-				"Warning: /dev/log not found or invalid: "
-				"logging will probably not work.\n"
-				"Try adding \"-a %s/dev/log\"\n to your "
-				"syslogd command line to fix that.\n"),
-				rootdir);
-			chroot_notice ();
-		}
-	}
-#endif
 	{
 		char errbuf[LIBTUN6_ERRBUF_SIZE];
 		if (libtun6_driver_diagnose (errbuf))
@@ -459,7 +379,6 @@ init_security (const char *username, const char *rootdir, int nodetach)
 	if (!nodetach && daemon (0, 0))
 	{
 		perror (_("Error (daemon)"));
-		chroot_notice ();
 		return -1;
 	}
 
@@ -470,12 +389,15 @@ init_security (const char *username, const char *rootdir, int nodetach)
 #ifndef MIREDO_DEFAULT_CONFFILE
 # define MIREDO_DEFAULT_CONFFILE SYSCONFDIR "/miredo.conf"
 #endif
+#ifndef MIREDO_DEFAULT_USERNAME
+# define MIREDO_DEFAULT_USERNAME "nobody"
+#endif
+
 
 int
 main (int argc, char *argv[])
 {
-	const char *username = NULL, *rootdir = NULL,
-			*conffile = NULL, *pidfile = NULL;
+	const char *username = NULL, *conffile = NULL, *pidfile = NULL;
 	struct
 	{
 		unsigned foreground:1; /* Run in the foreground */
@@ -488,7 +410,6 @@ main (int argc, char *argv[])
 		{ "foreground",	no_argument,		NULL, 'f' },
 		{ "help",	no_argument,		NULL, 'h' },
 		{ "pidfile",	required_argument,	NULL, 'p' },
-		{ "chroot",	required_argument,	NULL, 't' },
 		{ "user",	required_argument,	NULL, 'u' },
 		{ "version",	no_argument,		NULL, 'V' },
 		{ NULL,		no_argument,		NULL, '\0'}
@@ -532,10 +453,6 @@ main (int argc, char *argv[])
 				ONETIME_SETTING (pidfile);
 				break;
 
-			case 't':
-				ONETIME_SETTING (rootdir);
-				break;
-
 			case 'u':
 				ONETIME_SETTING (username);
 				break;
@@ -553,10 +470,13 @@ main (int argc, char *argv[])
 	if (optind < argc)
 		return error_extra (argv[optind]);
 
+	if (username == NULL)
+		username = MIREDO_DEFAULT_USERNAME;
+
 	/*
 	 * Initialize POSIX context
 	 */
-	if (init_security (username, rootdir, flags.foreground))
+	if (init_security (username, flags.foreground))
 		return 1;
 
 #ifdef MIREDO_DEFAULT_PIDFILE

@@ -18,7 +18,7 @@
 miredo \- Teredo IPv6 tunneling for Unix
 .SH SYNOPSIS
 .BR "miredo" " [" "-c config_file" "] [" "-f" "] [" "-p pidfile" "] ["
-.BR "-t rootdir" "] [" "-u user" "]"
+.BR "-u user" "]"
 
 .SH DESCRIPTON
 .B Miredo
@@ -71,12 +71,6 @@ By default, the PID (Process ID) of the program is written in
 .IR "/var/run/miredo.pid" "."
 
 .TP
-.BR "\-t rootdir" " or " "\-\-chroot rootdir"
-.RI "Run the program in a " "chroot jail" ", for enhanced security."
-.RB "If " "rootdir" " is not specified, the home of the " "setuid user"
-.RB "will be used instead. See option " "-u" "."
-
-.TP
 .BR "\-u username" " or " "\-\-user username"
 Override the user that the program will run as. By default, it runs as
 .BR "miredo" "."
@@ -116,15 +110,14 @@ platforms.
 requires
 .I root
 privileges to create its IPv6 tunneling network interface, and to set
-it up properly. Once its initialization is complete, it will drop
-.RB "privileges, setuid (see option " "-u" "), setgid and possibly"
-.RB "chroot (see option " "-t" ") so as to decrease your system"
-to potential security issues.
-If Miredo runs as a Teredo client, it needs root privileges when
-running, so as to change the tunneling network interface settings
-automatically. To prevent possible root compromises, Miredo implements
-.IR "priveleges separation" ". The process that handles input from"
-the outside has is not privileged.
+it up properly. Once its initialization is complete, it will
+.IR "setgid" ", " "chroot" " into an empty directory and ultimately"
+.IR "setuid" " (see option " "-u" "), so as to decrease your system"
+to potential security issues. If Miredo runs as a Teredo client, it
+needs root privileges when running, in order to change the tunneling
+network interface settings automatically. To prevent possible root
+.RI "compromise, Miredo implements " "priveleges separation" "."
+The process that handles input from the outside has is not privileged.
 
 Miredo is still beta quality code. As such, it should not be deployed
 in production or security-sensitive environment. It is supposedly easy
