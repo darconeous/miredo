@@ -1,6 +1,6 @@
 /*
  * ipv6-tunnel.cpp - IPv6 interface class definition
- * $Id: ipv6-tunnel.cpp,v 1.10 2004/06/24 19:16:14 rdenisc Exp $
+ * $Id: ipv6-tunnel.cpp,v 1.11 2004/06/25 15:00:42 rdenisc Exp $
  */
 
 /***********************************************************************
@@ -37,16 +37,10 @@
 #include <sys/socket.h> // socket(PF_INET6, SOCK_DGRAM, 0)
 #include <netinet/in.h> // htons()
 #include <net/if.h> // struct ifreq
-#include <arpa/inet.h> // inet_ntop()
-
-#ifndef ETH_P_IPV6
-# define ETH_P_IPV6 0x86DD
-#endif
 
 #if HAVE_LINUX_IF_TUN_H
 /* Linux includes */
 # include <linux/if_tun.h> // TUNSETIFF - Linux tunnel driver
-
 /*
  * <linux/ipv6.h> conflicts with <netinet/in.h> and <arpa/inet.h>,
  * so we've got to declare this structure by hand.
@@ -61,11 +55,23 @@ struct in6_ifreq {
 #elif HAVE_NETINET6_IN6_VAR_H
 /* FreeBSD includes */
 # include <net/if_var.h>
-# include <netinet6/in6_var.h>
-# include <netinet6/nd6.h> // ND6_INFINITE_LIFETIME
+# include <netinet6/in6_var.h> // struct in6_aliasreq, struct in6_ifreq
+/*
+ * Unless you have a very recent KAME implementation <netinet6/nd6.h> is
+ * not usable in a C++ program.
+ * cf: http://www.atm.tut.fi/list-archive/snap-users/msg03004.html
+ */
+//# include <netinet6/nd6.h> // ND6_INFINITE_LIFETIME
+# define ND6_INFINITE_LIFETIME 0xffffffff
 
 # include <net/if_tun.h> // TUNSIFHEAD - FreeBSD tunnel driver
 # include <stdio.h> // asprintf(), snprintf()
+#endif
+
+#include <arpa/inet.h> // inet_ntop()
+
+#ifndef ETH_P_IPV6
+# define ETH_P_IPV6 0x86DD
 #endif
 
 #include "ipv6-tunnel.h"
@@ -275,7 +281,7 @@ _iface_addr (const char *ifname, bool add,
 	if (reqfd == -1)
 		return -1;
 
-	int cmd;
+	long cmd = 0;
 	void *parm = NULL;
 
 #if defined (SIOCGIFINDEX)
@@ -331,7 +337,7 @@ _iface_addr (const char *ifname, bool add,
 	}
 #endif
 
-	if ((parm != NULL) && (ioctl (reqfd, cmd, parm) == 0))
+	if (cmd && (parm != NULL) && (ioctl (reqfd, cmd, parm) == 0))
 	{
 		char str[INET6_ADDRSTRLEN];
 
@@ -344,6 +350,8 @@ _iface_addr (const char *ifname, bool add,
 		close (reqfd);
 		return 0;
 	}
+
+	syslog (LOG_ERR, _("%s tunnel address setup error: %m"), ifname);
 
 	close (reqfd);
 	return -1;
@@ -410,6 +418,8 @@ _iface_route (const char *ifname, bool add,
 		}
 	}
 #endif
+
+	syslog (LOG_ERR, _("%s tunnel route setup error: %m"), ifname);
 
 	close (reqfd);
 	return -1;
