@@ -56,45 +56,50 @@ Microsoft IPv6 : Teredo overview.
 
 Quick usage
 ============
-  Miredo must be started by root. Miredo will always detach and run in the
-background. Read your system logs to see what happens.
 
+  First, compile and install Miredo. Refer to INSTALL for detailled
+instructions. Usually, it can be done the usual way:
 
-a) as a Teredo client:
------------------------
-  If you want to use Miredo as a Teredo client, so as to access the IPv6
-Internet from behind a NAT, you must tell Miredo which Teredo server it
-should use. For example:
+# ./configure
+# make
+# su
+# make install
 
-# src/miredo teredo.ipv6.microsoft.com
+  You must then create a configuration file, otherwise Miredo will not
+work. A sample miredo.conf-dist is installed automatically :
 
+# cd /usr/local/etc
+# mv miredo.conf-dist miredo.conf
 
-b) as a Teredo server and relay:
----------------------------------
-  If you have two subsequent static IPv4 addresses on your system, you
-may be able to run a Teredo server. To start the program as a Teredo
-server, type the following command:
+  Before you start, please note that Miredo must be started by root and
+detach and run in the background. You must hence read your system logs
+to see what happens if there is something wrong.
 
-# src/miredo -s 9.0.0.2
+  If you want to use Miredo as a Teredo client, so as to access the
+IPv6 Internet from behind a NAT, you must tell Miredo which Teredo
+server it should use. You can edit miredo.conf if you wish to use a
+server different from that defined in the sample miredo.conf, e.g.
+Microsoft Corp.'s official Teredo server:
 
-where it is assumed that 9.0.0.2 will be your server's primary IPv4
-address, and 9.0.0.3 will be your server's secondary IPv4 address.
+ServerAddress teredo.ipv6.microsoft.com
 
+  You can then run miredo (as root!):
+# /usr/local/sbin/miredo
 
-c) as a stand-alone Teredo relay:
-----------------------------------
-  Otherwise, it is possible to run a Teredo relay. To do so, you only
-need to start miredo without parameters:
+  Miredo should try to qualify with the Teredo server (use Ethereal if
+you wish to monitor). After 15 seconds, you should have a teredo
+networking interface with a public Teredo IPv6 address, through which
+you can route IPv6 packets to the IPv6 Internet.
 
-# src/miredo
+Teredo relay and/or server:
+----------------------------
+  Please refer to the sample configuration miredo.conf-dist for further
+information. You can get a comprehensive reference of all possible
+options in the manual pages provided with the package:
+miredo(8) and miredo.conf(5)
 
-  That will created a virtual "teredo" networking interface which will
-accept IPv6 traffic toward Teredo clients. Note that you must NOT be
-behind a "symmetric NAT" for this to work properly.
-  If you are behind a cone NAT or no NAT device at all, you should tell
-Miredo to use optimizations for cone NATs:
-
-# src/miredo -C
+# man 8 miredo
+# man 5 miredo.conf
 
 
 Securing you Miredo installation
@@ -158,6 +163,9 @@ files (assuming the home directory is /var/lib/miredo):
 
   root requires read/write access to these files. The miredo
 unprivileged user must be able to read "random" and "urandom".
+
+  You should also create a /var/run directory owned by root, as Miredo
+will try to create a PID file named /var/run/miredo.pid when it runs.
 
   If you wish to use Miredo as a Teredo client, you should additionnaly
 put a copy of these files from /etc into /var/lib/miredo/etc so that
