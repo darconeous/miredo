@@ -47,6 +47,5 @@ if TEREDO_SERVER
 miredo_SOURCES += server.cpp server.h
 endif
 
-miredo_LDADD = @LIBINTL@ -lpthread \
-		../libtun6/libtun6.a ../libteredo/libteredo.a
+miredo_LDADD = @LIBINTL@ ../libtun6/libtun6.a ../libteredo/libteredo.a
 
