@@ -92,7 +92,7 @@ struct __TeredoRelay_peer
 
 
 TeredoRelay::TeredoRelay (uint32_t pref, uint16_t port, bool cone)
-	: head (NULL)
+	: server_ip2 (0), head (NULL)
 {
 	addr.teredo.prefix = pref;
 	addr.teredo.server_ip = 0;
@@ -108,16 +108,18 @@ TeredoRelay::TeredoRelay (uint32_t pref, uint16_t port, bool cone)
 TeredoRelay::TeredoRelay (uint32_t server_ip, uint16_t port)
 	: head (NULL)
 {
+	if (!is_ipv4_global_unicast (server_ip))
+		syslog (LOG_CRIT,
+			_("Server as a non global IPv4 address. "
+			"It will most likely not work."));
+
 	addr.teredo.prefix = PREFIX_UNSET;
 	addr.teredo.server_ip = server_ip;
 	addr.teredo.flags = htons (TEREDO_FLAG_CONE);
 	addr.teredo.client_ip = 0;
 	addr.teredo.client_port = 0;
 
-	if (!is_ipv4_global_unicast (server_ip))
-		syslog (LOG_CRIT,
-			_("Server as a non global IPv4 address. "
-			"It will most likely not work."));
+	server_ip2 = htonl (ntohl (server_ip) + 1);
 
 	if (GenerateNonce (probe.nonce, true)
 	 && (sock.ListenPort (port) == 0))
@@ -558,7 +560,8 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 		return 0; // must be discarded, or ICMPv6 error (?)
 #endif
 
-	if (IsClient () && (packet.GetClientIP () == GetServerIP ())
+	if (IsClient () && (packet.GetClientIP () == 
+		(IsCone () ? GetServerIP2 () : GetServerIP ()))
 	 && (packet.GetClientPort () == htons (IPPORT_TEREDO)))
 	{
 		// TODO: refresh interval randomisation

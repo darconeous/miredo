@@ -52,6 +52,7 @@ class TeredoRelay
 			unsigned state:2;
 			unsigned count:3;
 		} probe;
+		uint32_t server_ip2;
 
 		struct __TeredoRelay_peer *head;
 
@@ -160,6 +161,11 @@ class TeredoRelay
 		uint32_t GetServerIP (void) const
 		{
 			return IN6_TEREDO_SERVER (&addr);
+		}
+
+		uint32_t GetServerIP2 (void) const
+		{
+			return server_ip2;
 		}
 
 		bool IsCone (void) const
