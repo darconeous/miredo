@@ -1,6 +1,6 @@
 /*
  * relay.cpp - Teredo relay peers list definition
- * $Id: relay.cpp,v 1.11 2004/08/22 16:43:54 rdenisc Exp $
+ * $Id: relay.cpp,v 1.12 2004/08/22 16:53:43 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -274,57 +274,50 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
 						p->mapped_port);
 		}
 	}
-	else
-	{
-		/* Unknown, possibly invalid, peer */
-		if (dst->teredo.prefix != GetPrefix ())
-		{
-			/*
-			 * TODO:
-			 * The specification mandates silently ignoring such
-			 * packets. However, this only happens in case of
-			 * misconfiguration, so I believe it's better to
-			 * notify the user. An alternative might be to send an
-			 * ICMPv6 error back to the kernel.
-			 */
-			if (server_ip == 0)
-				return 0;
-			
-			/* Client case 2: direct IPv6 connectivity test */
-			// FIXME: implement that test before next release
-			syslog (LOG_WARNING, "DEBUG: FIXME: should send echo request");
-			return 0;
-		}
-		else
-		{
-			// Ignores Teredo clients with incorrect server IPv4
-			if (!is_ipv4_global_unicast (~dst->teredo.client_ip))
-				return 0;
-		
-			/* Client case 3: TODO: implement local discovery */
-
-			// Creates a new entry
-			p = AllocatePeer ();
-			if (p == NULL)
-				return -1; // insufficient memory
-			memcpy (&p->addr, &ip6.ip6_dst,
-				sizeof (struct in6_addr));
-			p->mapped_addr = ~dst->teredo.client_ip;
-			p->mapped_port = ~dst->teredo.client_port;
-			p->flags.all_flags = 0;
-			time (&p->last_xmit);
-			p->queue = NULL;
 	
-			/* Client case 4 & relay case 2: new cone peer */
-			/* TODO: send bubble if IsCone () is false */
-			if (IN6_IS_TEREDO_ADDR_CONE (&ip6.ip6_dst))
-			{
-				p->flags.flags.trusted = 1;
-				return sock.SendPacket (packet, length,
-							p->mapped_addr,
-							p->mapped_port);
-			}
-		}
+	/* Unknown, possibly invalid, peer */
+	if (dst->teredo.prefix != GetPrefix ())
+	{
+		/*
+		 * TODO:
+		 * The specification mandates silently ignoring such
+		 * packets. However, this only happens in case of
+		 * misconfiguration, so I believe it's better to
+		 * notify the user. An alternative might be to send an
+		 * ICMPv6 error back to the kernel.
+		 */
+		if (server_ip == 0)
+			return 0;
+			
+		/* Client case 2: direct IPv6 connectivity test */
+		// FIXME: implement that before next release
+		syslog (LOG_WARNING, "DEBUG: FIXME: should send echo request");
+		return 0;
+	}
+
+	// Ignores Teredo clients with incorrect server IPv4
+	if (!is_ipv4_global_unicast (~dst->teredo.client_ip))
+		return 0;
+		
+	/* Client case 3: TODO: implement local discovery */
+
+	// Creates a new entry
+	p = AllocatePeer ();
+	if (p == NULL)
+		return -1; // insufficient memory
+	memcpy (&p->addr, &ip6.ip6_dst, sizeof (struct in6_addr));
+	p->mapped_addr = ~dst->teredo.client_ip;
+	p->mapped_port = ~dst->teredo.client_port;
+	p->flags.all_flags = 0;
+	time (&p->last_xmit);
+	p->queue = NULL;
+	
+	/* Client case 4 & relay case 2: new cone peer */
+	if (IN6_IS_TEREDO_ADDR_CONE (&ip6.ip6_dst))
+	{
+		p->flags.flags.trusted = 1;
+		return sock.SendPacket (packet, length, p->mapped_addr,
+					p->mapped_port);
 	}
 
 	/* Client case 5 & relay case 3: untrusted non-cone peer */
@@ -353,6 +346,14 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
 		{
 			p->flags.flags.bubbles ++;
 			memcpy (&p->last_xmit, &now, sizeof (p->last_xmit));
+
+			/*
+			 * Open the return path if we are behind a
+			 * restricted NAT.
+			 */
+			if (!IsCone () && SendBubble (&ip6.ip6_dst, false))
+				return -1;
+
 			return SendBubble (&ip6.ip6_dst, true);
 		}
 	}
