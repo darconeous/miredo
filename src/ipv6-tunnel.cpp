@@ -1,6 +1,6 @@
 /*
  * ipv6-tunnel.cpp - IPv6 interface class definition
- * $Id: ipv6-tunnel.cpp,v 1.7 2004/06/20 17:48:07 rdenisc Exp $
+ * $Id: ipv6-tunnel.cpp,v 1.8 2004/06/21 17:48:55 rdenisc Exp $
  */
 
 /***********************************************************************
@@ -190,12 +190,11 @@ IPv6Tunnel::SetState (bool up) const
 
 
 /*
- * Sets the (single) tunnel interface address and netmask.
- * I known IPv6 interfaces usually have multiple addresses, but it is far
- * more complex to handle and I dont' need that so far.
+ * Adds or removes an address and a prefix to the tunnel interface.
  */
-int
-IPv6Tunnel::SetAddress (const struct in6_addr *addr, int prefix_len) const
+static int
+_linux_addr (const char *ifname, bool add,
+		const struct in6_addr *addr, int prefix_len)
 {
 	if (prefix_len < 0)
 		return -1;
@@ -225,7 +224,7 @@ IPv6Tunnel::SetAddress (const struct in6_addr *addr, int prefix_len) const
 		memcpy (&req6.ifr6_addr, addr, sizeof (struct in6_addr));
 		req6.ifr6_prefixlen = prefix_len;
 
-		if (ioctl (reqfd, SIOCSIFADDR, &req6) == 0)
+		if (!ioctl (reqfd, add ? SIOCSIFADDR : SIOCDIFADDR , &req6))
 		{
 			char str[INET6_ADDRSTRLEN];
 
@@ -301,6 +300,20 @@ _linux_route (const char *ifname, bool add,
 
 	close (reqfd);
 	return -1;
+}
+
+
+int
+IPv6Tunnel::AddAddress (const struct in6_addr *addr, int prefix_len) const
+{
+	return _linux_addr (ifname, true, addr, prefix_len);
+}
+
+
+int
+IPv6Tunnel::DelAddress (const struct in6_addr *addr, int prefix_len) const
+{
+	return _linux_addr (ifname, false, addr, prefix_len);
 }
 
 

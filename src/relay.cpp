@@ -1,6 +1,6 @@
 /*
  * relay.cpp - Teredo relay peers list definition
- * $Id: relay.cpp,v 1.3 2004/06/20 17:48:07 rdenisc Exp $
+ * $Id: relay.cpp,v 1.4 2004/06/21 17:48:55 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -124,6 +124,7 @@ struct MiredoRelay::peer *MiredoRelay::FindPeer (const struct in6_addr *addr)
 int MiredoRelay::SendBubble (const union teredo_addr *dst) const
 {
 	uint32_t dest_ip = dst->teredo.server_ip;
+
 	if (dest_ip && is_ipv4_global_unicast (dest_ip))
 	{
 		struct ip6_hdr hdr;
@@ -132,7 +133,7 @@ int MiredoRelay::SendBubble (const union teredo_addr *dst) const
 		hdr.ip6_plen = 0;
 		hdr.ip6_nxt = IPPROTO_NONE;
 		hdr.ip6_hlim = 255;
-		memcpy (&hdr.ip6_src, &myaddr, sizeof (hdr.ip6_src));
+		memcpy (&hdr.ip6_src, &teredo_restrict, sizeof (hdr.ip6_src));
 		memcpy (&hdr.ip6_dst, &dst->ip6, sizeof (hdr.ip6_dst));
 
 		return sock->SendPacket (&hdr, sizeof (hdr),
@@ -145,13 +146,11 @@ int MiredoRelay::SendBubble (const union teredo_addr *dst) const
 
 /*
  * Returs true if the packet whose header is passed as a parameter looks
- * like a Teredo bubble to this very relay, false otherwise
- * (It is assumed to be a valid IPv6 packet comming from a Teredo node).
+ * like a Teredo bubble.
  */
-bool MiredoRelay::IsBubble (const struct ip6_hdr *hdr) const
+inline bool IsBubble (const struct ip6_hdr *hdr)
 {
-	return ((hdr->ip6_plen == 0) && (hdr->ip6_nxt == IPPROTO_NONE)
-		&& !memcmp (&hdr->ip6_dst, &myaddr, sizeof (myaddr)));
+	return (hdr->ip6_plen == 0) && (hdr->ip6_nxt == IPPROTO_NONE);
 }
 
 
@@ -181,9 +180,11 @@ int MiredoRelay::TransmitPacket (void)
 	/* Initial destination address checks */
 	if (addr.teredo.prefix != htonl (TEREDO_PREFIX))
 	{
+		// FIXME: no warning for autoconf packets
+		// automatically sent by the kernel
 		syslog (LOG_WARNING,
 			_("Dropped packet with non-Teredo address"
-			" (prefix %08x instead of %08x);"
+			" (prefix %08x instead of %08x):\n"
 			" Possible routing table misconfiguration."),
 			ntohl (addr.teredo.prefix), TEREDO_PREFIX);
 		return 0;
@@ -352,7 +353,7 @@ int MiredoRelay::ReceivePacket (void)
 	
 
 	if (IsBubble (&ip6))
-		return 0; // do not relay my own bubbles
+		return 0; // do not relay bubbles
 
 	// TODO: check "range of IPv6 adresses served by the relay"
 	// (which may for example be, at most, 2000::/3)

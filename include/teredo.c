@@ -1,6 +1,6 @@
 /*
  * teredo.c - Common Teredo helper functions
- * $Id: teredo.c,v 1.1 2004/06/14 14:45:58 rdenisc Exp $
+ * $Id: teredo.c,v 1.2 2004/06/21 17:48:55 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -32,11 +32,14 @@
 /*
  * Teredo addresses
  */
-const struct in6_addr teredo_prefix =
-	{ { { 0x3f, 0xfe, 0x83, 0x1f, 0,0,0,0,0,0,0,0,0,0,0,0 } } };
-
 const struct in6_addr _in6addr_allrouters =
-	 { { { 0xff, 0x02, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x2 } } };
+	{ { { 0xff, 0x02, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x2 } } };
+const struct in6_addr teredo_restrict =
+	{ { { 0xfe, 0x80, 0, 0, 0, 0, 0, 0,
+		    0, 0, 'T', 'E', 'R', 'E', 'D', 'O' } } };
+const struct in6_addr teredo_cone =
+	{ { { 0xfe, 0x80, 0, 0, 0, 0, 0, 0,
+		    0x80, 0, 'T', 'E', 'R', 'E', 'D', 'O' } } };
 
 
 int

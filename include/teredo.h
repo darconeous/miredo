@@ -1,6 +1,6 @@
 /*
  * teredo.h - Common Teredo protocol typedefs
- * $Id: teredo.h,v 1.1 2004/06/14 14:45:58 rdenisc Exp $
+ * $Id: teredo.h,v 1.2 2004/06/21 17:48:55 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -35,8 +35,9 @@
 /*
  * Teredo addresses
  */
-extern const struct in6_addr teredo_prefix;
 extern const struct in6_addr _in6addr_allrouters;
+extern const struct in6_addr teredo_restrict;
+extern const struct in6_addr teredo_cone;
 
 #define TEREDO_PREFIX 0x3ffe831f
 #define TEREDO_PREFIX_STR "3ffe:831f:"

@@ -1,6 +1,6 @@
 /*
  * ipv6-tunnel.h - IPv6 interface class declaration
- * $Id: ipv6-tunnel.h,v 1.5 2004/06/20 17:48:07 rdenisc Exp $
+ * $Id: ipv6-tunnel.h,v 1.6 2004/06/21 17:48:55 rdenisc Exp $
  */
 
 /***********************************************************************
@@ -63,9 +63,13 @@ class IPv6Tunnel
 			return SetState (false);
 		}
 
-		int SetAddress (const struct in6_addr *addr,
+		int AddAddress (const struct in6_addr *addr,
 				int prefix_len = 64) const;
+		int DelAddress (const struct in6_addr *addr,
+				int prefix_len = 64) const;
+
 		int SetMTU (int mtu) const;
+
 		int AddRoute (const struct in6_addr *addr, int prefix_len)
 									const;
 		int DelRoute (const struct in6_addr *addr, int prefix_len)

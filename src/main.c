@@ -1,7 +1,7 @@
 /*
  * main.c - Unix Teredo server & relay implementation
  *          command line handling and core functions
- * $Id: main.c,v 1.6 2004/06/20 17:48:07 rdenisc Exp $
+ * $Id: main.c,v 1.7 2004/06/21 17:48:55 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -251,8 +251,7 @@ int init_security (void)
 int
 main (int argc, char *argv[])
 {
-	const char *server = NULL, *prefix = NULL, *ifname = NULL,
-			*tundev = NULL;
+	const char *server = NULL, *prefix = NULL, *ifname = NULL;
 	uint16_t client_port = 0;
 	
 	const struct option opts[] =
