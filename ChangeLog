@@ -1,3 +1,9 @@
+2004-97-31  Remi Denis-Courmont
+
+	* libteredo/*, src/*:
+	- huge code split: libteredo handles teredo in userland
+	miredo links libteredo with libtun6.
+
 2004-07-14  Remi Denis-Courmont
 
 	* src/main.c (init-security):

@@ -1,6 +1,6 @@
 /*
- * server.h - Declarations for server.cpp
- * $Id: server.h,v 1.2 2004/07/31 19:58:43 rdenisc Exp $
+ * relay.cpp - Linux Teredo relay implementation
+ * $Id: relay.cpp,v 1.15 2004/07/31 19:58:44 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -22,70 +22,23 @@
  *  http://www.gnu.org/copyleft/gpl.html                               *
  ***********************************************************************/
 
-#ifndef __cplusplus
-# error C++ only header
+#if HAVE_CONFIG_H
+# include <config.h>
 #endif
 
-#ifndef LIBTEREDO_SERVER_H
-# define LIBTEREDO_SERVER_H
-
-# include <inttypes.h>
-# include <libteredo/teredo-udp.h>
+#include <libtun6/ipv6-tunnel.h>
+#include "relay.h"
 
 
-/*
- * Checks and handles an Teredo-encapsulated packet.
- */
-class TeredoServer
+int MiredoRelay::ReceiveIPv6Packet (void)
 {
-	private:
-		uint32_t prefix;
-		uint32_t server_ip;
-		TeredoServerUDP sock;
+	// FIXME: does not handle error. API design problem
+	packet = (const struct ip6_hdr *)tunnel->GetPacket (length);
+	return 0;
+}
 
-	protected:
-		TeredoServer (uint32_t ip1, uint32_t ip2);
 
-		/*
-		 * Sends an IPv6 packet from Teredo toward the IPv6 Internet.
-		 *
-		 * Returns 0 on success, -1 on error.
-		 */
-		virtual int SendIPv6Packet (const void *packet,
-						size_t length) = 0;
-
-	public:
-		virtual ~TeredoServer (void)
-		{
-		}
-
-		void SetPrefix (uint32_t pref)
-		{
-			prefix = pref;
-		}
-
-		int ProcessTunnelPacket (void);
-
-		uint32_t GetPrefix (void) const
-		{
-			return prefix;
-		}
-
-		uint32_t GetServerIP (void) const
-		{
-			return server_ip;
-		}
-
-		int operator! (void) const
-		{
-			return !sock;
-		}
-
-		int RegisterReadSet (fd_set *rs) const
-		{
-			return sock.RegisterReadSet (rs);
-		}
-};
-
-#endif /* ifndef MIREDO_SERVER_H */
-
+int MiredoRelay::SendIPv6Packet (const void *_packet, size_t _length)
+{
+	return tunnel->SendPacket (_packet, _length);
+}

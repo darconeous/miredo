@@ -1,7 +1,7 @@
 /*
  * miredo.cpp - Unix Teredo server & relay implementation
  *              core functions
- * $Id: miredo.cpp,v 1.23 2004/07/22 17:38:29 rdenisc Exp $
+ * $Id: miredo.cpp,v 1.24 2004/07/31 19:58:44 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -50,9 +50,8 @@
 #include <libtun6/ipv6-tunnel.h>
 
 #include <libteredo/teredo.h>
-#include <libteredo/teredo-udp.h>
-#include <libteredo/server.h>
-#include <libteredo/relay.h>
+#include "server.h"
+#include "relay.h"
 
 /*
  * Signal handlers
@@ -101,45 +100,11 @@ reload_handler (int signum)
 
 /*
  * Main server function, with UDP datagrams receive loop.
- * TODO:
- * * should be able to be relay-only
- * * use an application class instead
  */
-static struct
-{
-	uint32_t server_ip, server_ip2, prefix;
-} conf;
-
-
-static MiredoRelayUDP *relay_udp = NULL;
-static MiredoServerUDP *server_udp = NULL;
-static IPv6Tunnel *ipv6_tunnel = NULL;
-
 static int
-teredo_server_relay (void)
+teredo_server_relay (IPv6Tunnel& tunnel, TeredoRelay *relay = NULL,
+			TeredoServer *server = NULL)
 {
-	MiredoRelay *relay;
-	MiredoServer *server;
-
-	if (relay_udp != NULL)
-	{
-		relay = new MiredoRelay (conf.prefix, relay_udp);
-		relay->SetTunnel (ipv6_tunnel);
-	}
-	else
-		relay = NULL;
-
-	if (server_udp != NULL)
-	{
-		server = new MiredoServer;
-		server->SetPrefix (conf.prefix);
-		server->SetServerIP (conf.server_ip);
-		server->SetTunnel (ipv6_tunnel);
-		server->SetSocket (server_udp);
-	}
-	else
-		server = NULL;
-
 	/* Main loop */
 	int exitcode = 0;
 
@@ -147,24 +112,25 @@ teredo_server_relay (void)
 	{
 		/* Registers file descriptors */
 		fd_set readset;
+		struct timeval tv;
 		FD_ZERO (&readset);
 
 		int maxfd = -1;
 
 		if (server != NULL)
 		{
-			int val = server_udp->RegisterReadSet (&readset);
+			int val = server->RegisterReadSet (&readset);
 			if (val > maxfd)
 				maxfd = val;
 		}
 
 		if (relay != NULL)
 		{
-			int val = ipv6_tunnel->RegisterReadSet (&readset);
+			int val = tunnel.RegisterReadSet (&readset);
 			if (val > maxfd)
 				maxfd = val;
 
-			val = relay_udp->RegisterReadSet (&readset);
+			val = relay->RegisterReadSet (&readset);
 			if (val > maxfd)
 				maxfd = val;
 		}
@@ -176,24 +142,15 @@ teredo_server_relay (void)
 
 		/* Handle incoming data */
 		if (server != NULL)
-		{
-			if (server_udp->ReceivePacket (&readset) == 0)
-				server->ReceivePacket ();
-		}
-		
+			server->ProcessTunnelPacket ();
+
 		if (relay != NULL)
 		{
-			if (ipv6_tunnel->ReceivePacket (&readset) == 0)
-				relay->TransmitPacket ();
-			if (relay_udp->ReceivePacket (&readset) == 0)
-				relay->ReceivePacket ();
+			if (tunnel.ReceivePacket (&readset) == 0)
+				relay->ProcessIPv6Packet ();
+			relay->ProcessTunnelPacket ();
 		}
 	}
-
-	if (server != NULL)
-		delete server;
-	if (relay != NULL)
-		delete relay;
 
 	/* Termination */
 	if (exitcode)
@@ -267,7 +224,7 @@ getipv6byname (const char *name, struct in6_addr *ipv6)
  * (client_port is is host byte order)
  */
 uid_t unpriv_uid = 0;
- 
+
 static int
 miredo_run (uint16_t client_port, const char *server_name,
 		const char *prefix_name, const char *ifname)
@@ -299,7 +256,7 @@ miredo_run (uint16_t client_port, const char *server_name,
 			_("Teredo IPv6 prefix not properly set."));
 		return -1;
 	}
-	conf.prefix = prefix.teredo.prefix;
+	uint32_t prefix32 = prefix.teredo.prefix;
 
 
 	if (seteuid (0))
@@ -339,6 +296,9 @@ miredo_run (uint16_t client_port, const char *server_name,
 	}
 #endif
 
+	MiredoRelay *relay = NULL;
+	MiredoServer *server = NULL;
+
 	// Definitely drops privileges
 	if (setuid (unpriv_uid))
 	{
@@ -353,8 +313,6 @@ miredo_run (uint16_t client_port, const char *server_name,
 		goto abort;
 	}
 
-	ipv6_tunnel = &tunnel;
-
 	// Sets up server sockets
 	if (server_name != NULL)
 	{
@@ -366,8 +324,7 @@ miredo_run (uint16_t client_port, const char *server_name,
 			goto abort;
 		}
 
-		server_udp = new MiredoServerUDP;
-		conf.server_ip = ipv4;
+		server = new MiredoServer (ipv4, htonl (ntohl (ipv4) + 1));
 		/*
 		 * NOTE:
 		 * While it is nowhere in the draft Teredo
@@ -375,21 +332,31 @@ miredo_run (uint16_t client_port, const char *server_name,
 		 * server IPv4 address has to be the one just after
 		 * the primary server IPv4 address.
 		 */
-		conf.server_ip2 = htonl (ntohl (ipv4) + 1);
-
-		if (server_udp->ListenIP (ipv4, conf.server_ip2))
+		if (!*server)
 		{
 			syslog (LOG_ALERT, _("Teredo UDP port failure"));
 			syslog (LOG_NOTICE, _("Make sure another instance "
 				"of the program is not already running."));
 			goto abort;
 		}
+
+		server->SetPrefix (prefix32);
 	}
 
-	// Sets up relay socket
-	relay_udp = new MiredoRelayUDP;
+	// Sets up relay
+	// TODO: ability to not be a relay at all
+	try {
+		relay = new MiredoRelay (&tunnel, prefix32,
+					 htons (client_port));
+	}
+	catch (...)
+	{
+		relay = NULL;
+		syslog (LOG_ALERT, _("Teredo relay failure"));
+		goto abort;
+	}
 
-	if (relay_udp->ListenPort (htons (client_port)))
+	if (!*relay)
 	{
 		syslog (LOG_ALERT,
 			_("Teredo service port failure: "
@@ -399,13 +366,13 @@ miredo_run (uint16_t client_port, const char *server_name,
 		goto abort;
 	}
 
-	retval = teredo_server_relay ();
+	retval = teredo_server_relay (tunnel, relay, server);
 
 abort:
-	if (relay_udp != NULL)
-		delete relay_udp;
-	if (server_udp != NULL)
-		delete server_udp;
+	if (relay != NULL)
+		delete relay;
+	if (server != NULL)
+		delete server;
 
 	return retval;
 }

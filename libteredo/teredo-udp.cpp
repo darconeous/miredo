@@ -1,6 +1,6 @@
 /*
  * teredo-udp.cpp - UDP sockets class definition
- * $Id: teredo-udp.cpp,v 1.1 2004/07/22 17:38:29 rdenisc Exp $
+ * $Id: teredo-udp.cpp,v 1.2 2004/07/31 19:58:43 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -40,16 +40,12 @@
 
 #include <syslog.h> // syslog()
 
-/*** MiredoCommonUDP implementation ***/
-MiredoCommonUDP::~MiredoCommonUDP (void)
-{
-}
 
 /*
- * Opens the Teredo server's UDP/IPv4 socket.
+ * Opens a Teredo UDP/IPv4 socket.
  */
-int
-MiredoCommonUDP::OpenTeredoSocket (uint32_t bind_ip, uint16_t port)
+static int
+OpenTeredoSocket (uint32_t bind_ip, uint16_t port)
 {
 	struct sockaddr_in myaddr;
 	memset (&myaddr, 0, sizeof (myaddr));
@@ -88,12 +84,48 @@ MiredoCommonUDP::OpenTeredoSocket (uint32_t bind_ip, uint16_t port)
 }
 
 
+static int
+SendUDPPacket (int fd, const void *packet, size_t plen,
+		uint32_t dest_ip, uint16_t dest_port)
+{
+	struct sockaddr_in nat_addr;
+	memset (&nat_addr, 0, sizeof (nat_addr));
+	nat_addr.sin_family = AF_INET;
+	nat_addr.sin_port = dest_port;
+	nat_addr.sin_addr.s_addr = dest_ip;
+#ifdef HAVE_SA_LEN
+	nat_addr.sin_len = sizeof (nat_addr);
+#endif
+
+	int check = sendto (fd, packet, plen, 0, (struct sockaddr *)&nat_addr,
+				sizeof (nat_addr));
+	if (check == -1)
+	{
+		syslog (LOG_WARNING, _("Couldn't send UDP packet: %m\n"));
+		return -1;
+	}
+	else if ((size_t)check < plen)
+	{
+		syslog (LOG_WARNING, _("UDP packet shortened: sent %d bytes "
+				"instead of %u\n"), check, plen);
+		return -1;
+	}
+	return 0;
+}
+
+
+/*** TeredoCommonUDP implementation ***/
+TeredoCommonUDP::~TeredoCommonUDP (void)
+{
+}
+
+
 /*
  * Parses a Teredo packet header.
  * Use memmove to keep results properly aligned.
  */
 int
-MiredoCommonUDP::ReceivePacket (int fd)
+TeredoCommonUDP::ReceivePacket (int fd)
 {
 	uint8_t buffer[65507];
 	int length;
@@ -195,45 +227,16 @@ MiredoCommonUDP::ReceivePacket (int fd)
 }
 
 
-int
-MiredoCommonUDP::SendPacket (int fd, const void *packet, size_t plen,
-				uint32_t dest_ip, uint16_t dest_port)
-{
-	struct sockaddr_in nat_addr;
-	memset (&nat_addr, 0, sizeof (nat_addr));
-	nat_addr.sin_family = AF_INET;
-	nat_addr.sin_port = dest_port;
-	nat_addr.sin_addr.s_addr = dest_ip;
-#ifdef HAVE_SA_LEN
-	nat_addr.sin_len = sizeof (nat_addr);
-#endif
 
-	int check = sendto (fd, packet, plen, 0, (struct sockaddr *)&nat_addr,
-				sizeof (nat_addr));
-	if (check == -1)
-	{
-		syslog (LOG_WARNING, _("Couldn't send UDP packet: %m\n"));
-		return -1;
-	}
-	else if ((size_t)check < plen)
-	{
-		syslog (LOG_WARNING, _("UDP packet shortened: sent %d bytes "
-				"instead of %u\n"), check, plen);
-		return -1;
-	}
-	return 0;
-}
-
-
-/*** MiredoRelayUDP implementation ***/
-MiredoRelayUDP::~MiredoRelayUDP (void)
+/*** TeredoRelayUDP implementation ***/
+TeredoRelayUDP::~TeredoRelayUDP (void)
 {
 	if (fd != -1)
 		close (fd);
 }
 
 
-int MiredoRelayUDP::ListenPort (uint16_t port)
+int TeredoRelayUDP::ListenPort (uint16_t port)
 {
 	// Closes former socket:
 	if (fd != -1)
@@ -245,7 +248,7 @@ int MiredoRelayUDP::ListenPort (uint16_t port)
 
 
 int
-MiredoRelayUDP::RegisterReadSet (fd_set *readset) const
+TeredoRelayUDP::RegisterReadSet (fd_set *readset) const
 {
 	if (fd != -1)
 		FD_SET (fd, readset);
@@ -254,25 +257,37 @@ MiredoRelayUDP::RegisterReadSet (fd_set *readset) const
 
 
 int
-MiredoRelayUDP::ReceivePacket (const fd_set *readset)
+TeredoRelayUDP::ReceivePacket (void)
 {
-	return ((fd != -1) && FD_ISSET (fd, readset))
-		? MiredoCommonUDP::ReceivePacket (fd) : -1;
+	if (fd != -1)
+	{
+		fd_set set;
+
+		FD_ZERO (&set);
+		FD_SET (fd, &set);
+
+		struct timeval tv;
+		tv.tv_sec = 0;
+		tv.tv_usec = 0;
+
+		if (select (fd + 1, &set, NULL, NULL, &tv) == 1)
+			return TeredoCommonUDP::ReceivePacket (fd);
+	}
+	return -1;
 }
 
 
 int
-MiredoRelayUDP::SendPacket (const void *packet, size_t len,
+TeredoRelayUDP::SendPacket (const void *packet, size_t len,
 				uint32_t dest_ip, uint16_t dest_port) const
 {
-	return MiredoCommonUDP::SendPacket (fd, packet, len, dest_ip,
-						dest_port);
+	return SendUDPPacket (fd, packet, len, dest_ip, dest_port);
 }
 
 
-/*** MiredoServerUDP implementation ***/
+/*** TeredoServerUDP implementation ***/
 
-MiredoServerUDP::~MiredoServerUDP ()
+TeredoServerUDP::~TeredoServerUDP ()
 {
 	if (fd_primary != -1)
 		close (fd_primary);
@@ -281,7 +296,7 @@ MiredoServerUDP::~MiredoServerUDP ()
 }
 
 
-int MiredoServerUDP::ListenIP (uint32_t ip1, uint32_t ip2)
+int TeredoServerUDP::ListenIP (uint32_t ip1, uint32_t ip2)
 {
 	if (!is_ipv4_global_unicast (ip1)
 	 || !is_ipv4_global_unicast (ip2))
@@ -314,7 +329,7 @@ int MiredoServerUDP::ListenIP (uint32_t ip1, uint32_t ip2)
 }
 
 
-int MiredoServerUDP::RegisterReadSet (fd_set *readset) const
+int TeredoServerUDP::RegisterReadSet (fd_set *readset) const
 {
 	int maxfd = -1;
 	if (fd_primary != -1)
@@ -335,32 +350,40 @@ int MiredoServerUDP::RegisterReadSet (fd_set *readset) const
 
 
 int
-MiredoServerUDP::ReceivePacket (const fd_set *readset)
+TeredoServerUDP::ReceivePacket (void)
 {
-	/* Is there a packet on any of the UDP socket? */
-	int fd = -1;
+	/* Is there a packet on any of the UDP sockets? */
+	fd_set set;
+	int fd = RegisterReadSet (&set);
 
-	if ((fd_primary != -1) && FD_ISSET (fd_primary, readset))
+	struct timeval tv;
+	tv.tv_sec = 0;
+	tv.tv_usec = 0;
+	
+	if (select (fd, &set, NULL, NULL, &tv) <= 0)
+		return -1;
+
+	if ((fd_primary != -1) && FD_ISSET (fd_primary, &set))
 	{
 		fd = fd_primary;
 		was_secondary = false;
 	}
 	else
-	if ((fd_secondary != -1) && FD_ISSET (fd_secondary, readset))
+	if ((fd_secondary != -1) && FD_ISSET (fd_secondary, &set))
 	{
 		fd = fd_secondary;
 		was_secondary = true;
 	}
 	
-	return (fd == -1) ? -1 : MiredoCommonUDP::ReceivePacket (fd);
+	return (fd == -1) ? -1 : TeredoCommonUDP::ReceivePacket (fd);
 }
 
 
 int
-MiredoServerUDP::SendPacket (const void *packet, size_t len,
-				uint32_t dest_ip, uint16_t port) const
+TeredoServerUDP::SendPacket (const void *packet, size_t len,
+				uint32_t dest_ip, uint16_t dest_port,
+				bool use_secondary_ip) const
 {
-	return SendPacket (packet, len, dest_ip, port, false);
+	return SendUDPPacket (use_secondary_ip ? fd_secondary : fd_primary,
+				packet, len, dest_ip, dest_port);
 }
-
-

@@ -1,6 +1,6 @@
 /*
  * teredo-udp.h - UDP sockets class declaration
- * $Id: teredo-udp.h,v 1.1 2004/07/22 17:38:29 rdenisc Exp $
+ * $Id: teredo-udp.h,v 1.2 2004/07/31 19:58:43 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -39,7 +39,7 @@
 
 # include <libteredo/teredo.h>
 
-class MiredoCommonUDP
+class TeredoCommonUDP
 {
 	private:
 		struct teredo_orig_ind *orig;
@@ -58,21 +58,13 @@ class MiredoCommonUDP
 
 	protected:
 		int ReceivePacket (int fd);
-		static int OpenTeredoSocket (uint32_t ip, uint16_t port);
-		static int SendPacket (int fd, const void *packet, size_t len,
-					uint32_t dest_ip, uint16_t port);
 
 	public:
-		MiredoCommonUDP ()
+		TeredoCommonUDP ()
 		{
 		}
 
-		virtual ~MiredoCommonUDP (void);
-		//virtual int RegisterReadSet (fd_set *readset) const = 0;
-		//virtual int ReceivePacket (const fd_set *readset) = 0;
-		virtual int SendPacket (const void *packet, size_t len,
-					uint32_t dest_ip,
-					uint16_t port) const = 0;
+		virtual ~TeredoCommonUDP (void);
 
 		/*
 		 * Returns a pointer to the IPv6 header of the packet
@@ -125,40 +117,45 @@ class MiredoCommonUDP
 };
 
 
-class MiredoRelayUDP : public MiredoCommonUDP
+class TeredoRelayUDP : public TeredoCommonUDP
 {
 	private:
 		int fd;
 
 	public:
-		MiredoRelayUDP (void) : fd (-1)
+		TeredoRelayUDP (void) : fd (-1)
 		{
 		}
 
-		virtual ~MiredoRelayUDP (void);
+		virtual ~TeredoRelayUDP (void);
 
 		int ListenPort (uint16_t port = 0);
 
 		int RegisterReadSet (fd_set *readset) const;
-		int ReceivePacket (const fd_set *readset);
-		virtual int SendPacket (const void *packet, size_t len,
+		int ReceivePacket (void);
+		int SendPacket (const void *packet, size_t len,
 				uint32_t dest_ip, uint16_t dest_port) const;
+
+		int operator! (void) const
+		{
+			return fd == -1;
+		}	
 };
 
 
-class MiredoServerUDP : public MiredoCommonUDP
+class TeredoServerUDP : public TeredoCommonUDP
 {
 	private:
 		int fd_primary, fd_secondary;
 		bool was_secondary;
 
 	public:
-		MiredoServerUDP (void) : fd_primary (-1), fd_secondary (-1),
+		TeredoServerUDP (void) : fd_primary (-1), fd_secondary (-1),
 				was_secondary (false)
 		{
 		}
 
-		virtual ~MiredoServerUDP (void); // closes sockets
+		virtual ~TeredoServerUDP (void); // closes sockets
 
 		/* 
 		 * Opens 2 UDP sockets on Teredo port.
@@ -181,7 +178,7 @@ class MiredoServerUDP : public MiredoCommonUDP
 		 * Returns 0 on success, -1 if no packet were to be received
 		 * or they were not valid Terdo-encapsulated-packets.
 		 */
-		int ReceivePacket (const fd_set *readset);
+		int ReceivePacket (void);
 
 		/*
 		 * Sends an UDP packet at <packet>, of length <len>
@@ -194,10 +191,7 @@ class MiredoServerUDP : public MiredoCommonUDP
 		 */
 		int SendPacket (const void *packet, size_t len,
 				uint32_t dest_ip, uint16_t port,
-				bool use_secondary_ip) const;
-		virtual int SendPacket (const void *packet, size_t len,
-					uint32_t dest_ip,
-					uint16_t port) const;
+				bool use_secondary_ip = false) const;
 
 		/*
 		 * Sends an UDP packet at <packet>, of length <len>
@@ -216,22 +210,16 @@ class MiredoServerUDP : public MiredoCommonUDP
 		{
 			return was_secondary;
 		}
+
+		int operator! (void) const
+		{
+			return fd_primary == -1 || fd_secondary == -1;
+		}
 };
 
 
 inline int
-MiredoServerUDP::SendPacket (const void *packet, size_t len,
-				uint32_t dest_ip, uint16_t dest_port,
-				bool use_secondary_ip) const
-{
-	return MiredoCommonUDP::SendPacket (use_secondary_ip ? fd_secondary
-								: fd_primary,
-				packet, len, dest_ip, dest_port);
-}
-
-
-inline int
-MiredoServerUDP::ReplyPacket (const void *packet, size_t len,
+TeredoServerUDP::ReplyPacket (const void *packet, size_t len,
 				bool use_secondary_ip) const
 {
 	return SendPacket (packet, len, GetClientIP (), GetClientPort (),

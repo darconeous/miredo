@@ -1,6 +1,6 @@
 /*
  * server.cpp - Handling of a single Teredo datagram (server-side).
- * $Id: server.cpp,v 1.1 2004/07/22 17:38:29 rdenisc Exp $
+ * $Id: server.cpp,v 1.2 2004/07/31 19:58:43 rdenisc Exp $
  */
 
 /***********************************************************************
@@ -91,7 +91,7 @@ icmp6_checksum (const struct ip6_hdr *ip6, const struct icmp6_hdr *icmp6)
  * Returns -1 on error, 0 on success.
  */
 static int
-teredo_send_ra (const MiredoServerUDP *sock, const struct in6_addr *dest_ip6,
+teredo_send_ra (const TeredoServerUDP& sock, const struct in6_addr *dest_ip6,
 		uint32_t prefix, uint32_t server_ip)
 {
 	uint8_t packet[13 + 8 + sizeof (struct ip6_hdr)
@@ -100,7 +100,7 @@ teredo_send_ra (const MiredoServerUDP *sock, const struct in6_addr *dest_ip6,
 		*ptr = packet;
 
 	// Authentification header
-	const uint8_t *nonce = sock->GetAuthNonce ();
+	const uint8_t *nonce = sock.GetAuthNonce ();
 	if (nonce != NULL)
 	{
 		struct teredo_simple_auth auth;
@@ -121,8 +121,8 @@ teredo_send_ra (const MiredoServerUDP *sock, const struct in6_addr *dest_ip6,
 
 		orig.hdr.zero = 0;
 		orig.hdr.code = teredo_orig_ind;
-		orig.orig_port = ~sock->GetClientPort (); // obfuscate
-		orig.orig_addr = ~sock->GetClientIP (); // obfuscate
+		orig.orig_port = ~sock.GetClientPort (); // obfuscate
+		orig.orig_addr = ~sock.GetClientIP (); // obfuscate
 
 		memcpy (ptr, &orig, 8);
 		ptr += 8;
@@ -193,11 +193,11 @@ teredo_send_ra (const MiredoServerUDP *sock, const struct in6_addr *dest_ip6,
 		ptr += sizeof (ra);
 	}
 
-	bool use_secondary_ip = sock->WasSecondaryIP ();
+	bool use_secondary_ip = sock.WasSecondaryIP ();
 	if (IN6_IS_TEREDO_ADDR_CONE (dest_ip6))
 		use_secondary_ip = !use_secondary_ip;
 
-	if (!sock->ReplyPacket (packet, ptr - packet, use_secondary_ip)) 
+	if (!sock.ReplyPacket (packet, ptr - packet, use_secondary_ip)) 
 	{
 #if 0
 		struct in_addr inp;
@@ -219,10 +219,10 @@ teredo_send_ra (const MiredoServerUDP *sock, const struct in6_addr *dest_ip6,
  * Forwards a Teredo packet to a client
  */
 static int
-ForwardUDPPacket (const MiredoServerUDP *sock, bool insert_orig = true)
+ForwardUDPPacket (const TeredoServerUDP& sock, bool insert_orig = true)
 {
 	size_t length;
-	const struct ip6_hdr *p = sock->GetIPv6Header (length);
+	const struct ip6_hdr *p = sock.GetIPv6Header (length);
 
 	if ((p == NULL) || (length > 65507))
 		return -1;
@@ -255,18 +255,18 @@ ForwardUDPPacket (const MiredoServerUDP *sock, bool insert_orig = true)
 	{
 		struct teredo_orig_ind orig;
 		offset = 8;
-		
+
 		orig.hdr.zero = 0;
 		orig.hdr.code = teredo_orig_ind;
-		orig.orig_port = ~sock->GetClientPort (); // obfuscate
-		orig.orig_addr = ~sock->GetClientIP (); // obfuscate
+		orig.orig_port = ~sock.GetClientPort (); // obfuscate
+		orig.orig_addr = ~sock.GetClientIP (); // obfuscate
 		memcpy (buf, &orig, offset);
 	}
 	else
 		offset = 0;
 
 	memcpy (buf + offset, p, length);
-	return sock->SendPacket (buf, length + offset, dest_ip,
+	return sock.SendPacket (buf, length + offset, dest_ip,
 					~dst.teredo.client_port);
 }
 
@@ -277,15 +277,18 @@ static const struct in6_addr in6addr_allrouters =
  * Checks and handles an Teredo-encapsulated packet.
  */
 int
-MiredoServer::ReceivePacket (void) const
+TeredoServer::ProcessTunnelPacket (void)
 {
+	if (sock.ReceivePacket ())
+		return -1;
+
 	// Teredo server check number 3
-	if (!is_ipv4_global_unicast (sock->GetClientIP ()))
+	if (!is_ipv4_global_unicast (sock.GetClientIP ()))
 		return 0;
 
 	// Check IPv6 packet (Teredo server check number 1)
 	size_t ip6len;
-	const struct ip6_hdr *ip6 = sock->GetIPv6Header (ip6len);
+	const struct ip6_hdr *ip6 = sock.GetIPv6Header (ip6len);
 	if (ip6len < 40)
 		return 0; // too small
 	ip6len -= 40;
@@ -313,8 +316,8 @@ MiredoServer::ReceivePacket (void) const
 					GetServerIP ());
 
 	// Teredo server check number 5 (in the negative)
-	if (!IN6_MATCHES_TEREDO_CLIENT (&ip6->ip6_src, sock->GetClientIP (),
-						sock->GetClientPort ())
+	if (!IN6_MATCHES_TEREDO_CLIENT (&ip6->ip6_src, sock.GetClientIP (),
+						sock.GetClientPort ())
 	// Teredo server check number 6 (in the negative)
 	 && (IN6_TEREDO_PREFIX (&ip6->ip6_src) == GetPrefix ()
 	  || IN6_TEREDO_SERVER (&ip6->ip6_dst) != GetServerIP ()))
@@ -329,10 +332,17 @@ MiredoServer::ReceivePacket (void) const
 	// Accepts packet:
 	if (IN6_TEREDO_PREFIX(&ip6->ip6_dst) != GetPrefix ())
 		// forwards packet to native IPv6:
-		return tunnel->SendPacket (ip6, ip6len);
+		return SendIPv6Packet (ip6, ip6len);
 
 	// forwards packet over Teredo:
 	return ForwardUDPPacket (sock,
 		IN6_TEREDO_SERVER (&ip6->ip6_dst) == GetServerIP ());
+}
+
+
+TeredoServer::TeredoServer (uint32_t ip1, uint32_t ip2)
+	: server_ip (ip1)
+{
+	sock.ListenIP (ip1, ip2);
 }
 

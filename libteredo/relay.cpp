@@ -1,6 +1,6 @@
 /*
  * relay.cpp - Teredo relay peers list definition
- * $Id: relay.cpp,v 1.2 2004/07/23 16:44:52 rdenisc Exp $
+ * $Id: relay.cpp,v 1.3 2004/07/31 19:58:43 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -40,7 +40,6 @@
 #include "teredo-udp.h"
 
 #include "relay.h"
-#include "libtun6/ipv6-tunnel.h" // FIXME: remove
 
 #define TEREDO_TIMEOUT 30 // seconds
 
@@ -49,8 +48,15 @@
 					? EXPIRED (peer->last_rx, now) \
 					: EXPIRED (peer->last_xmit, now))
 
+TeredoRelay::TeredoRelay (uint32_t pref, uint16_t port)
+	: is_cone (true), prefix (pref), head (NULL)
+{
+	sock.ListenPort (port);
+}
+
+
 /* Releases peers list entries */
-MiredoRelay::~MiredoRelay (void)
+TeredoRelay::~TeredoRelay (void)
 {
 	struct peer *p = head;
 
@@ -71,7 +77,7 @@ MiredoRelay::~MiredoRelay (void)
  *
  * FIXME: number of entry should be bound
  */
-struct MiredoRelay::peer *MiredoRelay::AllocatePeer (void)
+struct TeredoRelay::peer *TeredoRelay::AllocatePeer (void)
 {
 	time_t now;
 	time (&now);
@@ -95,7 +101,7 @@ struct MiredoRelay::peer *MiredoRelay::AllocatePeer (void)
  * Returns a pointer to the first peer entry matching <addr>,
  * or NULL if none were found.
  */
-struct MiredoRelay::peer *MiredoRelay::FindPeer (const struct in6_addr *addr)
+struct TeredoRelay::peer *TeredoRelay::FindPeer (const struct in6_addr *addr)
 {
 	time_t now;
 
@@ -116,7 +122,7 @@ struct MiredoRelay::peer *MiredoRelay::FindPeer (const struct in6_addr *addr)
  * TODO: ability to send direct bubbles as well as indirect ones
  * (at the moment we can only send indirect bubbles)
  */
-int MiredoRelay::SendBubble (const union teredo_addr *dst,
+int TeredoRelay::SendBubble (const union teredo_addr *dst,
 				bool indirect) const
 {
 	uint32_t ip;
@@ -146,7 +152,7 @@ int MiredoRelay::SendBubble (const union teredo_addr *dst,
 				sizeof (hdr.ip6_src));
 		memcpy (&hdr.ip6_dst, &dst->ip6, sizeof (hdr.ip6_dst));
 
-		return sock->SendPacket (&hdr, sizeof (hdr), ip, port);
+		return sock.SendPacket (&hdr, sizeof (hdr), ip, port);
 	}
 
 	return 0;
@@ -168,16 +174,16 @@ inline bool IsBubble (const struct ip6_hdr *hdr)
  * (as specified per paragraph 5.4.1).
  * Returns 0 on success, -1 on error.
  */
-int MiredoRelay::TransmitPacket (void)
+int TeredoRelay::ProcessIPv6Packet (void)
 {
-	size_t length;
-	const uint8_t *buf = tunnel->GetPacket (length);
-	struct ip6_hdr ip6;
+	if (ReceiveIPv6Packet ())
+		return -1;
 
+	struct ip6_hdr ip6;
 	if ((length < sizeof (ip6)) || (length > 65507))
 		return 0;
 	
-	memcpy (&ip6, buf, sizeof (ip6_hdr));
+	memcpy (&ip6, packet, sizeof (ip6_hdr));
 
 	if (((ip6.ip6_vfc >> 4) != 6)
 	 || ((sizeof (ip6) + ntohs (ip6.ip6_plen)) != length))
@@ -223,7 +229,8 @@ int MiredoRelay::TransmitPacket (void)
 		if (p->flags.flags.trusted)
 		{
 			time (&p->last_rx);
-			return sock->SendPacket (buf, length, p->mapped_addr,
+			return sock.SendPacket (packet, length,
+							p->mapped_addr,
 							p->mapped_port);
 		}
 	}
@@ -244,7 +251,7 @@ int MiredoRelay::TransmitPacket (void)
 	if (IN6_IS_TEREDO_ADDR_CONE (&addr.ip6))
 	{
 		p->flags.flags.trusted = 1;
-		return sock->SendPacket (buf, length, p->mapped_addr,
+		return sock.SendPacket (packet, length, p->mapped_addr,
 						p->mapped_port);
 	}
 
@@ -255,7 +262,7 @@ int MiredoRelay::TransmitPacket (void)
 	{
 		p->queue = new uint8_t[length];
 
-		memcpy (p->queue, buf, length);
+		memcpy (p->queue, packet, length);
 		p->queuelen = length;
 	}
 	else
@@ -283,14 +290,17 @@ int MiredoRelay::TransmitPacket (void)
 
 
 /*
- * Handles a packet coming from the IPv4 Internet over Teredo
+ * Handles a packet coming from the Teredo tunnel
  * (as specified per paragraph 5.4.2).
  * Returns 0 on success, -1 on error.
  */
-int MiredoRelay::ReceivePacket (void)
+int TeredoRelay::ProcessTunnelPacket (void)
 {
+	if (sock.ReceivePacket ())
+		return -1;
+
 	size_t length;
-	const struct ip6_hdr *buf = sock->GetIPv6Header (length);
+	const struct ip6_hdr *buf = sock.GetIPv6Header (length);
 	struct ip6_hdr ip6;
 	union teredo_addr src;
 
@@ -306,8 +316,8 @@ int MiredoRelay::ReceivePacket (void)
 	// Checks source IPv6 address
 	memcpy (&src, &ip6.ip6_src, sizeof (src));
 	if ((src.teredo.prefix != GetPrefix ())
-	 || !IN6_MATCHES_TEREDO_CLIENT (&src, sock->GetClientIP (),
-		 			sock->GetClientPort ()))
+	 || !IN6_MATCHES_TEREDO_CLIENT (&src, sock.GetClientIP (),
+		 			sock.GetClientPort ()))
 		return 0;
 
 	// Checks peers list
@@ -325,7 +335,7 @@ int MiredoRelay::ReceivePacket (void)
 	// Dequeues queued packets (TODO: dequeue more than one)
 	if (p->queue != NULL)
 	{
-		sock->SendPacket (p->queue, p->queuelen, p->mapped_addr,
+		sock.SendPacket (p->queue, p->queuelen, p->mapped_addr,
 					p->mapped_port);
 		delete p->queue;
 		p->queue = NULL;
@@ -341,6 +351,6 @@ int MiredoRelay::ReceivePacket (void)
 	if ((ip6.ip6_dst.s6_addr[0] & 0xe0) != 0x20)
 		return 0; // must be discarded
 
-	return tunnel->SendPacket (buf, length);
+	return SendIPv6Packet (buf, length);
 }
 

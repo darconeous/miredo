@@ -1,5 +1,5 @@
 # Makefile.am - src/ directory Makefile for miredo
-# $Id: Makefile.am,v 1.5 2004/07/22 17:38:29 rdenisc Exp $
+# $Id: Makefile.am,v 1.6 2004/07/31 19:58:43 rdenisc Exp $
 
 # ***********************************************************************
 # *  Copyright (C) 2004 Remi Denis-Courmont.                            *
@@ -32,6 +32,7 @@ sbin_PROGRAMS = miredo
 #	} > $@
 
 # miredo
-miredo_SOURCES = main.c miredo.cpp miredo.h
+miredo_SOURCES = main.c miredo.cpp miredo.h privproc.cpp privproc.h \
+		relay.cpp relay.h server.cpp server.h
 miredo_LDADD = ../libtun6/libtun6.a ../libteredo/libteredo.a
 
