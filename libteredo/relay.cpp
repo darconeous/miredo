@@ -36,16 +36,12 @@
 #include <netinet/ip6.h> // struct ip6_hdr
 #include <syslog.h>
 
-#ifdef USE_OPENSSL
-# include <openssl/rand.h>
-# include <openssl/err.h>
-#endif
-
 #include "teredo.h"
 #include <v4global.h> // is_ipv4_global_unicast()
 #include "teredo-udp.h"
 
 #include "packets.h"
+#include "security.h"
 #include "relay.h"
 
 #define TEREDO_TIMEOUT 30 // seconds
@@ -118,18 +114,8 @@ TeredoRelay::TeredoRelay (uint32_t server_ip, uint16_t port)
 	addr.teredo.client_ip = 0;
 	addr.teredo.client_port = 0;
 
-	memset (probe.nonce, 0, 8);
-#ifdef USE_OPENSSL
-	if (!RAND_bytes (probe.nonce, 8))
-	{
-		char buf[120];
-
-		syslog (LOG_ERR, _("Lack of entropy: %s"),
-			ERR_error_string (ERR_get_error (), buf));
-	}
-	else
-#endif
-	if (sock.ListenPort (port) == 0)
+	if (!GenerateNonce (probe.nonce, true)
+	 && (sock.ListenPort (port) == 0))
 	{
 		probe.state = PROBE_CONE;
 		probe.count = 0;
@@ -343,19 +329,10 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
 		// FIXME: re-send echo request if no response
 		if (!p->flags.flags.nonce)
 		{
-			p->flags.flags.nonce = 1;
-			memset (p->nonce, 0, 8);
-#ifdef USE_OPENSSL
-			if (!RAND_pseudo_bytes (p->nonce, 8))
-			{
-				char buf[120];
+			if (!GenerateNonce (p->nonce))
+				return 0;
 
-				syslog (LOG_WARNING,
-					_("Possibly predictable nonce: %s"),
-					ERR_error_string (ERR_get_error (),
-								buf));
-			}
-#endif
+			p->flags.flags.nonce = 1;
 		}
 		return SendPing (sock, &addr, &dst->ip6, p->nonce);
 	}
@@ -737,29 +714,21 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 
 	// FIXME: queue packet in incoming queue
 	// FIXME: re-send echo request if no response
-#ifdef USE_OPENSSL
 	if (!p->flags.flags.nonce)
 	{
+		if (!GenerateNonce (p->nonce))
+			return -1;
 		p->flags.flags.nonce = 1;
-
-		if (!RAND_pseudo_bytes (p->nonce, 8))
-		{
-			char buf[120];
-
-			syslog (LOG_WARNING,
-				_("Possibly predictable nonce: %s"),
-				ERR_error_string (ERR_get_error (), buf));
-		}
 	}
-#else
-	return -1;
-#endif
 	return SendPing (sock, &addr, &ip6.ip6_src, p->nonce);
 }
 
 
 int TeredoRelay::Process (void)
 {
+	if (!sock)
+		return -1;
+
 	struct timeval now;
 
 	gettimeofday (&now, NULL);

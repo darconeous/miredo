@@ -26,4 +26,5 @@ libteredo_a_SOURCES =	teredo.c teredo.h \
 			teredo-udp.cpp teredo-udp.h \
 			relay.cpp relay.h \
 			server.cpp server.h \
-			packets.cpp packets.h
+			packets.cpp packets.h \
+			security.cpp security.h
