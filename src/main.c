@@ -135,7 +135,7 @@ static int
 error_qty (int opt, const char *qty)
 {
 	fprintf (stderr, _(
-"Invalid number (or capacity exceeded) \"`%s\" for option -%c\n"), qty, opt);
+"Invalid number (or capacity exceeded) \"%s\" for option -%c\n"), qty, opt);
 	return 2;
 }
 

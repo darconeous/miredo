@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: rdenis@simphalempin.com\n"
-"POT-Creation-Date: 2004-11-01 21:11+0100\n"
+"POT-Creation-Date: 2004-11-01 21:26+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -248,7 +248,7 @@ msgstr ""
 
 #: src/main.c:138
 #, c-format
-msgid "Invalid number (or capacity exceeded) \"`%s\" for option -%c\n"
+msgid "Invalid number (or capacity exceeded) \"%s\" for option -%c\n"
 msgstr ""
 
 #: src/main.c:146

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: miredo 0.3.1\n"
 "Report-Msgid-Bugs-To: rdenis@simphalempin.com\n"
-"POT-Creation-Date: 2004-11-01 21:11+0100\n"
+"POT-Creation-Date: 2004-11-01 21:26+0100\n"
 "PO-Revision-Date: 2004-11-01 18:41+0100\n"
 "Last-Translator: Rémi Denis-Courmont <rdenis@simphalempin.com>\n"
 "Language-Team: N/A\n"
@@ -201,7 +201,7 @@ msgid ""
 "Make sure your Linux kernel includes the \"Universal TUNTAP driver\"\n"
 "(CONFIG_TUN option), possibly as a module.\n"
 msgstr ""
-"Vérifiez que votre noyau Linux comporte l'\"Universal TUNTAP driver\"\n"
+"Vérifiez que votre noyau Linux comporte l'«Universal TUNTAP driver»\n"
 "(option CONFIG_TUN), éventuellement sous forme de module.\n"
 
 #: libtun6/ipv6-tunnel.cpp:901
@@ -214,9 +214,8 @@ msgstr ""
 "Le tunneling IPv6 ne fonctionnera pas.\n"
 
 #: src/main.c:71
-#, fuzzy
 msgid "Try \"miredo -h | more\" for more information.\n"
-msgstr "Faîtes `miredo -h | more' pour plus de détails.\n"
+msgstr "Faîtes «miredo -h | more» pour plus de détails.\n"
 
 #: src/main.c:80
 msgid ""
@@ -280,18 +279,18 @@ msgstr ""
 "Configuré par: %s\n"
 
 #: src/main.c:127
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Duplicate parameter \"%s\" for option -%c\n"
 "would override previous value \"%s\".\n"
 msgstr ""
-"Le paramètre doublon `%s' pour l'option -%c\n"
-"redéfinirait la valeur précédente `%s'.\n"
+"Le paramètre doublon «%s» pour l'option -%c\n"
+"redéfinirait la valeur précédente «%s».\n"
 
 #: src/main.c:138
-#, fuzzy, c-format
-msgid "Invalid number (or capacity exceeded) \"`%s\" for option -%c\n"
-msgstr "Nombre invalide (ou capacité dépassée) `%s' pour l'option -%c\n"
+#, c-format
+msgid "Invalid number (or capacity exceeded) \"%s\" for option -%c\n"
+msgstr "Nombre invalide (ou capacité dépassée) «%s» pour l'option -%c\n"
 
 #: src/main.c:146
 #, c-format
@@ -303,7 +302,6 @@ msgid "Error: missing command line parameter\n"
 msgstr "Erreur: paramètre de la ligne de commande manquant\n"
 
 #: src/main.c:202
-#, fuzzy
 msgid ""
 "Chroot directory was probably not set up correctly.\n"
 "NOTE: You can use command line option \"-t /\"\n"
@@ -315,10 +313,10 @@ msgid ""
 msgstr ""
 "Le répertoire racine (chroot) n'a probablement pas été mis en place\n"
 "convenablement.\n"
-"NOTE: Vous pouvez utiliser l'option de ligne de commande '-t /'\n"
+"NOTE: Vous pouvez utiliser l'option de ligne de commande «-t /»\n"
 "si vous ne voulez pas cloisoner le programme dans un chroot.\n"
 "\n"
-"Ne pas utilisez de prison chroot est beaucoup plus simple, mais moins sûr.\n"
+"Ne pas cloisonner dans un chroot est beaucoup plus simple, mais moins sûr.\n"
 "\n"
 "\n"
 
@@ -327,7 +325,7 @@ msgid "User not found"
 msgstr "Utilisateur non trouvé"
 
 #: src/main.c:272
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Error: This program was asked to run in the\n"
 "security context of system user \"%s\", but it\n"
@@ -338,8 +336,13 @@ msgid ""
 "user. Running as root is STRONGLY DISCOURAGED.\n"
 msgstr ""
 "Erreur: L'exécution de ce programme dans le contexte de sécurité de\n"
-"l'utilisateur système \"%s\" a été demandée, mais celui-ci semble ne pas\n"
+"l'utilisateur système «%s» a été demandée, mais celui-ci semble ne pas\n"
 "exister sur votre système.\n"
+"\n"
+"Utilisez l'option de ligne de commande «-u <utilisateur>» afin d'exécuter "
+"ce\n"
+"programme  dans le contexte de sécurité d'un autre utilisateur. L'exécution\n"
+"en tant que root est VIVEMENT DÉCONSEILLÉE.\n"
 
 #: src/main.c:286
 msgid ""
@@ -353,7 +356,7 @@ msgid ""
 msgstr ""
 "Erreur: Ce programme n'est pas censé garder les privilèges root.\n"
 "Cela est potentiellement très dangereux (d'autant plus qu'il s'agit de\n"
-"code de qualité \"beta\" qui n'a jamais été audité à la recherche de\n"
+"code de qualité «beta» qui n'a jamais été audité à la recherche de\n"
 "failles de sécurité). Si vous voulez vraiment l'exécuter en tant que root,\n"
 "lancez le script configure du code source avec l'option --disable-miredo-"
 "user\n"
@@ -385,7 +388,7 @@ msgid "Root directory jail in %s: %s\n"
 msgstr "Cloisement dans le répertoire racine (chroot) %s: %s\n"
 
 #: src/main.c:341
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Warning: /dev/log not found or invalid: logging will probably not work.\n"
 "Try adding \"-a %s/dev/log\"\n"
@@ -393,7 +396,7 @@ msgid ""
 msgstr ""
 "Attention: /dev/log non trouvé ou invalide: la journalisation ne "
 "fonctionnera\n"
-"probablement pas. Essayez d'ajouter '-a %s/dev/log'\n"
+"probablement pas. Essayez d'ajouter «-a %s/dev/log»\n"
 " à la ligne de commande de votre syslogd pour rectifier cela.\n"
 
 #: src/main.c:363
@@ -500,9 +503,9 @@ msgid "Server name                 : %s\n"
 msgstr "Nom du serveur                     : %s\n"
 
 #: src/miredo.cpp:211 src/miredo.cpp:236
-#, fuzzy, c-format
+#, c-format
 msgid "Invalid hostname \"%s\": %s"
-msgstr "Nom d'hôte invalide `%s': %s"
+msgstr "Nom d'hôte invalide «%s»: %s"
 
 #: src/miredo.cpp:297
 msgid "Teredo IPv6 prefix not properly set."
