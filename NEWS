@@ -1,5 +1,5 @@
 RELEASE NOTES for Miredo
-version 0.3.1 (beta version)
+version 0.3.2 (beta version)
 =============================
 $Id$
 
@@ -16,6 +16,12 @@ Thanks for your help.
 informations on this program, see README. For syntax details and
 changes, run 'miredo -h' to get help. For detailled internal changes, see
 ChangeLog.
+
+=============================================================================
+BETA RELEASE 0.3.2 : Minor feature enhancement
+
+# Configure option --enable-pidfile=<path> to change the pidfile path
+  (or --disable-pidfile to disable pidfile generation)
 
 =============================================================================
 BETA RELEASE 0.3.1 : Minor feature enhancement
