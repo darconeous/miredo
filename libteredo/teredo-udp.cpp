@@ -1,6 +1,6 @@
 /*
  * teredo-udp.cpp - UDP sockets class definition
- * $Id: teredo-udp.cpp,v 1.6 2004/08/27 16:21:10 rdenisc Exp $
+ * $Id: teredo-udp.cpp,v 1.7 2004/08/29 15:33:53 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -171,7 +171,7 @@ TeredoPacket::Receive (int fd)
 		/* TODO: secure qualification */
 		ptr += id_len + au_len;
 
-		/* Nonce */
+		/* Nonce + confirmation byte */
 		length -= sizeof (nonce_buf);
 		if (length < 0)
 			return -1;
@@ -179,15 +179,6 @@ TeredoPacket::Receive (int fd)
 		memcpy (nonce_buf, ptr, sizeof (nonce_buf));
 		nonce = nonce_buf;
 		ptr += sizeof (nonce_buf);
-
-		/* Confirmation */
-		length --;
-		if (length < 0)
-			return -1;
-
-		if (/* confirmation = */ *(ptr++))
-			// confirmation byte MUST be 0
-		return -1;
 	}
 
 	// Teredo Origin Indication

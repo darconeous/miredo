@@ -1,6 +1,6 @@
 /*
  * relay.cpp - Teredo relay peers list definition
- * $Id: relay.cpp,v 1.35 2004/08/29 13:20:07 rdenisc Exp $
+ * $Id: relay.cpp,v 1.36 2004/08/29 15:33:53 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -431,6 +431,12 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 		const uint8_t *s_nonce = packet.GetAuthNonce ();
 		if ((s_nonce == NULL) || memcmp (s_nonce, probe.nonce, 8))
 			return 0;
+		if (packet.GetConfByte ())
+		{
+			syslog (LOG_ERR,
+				_("Authentication refused by server."));
+			return 0;
+		}
 
 		union teredo_addr newaddr;
 

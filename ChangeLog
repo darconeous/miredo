@@ -8,7 +8,10 @@
 	* libteredo/relay.cpp:
 	- fixed memory leak when recycling peer entry,
 	- fixed memory leak in Packet transmission,
-	- implemented client packet reception.
+	- implemented client packet reception,
+	- check confirmation byte from server,
+	* libteredo/teredo-udp.*:
+	- support for getting the confirmation byte in auth header.
 
 2004-08-28  Remi Denis-Courmont
 

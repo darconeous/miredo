@@ -1,6 +1,6 @@
 /*
  * teredo-udp.h - UDP sockets class declaration
- * $Id: teredo-udp.h,v 1.7 2004/08/27 16:21:10 rdenisc Exp $
+ * $Id: teredo-udp.h,v 1.8 2004/08/29 15:33:53 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -53,7 +53,7 @@ class TeredoPacket
 			struct ip6_hdr ip6;
 			uint8_t fill[65507];
 		} ipv6_buf;
-		uint8_t nonce_buf[8];
+		uint8_t nonce_buf[9];
 		struct teredo_orig_ind orig_buf;
 
 	public:
@@ -82,6 +82,14 @@ class TeredoPacket
 		const uint8_t *GetAuthNonce (void) const
 		{
 			return nonce;
+		}
+
+		/*
+		 * Return the value of the confirmation byte
+		 */
+		const uint8_t GetConfByte (void) const
+		{
+			return nonce[8];
 		}
 
 		/*
