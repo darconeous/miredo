@@ -41,6 +41,8 @@ class PacketsQueue
 
 		virtual int SendPacket (const void *p, size_t len) = 0;
 
+		void unsafe_Trash (struct packet_list *h);
+
 	protected:
 		PacketsQueue (size_t totalbytes);
 
@@ -52,9 +54,14 @@ class PacketsQueue
 		int Queue (const void *p, size_t len);
 
 		/*
-		 * Flishes the packet queue through SendPacket()
+		 * Flushes the packets queue through SendPacket()
 		 */
 		int Flush (void);
+
+		/*
+		 * Flushes the packets queue to nowhere.
+		 */
+		void Trash (void);
 
 		virtual ~PacketsQueue (void);
 };

@@ -29,6 +29,8 @@
 
 # include "queue.h"
 
+#include <syslog.h> //FIXME: remove
+
 PacketsQueue::PacketsQueue (size_t maxbytes)
 	: max (maxbytes), left (maxbytes), head (NULL), tail (NULL)
 {
@@ -52,6 +54,7 @@ PacketsQueue::Queue (const void *p, size_t len)
 		return -1;
 	}
 
+	syslog (LOG_DEBUG, "DEBUG: queueing packet (%u bytes)", len);
 	memcpy (d, p, len);
 	e->data = d;
 	e->len = len;
@@ -63,9 +66,10 @@ PacketsQueue::Queue (const void *p, size_t len)
 	if (len <= left)
 	{
 		left -= len;
-		if (head == NULL)
+		if (tail != NULL)
+			tail->next = e;
+		else
 			head = e;
-		tail->next = e;
 		tail = e;
 	}
 	else
@@ -92,6 +96,7 @@ PacketsQueue::Flush (void)
 	while (ptr != NULL)
 	{
 		retval |= (SendPacket (ptr->data, ptr->len) != (int)ptr->len);
+		syslog (LOG_DEBUG, "DEBUG: flushing packet (%u bytes)", ptr->len);
 
 		struct packet_list *buf = ptr->next;
 		free (ptr->data);
@@ -103,16 +108,38 @@ PacketsQueue::Flush (void)
 }
 
 
-PacketsQueue::~PacketsQueue (void)
+void
+PacketsQueue::Trash (void)
 {
-	pthread_mutex_destroy (&mutex);
+	struct packet_list *ptr;
 
-	while (head != NULL)
+	pthread_mutex_lock (&mutex);
+	left = max;
+	ptr = head;
+	head = NULL;
+	tail = NULL;
+	pthread_mutex_unlock (&mutex);
+
+	unsafe_Trash (ptr);
+}
+
+
+void
+PacketsQueue::unsafe_Trash (struct packet_list *ptr)
+{
+	while (ptr != NULL)
 	{
-		struct packet_list *buf = head;
-		head = buf->next;
+		struct packet_list *buf = ptr;
+		ptr = buf->next;
 		free (buf->data);
 		free (buf);
 	}
+}
+
+
+PacketsQueue::~PacketsQueue (void)
+{
+	pthread_mutex_destroy (&mutex);
+	unsafe_Trash (head);
 }
 
