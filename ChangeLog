@@ -5,6 +5,8 @@
 	- cleaned up.
 	* libteredo/relay.cpp:
 	- initial support for Teredo client qualification.
+	* libteredo/relay-packets.*:
+	- code split from libteredo/relay.cpp.
 
 2004-08-27  Remi Denis-Courmont
 
