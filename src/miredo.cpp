@@ -225,30 +225,11 @@ teredo_server_relay (IPv6Tunnel& tunnel, TeredoRelay *relay = NULL,
 uid_t unpriv_uid = 0;
 
 
-#define MIREDO_CLIENT 2
-#define MIREDO_CONE   1
-
 static int
-miredo_run (uint16_t bind_port, uint32_t bind_ip, uint32_t server_ip,
-		bool client, union teredo_addr *prefix, const char *ifname,
-		bool relay_on, bool cone)
+miredo_run (int mode, const char *ifname,
+		uint16_t bind_port, uint32_t bind_ip,
+		uint32_t server_ip, union teredo_addr *prefix)
 {
-	/* default values */
-#if 0
-	if (bind_port == 0)
-		/*
-		 * We use 3545 as a Teredo service port.
-		 * It is better to use a fixed port number for the
-		 * purpose of firewalling, rather than a pseudo-random
-		 * one (all the more as it might be a "dangerous"
-		 * often firewalled port, such as 1214 as it happened
-		 * to me once).
-		 */
-		bind_port = IPPORT_TEREDO + 1;
-#endif
-
-	if (!client && server_ip)
-			cone = true; // server mode implies no NAT
 
 #ifdef MIREDO_TEREDO_RELAY
 	MiredoRelay *relay = NULL;
@@ -289,7 +270,7 @@ miredo_run (uint16_t bind_port, uint32_t bind_ip, uint32_t server_ip,
 	}
 
 #ifdef MIREDO_TEREDO_CLIENT
-	if (client)
+	if (mode == TEREDO_CLIENT)
 	{
 		fd = miredo_privileged_process (tunnel, unpriv_uid);
 		if (fd == -1)
@@ -303,8 +284,9 @@ miredo_run (uint16_t bind_port, uint32_t bind_ip, uint32_t server_ip,
 #endif
 	{
 		if (tunnel.BringUp ()
-		 || tunnel.AddAddress (cone ? &teredo_cone : &teredo_restrict)
-		 || (relay_on && tunnel.AddRoute (&prefix->ip6, 32)))
+		 || tunnel.AddAddress (mode == TEREDO_RESTRICT
+		 			? &teredo_restrict : &teredo_cone)
+		 || (mode && tunnel.AddRoute (&prefix->ip6, 32)))
 		{
 			syslog (LOG_ALERT, _("Teredo routing failed:\n %s"),
 				_("You should be root to do that."));
@@ -322,7 +304,7 @@ miredo_run (uint16_t bind_port, uint32_t bind_ip, uint32_t server_ip,
 
 #ifdef MIREDO_TEREDO_SERVER
 	// Sets up server sockets
-	if (!client && server_ip)
+	if ((mode != TEREDO_CLIENT) && server_ip)
 	{
 		try
 		{
@@ -361,7 +343,7 @@ miredo_run (uint16_t bind_port, uint32_t bind_ip, uint32_t server_ip,
 
 #ifdef MIREDO_TEREDO_RELAY
 # ifdef MIREDO_TEREDO_CLIENT
-	if (client)
+	if (mode == TEREDO_CLIENT)
 	{
 		// Sets up client
 		try
@@ -376,7 +358,7 @@ miredo_run (uint16_t bind_port, uint32_t bind_ip, uint32_t server_ip,
 	}
 	else
 # endif /* ifdef MIREDO_TEREDO_CLIENT */
-	if (relay_on)
+	if (mode != TEREDO_DISABLED)
 	{
 		// Sets up relay
 		try
@@ -384,7 +366,8 @@ miredo_run (uint16_t bind_port, uint32_t bind_ip, uint32_t server_ip,
 			// FIXME: read union teredo_addr instead of prefix ?
 			relay = new MiredoRelay (&tunnel,
 						 prefix->teredo.prefix,
-						 bind_port, bind_ip, cone);
+						 bind_port, bind_ip,
+						 mode == TEREDO_CONE);
 		}
 		catch (...)
 		{
@@ -500,14 +483,26 @@ miredo (const char *confpath)
 		}
 
 		/* Default settings */
+		int mode = TEREDO_CLIENT;
 		char *ifname = NULL;
-		uint16_t bind_port = 0;
 		uint32_t bind_ip = INADDR_ANY, server_ip = 0;
-		bool relay_on = true, relay_cone = false, client = true;
 		int newfacility = LOG_DAEMON;
 		union teredo_addr prefix;
 		memset (&prefix, 0, sizeof (prefix));
 		prefix.teredo.prefix = htonl (DEFAULT_TEREDO_PREFIX);
+#if 0
+		/*
+		 * We use 3545 as a Teredo service port.
+		 * It is better to use a fixed port number for the
+		 * purpose of firewalling, rather than a pseudo-random
+		 * one (all the more as it might be a "dangerous"
+		 * often firewalled port, such as 1214 as it happened
+		 * to me once).
+		 */
+		uint16_t bind_port = IPPORT_TEREDO + 1;
+#else
+		uint16_t bind_port = 0;
+#endif
 
 		/* FIXME: newfacility */
 		// Apply syslog facility change if needed
@@ -518,18 +513,27 @@ miredo (const char *confpath)
 			openlog (ident, LOG_PID, facility);
 		}
 
-		if (!ParseIPv4 (cnf, "ServerAddress", &server_ip))
+		if (!ParseRelayType (cnf, "RelayType", &mode))
 		{
 			syslog (LOG_ALERT, _("Fatal configuration error"));
 			continue;
 		}
-		if (server_ip == 0)
+
+		if (mode == TEREDO_CLIENT)
 		{
-			client = false;
+			if (!ParseIPv4 (cnf, "ServerAddress", &server_ip))
+			{
+				syslog (LOG_ALERT,
+					_("Fatal configuration error"));
+				continue;
+			}
+
+			/* FIXME: DefaultRoute */
+		}
+		else
+		{
 			if (!ParseIPv4 (cnf, "ServerBindAddress", &server_ip)
-			 || !ParseIPv6 (cnf, "Prefix", &prefix.ip6)
-			 || !ParseRelayType (cnf, "RelayType",
-			 			&relay_on, &relay_cone))
+			 || !ParseIPv6 (cnf, "Prefix", &prefix.ip6))
 			{
 				syslog (LOG_ALERT,
 					_("Fatal configuration error"));
@@ -537,7 +541,7 @@ miredo (const char *confpath)
 			}
 		}
 
-		if (client || relay_on)
+		if (mode != TEREDO_DISABLED)
 		{
 			if (!ParseIPv4 (cnf, "BindAddress", &bind_ip))
 			{
@@ -573,13 +577,10 @@ miredo (const char *confpath)
 				continue;
 
 			case 0:
-				retval = miredo_run (bind_port, bind_ip,
-							server_ip, client,
-							&prefix,
-							ifname != NULL
-								? ifname
-								: ident,
-							relay_on, relay_cone);
+				retval = miredo_run (mode, ifname != NULL
+							? ifname : ident,
+							bind_port, bind_ip,
+							server_ip, &prefix);
 				closelog ();
 				exit (-retval);
 		}

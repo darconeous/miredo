@@ -321,8 +321,7 @@ ParseTeredoPrefix (MiredoConf& conf, const char *name, uint32_t *value)
 }
 
 
-bool ParseRelayType (MiredoConf& conf, const char *name, bool *enabled,
-			bool *cone)
+bool ParseRelayType (MiredoConf& conf, const char *name, int *type)
 {
 	unsigned line;
 	const char *val = conf.GetRawValue (name, &line);
@@ -331,14 +330,13 @@ bool ParseRelayType (MiredoConf& conf, const char *name, bool *enabled,
 		return true;
 
 	if (stricmp (val, "disabled") == 0)
-		*enabled = false;
-	else if (stricmp (val, "cone") == 0 || stricmp (val, "none") == 0)
-		*enabled = *cone = true;
+		*type = TEREDO_DISABLED;
+	else if (stricmp (val, "client") == 0)
+		*type = TEREDO_RESTRICT;
+	else if (stricmp (val, "cone") == 0)
+		*type = TEREDO_CONE;
 	else if (stricmp (val, "restricted") == 0)
-	{
-		*enabled = true;
-		*cone = false;
-	}
+		*type = TEREDO_RESTRICT;
 	else
 	{
 		syslog (LOG_ERR, _("Invalid relay type \"%s\" at line %u"),
