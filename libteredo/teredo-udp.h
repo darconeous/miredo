@@ -1,6 +1,6 @@
 /*
  * teredo-udp.h - UDP sockets class declaration
- * $Id: teredo-udp.h,v 1.4 2004/08/24 18:50:53 rdenisc Exp $
+ * $Id: teredo-udp.h,v 1.5 2004/08/26 15:04:51 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -222,15 +222,6 @@ class TeredoServerUDP : public TeredoCommonUDP
 			return fd_primary == -1 || fd_secondary == -1;
 		}
 };
-
-
-inline int
-TeredoServerUDP::ReplyPacket (const void *packet, size_t len,
-				bool use_secondary_ip) const
-{
-	return SendPacket (packet, len, GetClientIP (), GetClientPort (),
-				use_secondary_ip);
-}
 
 #endif /* ifndef MIREDO_TEREDO_UDP_H */
 
