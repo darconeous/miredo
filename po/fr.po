@@ -117,7 +117,7 @@ msgstr "Erreur de tunnel (SIOCSIFNAME): %m"
 #: libtun6/ipv6-tunnel.cpp:231
 #, c-format
 msgid "%s tunnel error (TUNSIFHEAD): %m"
-msgstr "Erreur du tunnel %s (TUNSIFHEAD): %s"
+msgstr "Erreur du tunnel %s (TUNSIFHEAD): %m"
 
 #: libtun6/ipv6-tunnel.cpp:245
 #, c-format
