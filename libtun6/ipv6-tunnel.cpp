@@ -874,7 +874,7 @@ int libtun6_driver_diagnose (char *errbuf)
 		return -1;
 	}
 	else
-	/* Linux retunrs ENODEV instead of ENXIO */
+	/* Linux returns ENODEV instead of ENXIO */
 	if ((errno == ENXIO) || (errno == ENODEV))
 	{
 		const char *specific;
