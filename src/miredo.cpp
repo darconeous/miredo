@@ -1,7 +1,7 @@
 /*
  * miredo.cpp - Unix Teredo server & relay implementation
  *              core functions
- * $Id: miredo.cpp,v 1.2 2004/06/15 16:09:22 rdenisc Exp $
+ * $Id: miredo.cpp,v 1.3 2004/06/16 08:38:48 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -197,6 +197,7 @@ get_relay_ipv6 (const char *name)
 
 /*
  * Initialization stuff
+ * (client_port is is host byte order)
  */
 uid_t unpriv_uid = 0;
  
@@ -219,8 +220,6 @@ miredo_run (const char *ipv6_name, uint16_t client_port,
 		 * to me once).
 		 */
 		client_port = IPPORT_TEREDO + 1;
-	else
-		client_port = htons (client_port);
 
 	if (ifname == NULL)
 		ifname = "ter%d";
@@ -304,15 +303,24 @@ miredo_run (const char *ipv6_name, uint16_t client_port,
 	}
 		
 
-	if (conf.relay_udp->ListenPort (client_port))
+	if (conf.relay_udp->ListenPort (htons (client_port)))
 	{
 		syslog (LOG_ALERT,
-			_("Teredo service port failure\n"));
+			_("Teredo service port failure: "
+			"cannot open UDP port %u\n"), client_port);
 		syslog (LOG_NOTICE, _("Make sure another instance "
 			"of the program is not already running.\n"));
 		goto abort;
 	}
 
+	// FIXME: should not be needed, not that manual way
+	if (get_relay_ipv6 (ipv6_name))
+	{
+		syslog (LOG_ALERT,
+			_("Teredo IPv6 relay address not properly set.\n"));
+		goto abort;
+	}
+	
 	retval = teredo_server_relay ();
 	
 abort:
