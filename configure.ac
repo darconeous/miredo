@@ -19,7 +19,7 @@ dnl *  along with this program; if not, you can get it from:              *
 dnl *  http://www.gnu.org/copyleft/gpl.html                               *
 dnl ***********************************************************************
 
-AC_COPYRIGHT([Copyright (C) 2004 Rémi Denis-Courmont])
+AC_COPYRIGHT([Copyright (C) 2004 Remi Denis-Courmont])
 AC_INIT([miredo], [0.3.1], [rdenis@simphalempin.com])
 AC_PREREQ(2.59)
 INVOCATION="$0 $*"
@@ -80,6 +80,7 @@ case $host_os in
 esac
 
 # Checks for header files.
+AC_CHECK_HEADERS([sys/capability.h])
 
 
 # Checks for typedefs, structures, and compiler characteristics.
@@ -88,9 +89,20 @@ RDC_STRUCT_SOCKADDR_LEN
 
 
 # Checks for library functions.
+
+# Socket stuff
 RDC_FUNC_SOCKET
 AC_SEARCH_LIBS(inet_ntoa, [nsl])
 dnl AC_SEARCH_LIBS(inet_aton, [resolv])
+
+# POSIX capabilities
+AC_CHECK_LIB(cap, cap_set_proc)
+AH_BOTTOM([
+#ifndef HAVE_SYS_CAPABILITY_H
+# undef HAVE_LIBCAP
+#endif
+])
+
 RDC_REPLACE_FUNC_GETOPT_LONG
 AC_CHECK_FUNCS([clearenv])
 

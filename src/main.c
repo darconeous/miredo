@@ -44,6 +44,9 @@
 #include <unistd.h>
 #include <errno.h> /* errno */
 #include <fcntl.h> /* O_RDONLY */
+#ifdef HAVE_SYS_CAPABILITY_H
+# include <sys/capability.h>
+#endif
 
 #include <pwd.h> /* getpwnam() */
 #include <grp.h> /* setgroups() */
@@ -356,7 +359,6 @@ init_security (const char *username, const char *rootdir, int nodetach)
 		}
 	}
 
-	/* TODO: use POSIX capabilities */
 	/* Unpriviledged user (step 2) */
 	if (seteuid (unpriv_uid))
 	{
@@ -370,6 +372,37 @@ init_security (const char *username, const char *rootdir, int nodetach)
 			"root, the system administrative user.\n"), stderr);
 		return -1;
 	}
+
+	/* POSIX.1e capabilities support */
+#ifdef HAVE_LIBCAP
+	{
+		cap_t s;
+		cap_value_t v[] = { CAP_SETUID, CAP_NET_ADMIN };
+
+		s = cap_init ();
+		if (s == NULL)
+		{
+			/* Unlikely */
+			perror (_("Fatal error"));
+			return -1;
+		}
+		if (cap_set_flag (s, CAP_PERMITTED, 2, v, CAP_SET))
+		{
+			/* Unlikely */
+			perror (_("Fatal error"));
+			cap_free (s);
+			return -1;
+		}
+
+		if (cap_set_proc (s))
+		{
+			perror (_("Setting permitted privileges"));
+			cap_free (s);
+			return -1;
+		}
+		cap_free (s);
+	}
+#endif
 
 	/* 
 	 * Detaches. This is not really a security thing, but it is simpler to

@@ -29,6 +29,9 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <netinet/in.h>
+#if HAVE_SYS_CAPABILITY_H
+# include <sys/capability.h>
+#endif
 
 #include <libtun6/ipv6-tunnel.h>
 #include <libteredo/teredo.h>
@@ -38,6 +41,10 @@ int
 miredo_privileged_process (IPv6Tunnel& tunnel, uid_t unpriv)
 {
 	int fd[2];
+#ifdef HAVE_LIBCAP
+	cap_t s;
+	cap_value_t v;
+#endif
 
 	if (pipe (fd))
 		return -1;
@@ -76,7 +83,20 @@ miredo_privileged_process (IPv6Tunnel& tunnel, uid_t unpriv)
 		p_newloc = IN6_IS_TEREDO_ADDR_CONE (&newter)
 				? &teredo_cone : &teredo_restrict;
 
+		/* gets privileges */
+#ifdef HAVE_LIBCAP
+		s = cap_get_proc ();
+
+		if (s == NULL)
+			goto die;
+		v = CAP_NET_ADMIN;
+		cap_set_flag (s, CAP_EFFECTIVE, 1, &v, CAP_SET);
+
+		cap_set_proc (s);
+		cap_free (s);
+#else
 		seteuid (0);
+#endif
 
 		if (memcmp (&oldter, &in6addr_any, 16))
 		{
@@ -96,15 +116,44 @@ miredo_privileged_process (IPv6Tunnel& tunnel, uid_t unpriv)
 		else
 			tunnel.BringDown ();
 
+		/* leaves privileges */
+#ifdef HAVE_LIBCAP
+		s = cap_get_proc ();
+
+		if (s == NULL)
+			goto die;
+		v = CAP_NET_ADMIN;
+		cap_set_flag (s, CAP_EFFECTIVE, 1, &v, CAP_CLEAR);
+		cap_set_proc (s);
+		cap_free (s);
+#else
 		seteuid (unpriv);
+#endif
 
 		p_oldloc = p_newloc;
 		memcpy (&oldter, &newter, 16);
 	}
 
 die:
+	/* definitely leaves privileges */
+#ifdef HAVE_LIBCAP
+	s = cap_get_proc ();
+
+	if (s != NULL)
+	{
+		v = CAP_NET_ADMIN;
+		cap_set_flag (s, CAP_EFFECTIVE, 1, &v, CAP_CLEAR);
+
+		v = CAP_NET_ADMIN;
+		cap_set_flag (s, CAP_PERMITTED, 1, &v, CAP_CLEAR);
+
+		cap_set_proc (s);
+		cap_free (s);
+	}
+#else
 	seteuid (0);
 	setuid (unpriv);
+#endif
 
 	close (fd[0]);
 	tunnel.CleanUp ();

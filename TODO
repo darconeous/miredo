@@ -17,7 +17,6 @@ Security:
 - secure qualification support,
 - access control,
 - peer list size limit,
-- libcap / POSIX capabilities support,
 
 Conformance:
 -------------

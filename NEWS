@@ -1,5 +1,5 @@
 RELEASE NOTES for Miredo
-version 0.3.0 (beta version)
+version 0.3.1 (beta version)
 =============================
 $Id$
 
@@ -16,6 +16,14 @@ Thanks for your help.
 informations on this program, see README. For syntax details and
 changes, run 'miredo -h' to get help. For detailled internal changes, see
 ChangeLog.
+
+=============================================================================
+BETA RELEASE 0.3.0 : Major feature enhancement
+
+# POSIX.1e capabilities support :
+  If you have libcap on your system, miredo will now use POSIX.1e
+  capabilities. That should reduce the possible impact of a hypothetic
+  compromise of the program.
 
 =============================================================================
 BETA RELEASE 0.3.0 : Major feature enhancement
