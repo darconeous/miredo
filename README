@@ -1,6 +1,6 @@
 Miredo : Teredo for Linux
 ==========================
-$Id: README,v 1.6 2004/07/13 09:53:36 rdenisc Exp $
+$Id: README,v 1.7 2004/07/14 14:23:56 rdenisc Exp $
 Copyright (C) 2004 Remi Denis-Courmont.
 
   Welcome to Miredo's introduction manual!
@@ -45,6 +45,42 @@ Microsoft provides a Teredo client for Windows XP SP1 in its
 Microsoft IPv6 : Teredo overview.
 
 
+Setting up Miredo
+------------------
+
+1) System user:
+
+  Unless you ran the configure script with command line option
+'--disable-miredo-user', Miredo will try to SetUID as "miredo", so you
+should create a miredo system user if it doesn't exists.
+
+
+2) Chroot jail:
+
+  Unless you started miredo with command line option '-t /', or used
+the already mentioned configure option '--disable-miredo-user', miredo
+will try to chroot itself.
+  Indeed, to mitigate risks and reduce your system's exposure, it is
+recommended to run miredo inside a chroot jail. By the way, miredo will
+try to chroot to its user's home by default.
+
+  For the chroot jail to work properly, you should put these device
+files (assuming the home directory is /var/run/miredo):
+
+/var/run/miredo/dev/null
+/var/run/miredo/dev/net/tun		(Linux only)
+/var/run/miredo/dev/tun0, ...tun15	(FreeBSD only)
+
+  root requires read/write access to these files. The miredo
+unprivileged user doesn't.
+
+  Additionnaly, you must tell your syslog daemon to listen to
+/var/run/miredo/dev/log. That is usually done by adding that option to
+your syslogd upon start: '-a /var/run/miredo/dev/log'. If you don't do
+so, you won't get any logging information from Miredo (nor if it hasn't
+read-write access to dev/log, but it should no problem).
+
+
 Usage
 ------
   Miredo must be started by root. Miredo will always detach and run in the
@@ -55,7 +91,7 @@ background. Read your system logs to see what happens.
 may be able to run a Teredo server. To start the program as a Teredo
 server, type the following command:
 
-# src/miredo -s 9.0.0.2 -u root
+# src/miredo -s 9.0.0.2
 
 where it is assumed that 9.0.0.2 will be your server's primary IPv4
 address, and 9.0.0.3 will be your server's secondary IPv4 address.
@@ -64,7 +100,7 @@ address, and 9.0.0.3 will be your server's secondary IPv4 address.
   Otherwise, it is possible to run a Teredo relay. To do so, you only
 need to start miredo without parameters:
 
-# src/miredo -u root
+# src/miredo
 
   That will created a virtual "teredo" networking interface which will
 accept IPv6 traffic toward Teredo clients. Note that you must NOT be
@@ -72,28 +108,6 @@ behind a "restricted NAT" for this to work properly.
 NOTE: If you are using FreeBSD, you will probably have to create a
 route to the Teredo prefix (3ffe:831f::/32 at the moment) through the
 tunnel by hand.
-
-  If you don't use '-u root', Miredo will try to setuid as miredo,
-which must then exists on your system.
-
-
-Securing Miredo
-----------------
-  To mitigate risks and reduce exposure to potential hacking threat,
-you should consider creating a "miredo" user on your system (that
-should not be allowed to login). In its home, you should put these
-files (assuming the home directory is /var/run/miredo):
-
-/var/run/miredo/dev/null
-/var/run/miredo/dev/net/tun		(Linux-only)
-/var/run/miredo/dev/tun0...tun15	(FreeBSD)
-
-  Additionnaly, you must tell your syslog daemon to listen to
-/var/run/miredo/dev/log. That is usually done by adding that option to
-your syslogd upon start: '-a /var/run/miredo/dev/log'.
-If you don't do so, you won't get any logging information from Miredo.
-  You can then run miredo inside a chroot jail (use option command line
-option -t).
 
 
 -- 

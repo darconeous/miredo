@@ -1,7 +1,7 @@
 /*
  * miredo.cpp - Unix Teredo server & relay implementation
  *              core functions
- * $Id: miredo.cpp,v 1.21 2004/07/12 08:48:30 rdenisc Exp $
+ * $Id: miredo.cpp,v 1.22 2004/07/14 14:23:56 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -453,7 +453,6 @@ init_signals (void)
  * TODO: really implement reloading
  */
 static const char *const daemon_ident = "miredo";
-
 
 extern "C" int
 miredo (uint16_t client_port, const char *server_name,

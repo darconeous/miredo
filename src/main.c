@@ -1,7 +1,7 @@
 /*
  * main.c - Unix Teredo server & relay implementation
  *          command line handling and core functions
- * $Id: main.c,v 1.16 2004/07/14 13:51:10 rdenisc Exp $
+ * $Id: main.c,v 1.17 2004/07/14 14:23:56 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -244,6 +244,8 @@ init_security (const char *username, const char *rootdir, int nodetach)
 
 	close (fd); // fd > 2
 
+	/* From then on, it is safe to write to stderr */
+
 	/* Unpriviledged user (step 1) */
 	errno = 0;
 	pw = getpwnam (username);
@@ -306,10 +308,21 @@ init_security (const char *username, const char *rootdir, int nodetach)
 
 		if (stat ("/dev/log", &s) || !S_ISSOCK (s.st_mode))
 		{
-			fputs (_("Warning: /dev/log not found or invalid:\n"
-				"Logging will probably not work.\n"), stderr);
+			fprintf (stderr, _(
+				"Warning: /dev/log not found or invalid: "
+				"logging will probably not work.\n"
+				"Try adding '-a %s/dev/log'\n to your syslogd "
+				"command line to fix that.\n"), rootdir);
 			chroot_notice ();
 		}
+	}
+
+	/* TODO: use POSIX capabilities */
+	/* Unpriviledged user (step 2) */
+	if (seteuid (unpriv_uid))
+	{
+		perror (_("SetUID to unpriviledged user"));
+		return -1;
 	}
 
 	/* 
@@ -331,14 +344,6 @@ init_security (const char *username, const char *rootdir, int nodetach)
 			default:
 				exit (0);
 		}
-	}
-
-	/* TODO: use POSIX capabilities */
-	/* Unpriviledged user (step 2) */
-	if (seteuid (unpriv_uid))
-	{
-		perror (_("SetUID to unpriviledged user"));
-		return -1;
 	}
 
 	/*
