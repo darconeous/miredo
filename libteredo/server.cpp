@@ -1,6 +1,6 @@
 /*
  * server.cpp - Handling of a single Teredo datagram (server-side).
- * $Id: server.cpp,v 1.2 2004/07/31 19:58:43 rdenisc Exp $
+ * $Id: server.cpp,v 1.3 2004/08/24 18:48:34 rdenisc Exp $
  */
 
 /***********************************************************************
@@ -36,7 +36,6 @@
 
 #include "teredo-udp.h"
 #include "server.h"
-#include <libtun6/ipv6-tunnel.h> // FIXME: remove
 #include <v4global.h>
 
 static uint16_t
