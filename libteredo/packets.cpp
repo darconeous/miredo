@@ -396,7 +396,7 @@ BuildICMPv6Error (struct ip6_hdr *out, const struct in6_addr *src,
 {
 	if (inlen + sizeof (struct ip6_hdr) + sizeof (icmp6_hdr) > 1280)
 		inlen = 1280 - (sizeof (struct ip6_hdr) + sizeof (icmp6_hdr));
-	uint16_t len = sizeof (struct ip6_hdr) + sizeof (icmp6_hdr) + inlen;
+	uint16_t len = sizeof (icmp6_hdr) + inlen;
 
 	out->ip6_flow = htonl (0x60000000);
 	out->ip6_plen = htons (len);
@@ -412,8 +412,10 @@ BuildICMPv6Error (struct ip6_hdr *out, const struct in6_addr *src,
 	h->icmp6_cksum = 0;
 	h->icmp6_data32[0] = 0;
 
-	memcpy (h + 1, in, inlen);
+	len += sizeof (struct ip6_hdr);
+	memcpy (h + 1, in, len);
 
 	h->icmp6_cksum = icmp6_checksum (out, h);
+	syslog (LOG_DEBUG, "DEBUG: resuming: %x", (unsigned)icmp6_checksum (out, h));
 	return len;
 }
