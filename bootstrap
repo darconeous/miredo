@@ -1,16 +1,9 @@
-#!/usr/bin/make -f
+#!/bin/sh
 
-all: configure config.h.in Makefile.in
+set -e
 
-aclocal.m4: configure.ac
-	aclocal -I m4
-
-configure: configure.ac aclocal.m4
-	autoconf
-
-config.h.in: configure.ac
-	autoheader
-
-Makefile.in: Makefile.am */Makefile.am configure.ac
-	automake --add-missing
+aclocal -I m4
+autoconf
+autoheader
+automake --add-missing
 
