@@ -1,6 +1,6 @@
 /*
  * relay.cpp - Teredo relay peers list definition
- * $Id: relay.cpp,v 1.37 2004/08/29 16:15:32 rdenisc Exp $
+ * $Id: relay.cpp,v 1.38 2004/08/29 16:59:37 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -323,7 +323,7 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
 		p->flags.flags.nonce = 1;
 
 		// FIXME: queue packet
-		// FIXME: re-send echo request if needed
+		// FIXME: re-send echo request if no response
 		// FIXME: re-use the same nonce
 		return SendPing (sock, &addr, &dst->ip6, p->nonce);
 	}
@@ -504,6 +504,7 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 				gettext (probe.state == PROBE_CONE
 				? N_("cone") : N_("restricted")));
 			probe.state = QUALIFIED;
+			probe.next.tv_sec += SERVER_PING_DELAY - PROBE_DELAY;
 			NotifyUp (&newaddr.ip6);
 		}
 
