@@ -1,5 +1,5 @@
 RELEASE NOTES for Miredo
-version 0.2.3 (beta version)
+version 0.3.0 (beta version)
 =============================
 $Id$
 
@@ -18,7 +18,7 @@ changes, run 'miredo -h' to get help. For detailled internal changes, see
 ChangeLog.
 
 =============================================================================
-BETA RELEASE 0.2.3 : Major feature enhancement
+BETA RELEASE 0.3.0 : Major feature enhancement
 
 # Proper queueing of packets :
   That should speed up connectivity a bit, and fix various connectivity
