@@ -1,6 +1,6 @@
 /*
  * server.cpp - Handling of a single Teredo datagram (server-side).
- * $Id: server.cpp,v 1.4 2004/08/24 19:12:17 rdenisc Exp $
+ * $Id: server.cpp,v 1.5 2004/08/26 15:03:57 rdenisc Exp $
  */
 
 /***********************************************************************
@@ -199,7 +199,8 @@ teredo_send_ra (const TeredoServerUDP& sock, const struct in6_addr *dest_ip6,
 	if (IN6_IS_TEREDO_ADDR_CONE (dest_ip6))
 		use_secondary_ip = !use_secondary_ip;
 
-	if (!sock.ReplyPacket (packet, ptr - packet, use_secondary_ip)) 
+	if (!sock.SendPacket (packet, ptr - packet, sock.GetClientIP (),
+				sock.GetClientPort (), use_secondary_ip))
 	{
 #if 0
 		struct in_addr inp;
