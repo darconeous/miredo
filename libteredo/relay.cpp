@@ -1,6 +1,6 @@
 /*
  * relay.cpp - Teredo relay peers list definition
- * $Id: relay.cpp,v 1.22 2004/08/26 15:19:11 rdenisc Exp $
+ * $Id: relay.cpp,v 1.23 2004/08/27 10:21:59 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -501,11 +501,13 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
  */
 int TeredoRelay::ReceivePacket (void)
 {
-	if (sock.ReceivePacket ())
+	TeredoPacket packet;
+
+	if (sock.ReceivePacket (packet))
 		return -1;
 
 	size_t length;
-	const struct ip6_hdr *buf = sock.GetIPv6Header (length);
+	const struct ip6_hdr *buf = packet.GetIPv6Header (length);
 	struct ip6_hdr ip6;
 
 	// Checks packet
@@ -517,7 +519,11 @@ int TeredoRelay::ReceivePacket (void)
 	 || ((ntohs (ip6.ip6_plen) + sizeof (ip6)) != length))
 		return 0; // malformatted IPv6 packet
 
-	/* FIXME: handle server RA for Qualification */
+	if (!IsRunning ())
+	{
+		/* FIXME: handle server RA for Qualification */
+		return 0;
+	}
 
 	/*
 	 * The specification says we "should" check that the packet
@@ -526,12 +532,12 @@ int TeredoRelay::ReceivePacket (void)
 	 * absolutely NOT check that.
 	 */
 
-	if (IsClient () && (sock.GetClientIP () == GetServerIP ())
-	 && (sock.GetClientPort () == htons (IPPORT_TEREDO)))
+	if (IsClient () && (packet.GetClientIP () == GetServerIP ())
+	 && (packet.GetClientPort () == htons (IPPORT_TEREDO)))
 	{
 		gettimeofday (&server_interaction, NULL);
 
-		const struct teredo_orig_ind *ind = sock.GetOrigInd ();
+		const struct teredo_orig_ind *ind = packet.GetOrigInd ();
 		if (ind != NULL)
 			/* FIXME: perform direct IPv6 connectivity test */;
 	}
@@ -545,8 +551,8 @@ int TeredoRelay::ReceivePacket (void)
 
 	// Checks source IPv6 address
 	if ((src->teredo.prefix != GetPrefix ())
-	 || !IN6_MATCHES_TEREDO_CLIENT (src, sock.GetClientIP (),
-		 			sock.GetClientPort ()))
+	 || !IN6_MATCHES_TEREDO_CLIENT (src, packet.GetClientIP (),
+		 			packet.GetClientPort ()))
 		return 0;
 
 	// Checks peers list

@@ -1,6 +1,6 @@
 /*
  * teredo-udp.h - UDP sockets class declaration
- * $Id: teredo-udp.h,v 1.5 2004/08/26 15:04:51 rdenisc Exp $
+ * $Id: teredo-udp.h,v 1.6 2004/08/27 10:21:59 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -39,7 +39,7 @@
 
 # include <libteredo/teredo.h>
 
-class TeredoCommonUDP
+class TeredoPacket
 {
 	private:
 		struct teredo_orig_ind *orig;
@@ -56,24 +56,16 @@ class TeredoCommonUDP
 		uint8_t nonce_buf[8];
 		struct teredo_orig_ind orig_buf;
 
-	protected:
-		/*
-		 * Receive a packet. Blocking function.
-		 * FIXME: re-entrancy
-		 */
-		int ReceivePacket (int fd);
-
 	public:
-		TeredoCommonUDP ()
-		{
-		}
-
-		virtual ~TeredoCommonUDP (void);
+		/*
+		 * Receives and parses a Teredo packet from file descriptor
+		 * fd. This is not thread-safe (the object should be locked).
+		 */
+		int Receive (int fd);
 
 		/*
 		 * Returns a pointer to the IPv6 header of the packet
 		 * last received with ReceivePacket().
-		 * FIXME: this is utterly contradictory with re-entrant design
 		 */
 		const struct ip6_hdr *GetIPv6Header (size_t& len) const
 		{
@@ -123,7 +115,7 @@ class TeredoCommonUDP
 };
 
 
-class TeredoRelayUDP : public TeredoCommonUDP
+class TeredoRelayUDP
 {
 	private:
 		int fd;
@@ -133,12 +125,14 @@ class TeredoRelayUDP : public TeredoCommonUDP
 		{
 		}
 
-		virtual ~TeredoRelayUDP (void);
+		~TeredoRelayUDP (void);
 
+		// Not thread-safe (you MUST lock the object when calling):
 		int ListenPort (uint16_t port = 0);
 
+		// Thread safe functions:
 		int RegisterReadSet (fd_set *readset) const;
-		int ReceivePacket (void);
+		int ReceivePacket (TeredoPacket& packet) const;
 		int SendPacket (const void *packet, size_t len,
 				uint32_t dest_ip, uint16_t dest_port) const;
 
@@ -149,7 +143,7 @@ class TeredoRelayUDP : public TeredoCommonUDP
 };
 
 
-class TeredoServerUDP : public TeredoCommonUDP
+class TeredoServerUDP
 {
 	private:
 		int fd_primary, fd_secondary;
@@ -161,11 +155,12 @@ class TeredoServerUDP : public TeredoCommonUDP
 		{
 		}
 
-		virtual ~TeredoServerUDP (void); // closes sockets
+		~TeredoServerUDP (void); // closes sockets
 
 		/* 
 		 * Opens 2 UDP sockets on Teredo port.
-		 * Return 0 on success, -1 on error.
+		 * Return 0 on success, -1 on error. Not thread-safe
+		 * (you MUST lock the object when calling).
 		 */
 		int ListenIP (uint32_t ip1, uint32_t ip2);
 
@@ -173,6 +168,7 @@ class TeredoServerUDP : public TeredoCommonUDP
 		 * Registers sockets in an fd_set for use with
 		 * select(). Returns the "biggest" file descriptor
 		 * registered (useful as the first parameter to selcet()).
+		 * Thread-safe.
 		 */
 		int RegisterReadSet (fd_set *readset) const;
 
@@ -183,8 +179,9 @@ class TeredoServerUDP : public TeredoCommonUDP
 		 *
 		 * Returns 0 on success, -1 if no packet were to be received
 		 * or they were not valid Terdo-encapsulated-packets.
+		 * FIXME: NOT thread-safe
 		 */
-		int ReceivePacket (void);
+		int ReceivePacket (TeredoPacket& packet);
 
 		/*
 		 * Sends an UDP packet at <packet>, of length <len>
@@ -193,24 +190,16 @@ class TeredoServerUDP : public TeredoCommonUDP
 		 * If use_secondary_ip is true, the secondary server
 		 * adress/socket will be used to send the packet
 		 * (used to send Router Advertisement during the qualification
-		 * of a Teredo client).
+		 * of a Teredo client). Thread-safe.
 		 */
 		int SendPacket (const void *packet, size_t len,
 				uint32_t dest_ip, uint16_t port,
 				bool use_secondary_ip = false) const;
 
 		/*
-		 * Sends an UDP packet at <packet>, of length <len>
-		 * to the source of the last received packet with
-		 * ReceivePacket().
-		 */
-		int ReplyPacket (const void *packet, size_t len,
-				bool use_secondary_ip = false) const;
-
-
-		/*
 		 * Returns true if the packet was received on the
 		 * secondary server IP address.
+		 * FIXME: not thread-safe by design
 		 */
 		bool WasSecondaryIP (void) const
 		{

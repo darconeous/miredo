@@ -1,3 +1,10 @@
+2004-27-08  Remi Denis-Courmont
+
+	* libteredi/teredo-udp.*:
+	- replaced thread-unsafe by design TeredoCommonUDP class,
+	  with TeredoPacket: Smaller memory footprint,
+	  libteredo nearly thread-safe.
+
 2004-25-08  Remi Denis-Courmont
 
 	* libterdo/relay.cpp, configure.ac, src/Makefile.am:

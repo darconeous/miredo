@@ -1,6 +1,6 @@
 /*
  * teredo-udp.cpp - UDP sockets class definition
- * $Id: teredo-udp.cpp,v 1.4 2004/08/24 18:53:52 rdenisc Exp $
+ * $Id: teredo-udp.cpp,v 1.5 2004/08/27 10:21:59 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -114,18 +114,13 @@ SendUDPPacket (int fd, const void *packet, size_t plen,
 }
 
 
-/*** TeredoCommonUDP implementation ***/
-TeredoCommonUDP::~TeredoCommonUDP (void)
-{
-}
-
+/*** TeredoPacket implementation ***/
 
 /*
  * Parses a Teredo packet header. Blocking function.
- * FIXME: re-entrancy
  */
 int
-TeredoCommonUDP::ReceivePacket (int fd)
+TeredoPacket::Receive (int fd)
 {
 	uint8_t buffer[65507];
 	int length;
@@ -249,7 +244,7 @@ TeredoRelayUDP::RegisterReadSet (fd_set *readset) const
 
 
 int
-TeredoRelayUDP::ReceivePacket (void)
+TeredoRelayUDP::ReceivePacket (TeredoPacket& packet) const
 {
 	if (fd != -1)
 	{
@@ -268,7 +263,7 @@ TeredoRelayUDP::ReceivePacket (void)
 		// blocking!!)
 		// and make this thread-blocking-safe.
 		if (select (fd + 1, &set, NULL, NULL, &tv) == 1)
-			return TeredoCommonUDP::ReceivePacket (fd);
+			return packet.Receive (fd);
 	}
 	return -1;
 }
@@ -346,8 +341,9 @@ int TeredoServerUDP::RegisterReadSet (fd_set *readset) const
 }
 
 
+// FIXME: re-entrancy (regarding was_secondary)
 int
-TeredoServerUDP::ReceivePacket (void)
+TeredoServerUDP::ReceivePacket (TeredoPacket& packet)
 {
 	/* Is there a packet on any of the UDP sockets? */
 	fd_set set;
@@ -372,7 +368,7 @@ TeredoServerUDP::ReceivePacket (void)
 		was_secondary = true;
 	}
 	
-	return (fd == -1) ? -1 : TeredoCommonUDP::ReceivePacket (fd);
+	return (fd == -1) ? -1 : packet.Receive (fd);
 }
 
 
