@@ -600,6 +600,7 @@ miredo (const char *confpath)
 			syslog (LOG_NOTICE, _("Exiting on signal %d (%s)"),
 				should_exit, strsignal (should_exit));
 
+			should_exit = 0;
 			retval = 0;
 		}
 		else
@@ -608,6 +609,8 @@ miredo (const char *confpath)
 			syslog (LOG_NOTICE, _(
 				"Reloading configuration on signal %d (%s)"),
 				should_reload, strsignal (should_reload));
+
+			should_reload = 0;
 			retval = 2;
 		}
 		else
