@@ -1,10 +1,7 @@
 /*
  * main.c - Unix Teredo server & relay implementation
  *          command line handling and core functions
- * $Id: main.c,v 1.23 2004/08/26 09:37:54 rdenisc Exp $
- *
- * See "Teredo: Tunneling IPv6 over UDP through NATs"
- * for more information
+ * $Id$
  */
 
 /***********************************************************************
@@ -211,7 +208,7 @@ init_security (const char *username, const char *rootdir, int nodetach)
 		username = MIREDO_DEFAULT_USERNAME; // default user name
 #else
 		username = "root";
-		if (rootdir == NULL) // do not chroot to "/root"
+		if (rootdir == NULL) // do not chroot to "~root"
 			rootdir = "/";
 #endif	
 	}
@@ -282,23 +279,28 @@ init_security (const char *username, const char *rootdir, int nodetach)
 
 	/* Unpriviledged group */
 	errno = 0;
-	if (setgid  (pw->pw_gid) || setgroups (0, NULL))
+	if (setgid (pw->pw_gid))
 	{
 		fprintf (stderr, _("SetGID to group ID %u: %s\n"),
 				(unsigned)pw->pw_gid, strerror (errno));
 		fputs (_("Error: This program tried to change its system\n"
 			"group(s) security context but it failed.\n"
 			"This is usually an indication that you are trying\n"
-			"to start the program as an unprivileged user.\n"
-			"This program should normally be started only by\n"
-			"root, the system administrative user.\n"), stderr);
+			"to start the program as an user with insufficient\n"
+			"system privileges. This program should normally be\n"
+			"started by root.\n"), stderr);
 		return -1;
 	}
 
-	/* Changes root directory, then current directory to '/' */
+	/* Leaves other group privileges.
+	 * This fails if the user is not root. */
+	setgroups (0, NULL);
+
+	/* Changes root directory to rootdir (if it is not '/'),
+	 * then current directory to '/' */
 	if (rootdir == NULL)
 		rootdir = pw->pw_dir;
-	if (chroot (rootdir) || chdir ("/"))
+	if ((strcmp ("/", rootdir) && chroot (rootdir)) || chdir ("/"))
 	{
 		fprintf (stderr, _("Root directory jail in %s: %s\n"),
 				rootdir, strerror (errno));
