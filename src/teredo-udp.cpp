@@ -1,6 +1,6 @@
 /*
  * teredo-udp.cpp - UDP sockets class definition
- * $Id: teredo-udp.cpp,v 1.5 2004/07/11 09:10:18 rdenisc Exp $
+ * $Id: teredo-udp.cpp,v 1.6 2004/07/11 10:08:13 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -153,6 +153,7 @@ MiredoCommonUDP::ReceivePacket (int fd)
 			}
 
 			// Teredo Origin Indication
+			// FIXME: may cause Bus Error later
 			case teredo_orig_ind:
 			{
 				if (ip6len < 6)
@@ -169,6 +170,7 @@ MiredoCommonUDP::ReceivePacket (int fd)
 		}
 	}
 
+	// FIXME: may cause Bus Error later
 	ip6 = (struct ip6_hdr *)buf;
 
 	return 0;

@@ -1,6 +1,6 @@
 Incomplete raw ToDo list:
 ==========================
-$Id: TODO,v 1.6 2004/06/27 10:25:24 rdenisc Exp $
+$Id: TODO,v 1.7 2004/07/11 10:08:13 rdenisc Exp $
 
 Features:
 ----------
@@ -8,12 +8,10 @@ Features:
 - some statistics,
 - automatic relay IPv6 address configuration,
 - automatic relay IPv6 address re-configuration/update,
-- signals handling,
-- Teredo client support.
+- Teredo client support,
 
 Security:
 ----------
-- chroot() support,
 - secure qualification support,
 - access control,
 

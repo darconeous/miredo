@@ -1,7 +1,7 @@
 /*
  * miredo.cpp - Unix Teredo server & relay implementation
  *              core functions
- * $Id: miredo.cpp,v 1.18 2004/07/10 17:52:07 rdenisc Exp $
+ * $Id: miredo.cpp,v 1.19 2004/07/11 10:08:13 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -49,7 +49,7 @@
 #include "teredo.h" // FIXME: move AddRoute to <relay.cpp>
 #include "teredo-udp.h"
 #include "libtun6/ipv6-tunnel.h"
-#include "server_pkt.h"
+#include "server.h"
 #include "common_pkt.h" // is_ipv4_global_unicast() -- FIXME: code clean up
 #include "relay.h"
 
@@ -113,13 +113,18 @@ static IPv6Tunnel *ipv6_tunnel = NULL;
 static int
 teredo_server_relay (void)
 {
-	MiredoRelay relay (conf.prefix); // TODO; probably setup earlier
+	MiredoRelay relay (conf.prefix, relay_udp);
+	// TODO; probably setup earlier; dynamic (relay_udp == NULL ?)
+	relay.SetTunnel (ipv6_tunnel);
 
-	if (relay_udp != NULL)
+	MiredoServer server; // FIXME: not always needed
+	if (server_udp != NULL)
 	{
-		relay.SetSocket (relay_udp);
-		relay.SetTunnel (ipv6_tunnel);
-	}
+		server.SetPrefix (conf.prefix);
+		server.SetServerIP (conf.server_ip);
+		server.SetTunnel (ipv6_tunnel);
+		server.SetSocket (server_udp);
+	}	
 
 	/* Main loop */
 	int exitcode = 0;
@@ -159,7 +164,7 @@ teredo_server_relay (void)
 		if (server_udp != NULL)
 		{
 			if (server_udp->ReceivePacket (&readset) == 0)
-				handle_server_packet (server_udp);
+				server.ReceivePacket ();
 		}
 		
 		if (relay_udp != NULL)
@@ -329,7 +334,7 @@ miredo_run (uint16_t client_port, const char *server_name,
 		goto abort;
 	}
 
-	conf.tunnel = (ipv6_tunnel = &tunnel);
+	ipv6_tunnel = &tunnel;
 
 	// Sets up server sockets
 	if (server_name != NULL)

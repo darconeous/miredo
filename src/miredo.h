@@ -1,6 +1,6 @@
 /*
  * miredo.h - header for miredo.cpp
- * $Id: miredo.h,v 1.9 2004/07/10 16:31:56 rdenisc Exp $
+ * $Id: miredo.h,v 1.10 2004/07/11 10:08:13 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -36,7 +36,6 @@ class MiredoRelayUDP;
 struct miredo_setup
 {
 	uint32_t server_ip, server_ip2, prefix;
-	IPv6Tunnel *tunnel;
 };
 
 extern struct miredo_setup conf;

@@ -1,6 +1,6 @@
 /*
- * server_pkt.cpp - Handling of a single Teredo datagram (server-side).
- * $Id: server_pkt.cpp,v 1.7 2004/06/27 17:37:21 rdenisc Exp $
+ * server.cpp - Handling of a single Teredo datagram (server-side).
+ * $Id: server.cpp,v 1.1 2004/07/11 10:08:13 rdenisc Exp $
  */
 
 /***********************************************************************
@@ -36,14 +36,8 @@
 #include <syslog.h> // DEBUG
 
 #include "teredo-udp.h"
-#include "common_pkt.h"
-#include "miredo.h" // conf, TODO: remove that
-#include "server_pkt.h"
-
-/*
- * TODO: no longer use the global conf structure, which is a big dirty hack.
- * Make this similar to <relay.cpp>
- */
+#include "common_pkt.h" // TODO: remove
+#include "server.h"
 
 static uint16_t
 sum16 (const uint8_t *data, size_t length, uint32_t sum32 = 0)
@@ -97,95 +91,107 @@ icmp6_checksum (const struct ip6_hdr *ip6, const struct icmp6_hdr *icmp6)
  * Returns -1 on error, 0 on success.
  */
 static int
-teredo_send_ra (const MiredoServerUDP *sock, const struct in6_addr *dest_ip6)
+teredo_send_ra (const MiredoServerUDP *sock, const struct in6_addr *dest_ip6,
+		uint32_t prefix, uint32_t server_ip)
 {
-	uint8_t packet[13 + 8 + 40 + sizeof (struct nd_router_advert)
+	uint8_t packet[13 + 8 + sizeof (struct ip6_hdr)
+			+ sizeof (struct nd_router_advert)
 			+ sizeof (struct nd_opt_prefix_info)],
 		*ptr = packet;
-
-	/* FIXME: fix likely byte-alignment issues */
 
 	// Authentification header
 	const uint8_t *nonce = sock->GetAuthNonce ();
 	if (nonce != NULL)
 	{
-		struct teredo_simple_auth *auth =
-			(struct teredo_simple_auth *)ptr;
+		struct teredo_simple_auth auth;
 
-		auth->hdr.hdr.zero = 0;
-		auth->hdr.hdr.code = teredo_auth_hdr;
-		auth->hdr.id_len = auth->hdr.au_len = 0;
-		memcpy (auth->nonce, nonce, 8);
-		auth->confirmation = 0;
+		auth.hdr.hdr.zero = 0;
+		auth.hdr.hdr.code = teredo_auth_hdr;
+		auth.hdr.id_len = auth.hdr.au_len = 0;
+		memcpy (&auth.nonce, nonce, 8);
+		auth.confirmation = 0;
 
+		memcpy (ptr, &auth, 13);
 		ptr += 13;
 	}
 
 	// Origin indication header
 	{
-		struct teredo_orig_ind *orig = (struct teredo_orig_ind *)ptr;
+		struct teredo_orig_ind orig;
 
-		orig->hdr.zero = 0;
-		orig->hdr.code = teredo_orig_ind;
-		orig->orig_port = ~sock->GetClientPort (); // obfuscate
-		orig->orig_addr = ~sock->GetClientIP (); // obfuscate
+		orig.hdr.zero = 0;
+		orig.hdr.code = teredo_orig_ind;
+		orig.orig_port = ~sock->GetClientPort (); // obfuscate
+		orig.orig_addr = ~sock->GetClientIP (); // obfuscate
+
+		memcpy (ptr, &orig, 8);
 		ptr += 8;
 	}
 
 
-	// IPv6 header
-	struct ip6_hdr *ip6 = (struct ip6_hdr *)ptr;
-
-	ip6->ip6_flow = htonl (0x60000000);
-	ip6->ip6_plen = htons (sizeof (struct nd_router_advert)
-					+ sizeof (struct nd_opt_prefix_info));
-	ip6->ip6_nxt = IPPROTO_ICMPV6;
-	ip6->ip6_hlim = 255;
-
-	union teredo_addr *src = (union teredo_addr *)&ip6->ip6_src;
-	src->teredo.prefix = htonl (0xfe800000);
-	src->teredo.server_ip = 0;
-	src->teredo.flags = htons (TEREDO_FLAGS_CONE);
-	src->teredo.client_port = htons (IPPORT_TEREDO);
-	src->teredo.client_ip = ~conf.server_ip;
-
-	memcpy (&ip6->ip6_dst, dest_ip6, sizeof (struct in6_addr));
-	ptr += 40;
-
-	// ICMPv6: Router Advertisement
-	struct nd_router_advert *ra = (struct nd_router_advert *)ptr;
-
-	ra->nd_ra_type = ND_ROUTER_ADVERT;
-	ra->nd_ra_code = 0;
-	ra->nd_ra_cksum = 0;
-	ra->nd_ra_curhoplimit = 0;
-	ra->nd_ra_flags_reserved = 0;
-	ra->nd_ra_router_lifetime = 0;
-	ra->nd_ra_reachable = 0;
-	ra->nd_ra_retransmit = htonl (2000);
-
-	ptr += sizeof (struct nd_router_advert);
-
-	// ICMPv6 option: Prefix information
-	struct nd_opt_prefix_info *pref = (struct nd_opt_prefix_info *)ptr;
-
-	pref->nd_opt_pi_type = ND_OPT_PREFIX_INFORMATION;
-	pref->nd_opt_pi_len = sizeof (struct nd_opt_prefix_info) / 8;
-	pref->nd_opt_pi_prefix_len = 64;
-	pref->nd_opt_pi_flags_reserved = ND_OPT_PI_FLAG_AUTO;
-	pref->nd_opt_pi_valid_time = 0xffffffff;
-	pref->nd_opt_pi_preferred_time = 0xffffffff;
 	{
-		union teredo_addr *prefix = (union teredo_addr *)&pref->nd_opt_pi_prefix;
+		struct
+		{
+			struct ip6_hdr			ip6;
+			struct nd_router_advert		ra;
+			struct nd_opt_prefix_info	pi;
+		} ra;
+	
+		// IPv6 header
+		ra.ip6.ip6_flow = htonl (0x60000000);
+		ra.ip6.ip6_plen = htons (sizeof (struct nd_router_advert)
+					+ sizeof (struct nd_opt_prefix_info));
+		ra.ip6.ip6_nxt = IPPROTO_ICMPV6;
+		ra.ip6.ip6_hlim = 255;
 
-		prefix->teredo.prefix = conf.prefix;
-		prefix->teredo.server_ip = conf.server_ip;
-		memset (&prefix->ip6.s6_addr[8], 0, 8);
+		{
+			union teredo_addr src;
+			src.teredo.prefix = htonl (0xfe800000);
+			src.teredo.server_ip = 0;
+			src.teredo.flags = htons (TEREDO_FLAGS_CONE);
+			src.teredo.client_port = htons (IPPORT_TEREDO);
+			src.teredo.client_ip = ~server_ip;
+
+			memcpy (&ra.ip6.ip6_src, &src,
+				sizeof (ra.ip6.ip6_src));
+		}
+
+		memcpy (&ra.ip6.ip6_dst, dest_ip6, sizeof (ra.ip6.ip6_dst));
+
+		// ICMPv6: Router Advertisement
+		ra.ra.nd_ra_type = ND_ROUTER_ADVERT;
+		ra.ra.nd_ra_code = 0;
+		ra.ra.nd_ra_cksum = 0;
+		ra.ra.nd_ra_curhoplimit = 0;
+		ra.ra.nd_ra_flags_reserved = 0;
+		ra.ra.nd_ra_router_lifetime = 0;
+		ra.ra.nd_ra_reachable = 0;
+		ra.ra.nd_ra_retransmit = htonl (2000);
+
+		// ICMPv6 option: Prefix information
+
+		ra.pi.nd_opt_pi_type = ND_OPT_PREFIX_INFORMATION;
+		ra.pi.nd_opt_pi_len = sizeof (ra.pi) >> 3;
+		ra.pi.nd_opt_pi_prefix_len = 64;
+		ra.pi.nd_opt_pi_flags_reserved = ND_OPT_PI_FLAG_AUTO;
+		ra.pi.nd_opt_pi_valid_time = 0xffffffff;
+		ra.pi.nd_opt_pi_preferred_time = 0xffffffff;
+		{
+			union teredo_addr pref;
+
+			pref.teredo.prefix = prefix;
+			pref.teredo.server_ip = server_ip;
+			memset (pref.ip6.s6_addr + 8, 0, 8);
+			memcpy (&ra.pi.nd_opt_pi_prefix, &pref.ip6,
+				sizeof (ra.pi.nd_opt_pi_prefix));
+		}
+
+		// ICMPv6 checksum computation
+		ra.ra.nd_ra_cksum = icmp6_checksum (&ra.ip6,
+				(struct icmp6_hdr *)&ra.ra);
+		memcpy (ptr, &ra, sizeof (ra));
+		ptr += sizeof (ra);
 	}
-
-	ptr += sizeof (struct nd_opt_prefix_info);
-
-	ra->nd_ra_cksum = icmp6_checksum (ip6, (struct icmp6_hdr *)ra);
 
 	bool use_secondary_ip = sock->WasSecondaryIP ();
 	if (IN6_IS_TEREDO_ADDR_CONE (dest_ip6))
@@ -212,7 +218,7 @@ teredo_send_ra (const MiredoServerUDP *sock, const struct in6_addr *dest_ip6)
  * Forwards a Teredo packet to a client
  */
 static int
-ForwardPacket (const MiredoServerUDP *sock)
+ForwardPacket (const MiredoServerUDP *sock/*, bool insert_orig = false*/)
 {
 	size_t length;
 	const struct ip6_hdr *p = sock->GetIPv6Header (length);
@@ -240,7 +246,7 @@ ForwardPacket (const MiredoServerUDP *sock)
 
 	// Origin indication header
 	// if the Teredo server's address is ours
-	if (dst.teredo.server_ip == conf.server_ip)
+	/*if (insert_orig)*/
 	{
 		struct teredo_orig_ind orig;
 		offset = 8;
@@ -251,8 +257,8 @@ ForwardPacket (const MiredoServerUDP *sock)
 		orig.orig_addr = ~sock->GetClientIP (); // obfuscate
 		memcpy (buf, &orig, offset);
 	}
-	else
-		offset = 0;
+	/*else
+		offset = 0;*/
 
 	memcpy (buf + offset, p, length);
 	return sock->SendPacket (buf, length + offset, dest_ip,
@@ -266,14 +272,14 @@ static const struct in6_addr in6addr_allrouters =
  * Checks and handles an Teredo-encapsulated packet.
  */
 int
-handle_server_packet (const MiredoServerUDP *sock)
+MiredoServer::ReceivePacket (void) const
 {
 	// Teredo server check number 3
 	if (!is_ipv4_global_unicast (sock->GetClientIP ()))
 		return 0;
 
 	// Check IPv6 packet (Teredo server check number 1)
-	// FIXME: byte alignment
+	// FIXME: byte alignment (see MiredoCommonUDP::ReceivePacket)
 	size_t ip6len;
 	const struct ip6_hdr *ip6 = sock->GetIPv6Header (ip6len);
 	if (ip6len < 40)
@@ -299,14 +305,15 @@ handle_server_packet (const MiredoServerUDP *sock)
 	 && (ip6len > sizeof (nd_router_solicit))
 	 && (((struct icmp6_hdr *)buf)->icmp6_type == ND_ROUTER_SOLICIT))
 		// sends a Router Advertisement
-		return teredo_send_ra (sock, &ip6->ip6_src);
+		return teredo_send_ra (sock, &ip6->ip6_src, GetPrefix (),
+					GetServerIP ());
 
 	// Teredo server check number 5 (in the negative)
 	if (!IN6_MATCHES_TEREDO_CLIENT (&ip6->ip6_src, sock->GetClientIP (),
 						sock->GetClientPort ())
 	// Teredo server check number 6 (in the negative)
-	 && (IN6_TEREDO_PREFIX (&ip6->ip6_src) == conf.prefix
-	  || IN6_TEREDO_SERVER (&ip6->ip6_dst) != conf.server_ip))
+	 && (IN6_TEREDO_PREFIX (&ip6->ip6_src) == GetPrefix ()
+	  || IN6_TEREDO_SERVER (&ip6->ip6_dst) != GetServerIP ()))
 	{
 		// Teredo server check number 7
 		return 0; // packet not allowed through server
@@ -318,9 +325,9 @@ handle_server_packet (const MiredoServerUDP *sock)
 		return 0; // must be discarded
 	
 	// Accepts packet:
-	if (IN6_TEREDO_PREFIX(&ip6->ip6_dst) != conf.prefix)
+	if (IN6_TEREDO_PREFIX(&ip6->ip6_dst) != GetPrefix ())
 		// forwards packet to native IPv6:
-		return ForwardPacket (sock, conf.tunnel);
+		return ForwardPacket (sock, tunnel);
 
 	// forwards packet over Teredo:
 	return ForwardPacket (sock);

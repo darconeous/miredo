@@ -2,7 +2,10 @@
 
 	* src/teredo-udp.cpp:
 	- fixed call to recvfrom() that caused problems with
-	  determining UDP packets source
+	  determining UDP packets source,
+	* src/server.cpp:
+	- fixed likely byte-alignments issues (teredo_send_ra),
+	- clean up, use of MiredoServer class
 
 2004-07-10  Remi Denis-Courmont
 

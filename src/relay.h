@@ -1,6 +1,6 @@
 /*
  * relay.h - Teredo relay peers list declaration
- * $Id: relay.h,v 1.4 2004/06/27 17:37:21 rdenisc Exp $
+ * $Id: relay.h,v 1.5 2004/07/11 10:08:13 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -75,17 +75,13 @@ class MiredoRelay
 		int SendBubble (const union teredo_addr *dst) const;
 
 	public:
-		MiredoRelay (uint32_t pref)
-			: is_cone (true), prefix (pref), head (NULL)
+		MiredoRelay (uint32_t pref, MiredoRelayUDP *udp)
+			: is_cone (true), prefix (pref), head (NULL),
+			  sock (udp)
 		{
 		}
 
 		~MiredoRelay ();
-
-		void SetSocket (const MiredoRelayUDP *udpsock)
-		{
-			sock = udpsock;
-		}
 
 		void SetTunnel (const IPv6Tunnel *tun)
 		{
@@ -93,12 +89,12 @@ class MiredoRelay
 		}
 
 		/*
-		 * Transmits a packet via Teredo.
+		 * Transmits a packet from IPv6 Internet via Teredo.
 		 */
 		int TransmitPacket (void);
 
 		/*
-		 * Receives a packet via Teredo.
+		 * Receives a packet from Teredo to IPv6 Internet.
 		 */
 		int ReceivePacket (void);
 

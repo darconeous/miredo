@@ -1,6 +1,6 @@
 /*
- * server_pkt.h - Declarations for server_pkt.cpp
- * $Id: server_pkt.h,v 1.2 2004/06/14 21:52:32 rdenisc Exp $
+ * server.h - Declarations for server.cpp
+ * $Id: server.h,v 1.1 2004/07/11 10:08:13 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -22,16 +22,68 @@
  *  http://www.gnu.org/copyleft/gpl.html                               *
  ***********************************************************************/
 
-#ifndef MIREDO_SERVER_PKT_H
-# define MIREDO_SERVER_PKT_H
+#ifndef __cplusplus
+# error C++ only header
+#endif
+
+#ifndef MIREDO_SERVER_H
+# define MIREDO_SERVER_H
 
 class MiredoServerUDP;
+class IPv6Tunnel;
 
 /*
  * Checks and handles an Teredo-encapsulated packet.
  */
-int
-handle_server_packet (const MiredoServerUDP *sock);
+class MiredoServer
+{
+	private:
+		uint32_t prefix;
+		uint32_t server_ip;
+		const MiredoServerUDP *sock;
+		const IPv6Tunnel *tunnel;
 
-#endif /* ifndef MIREDO_SERVER_PKT_H */
+	public:
+		MiredoServer (void)
+		{
+		}
+
+		~MiredoServer (void)
+		{
+		}
+
+		void SetPrefix (uint32_t pref)
+		{
+			prefix = pref;
+		}
+
+		void SetServerIP (uint32_t ip)
+		{
+			server_ip = ip;
+		}
+
+		void SetTunnel (const IPv6Tunnel *tun)
+		{
+			tunnel = tun;
+		}
+
+		void SetSocket (const MiredoServerUDP *udp)
+		{
+			sock = udp;
+		}
+
+		int ReceivePacket (void) const;
+
+		uint32_t GetPrefix (void) const
+		{
+			return prefix;
+		}
+
+		uint32_t GetServerIP (void) const
+		{
+			return server_ip;
+		}
+};
+
+#endif /* ifndef MIREDO_SERVER_H */
 
