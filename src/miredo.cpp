@@ -1,7 +1,7 @@
 /*
  * miredo.cpp - Unix Teredo server & relay implementation
  *              core functions
- * $Id: miredo.cpp,v 1.38 2004/08/27 16:42:19 rdenisc Exp $
+ * $Id: miredo.cpp,v 1.39 2004/08/27 16:57:32 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -316,8 +316,9 @@ miredo_run (uint16_t client_port, const char *server_name,
 	IPv6Tunnel tunnel (ifname);
 
 	/*
-	 * Must be root to do that. It's best to set MTU now to make sure we
-	 * are root, rather than do it in the child privileged process.
+	 * Must be root to do that.
+	 * TODO: move SetMTU() to privsep, as it may be overriden by the
+	 * server if we're a client
 	 * TODO: move BringUp() to privileged process, not for security, but
 	 * to let the kernel know when the interface is really ready to
 	 * reveive packets (ie. after qualification in case of Teredo client).

@@ -1,6 +1,6 @@
 /*
  * relay.cpp - Teredo relay peers list definition
- * $Id: relay.cpp,v 1.26 2004/08/27 16:42:19 rdenisc Exp $
+ * $Id: relay.cpp,v 1.27 2004/08/27 16:57:28 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -550,7 +550,9 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 	if (IsClient () && (packet.GetClientIP () == GetServerIP ())
 	 && (packet.GetClientPort () == htons (IPPORT_TEREDO)))
 	{
+		// TODO: refresh interval randomisation
 		gettimeofday (&probe.serv, NULL);
+		probe.serv.tv_sec += 30;
 
 		const struct teredo_orig_ind *ind = packet.GetOrigInd ();
 		if (ind != NULL)
@@ -684,7 +686,7 @@ int TeredoRelay::Process (void)
 			probe.state == PROBE_CONE /* cone */,
 			probe.state == PROBE_RESTRICT /* secondary */);
 
-		gettimeofday (&state.next, NULL);
+		gettimeofday (&probe.next, NULL);
 		probe.next.tv_sec += delay;
 	}
 
