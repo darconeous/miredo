@@ -278,6 +278,25 @@ struct TeredoRelay::peer *TeredoRelay::FindPeer (const struct in6_addr *addr)
 }
 
 
+/*
+ * Sends an ICMPv6 Destination Unreachable error to the IPv6 Internet.
+ * Unfortunately, this will use a local-scope address as source, which is not
+ * quite good.
+ */
+int
+TeredoRelay::SendUnreach (int code, const struct ip6_hdr *in, size_t inlen)
+{
+	struct
+	{
+		struct ip6_hdr hdr;
+		uint8_t fill[1280 - sizeof (struct ip6_hdr)];
+	} buf;
+	size_t outlen = BuildICMPv6Error (&buf.hdr, &teredo_cone, 1, code,
+						in, inlen);
+	return SendIPv6Packet (&buf, outlen);
+}
+
+
 
 
 /*

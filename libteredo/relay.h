@@ -63,6 +63,9 @@ class TeredoRelay
 		struct peer *AllocatePeer (void);
 		struct peer *FindPeer (const struct in6_addr *addr);
 
+		int SendUnreach (int code, const struct ip6_hdr *in,
+					size_t inlen);
+
 		/*** Callbacks ***/
 		/*
 		 * Sends an IPv6 packet from Teredo toward the IPv6 Internet.
