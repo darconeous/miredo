@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: rdenis@simphalempin.com\n"
-"POT-Creation-Date: 2004-11-29 11:27+0100\n"
+"POT-Creation-Date: 2004-12-02 10:31+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -57,7 +57,7 @@ msgstr ""
 msgid "cone"
 msgstr ""
 
-#: libteredo/relay.cpp:581 src/main.c:606
+#: libteredo/relay.cpp:581 src/main.c:610
 msgid "restricted"
 msgstr ""
 
@@ -310,23 +310,30 @@ msgid ""
 "and recompile the program.\n"
 msgstr ""
 
-#: src/main.c:315
+#: src/main.c:307
+msgid ""
+"Warning: This program was configured to retain\n"
+"root privileges while running. That is potentially\n"
+"very dangerous. PROCEED WITH CAUTION.\n"
+msgstr ""
+
+#: src/main.c:319
 #, c-format
 msgid "SetGID to group ID %u: %s\n"
 msgstr ""
 
-#: src/main.c:317
+#: src/main.c:321
 msgid ""
 "Error: This program tried to change its system\n"
 "group(s) security context but it failed.\n"
 msgstr ""
 
-#: src/main.c:334
+#: src/main.c:338
 #, c-format
 msgid "Root directory jail in %s: %s\n"
 msgstr ""
 
-#: src/main.c:351
+#: src/main.c:355
 #, c-format
 msgid ""
 "Warning: /dev/log not found or invalid: logging will probably not work.\n"
@@ -334,43 +341,43 @@ msgid ""
 " to your syslogd command line to fix that.\n"
 msgstr ""
 
-#: src/main.c:372
+#: src/main.c:376
 #, c-format
 msgid "SetUID to user ID %u: %s\n"
 msgstr ""
 
-#: src/main.c:374
+#: src/main.c:378
 msgid ""
 "Error: This program tried to change its system\n"
 "user security context but it failed.\n"
 msgstr ""
 
-#: src/main.c:391 src/main.c:398
+#: src/main.c:395 src/main.c:402
 msgid "Fatal error"
 msgstr ""
 
-#: src/main.c:405
+#: src/main.c:409
 msgid "Getting networking privileges"
 msgstr ""
 
-#: src/main.c:407
+#: src/main.c:411
 msgid ""
 "Error: This program tried to obtain system networking administration\n"
 "privileges but it failed.\n"
 msgstr ""
 
-#: src/main.c:423
+#: src/main.c:427
 msgid "Error (daemon)"
 msgstr ""
 
-#: src/main.c:554
+#: src/main.c:558
 #, c-format
 msgid ""
 "Read unknown option -%c :\n"
 "That is probably a bug. Please report it.\n"
 msgstr ""
 
-#: src/main.c:566
+#: src/main.c:570
 msgid ""
 "You have selected conflicting parameters.\n"
 "It is not possible to run a Teredo relay and/or\n"
@@ -378,60 +385,60 @@ msgid ""
 "Refer to the manual page for more details.\n"
 msgstr ""
 
-#: src/main.c:583
+#: src/main.c:587
 msgid "Miredo configuration :"
 msgstr ""
 
-#: src/main.c:585
+#: src/main.c:589
 msgid "Client/relay UDP port       : "
 msgstr ""
 
-#: src/main.c:589
+#: src/main.c:593
 msgid "automatic"
 msgstr ""
 
-#: src/main.c:591
+#: src/main.c:595
 #, c-format
 msgid "Client/relay IPv4 address   : %s\n"
 msgstr ""
 
-#: src/main.c:592
+#: src/main.c:596
 msgid "any"
 msgstr ""
 
-#: src/main.c:594
+#: src/main.c:598
 #, c-format
 msgid "Tunnel interface name       : %s\n"
 msgstr ""
 
-#: src/main.c:595 src/main.c:602
+#: src/main.c:599 src/main.c:606
 msgid "default"
-msgstr ""
-
-#: src/main.c:599
-#, c-format
-msgid "Server primary IPv4 address : %s\n"
-msgstr ""
-
-#: src/main.c:600
-msgid "disabled"
-msgstr ""
-
-#: src/main.c:601
-#, c-format
-msgid "Teredo IPv6 prefix          : %s\n"
 msgstr ""
 
 #: src/main.c:603
 #, c-format
-msgid "Assumed NAT type            : %s\n"
+msgid "Server primary IPv4 address : %s\n"
+msgstr ""
+
+#: src/main.c:604
+msgid "disabled"
 msgstr ""
 
 #: src/main.c:605
-msgid "none/cone"
+#, c-format
+msgid "Teredo IPv6 prefix          : %s\n"
+msgstr ""
+
+#: src/main.c:607
+#, c-format
+msgid "Assumed NAT type            : %s\n"
 msgstr ""
 
 #: src/main.c:609
+msgid "none/cone"
+msgstr ""
+
+#: src/main.c:613
 #, c-format
 msgid "Server name                 : %s\n"
 msgstr ""

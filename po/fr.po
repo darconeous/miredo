@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: miredo 0.3.1\n"
 "Report-Msgid-Bugs-To: rdenis@simphalempin.com\n"
-"POT-Creation-Date: 2004-11-29 11:27+0100\n"
-"PO-Revision-Date: 2004-11-29 11:33+0100\n"
+"POT-Creation-Date: 2004-12-02 10:31+0100\n"
+"PO-Revision-Date: 2004-12-02 11:33+0100\n"
 "Last-Translator: Rémi Denis-Courmont <rdenis@simphalempin.com>\n"
 "Language-Team: N/A\n"
 "MIME-Version: 1.0\n"
@@ -63,7 +63,7 @@ msgstr "Qualifié (type de NAT: %s)"
 msgid "cone"
 msgstr "cône"
 
-#: libteredo/relay.cpp:581 src/main.c:606
+#: libteredo/relay.cpp:581 src/main.c:610
 msgid "restricted"
 msgstr "restreint"
 
@@ -378,12 +378,21 @@ msgstr ""
 "user\n"
 "et recompilez le programme.\n"
 
-#: src/main.c:315
+#: src/main.c:307
+msgid ""
+"Warning: This program was configured to retain\n"
+"root privileges while running. That is potentially\n"
+"very dangerous. PROCEED WITH CAUTION.\n"
+msgstr ""
+"Attention: Ce programme a été configuré pour conserver les privilèges root\n"
+"pendant son exécution. C'est potentielement très dangereux. MÉFIEZ-VOUS.\n"
+
+#: src/main.c:319
 #, c-format
 msgid "SetGID to group ID %u: %s\n"
 msgstr "SetGID vers l'ID de groupe %u: %s\n"
 
-#: src/main.c:317
+#: src/main.c:321
 msgid ""
 "Error: This program tried to change its system\n"
 "group(s) security context but it failed.\n"
@@ -391,12 +400,12 @@ msgstr ""
 "Erreur: Ce programme a tenté de changer son contexte de sécurité\n"
 "groupe(s) système(s), mais il a échoué.\n"
 
-#: src/main.c:334
+#: src/main.c:338
 #, c-format
 msgid "Root directory jail in %s: %s\n"
 msgstr "Cloisement dans le répertoire racine (chroot) %s: %s\n"
 
-#: src/main.c:351
+#: src/main.c:355
 #, c-format
 msgid ""
 "Warning: /dev/log not found or invalid: logging will probably not work.\n"
@@ -408,12 +417,12 @@ msgstr ""
 "probablement pas. Essayez d'ajouter «-a %s/dev/log»\n"
 " à la ligne de commande de votre syslogd pour rectifier cela.\n"
 
-#: src/main.c:372
+#: src/main.c:376
 #, c-format
 msgid "SetUID to user ID %u: %s\n"
 msgstr "SetUID vers l'ID d'utilisateur %u: %s\n"
 
-#: src/main.c:374
+#: src/main.c:378
 msgid ""
 "Error: This program tried to change its system\n"
 "user security context but it failed.\n"
@@ -421,15 +430,15 @@ msgstr ""
 "Erreur: Ce programme a tenté de changer son contexte de sécurité\n"
 "utilisateur mais il a échoué.\n"
 
-#: src/main.c:391 src/main.c:398
+#: src/main.c:395 src/main.c:402
 msgid "Fatal error"
 msgstr "Erreur fatale"
 
-#: src/main.c:405
+#: src/main.c:409
 msgid "Getting networking privileges"
 msgstr "Obtention des privilèges réseau"
 
-#: src/main.c:407
+#: src/main.c:411
 msgid ""
 "Error: This program tried to obtain system networking administration\n"
 "privileges but it failed.\n"
@@ -437,11 +446,11 @@ msgstr ""
 "Erreur: Ce programme a tenté d'obtenir les privilèges\n"
 "d'administration réseau mais il a échoué.\n"
 
-#: src/main.c:423
+#: src/main.c:427
 msgid "Error (daemon)"
 msgstr "Erreur (daemon)"
 
-#: src/main.c:554
+#: src/main.c:558
 #, c-format
 msgid ""
 "Read unknown option -%c :\n"
@@ -450,7 +459,7 @@ msgstr ""
 "Option lue inconnue -%c :\n"
 "C'est probablement un bogue. Veuillez le signaler.\n"
 
-#: src/main.c:566
+#: src/main.c:570
 msgid ""
 "You have selected conflicting parameters.\n"
 "It is not possible to run a Teredo relay and/or\n"
@@ -461,60 +470,60 @@ msgstr ""
 "d'exécuter un relais Teredo et/ou un serveur Teredo et un client Teredo\n"
 "simultanément. Référez vous au manuel pour plus de détails.\n"
 
-#: src/main.c:583
+#: src/main.c:587
 msgid "Miredo configuration :"
 msgstr "Configuration de Miredo :"
 
-#: src/main.c:585
+#: src/main.c:589
 msgid "Client/relay UDP port       : "
 msgstr "Port UDP du client/relais          : "
 
-#: src/main.c:589
+#: src/main.c:593
 msgid "automatic"
 msgstr "automatique"
 
-#: src/main.c:591
+#: src/main.c:595
 #, c-format
 msgid "Client/relay IPv4 address   : %s\n"
 msgstr "Adresse IPv4 du client/relais      : %s\n"
 
-#: src/main.c:592
+#: src/main.c:596
 msgid "any"
 msgstr "automatique"
 
-#: src/main.c:594
+#: src/main.c:598
 #, c-format
 msgid "Tunnel interface name       : %s\n"
 msgstr "Nom de l'interface tunnel          : %s\n"
 
-#: src/main.c:595 src/main.c:602
+#: src/main.c:599 src/main.c:606
 msgid "default"
 msgstr "par défaut"
 
-#: src/main.c:599
+#: src/main.c:603
 #, c-format
 msgid "Server primary IPv4 address : %s\n"
 msgstr "Adresse IPv4 principale du serveur : %s\n"
 
-#: src/main.c:600
+#: src/main.c:604
 msgid "disabled"
 msgstr "désactivée"
 
-#: src/main.c:601
+#: src/main.c:605
 #, c-format
 msgid "Teredo IPv6 prefix          : %s\n"
 msgstr "Préfixe Teredo IPv6                : %s\n"
 
-#: src/main.c:603
+#: src/main.c:607
 #, c-format
 msgid "Assumed NAT type            : %s\n"
 msgstr "Type de NAT supposé                : %s\n"
 
-#: src/main.c:605
+#: src/main.c:609
 msgid "none/cone"
 msgstr "aucun/cône"
 
-#: src/main.c:609
+#: src/main.c:613
 #, c-format
 msgid "Server name                 : %s\n"
 msgstr "Nom du serveur                     : %s\n"
