@@ -77,9 +77,9 @@ usage (void)
 "Usage: miredo [OPTIONS]\n"
 "Creates a Teredo tunneling interface for encapsulation of IPv6 over UDP.\n"
 "\n"
+"  -c, --config     specify an configuration file\n"
 "  -f, --foreground run in the foreground\n"
 "  -h, --help       display this help and exit\n"
-"  -p, --pidfile    override the pidfile path\n"
 "  -u, --user       override the user to set UID to\n"
 "  -V, --version    display program version and exit\n"));
 	return 0;
@@ -444,7 +444,7 @@ main (int argc, char *argv[])
 
 	memset (&flags, 0, sizeof (flags));
 
-	while ((c = getopt_long (argc, argv, "c:fhu:Vv", opts,
+	while ((c = getopt_long (argc, argv, "c:fhu:V", opts,
 					NULL)) != -1)
 		switch (c)
 		{
