@@ -1,11 +1,17 @@
 RELEASE NOTES for Miredo
-version 0.3.2 (beta version)
+version 0.4.0 (beta version)
 =============================
 $Id$
 
   This is an early release of the program. It is not finished and might not
 work properly. It is not suited for use in production environment.
 Users of previous releases are encouraged to upgrade.
+
+IMPORTANT NOTE for old users:
+------------------------------
+  As of version 0.4.0, Miredo uses a configuration file instead of a lot of
+command line options. You cannot install the newer version and expect it to
+work without further configuration.
 
   There are no known issues at the moment, but missing features. Please
 report any problem by email at address :
@@ -16,6 +22,35 @@ Thanks for your help.
 informations on this program, see README. For syntax details and
 changes, run 'miredo -h' to get help. For detailled internal changes, see
 ChangeLog.
+
+=============================================================================
+BETA RELEASE 0.4.0 : Major feature enhancement
+
+# Configuration file :
+  Miredo now reads its settings from a configuration file, miredo.conf,
+  instead of many command line options. A sample commented
+  configuration is provided in misc/miredo.conf-dist and installed in
+  /usr/local/etc/miredo.conf-dist (unless you use another installation
+  prefix).
+
+# Support for disabling components at build-time :
+  That helps producing a smaller executable. In particular, you may
+  consider running "./configure --disable-teredo-server" as very few
+  people really use the Teredo server component.
+  "--disable-teredo-client" is also provided if you only want to build
+  a Teredo relay.
+
+# Zero-memcpy, performance improvement :
+  Miredo will no longer perform any memcpy on forwarded IPv6 packets
+  payload, so as to improve processing speed a little bit.
+
+# PID file moved: it is now located in /var/run/miredo.pid by default.
+
+# Support for server only mode (no longer have to run a relay as well).
+
+# Cleaned up server implementation.
+
+# Fixed packet source/destination IPv6 addresses checks in client/relay.
 
 =============================================================================
 BETA RELEASE 0.3.2 : Minor bugfixes
