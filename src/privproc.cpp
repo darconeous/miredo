@@ -1,6 +1,6 @@
 /*
  * privproc.cpp - Privileged process for Miredo
- * $Id: privproc.cpp,v 1.2 2004/08/17 19:09:12 rdenisc Exp $
+ * $Id: privproc.cpp,v 1.3 2004/08/18 09:42:35 rdenisc Exp $
  */
 
 /***********************************************************************
@@ -23,54 +23,95 @@
 # include <config.h>
 #endif
 
-#include <string.h> // memcpy(), memcmp()
+#include <string.h>
 #include <stdlib.h> // exit()
 
 #include <sys/types.h>
-#include <unistd.h> // read(), close()
+#include <unistd.h>
+#include <netinet/in.h>
 
 #include <libtun6/ipv6-tunnel.h>
 #include <libteredo/teredo.h>
 
-void
-miredo_privileged_process (int fd, IPv6Tunnel *tunnel, uid_t unpriv)
-{
-	union teredo_addr ter_addr, loc_addr;
 
+int
+miredo_privileged_process (IPv6Tunnel& tunnel,
+				const struct in6_addr *initial_addr)
+{
+	uid_t unpriv = geteuid ();
+
+	int fd[2];
+	if (pipe (fd))
+		return -1;
+
+	switch (fork ())
+	{
+		case -1:
+			close (fd[0]);
+			close (fd[1]);
+			return -1;
+
+		case 0:
+			close (fd[1]);
+			break;
+
+		default:
+			close (fd[0]);
+			return fd[1];
+	}
+
+	struct in6_addr oldter, oldloc;
+	memcpy (&oldloc, &teredo_cone, sizeof (oldloc));
+	/*
+	 * TODO: fix this is a dirty kludge.
+	 * But, it makes my life easier, and works on FreeBSD
+	 * (which won't accept my routes through libtun6).
+	 */
+	memcpy (&oldter, initial_addr, sizeof (oldter));
+
+	seteuid (0);
+	tunnel.AddAddress (&oldloc, 64);
+	tunnel.AddAddress (&oldter, 32);
 	seteuid (unpriv);
 
 	while (1)
 	{
-		union teredo_addr newaddr;
+		struct in6_addr newter;
 
-		if (read (fd, &newaddr, sizeof (newaddr)) != sizeof (newaddr))
+		if (read (fd[0], &newter, sizeof (newter)) != sizeof (newter))
 			break;
 
-		if (!memcmp (&ter_addr, &newaddr, sizeof (ter_addr)))
-			continue; // short cut
+		const struct in6_addr *p_newloc =
+				IN6_IS_TEREDO_ADDR_CONE (&newter)
+					? &teredo_cone : &teredo_restrict;
 
-		seteuid (0);
-		tunnel->DelAddress (&ter_addr.ip6);
-		tunnel->DelAddress (&loc_addr.ip6);
-		seteuid (unpriv);
+		if (memcmp (&oldloc, p_newloc, sizeof (oldloc)))
+		{
+			seteuid (0);
+			tunnel.DelAddress (&oldloc, 64);
+			tunnel.AddAddress (p_newloc, 64);
+			seteuid (unpriv);
 
-		memcpy (&ter_addr, &newaddr, sizeof (ter_addr));
-		memcpy (&loc_addr,
-			in6_is_teredo_addr_cone (&newaddr)
-			? &teredo_cone : &teredo_restrict, sizeof (loc_addr));
+			memcpy (&oldloc, p_newloc, sizeof (oldloc));
+		}
 
-		seteuid (0);
-		tunnel->AddAddress (&loc_addr.ip6);
-		if (newaddr.teredo.prefix)
-			tunnel->AddAddress (&ter_addr.ip6);
-		seteuid (unpriv);
+		if (memcmp (&oldter, &newter, sizeof (oldter)))
+		{
+			// TODO: create a default route for client?
+			seteuid (0);
+			tunnel.DelAddress (&oldter, 32);
+			tunnel.AddAddress (&newter, 32);
+			seteuid (unpriv);
+
+			memcpy (&oldter, &newter, sizeof (oldter));
+		}
 	}
 
 	seteuid (0);
 	setuid (unpriv);
 
-	close (fd);
-	delete tunnel;
+	close (fd[0]);
+	// Release the tunnel device automatically:
 	exit (0);
 }
 

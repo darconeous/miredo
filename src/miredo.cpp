@@ -1,7 +1,7 @@
 /*
  * miredo.cpp - Unix Teredo server & relay implementation
  *              core functions
- * $Id: miredo.cpp,v 1.26 2004/08/17 19:21:13 rdenisc Exp $
+ * $Id: miredo.cpp,v 1.27 2004/08/18 09:42:35 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -57,7 +57,10 @@
 /*
  * Signal handlers
  *
- * We block all signals when one those we catch is being handled.
+ * We block all signals when one of those we catch is being handled.
+ * SECURITY NOTE: these signal handlers might be called as root or not,
+ * in the context of the privileged child process or in that of the main
+ * unprivileged worker process. They must not compromise the child's security.
  */
 static int should_exit;
 static int should_reload;
@@ -234,6 +237,8 @@ getipv6byname (const char *name, struct in6_addr *ipv6)
  */
 uid_t unpriv_uid = 0;
 
+
+// TODO: support for client
 static int
 miredo_run (uint16_t client_port, const char *server_name,
 		const char *prefix_name, const char *ifname)
@@ -252,6 +257,8 @@ miredo_run (uint16_t client_port, const char *server_name,
 		 */
 		client_port = IPPORT_TEREDO + 1;
 
+	// server_name may be NULL, this is legal
+
 	if (ifname == NULL)
 		ifname = "teredo";
 	if (prefix_name == NULL)
@@ -265,10 +272,10 @@ miredo_run (uint16_t client_port, const char *server_name,
 			_("Teredo IPv6 prefix not properly set."));
 		return -1;
 	}
-	uint32_t prefix32 = prefix.teredo.prefix;
 
 	MiredoRelay *relay = NULL;
 	MiredoServer *server = NULL;
+	int fd = -1, retval = -1;
 
 	if (seteuid (0))
 		syslog (LOG_WARNING, _("SetUID to root failed: %m"));
@@ -281,47 +288,37 @@ miredo_run (uint16_t client_port, const char *server_name,
 	 * inability to set a link-scope address for the interface, as it
 	 * lacks an hardware layer address.
 	 */
-	// must likely be root:
+
+	/*
+	 * Must likely be root (unless the user was granted access to the
+	 * device file).
+	 */
 	IPv6Tunnel tunnel (ifname);
-	// must be root:
-	int retval = !tunnel
-		|| tunnel.SetMTU (1280) || tunnel.BringUp ()
-	// FIXME: should be done later (not OK if we are a client)
-	// FIXME: should be done by TeredoRelay
-	// FIXME: but we need root, and later we are not root
-	// FIXME: should set cone flag as appropriate
-		//|| tunnel.AddAddress (&teredo_restrict)
-		|| tunnel.AddAddress (&teredo_cone)
-		|| tunnel.AddRoute (&prefix.ip6, 32);
 
-	int priv_fd[2];
-
-	pipe (priv_fd);
-	switch (fork ())
+	/*
+	 * Must be root to do that. It's best to set MTU and bring up now to
+	 * make sure we are root, rather than do it in the child privileged
+	 * process.
+	 */
+	if (!tunnel || tunnel.SetMTU (1280) || tunnel.BringUp ())
 	{
-		case -1:
-			syslog (LOG_ALERT, _("fork failed: %m"));
-			goto abort;
-
-		case 0:
-			close (priv_fd[1]);
-			miredo_privileged_process (priv_fd[0], &tunnel,
-							unpriv_uid);
-			exit (0);
+		syslog (LOG_ALERT, _("Teredo tunnel setup failed."
+					" You should be root to do that."));
+		goto abort;
 	}
-	close (priv_fd[0]);
+
+	if (seteuid (unpriv_uid)
+	 || ((fd = miredo_privileged_process (tunnel, &prefix.ip6)) == -1))
+	{
+		syslog (LOG_ALERT,
+			_("Privileged process initialization failed: %m"));
+		goto abort;
+	}
 
 	// Definitely drops privileges
 	if (setuid (unpriv_uid))
 	{
 		syslog (LOG_ALERT, _("setuid failed: %m"));
-		goto abort;
-	}
-
-	if (retval)
-	{
-		syslog (LOG_ALERT, _("Teredo tunnel setup failed."
-					" You should be root to do that."));
 		goto abort;
 	}
 
@@ -352,14 +349,14 @@ miredo_run (uint16_t client_port, const char *server_name,
 			goto abort;
 		}
 
-		server->SetPrefix (prefix32);
+		server->SetPrefix (prefix.teredo.prefix);
 	}
 
 	// Sets up relay
 	// TODO: ability to not be a relay at all
 	// TODO: ability to use the other constructor, for Teredo client
 	try {
-		relay = new MiredoRelay (&tunnel, prefix32,
+		relay = new MiredoRelay (&tunnel, prefix.teredo.prefix,
 					 htons (client_port));
 	}
 	catch (...)
@@ -376,7 +373,7 @@ miredo_run (uint16_t client_port, const char *server_name,
 	 * FIXME: should (try to?) use the privileged process to set our
 	 * addres and _then_ close our pipe.
 	 */
-	close (priv_fd[1]); // privileged process will exit
+	close (fd); // privileged process will exit
 
 	if (!*relay)
 	{
@@ -391,6 +388,8 @@ miredo_run (uint16_t client_port, const char *server_name,
 	retval = teredo_server_relay (tunnel, relay, server);
 
 abort:
+	if (fd != -1)
+		close (fd);
 	if (relay != NULL)
 		delete relay;
 	if (server != NULL)
