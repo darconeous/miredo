@@ -20,7 +20,7 @@ dnl *  http://www.gnu.org/copyleft/gpl.html                               *
 dnl ***********************************************************************
 
 AC_COPYRIGHT([Copyright (C) 2004 Remi Denis-Courmont])
-AC_INIT([miredo], [0.3.1], [rdenis@simphalempin.com])
+AC_INIT([miredo], [0.3.2], [rdenis@simphalempin.com])
 AC_PREREQ(2.59)
 INVOCATION="$0 $*"
 

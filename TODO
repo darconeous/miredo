@@ -48,7 +48,6 @@ Compatibility:
 Documentation & support:
 -------------------------
 - custom INSTALL file,
-- init.d sample script,
 - RPM and Debian packaging,
 
 Re-usability:
