@@ -1,6 +1,6 @@
 /*
  * ipv6-tunnel.cpp - IPv6 interface class definition
- * $Id: ipv6-tunnel.cpp,v 1.4 2004/07/12 08:48:30 rdenisc Exp $
+ * $Id$
  */
 
 /***********************************************************************

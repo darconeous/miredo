@@ -1,6 +1,6 @@
 /*
  * teredo.c - Common Teredo helper functions
- * $Id: teredo.c,v 1.6 2004/07/11 10:34:41 rdenisc Exp $
+ * $Id$
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information

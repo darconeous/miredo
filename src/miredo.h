@@ -1,6 +1,6 @@
 /*
  * miredo.h - header for miredo.cpp
- * $Id: miredo.h,v 1.11 2004/07/11 13:52:22 rdenisc Exp $
+ * $Id$
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information

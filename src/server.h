@@ -1,6 +1,6 @@
 /*
  * server.h - Declarations for server.cpp
- * $Id: server.h,v 1.1 2004/07/11 10:08:13 rdenisc Exp $
+ * $Id$
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information

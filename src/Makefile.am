@@ -1,5 +1,5 @@
 # Makefile.am - src/ directory Makefile for miredo
-# $Id: Makefile.am,v 1.4 2004/07/11 10:08:13 rdenisc Exp $
+# $Id$
 
 # ***********************************************************************
 # *  Copyright (C) 2004 Remi Denis-Courmont.                            *

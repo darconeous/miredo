@@ -1,5 +1,5 @@
 # Makefile.am - master Makefile for miredo
-# $Id: Makefile.am,v 1.4 2004/06/27 15:27:12 rdenisc Exp $
+# $Id$
 
 # ***********************************************************************
 # *  Copyright (C) 2004 Remi Denis-Courmont.                            *
