@@ -41,7 +41,7 @@ class PacketsQueue
 
 		virtual int SendPacket (const void *p, size_t len) = 0;
 
-		void unsafe_Trash (struct packet_list *h);
+		static void unsafe_Trash (struct packet_list *h);
 
 	protected:
 		PacketsQueue (size_t totalbytes);
