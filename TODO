@@ -1,6 +1,6 @@
 Incomplete raw ToDo list:
 ==========================
-$Id: TODO,v 1.8 2004/07/11 10:43:29 rdenisc Exp $
+$Id: TODO,v 1.9 2004/07/11 13:52:21 rdenisc Exp $
 
 Features:
 ----------
@@ -37,6 +37,8 @@ Compatibility:
 
 Documentation & support:
 -------------------------
+- custom INSTALL file,
+- update manpage,
 - init.d sample script,
 - RPM and Debian packaging.
 

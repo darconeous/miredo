@@ -1,6 +1,6 @@
 Miredo : Teredo for Linux
 ==========================
-$Id: README,v 1.4 2004/06/26 19:55:28 rdenisc Exp $
+$Id: README,v 1.5 2004/07/11 13:52:21 rdenisc Exp $
 Copyright (C) 2004 Remi Denis-Courmont.
 
   Welcome to Miredo's introduction manual!
@@ -47,9 +47,7 @@ Microsoft IPv6 : Teredo overview.
 
 Usage
 ------
-  Miredo must be started by root. It expects to find a system user
-"miredo" and a group "nogroup" which to run. It will fail if either of
-these are missing. Moreover, Miredo will always detach and run in the
+  Miredo must be started by root. Miredo will always detach and run in the
 background. Read your system logs to see what happens.
 
 
@@ -57,7 +55,7 @@ background. Read your system logs to see what happens.
 may be able to run a Teredo server. To start the program as a Teredo
 server, type the following command:
 
-# src/miredo -s 9.0.0.2
+# src/miredo -s 9.0.0.2 -u root -t /
 
 where it is assumed that 9.0.0.2 will be your server's primary IPv4
 address, and 9.0.0.3 will be your server's secondary IPv4 address.
@@ -66,7 +64,7 @@ address, and 9.0.0.3 will be your server's secondary IPv4 address.
   Otherwise, it is possible to run a Teredo relay. To do so, you only
 need to start miredo without parameters:
 
-# src/miredo
+# src/miredo -u root -t /
 
   That will created a virtual "teredo" networking interface which will
 accept IPv6 traffic toward Teredo clients. Note that you must NOT be
@@ -74,6 +72,27 @@ behind a "restricted NAT" for this to work properly.
 NOTE: If you are using FreeBSD, you will probably have to create a
 route to the Teredo prefix (3ffe:831f::/32 at the moment) through the
 tunnel by hand.
+
+  If you don't use '-u root', Miredo will try to setuid as miredo,
+which must then exists on your system. If you don't use '-t /', it will
+chroot to the setuid user's home directory.
+
+
+Securing Miredo
+----------------
+  To mitigate risks and reduce exposure to potential hacking threat,
+you should consider creating a "miredo" user on your system (that
+should not be allowed to login). In its home, you should put these
+files (assuming the home directory is /var/run/miredo):
+
+/var/run/miredo/dev/null
+/var/run/miredo/dev/net/tun		(Linux-only)
+/var/run/miredo/dev/tun0...tun15	(FreeBSD)
+
+  Additionnaly, you must tell your syslog daemon to listen to
+/var/run/miredo/dev/log. That is usually done by adding that option to
+your syslogd upon start: '-a /var/run/miredo/dev/log'
+If you don't do so, you won't get any logging information from Miredo.
 
 
 -- 

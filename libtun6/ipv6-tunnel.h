@@ -1,6 +1,6 @@
 /*
  * ipv6-tunnel.h - IPv6 interface class declaration
- * $Id: ipv6-tunnel.h,v 1.1 2004/06/27 15:27:12 rdenisc Exp $
+ * $Id: ipv6-tunnel.h,v 1.2 2004/07/11 13:52:22 rdenisc Exp $
  */
 
 /***********************************************************************
@@ -87,9 +87,8 @@ class IPv6Tunnel
 		 *
 		 * Returns 0 on success, -1 if no packet were to be received.
 		 *
-		 * In case of success, one can use GetBuffer, GetIPv6Header,
-		 * etc. functions. Otherwise, these functions will return
-		 * bogus values.
+		 * In case of success, one can use GetPacket() function.
+		 * Otherwise, that function will return bogus values.
 		 */
 		int ReceivePacket (const fd_set *readset);
 

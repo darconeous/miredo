@@ -1,6 +1,6 @@
 /*
  * teredo.h - Common Teredo protocol typedefs
- * $Id: teredo.h,v 1.3 2004/06/27 17:37:21 rdenisc Exp $
+ * $Id: teredo.h,v 1.4 2004/07/11 13:52:21 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -123,7 +123,11 @@ struct teredo_auth_hdr
 	/* client id and auth value follows */
 };
 
-/* Minimal Teredo auth header */
+/* 
+ * Minimal Teredo auth header
+ * BIG FAT WARNING:
+ * This structure will probably break alignement in your Teredo packets.
+ */
 struct teredo_simple_auth
 {
 	struct teredo_auth_hdr hdr;

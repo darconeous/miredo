@@ -1,6 +1,6 @@
 /*
  * teredo-udp.h - UDP sockets class declaration
- * $Id: teredo-udp.h,v 1.4 2004/06/20 13:53:35 rdenisc Exp $
+ * $Id: teredo-udp.h,v 1.5 2004/07/11 13:52:22 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -67,15 +67,6 @@ class MiredoCommonUDP
 		virtual int SendPacket (const void *packet, size_t len,
 					uint32_t dest_ip,
 					uint16_t port) const = 0;
-
-		/*
-		 * Returns a pointer to the last received Teredo packet
-		 * (by ReceivePacket()).
-		 */
-		const uint8_t *GetBuffer (void) const
-		{
-			return pbuf;
-		}
 
 		/*
 		 * Returns a pointer to the IPv6 header of the packet
@@ -183,10 +174,6 @@ class MiredoServerUDP : public MiredoCommonUDP
 		 *
 		 * Returns 0 on success, -1 if no packet were to be received
 		 * or they were not valid Terdo-encapsulated-packets.
-		 *
-		 * In case of success, one can use GetBuffer, GetIPv6Header,
-		 * etc. functions. Otherwise, these functions will return
-		 * bogus values.
 		 */
 		int ReceivePacket (const fd_set *readset);
 

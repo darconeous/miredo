@@ -1,7 +1,7 @@
 /*
  * miredo.cpp - Unix Teredo server & relay implementation
  *              core functions
- * $Id: miredo.cpp,v 1.19 2004/07/11 10:08:13 rdenisc Exp $
+ * $Id: miredo.cpp,v 1.20 2004/07/11 13:52:22 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -104,7 +104,11 @@ reload_handler (int signum)
  * * should be able to be relay-only
  * * use an application class instead
  */
-struct miredo_setup conf;
+static struct
+{
+	uint32_t server_ip, server_ip2, prefix;
+} conf;
+
 
 static MiredoRelayUDP *relay_udp = NULL;
 static MiredoServerUDP *server_udp = NULL;

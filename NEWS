@@ -1,7 +1,7 @@
 RELEASE NOTES for Miredo
 version 0.1.1 (beta version)
 =============================
-$Id: NEWS,v 1.2 2004/06/26 15:47:26 rdenisc Exp $
+$Id: NEWS,v 1.3 2004/07/11 13:52:11 rdenisc Exp $
 
   This is an early release of the program. It is not finished and might not
 work properly. It is not suited for use in production environment.
@@ -40,8 +40,8 @@ BETA RELEASE 0.1.1 : Major feature enhancement
 
 # Possible vulnerabilities impact mitigation:
     Miredo will drop its root privileges as soon as possible, setuid to
-  "miredo" user (which you should create, or change at configure time),
-  and setgid to "nogroup".
+  "miredo" user (which you should create, or change at run time), setgid,
+  and chroot. For chroot to work, some manual setup is needed.
 
 # Background run:
     Miredo will automatically detach and run in the background as a "daemon".
@@ -49,6 +49,12 @@ BETA RELEASE 0.1.1 : Major feature enhancement
 # Automatic relay address configuration:
     One no longer has to specify the relay IPv4 and IPv6 addresses. This is
   no longer needed.
+
+# Signals handling: miredo can now be terminated cleanly.
+
+# Minor compliance update for Teredo draft 02, various minor bugfixes.
+
+# Added a manpage.
 
 # Build-time support for Intel C++ Compiler 8.0.
 =============================================================================
