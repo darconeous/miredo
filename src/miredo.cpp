@@ -183,7 +183,7 @@ teredo_server_relay (IPv6Tunnel& tunnel, TeredoRelay *relay = NULL,
 		/* Handle incoming data */
 #ifdef MIREDO_TEREDO_SERVER
 		if (server != NULL)
-			server->ProcessTunnelPacket (&readset);
+			server->ProcessPacket (&readset);
 #endif
 
 #ifdef MIREDO_TEREDO_RELAY

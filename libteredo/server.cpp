@@ -293,14 +293,8 @@ static const struct in6_addr in6addr_allrouters =
  * Thread-safety note: prefix might be changed by another thread
  */
 int
-TeredoServer::ProcessTunnelPacket (const fd_set *readset)
+TeredoServer::ProcessPacket (TeredoPacket& packet, bool secondary)
 {
-	TeredoPacket packet;
-	bool secondary;
-
-	if (sock.ReceivePacket (readset, packet, &secondary))
-		return -1;
-
 	// Teredo server case number 3
 	if (!is_ipv4_global_unicast (packet.GetClientIP ()))
 		return 0;
@@ -383,6 +377,19 @@ TeredoServer::ProcessTunnelPacket (const fd_set *readset)
 	// (destination is a Teredo IPv6 address)
 	return ForwardUDPPacket (sock, packet,
 		IN6_TEREDO_SERVER (&ip6.ip6_dst) == GetServerIP ());
+}
+
+
+void
+TeredoServer::ProcessPacket (const fd_set *readset)
+{
+	TeredoPacket packet;
+
+	if (sock.ReceivePacket (readset, packet) == 0)
+		ProcessPacket (packet, false);
+
+	if (sock.ReceivePacket2 (readset, packet) == 0)
+		ProcessPacket (packet, true);
 }
 
 

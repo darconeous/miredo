@@ -42,6 +42,8 @@ class TeredoServer
 		uint32_t server_ip;
 		TeredoServerUDP sock;
 
+		int ProcessPacket (TeredoPacket& packet, bool secondary);
+
 	protected:
 		TeredoServer (uint32_t ip1, uint32_t ip2);
 
@@ -63,7 +65,7 @@ class TeredoServer
 			prefix = pref;
 		}
 
-		int ProcessTunnelPacket (const fd_set *readset);
+		void ProcessPacket (const fd_set *readset);
 
 		uint32_t GetPrefix (void) const
 		{

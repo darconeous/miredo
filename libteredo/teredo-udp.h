@@ -182,8 +182,9 @@ class TeredoServerUDP
 		 * or they were not valid Terdo-encapsulated-packets.
 		 */
 		int ReceivePacket (const fd_set *readset,
-					TeredoPacket& packet,
-					bool *secondary);
+					TeredoPacket& packet) const;
+		int ReceivePacket2 (const fd_set *readset,
+					TeredoPacket& packet) const;
 
 		/*
 		 * Sends an UDP packet at <packet>, of length <len>

@@ -311,25 +311,20 @@ int TeredoServerUDP::RegisterReadSet (fd_set *readset) const
 
 
 int
-TeredoServerUDP::ReceivePacket (const fd_set *set, TeredoPacket& packet,
-				bool *was_secondary)
+TeredoServerUDP::ReceivePacket (const fd_set *readset,
+				TeredoPacket& packet) const
 {
-	int fd = -1;
+	return ((fd_primary != -1) && FD_ISSET (fd_primary, readset))
+		? packet.Receive (fd_primary) : -1;
+}
 
-	/* Is there a packet on any of the UDP sockets? */
-	if ((fd_primary != -1) && FD_ISSET (fd_primary, set))
-	{
-		fd = fd_primary;
-		*was_secondary = false;
-	}
-	else
-	if ((fd_secondary != -1) && FD_ISSET (fd_secondary, set))
-	{
-		fd = fd_secondary;
-		*was_secondary = true;
-	}
-	
-	return (fd != -1) ? packet.Receive (fd) : -1;
+
+int
+TeredoServerUDP::ReceivePacket2 (const fd_set *readset,
+				TeredoPacket& packet) const
+{
+	return ((fd_secondary != -1) && FD_ISSET (fd_secondary, readset))
+		? packet.Receive (fd_secondary) : -1;
 }
 
 
