@@ -512,7 +512,7 @@ miredo (const char *confpath)
 		bool default_route = true;
 		char *ifname = NULL;
 		uint32_t bind_ip = INADDR_ANY, server_ip = 0;
-		int newfacility = LOG_DAEMON;
+		int newfac = LOG_DAEMON;
 		union teredo_addr prefix;
 		memset (&prefix, 0, sizeof (prefix));
 		prefix.teredo.prefix = htonl (DEFAULT_TEREDO_PREFIX);
@@ -530,12 +530,14 @@ miredo (const char *confpath)
 		uint16_t bind_port = 0;
 #endif
 
-		/* FIXME: newfacility */
+		// TODO: support for disabling logging completely
+		(void)ParseSyslogFacility (cnf, "SyslogFacility", &newfac);
+
 		// Apply syslog facility change if needed
-		if (newfacility != facility)
+		if (newfac != facility)
 		{
 			closelog ();
-			facility = newfacility;
+			facility = newfac;
 			openlog (ident, LOG_PID, facility);
 		}
 

@@ -87,4 +87,6 @@ bool ParseTeredoPrefix (MiredoConf& conf, const char *name, uint32_t *value);
 
 bool ParseRelayType (MiredoConf& conf, const char *name, int *type);
 
+bool ParseSyslogFacility (MiredoConf& conf, const char *name, int *fac);
+
 #endif

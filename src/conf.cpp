@@ -365,7 +365,8 @@ ParseTeredoPrefix (MiredoConf& conf, const char *name, uint32_t *value)
 }
 
 
-bool ParseRelayType (MiredoConf& conf, const char *name, int *type)
+bool
+ParseRelayType (MiredoConf& conf, const char *name, int *type)
 {
 	unsigned line;
 	const char *val = conf.GetRawValue (name, &line);
@@ -388,4 +389,79 @@ bool ParseRelayType (MiredoConf& conf, const char *name, int *type)
 		return false;
 	}
 	return true;
+}
+
+
+static const struct miredo_conf_syslog_facility
+{
+	const char *str;
+	int facility;
+} facilities[] =
+{
+#ifdef LOG_AUTH
+	{ "auth",	LOG_AUTH },
+#endif
+#ifdef LOG_AUTHPRIV
+	{ "authpriv",	LOG_AUTHPRIV },
+#endif
+#ifdef LOG_CRON
+	{ "cron",	LOG_CRON },
+#endif
+#ifdef LOG_DAEMON
+	{ "daemon",	LOG_DAEMON },
+#endif
+#ifdef LOG_FTP
+	{ "ftp",	LOG_FTP },
+#endif
+#ifdef LOG_KERN
+	{ "kern",	LOG_KERN },
+#endif
+	{ "local0",	LOG_LOCAL0 },
+	{ "local1",	LOG_LOCAL1 },
+	{ "local2",	LOG_LOCAL2 },
+	{ "local3",	LOG_LOCAL3 },
+	{ "local4",	LOG_LOCAL4 },
+	{ "local5",	LOG_LOCAL5 },
+	{ "local6",	LOG_LOCAL6 },
+	{ "local7",	LOG_LOCAL7 },
+#ifdef LOG_LPR
+	{ "lpr",	LOG_LPR },
+#endif
+#ifdef LOG_MAIL
+	{ "mail",	LOG_MAIL },
+#endif
+#ifdef LOG_NEWS
+	{ "news",	LOG_NEWS },
+#endif
+#ifdef LOG_SYSLOG
+	{ "syslog",	LOG_SYSLOG },
+#endif
+	{ "user",	LOG_USER },
+#ifdef LOG_UUCP
+	{ "uucp",	LOG_UUCP },
+#endif
+	{ NULL,		0 }
+};
+	
+
+bool
+ParseSyslogFacility (MiredoConf& conf, const char *name, int *facility)
+{
+	unsigned line;
+	const char *str = conf.GetRawValue (name, &line);
+
+	if (str == NULL)
+		return true;
+
+	for (const struct miredo_conf_syslog_facility *ptr = facilities;
+						ptr->str != NULL; ptr++)
+		if (!stricmp (str, ptr->str))
+		{
+			*facility = ptr->facility;
+			return true;
+		}
+
+	syslog (LOG_ERR, _("Unknown syslog facility \"%s\" at line %u"),
+		str, line);
+	return false;
 }

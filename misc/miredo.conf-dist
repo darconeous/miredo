@@ -9,14 +9,6 @@
 #
 
 #
-# Name of the networking interface
-# (ignored on non-Linux systems)
-# Defaults: InterfaceName miredo
-# Example:  InterfaceName teredo
-#
-InterfaceName	teredo
-
-#
 # Type of Teredo relay/client to run
 #
 # There are currently four supported types:
@@ -42,7 +34,25 @@ InterfaceName	teredo
 # Defaults: RelayType client
 # Examples: RelayType restricted
 #           RelayType cone
+#
 #RelayType cone
+
+#
+# Name of the networking interface
+# (ignored on non-Linux systems)
+# Defaults: InterfaceName miredo
+# Example:  InterfaceName teredo
+#
+InterfaceName	teredo
+
+#
+# Syslog facility to use
+# (see miredo.conf(5) manpage for possible values)
+#
+# Defaults: SyslogFacility daemon
+# Example:  SyslogFacility local4
+#
+#SyslogFacility user
 
 #
 # CLIENT & RELAY PARAMETERS

@@ -53,6 +53,8 @@ BETA RELEASE 0.4.0 : Major feature enhancement
 
 # Support for server only mode (no longer have to run a relay as well).
 
+# Support for changing syslogd facility used via miredo.conf.
+
 # Cleaned up server implementation.
 
 # Fixed packet source/destination IPv6 addresses checks in client/relay.
