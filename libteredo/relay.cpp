@@ -1,6 +1,6 @@
 /*
  * relay.cpp - Teredo relay peers list definition
- * $Id: relay.cpp,v 1.30 2004/08/28 11:51:20 rdenisc Exp $
+ * $Id: relay.cpp,v 1.31 2004/08/28 12:29:51 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -675,7 +675,6 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 				gettext (probe.state == PROBE_CONE
 				? N_("cone") : N_("restricted")));
 			probe.state = QUALIFIED;
-			syslog (LOG_DEBUG, "DEBUG Prefix: %lx", ntohl (newaddr.teredo.prefix));
 			NotifyUp (&newaddr.ip6);
 		}
 
