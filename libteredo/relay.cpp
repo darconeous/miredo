@@ -647,6 +647,7 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 			time (&p->last_rx);
 
 			// FIXME: dequeue incoming and outgoing packets
+			syslog (LOG_DEBUG, "FIXME should dequeue packets");
 			/*
 			 * NOTE:
 			 * This implies the kernel will see Echo replies sent
@@ -742,8 +743,6 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 		time (&p->last_xmit);
 		p->queue = NULL;
 	}
-
-	p->flags.flags.nonce = 1;
 
 	// FIXME: queue packet in incoming queue
 	syslog (LOG_DEBUG, "FIXME: incoming paquet should queued!");
