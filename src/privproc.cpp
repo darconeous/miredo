@@ -84,6 +84,7 @@ miredo_privileged_process (IPv6Tunnel& tunnel, bool default_route)
 	const struct in6_addr *p_oldloc = NULL;
 
 	memcpy (&oldter, &in6addr_any, 16);
+	tunnel.BringUp ();
 
 	while (1)
 	{
@@ -95,36 +96,37 @@ miredo_privileged_process (IPv6Tunnel& tunnel, bool default_route)
 				goto die;
 		while (memcmp (&newter, &oldter, 16) == 0);
 
-		p_newloc = IN6_IS_TEREDO_ADDR_CONE (&newter)
-				? &teredo_cone : &teredo_restrict;
-
 		if (memcmp (&oldter, &in6addr_any, 16))
 		{
 			if (default_route)
 				tunnel.DelRoute (&in6addr_any, 0);
 			tunnel.DelAddress (&oldter, 32);
-			tunnel.DelAddress (p_oldloc, 64);
 		}
-		else
-			tunnel.BringUp ();
 
 		if (memcmp (&newter, &in6addr_any, 16))
 		{
-			tunnel.AddAddress (p_newloc, 64);
+			p_newloc = IN6_IS_TEREDO_ADDR_CONE (&newter)
+					? &teredo_cone : &teredo_restrict;
+
+			if (p_newloc != p_oldloc)
+			{
+				if (p_oldloc != NULL)
+					tunnel.DelAddress (p_oldloc, 64);
+				tunnel.AddAddress (p_newloc, 64);
+				p_oldloc = p_newloc;
+			}
+
 			tunnel.AddAddress (&newter, 32);
 			if (default_route)
 				tunnel.AddRoute (&in6addr_any, 0);
 		}
-		else
-			tunnel.BringDown ();
 
-		p_oldloc = p_newloc;
 		memcpy (&oldter, &newter, 16);
 	}
 
 die:
 	close (fd[0]);
+	tunnel.BringDown ();
 	tunnel.CleanUp ();
 	exit (0);
 }
-
