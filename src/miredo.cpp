@@ -239,10 +239,10 @@ miredo_run (int mode, const char *ifname,
 	 */
 	IPv6Tunnel tunnel (ifname);
 
-#ifdef MIREDO_CHROOT_PATH
-	if (chroot (MIREDO_CHROOT_PATH) || chdir ("/"))
+#ifdef MIREDO_CHROOT
+	if (chroot (MIREDO_CHROOT) || chdir ("/"))
 		syslog (LOG_WARNING, "chroot to %s failed: %m",
-			MIREDO_CHROOT_PATH);
+			MIREDO_CHROOT);
 #endif
 
 	/*

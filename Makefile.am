@@ -17,7 +17,7 @@
 # *  http://www.gnu.org/copyleft/gpl.html                               *
 # ***********************************************************************
 
-SUBDIRS = m4 misc po include libtun6 libteredo src
+SUBDIRS = m4 po include libtun6 libteredo src misc
 man5_MANS = miredo.conf.5
 man8_MANS = miredo.8
 EXTRA_DIST = admin/config.rpath admin/mkinstalldirs  $(man5_MANS) $(man8_MANS)

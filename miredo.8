@@ -53,8 +53,6 @@ entirely conformant to that version of the Teredo specification.
 .BR "\-c config_file" " or " "\-\-config config_file"
 Specify an alternate configuration file for Miredo instead of the
 .RI "default, " "/usr/local/etc/miredo.conf" "."
-\" config.status won't replace @sysconfdir@ correctly, it would
-\" write ${prefix}/etc instead of /usr/local/etc
 
 .TP
 .BR "\-f" " or " "\-\-foreground"
@@ -65,15 +63,9 @@ Do not detach from the console. Run the program in the foreground.
 Display some help and exit.
 
 .TP
-.BR "\-p pidfile" " or " "\-\-pidfile pidfile"
-.RI "Override the " "pidfile" " location."
-By default, the PID (Process ID) of the program is written in
-.IR "/var/run/miredo.pid" "."
-
-.TP
 .BR "\-u username" " or " "\-\-user username"
 Override the user that the program will run as. By default, it runs as
-.BR "miredo" "."
+.BR "nobody" "."
 
 .TP
 .BR "\-V" " or " "\-\-version"
@@ -148,8 +140,12 @@ versions.
 The default configuration file.
 
 .TP
-.I /var/run/miredo/miredo.pid
-The default process-id file.
+.I /usr/local/var/run/miredo.pid
+The process-id file.
+
+.TP
+.I /usr/local/var/run/miredo/
+The chroot directory.
 
 .SH "SEE ALSO"
 miredo.conf(5), ng_teredo(4), ipv6(7), route(8), ip(8)

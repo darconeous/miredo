@@ -153,17 +153,17 @@ AC_MSG_RESULT([Teredo ${miredo_features}])
 # chroot path
 AC_ARG_ENABLE(chroot,
 	      [AS_HELP_STRING(--enable-chroot,
-	      		      [path to chroot to (/var/run/miredo by default)])])
+	      		      [path to chroot to (${prefix}/var/run/miredo by default)])])
 AS_IF([test "x${enable_chroot}" = "x" || test "${enable_chroot}" = "yes"],
-	[enable_chroot="/var/run/miredo"])
-AH_TEMPLATE(MIREDO_CHROOT_PATH, [Define to the path in which to chroot])
+	[enable_chroot='${localstatedir}/run/miredo'])
 AS_IF([test "${enable_chroot}" != "no"],
-	[AC_DEFINE_UNQUOTED(MIREDO_CHROOT_PATH, "$enable_chroot")])
+	[AC_SUBST(miredo_chroot, "$enable_chroot")])
+AM_CONDITIONAL(MIREDO_CHROOT, [test "${enable_chroot}" != "no"])
 
 # unprivileged user
 AC_ARG_ENABLE(miredo-user,
 	      [AS_HELP_STRING(--enable-miredo-user,
-			      [user to run as (disabled by default)])])
+			      [run as a specific user (disabled by default)])])
 AS_IF([test "${enable_miredo_user}" = "yes"],
 	[enable_miredo_user="miredo"])
 AH_TEMPLATE(MIREDO_DEFAULT_USERNAME,
@@ -174,13 +174,12 @@ AS_IF([test "x${enable_miredo_user}" != "x" && test "${enable_miredo_user}" != "
 # pidfile path
 AC_ARG_ENABLE(pidfile,
 	      [AS_HELP_STRING([--enable-pidfile],
-			      [path to the pidfile (enabled by default)])])
+			      [path to the pidfile (${enabled by default)])])
 AS_IF([test "x${enable_pidfile}" = "x" || test "${enable_pidfile}" = "yes"],
-	[enable_pidfile="/var/run/miredo.pid"])
-AH_TEMPLATE(MIREDO_DEFAULT_PIDFILE,
-            [Define to the default pidfile path created by miredo.])
+	[enable_pidfile='${localstatedir}/run/miredo.pid'])
 AS_IF([test "${enable_pidfile}" != "no"],
-	[AC_DEFINE_UNQUOTED(MIREDO_DEFAULT_PIDFILE, "$enable_pidfile")])
+	[AC_SUBST(miredo_pidfile, "$enable_pidfile")])
+AM_CONDITIONAL(MIREDO_PIDFILE, [test "${enable_pidfile}" != "no"])
 
 
 # Defines for <config.h>

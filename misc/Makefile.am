@@ -20,3 +20,19 @@
 EXTRA_DIST = miredo miredo.sh
 dist_sysconf_DATA = miredo.conf-dist
 
+install-exec-hook:
+	@echo "************************"
+	@echo "* Miredo configuration *"
+	@echo "************************"
+	@echo " "
+	@echo "A sample configuration file has been installed at:"
+	@echo "  $(sysconfdir)/miredo.conf-dist"
+	@echo " "
+	@echo "Please take time to review the settings and adjust them"
+	@echo "if necessary. Once finished, save the file as:"
+	@echo "  $(sysconfdir)/miredo.conf"
+	@echo " "
+	@echo "************************************************"
+	@echo "* Miredo WON'T run without configuration file! *"
+	@echo "************************************************"
+

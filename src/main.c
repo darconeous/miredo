@@ -146,6 +146,7 @@ error_missing (void)
 #endif
 
 
+#ifdef MIREDO_PIDFILE
 static FILE *
 safe_fopen_w (const char *path)
 {
@@ -174,16 +175,18 @@ safe_fopen_w (const char *path)
 }
 
 
+static const char *pidfile = MIREDO_PIDFILE;
+
 /*
  * Creates a Process-ID file.
  */
 static int
-create_pidfile (const char *path)
+create_pidfile (void)
 {
 	FILE *stream;
 	int retval = -1;
 
-	stream = safe_fopen_w (path);
+	stream = safe_fopen_w (pidfile);
 	if (stream != NULL)
 	{
 		if (fprintf (stream, "%d", (int)getpid ()) >= 0)
@@ -193,6 +196,17 @@ create_pidfile (const char *path)
 	}
 	return retval;
 }
+
+
+static int
+remove_pidfile (void)
+{
+	return unlink (pidfile);
+}
+#else
+# define create_pidfile( ) 0
+# define remove_pidfile( ) 0
+#endif
 
 
 #ifndef HAVE_CLEARENV
@@ -399,7 +413,7 @@ check_libtun6 (void)
 int
 main (int argc, char *argv[])
 {
-	const char *username = NULL, *conffile = NULL, *pidfile = NULL;
+	const char *username = NULL, *conffile = NULL;
 	struct
 	{
 		unsigned foreground:1; /* Run in the foreground */
@@ -411,7 +425,6 @@ main (int argc, char *argv[])
 		{ "config",	required_argument,	NULL, 'c' },
 		{ "foreground",	no_argument,		NULL, 'f' },
 		{ "help",	no_argument,		NULL, 'h' },
-		{ "pidfile",	required_argument,	NULL, 'p' },
 		{ "user",	required_argument,	NULL, 'u' },
 		{ "version",	no_argument,		NULL, 'V' },
 		{ NULL,		no_argument,		NULL, '\0'}
@@ -431,7 +444,7 @@ main (int argc, char *argv[])
 
 	memset (&flags, 0, sizeof (flags));
 
-	while ((c = getopt_long (argc, argv, "c:fhp:t:u:Vv", opts,
+	while ((c = getopt_long (argc, argv, "c:fhu:Vv", opts,
 					NULL)) != -1)
 		switch (c)
 		{
@@ -450,10 +463,6 @@ main (int argc, char *argv[])
 
 			case 'h':
 				return usage ();
-
-			case 'p':
-				ONETIME_SETTING (pidfile);
-				break;
 
 			case 'u':
 				ONETIME_SETTING (username);
@@ -485,22 +494,23 @@ main (int argc, char *argv[])
 				conffile, strerror (errno));
 		return 1;
 	}
-#ifdef MIREDO_CHROOT_PATH
+#ifdef MIREDO_CHROOT
 	else
 	{
 		struct stat s;
+		const char *path = MIREDO_CHROOT;
 
 		errno = 0;
 
-		if (stat (MIREDO_CHROOT_PATH, &s) || !S_ISDIR(s.st_mode)
-		 || access (MIREDO_CHROOT_PATH, X_OK))
+		if (stat (path, &s) || !S_ISDIR(s.st_mode)
+		 || access (path, X_OK))
 		{
 			if (errno == 0)
 				errno = ENOTDIR;
 
 			fprintf (stderr,
-				_("Checking chroot directory %s: %s\n"),
-				MIREDO_CHROOT_PATH, strerror (errno));
+				_("Chroot directory %s: %s\n"),
+				path, strerror (errno));
 			return 1;
 		}
 	}
@@ -509,28 +519,20 @@ main (int argc, char *argv[])
 	if (check_libtun6 () || init_security (username, flags.foreground))
 		return 1;
 
-#ifdef MIREDO_DEFAULT_PIDFILE
-	if (pidfile == NULL)
-		pidfile = MIREDO_DEFAULT_PIDFILE;
-#endif
-
-	if (pidfile != NULL)
-		/*
-		 * I purposedly don't check create_pidfile for error.
-		 * If the sysadmin fails to setup a directory properly for the
-		 * pidfile, I'd rather make its initscript's stop function
-		 * fail than deny the service completely.
-		 */
-		(void)create_pidfile (pidfile);
+	/*
+	 * I purposedly don't check create_pidfile for error.
+	 * If the sysadmin fails to setup a directory properly for the
+	 * pidfile, I'd rather make its initscript's stop function
+	 * fail than deny the service completely.
+	 */
+	(void)create_pidfile ();
 
 	/*
 	 * Run
 	 */
 	c = miredo (conffile);
 
-	if (pidfile != NULL)
-		unlink (pidfile);
-
+	(void)remove_pidfile ();
 
 	return c ? 1 : 0;
 }

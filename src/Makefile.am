@@ -22,8 +22,14 @@ localedir = $(datadir)/locale
 
 # _GNU_SOURCE is needed for old glibc on Linux
 AM_CPPFLAGS = -I@top_srcdir@/include -I@top_srcdir@ \
-		-DLOCALEDIR=\"$(localedir)\" -DSYSCONFDIR=\"$(sysconfdir)\" \
-		-D_GNU_SOURCE
+		-D_GNU_SOURCE -DLOCALEDIR=\"$(localedir)\" \
+		-DSYSCONFDIR=\"$(sysconfdir)\"
+if MIREDO_CHROOT
+AM_CPPFLAGS += -DMIREDO_CHROOT=\"$(miredo_chroot)\"
+endif
+if MIREDO_PIDFILE
+AM_CPPFLAGS += -DMIREDO_PIDFILE=\"$(miredo_pidfile)\"
+endif
 
 sbin_PROGRAMS = miredo
 
@@ -49,4 +55,10 @@ miredo_SOURCES += server.cpp server.h
 endif
 
 miredo_LDADD = @LIBINTL@ ../libtun6/libtun6.a ../libteredo/libteredo.a
+
+install-exec-local:
+	$(mkdir_p) $(DESTDIR)$(localstatedir)/run/miredo
+
+uninstall-local:
+	-rmdir $(DESTDIR)$(localstatedir)/run/miredo
 

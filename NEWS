@@ -48,7 +48,8 @@ BETA RELEASE 0.4.0 : Major feature enhancement
   Miredo only needs an empty directory to chroot. It is created by
   make install and automatically used.
 
-# PID file moved: it is now located in /var/run/miredo.pid by default.
+# PID file moved: it is now located in /usr/local/var/run/miredo.pid by
+  default.
 
 # Support for server only mode (no longer have to run a relay as well).
 
