@@ -1,4 +1,16 @@
-#!/bin/sh
+#!/usr/bin/make -f
 
-aclocal -I m4 && autoheader && autoconf && automake --add-missing
+all: configure config.h.in Makefile.in
+
+aclocal.m4: configure.ac
+	aclocal -I m4
+
+configure: configure.ac aclocal.m4
+	autoconf
+
+config.h.in: configure.ac
+	autoheader
+
+Makefile.in: Makefile.am */Makefile.am configure.ac
+	automake --add-missing
 
