@@ -1,6 +1,6 @@
 /*
  * ipv6-tunnel.cpp - IPv6 interface class definition
- * $Id: ipv6-tunnel.cpp,v 1.5 2004/08/17 17:31:14 rdenisc Exp $
+ * $Id: ipv6-tunnel.cpp,v 1.6 2004/08/18 09:26:35 rdenisc Exp $
  */
 
 /***********************************************************************
@@ -193,7 +193,9 @@ IPv6Tunnel::IPv6Tunnel (const char *req_name) : fd (-1), ifname (NULL)
 
 
 /*
- * Removes the tunnel interface
+ * Removes the tunnel interface from the current process context.
+ * The tunnel will be removed by the kernel once all processes which have
+ * access to it called the destructor or exited.
  */
 IPv6Tunnel::~IPv6Tunnel ()
 {
