@@ -1,4 +1,128 @@
 ------------------------------------------------------------------------
+r410 | remi | 2005-03-17 20:14:31 +0100 (jeu, 17 mar 2005) | 2 lines
+
+Update French translation
+
+------------------------------------------------------------------------
+r409 | remi | 2005-03-17 20:11:53 +0100 (jeu, 17 mar 2005) | 2 lines
+
+Updated NEWS for release 0.4.1
+
+------------------------------------------------------------------------
+r408 | remi | 2005-03-17 20:10:21 +0100 (jeu, 17 mar 2005) | 2 lines
+
+Better decsription of default value for ServerAddress
+
+------------------------------------------------------------------------
+r407 | remi | 2005-03-17 20:09:54 +0100 (jeu, 17 mar 2005) | 5 lines
+
+- Fail cleanly when no server specified in client mode,
+- Do not display unhandled conf directives in case of conf syntax error
+- Use LOG_PERROR option so that error are displayed on screen when run in
+  foreground
+
+------------------------------------------------------------------------
+r406 | remi | 2005-03-17 20:08:16 +0100 (jeu, 17 mar 2005) | 2 lines
+
+Allow not to display superfluous conf directives
+
+------------------------------------------------------------------------
+r405 | remi | 2005-03-16 13:55:38 +0100 (mer, 16 mar 2005) | 3 lines
+
+Do not check relay status when in disabled mode.
+Miredo wouldn't otherwise run in disabled mode (ie server-only)
+
+------------------------------------------------------------------------
+r404 | remi | 2005-03-13 14:35:25 +0100 (dim, 13 mar 2005) | 2 lines
+
+More comments in sample config
+
+------------------------------------------------------------------------
+r403 | remi | 2005-03-12 13:48:25 +0100 (sam, 12 mar 2005) | 2 lines
+
+A few more
+
+------------------------------------------------------------------------
+r402 | remi | 2005-03-12 13:45:19 +0100 (sam, 12 mar 2005) | 2 lines
+
+Updates svn:ignore
+
+------------------------------------------------------------------------
+r401 | remi | 2005-02-15 15:43:55 +0100 (mar, 15 fév 2005) | 2 lines
+
+Updated todo list
+
+------------------------------------------------------------------------
+r400 | remi | 2005-02-12 10:23:59 +0100 (sam, 12 fév 2005) | 6 lines
+
+- Do not reset the link-local address unless it really changes :
+  should work around kernel bug http://bugme.osdl.org/show_bug.cgi?id=3973
+- Do not bring the tunnel up & down when the connectivity is lost :
+  simply remove the addresses (could be annoying for programs that watch
+  interface state or dump traffic)
+
+------------------------------------------------------------------------
+r399 | remi | 2005-02-08 23:21:43 +0100 (mar, 08 fév 2005) | 2 lines
+
+Fix inconsistencies about the command line syntax
+
+------------------------------------------------------------------------
+r398 | remi | 2005-01-23 23:17:28 +0100 (dim, 23 jan 2005) | 2 lines
+
+Cleanup : struct miredo_conf
+
+------------------------------------------------------------------------
+r397 | remi | 2005-01-23 21:05:50 +0100 (dim, 23 jan 2005) | 2 lines
+
+Removed useless global variable
+
+------------------------------------------------------------------------
+r396 | remi | 2005-01-22 22:22:52 +0100 (sam, 22 jan 2005) | 2 lines
+
+Removed check for null server addresses that is now part of v4global.c
+
+------------------------------------------------------------------------
+r395 | remi | 2005-01-22 22:02:43 +0100 (sam, 22 jan 2005) | 2 lines
+
+Some more comments
+
+------------------------------------------------------------------------
+r394 | remi | 2005-01-22 22:02:20 +0100 (sam, 22 jan 2005) | 2 lines
+
+Updates global IPv4 access list, which is given explicitly in draft 04
+
+------------------------------------------------------------------------
+r393 | remi | 2005-01-22 19:24:13 +0100 (sam, 22 jan 2005) | 2 lines
+
+Fixes comment about RelayType. Bug reported by Shai
+
+------------------------------------------------------------------------
+r392 | remi | 2005-01-14 23:16:15 +0100 (ven, 14 jan 2005) | 3 lines
+
+Chroot after networks settings/privsep initialisation
+(grsecurity wants this)
+
+------------------------------------------------------------------------
+r391 | remi | 2005-01-14 23:15:25 +0100 (ven, 14 jan 2005) | 2 lines
+
+Increment version number
+
+------------------------------------------------------------------------
+r388 | remi | 2005-01-08 15:57:18 +0100 (sam, 08 jan 2005) | 2 lines
+
+Fixed manual page title
+
+------------------------------------------------------------------------
+r387 | remi | 2005-01-08 01:26:19 +0100 (sam, 08 jan 2005) | 2 lines
+
+Prepare 0.4.0 release
+
+------------------------------------------------------------------------
+r386 | remi | 2005-01-08 01:13:55 +0100 (sam, 08 jan 2005) | 2 lines
+
+PO files updates
+
+------------------------------------------------------------------------
 r385 | remi | 2005-01-07 17:35:48 +0100 (ven, 07 jan 2005) | 2 lines
 Changed paths:
    M /trunk/TODO
