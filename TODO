@@ -50,7 +50,6 @@ Documentation & support:
 - custom INSTALL file,
 - init.d sample script,
 - RPM and Debian packaging,
-- support for creating a pid file,
 
 Re-usability:
 --------------
