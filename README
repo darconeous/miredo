@@ -76,6 +76,7 @@ files (assuming the home directory is /var/lib/miredo):
 /var/lib/miredo/dev/null
 /var/lib/miredo/dev/net/tun		(Linux only)
 /var/lib/miredo/dev/tun0, ...tun15	(FreeBSD only)
+/var/lib/miredo/dev/random		(Teredo client only)
 /var/lib/miredo/dev/urandom		(Teredo client only)
 
   root requires read/write access to these files. The miredo
