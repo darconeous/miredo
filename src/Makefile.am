@@ -17,7 +17,8 @@
 # *  http://www.gnu.org/copyleft/gpl.html                               *
 # ***********************************************************************
 
-AM_CPPFLAGS = -I@top_srcdir@/include -I@top_srcdir@
+# _GNU_SOURCE is needed for old glibc on Linux
+AM_CPPFLAGS = -I@top_srcdir@/include -I@top_srcdir@ -D_GNU_SOURCE
 
 sbin_PROGRAMS = miredo
 
