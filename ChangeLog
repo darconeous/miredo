@@ -1,4 +1,737 @@
 ------------------------------------------------------------------------
+r385 | remi | 2005-01-07 17:35:48 +0100 (ven, 07 jan 2005) | 2 lines
+Changed paths:
+   M /trunk/TODO
+   M /trunk/configure.ac
+   M /trunk/src/conf.cpp
+   M /trunk/src/conf.h
+   M /trunk/src/miredo.cpp
+
+Fixes for some mem leaks, incorrect syslog messages and segfault on reload in configuration file handling.
+
+------------------------------------------------------------------------
+r384 | remi | 2005-01-07 16:04:28 +0100 (ven, 07 jan 2005) | 2 lines
+Changed paths:
+   M /trunk/TODO
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/teredo-udp.cpp
+   M /trunk/po/fr.po
+   M /trunk/po/miredo.pot
+
+BSD compile fixes
+
+------------------------------------------------------------------------
+r383 | remi | 2005-01-07 13:45:49 +0100 (ven, 07 jan 2005) | 2 lines
+Changed paths:
+   M /trunk/src/conf.cpp
+
+BSD compile fix
+
+------------------------------------------------------------------------
+r382 | remi | 2005-01-07 13:39:07 +0100 (ven, 07 jan 2005) | 5 lines
+Changed paths:
+   M /trunk/NEWS
+   M /trunk/configure.ac
+   M /trunk/miredo.conf.5
+   M /trunk/misc/miredo.conf-dist
+   M /trunk/src/conf.cpp
+   M /trunk/src/conf.h
+   M /trunk/src/miredo.cpp
+
+- SyslogFacility directive implementation
+- bump version number to 0.4.0 since the program "interface" is
+  completely incompatible with that of the previous versions
+  (there will be no 0.3.3)
+
+------------------------------------------------------------------------
+r381 | remi | 2005-01-06 11:16:43 +0100 (jeu, 06 jan 2005) | 4 lines
+Changed paths:
+   M /trunk/Makefile.am
+   M /trunk/NEWS
+   M /trunk/configure.ac
+   M /trunk/miredo.8
+   M /trunk/misc/Makefile.am
+   M /trunk/src/Makefile.am
+   M /trunk/src/main.c
+   M /trunk/src/miredo.cpp
+
+- Fixes path to the chroot directory and the pidfile.
+- Disable fairly useless option to change pidfile at run-time.
+- Fixes bug when -t option was used while it does no longer exists.
+
+------------------------------------------------------------------------
+r380 | remi | 2005-01-06 10:06:52 +0100 (jeu, 06 jan 2005) | 2 lines
+Changed paths:
+   M /trunk/NEWS
+   M /trunk/README
+
+Changed docs for new chroot system
+
+------------------------------------------------------------------------
+r379 | remi | 2005-01-05 23:10:55 +0100 (mer, 05 jan 2005) | 2 lines
+Changed paths:
+   M /trunk/po/fr.po
+   M /trunk/po/miredo.pot
+
+PO updates
+
+------------------------------------------------------------------------
+r378 | remi | 2005-01-05 23:03:24 +0100 (mer, 05 jan 2005) | 2 lines
+Changed paths:
+   M /trunk/src/main.c
+
+Check chroot directory before running
+
+------------------------------------------------------------------------
+r377 | remi | 2005-01-05 22:12:34 +0100 (mer, 05 jan 2005) | 2 lines
+Changed paths:
+   M /trunk/src/miredo.cpp
+   M /trunk/src/privproc.cpp
+   M /trunk/src/privproc.h
+
+Simply privsep (similarly as previous commit)
+
+------------------------------------------------------------------------
+r376 | remi | 2005-01-05 22:04:44 +0100 (mer, 05 jan 2005) | 3 lines
+Changed paths:
+   M /trunk/src/main.c
+   M /trunk/src/miredo.cpp
+
+Doing initialization as root is much simpler, and might actually be
+safer (e.g; can't receive signal from unprivileged user's processes)
+
+------------------------------------------------------------------------
+r375 | remi | 2005-01-05 19:00:19 +0100 (mer, 05 jan 2005) | 3 lines
+Changed paths:
+   M /trunk/src/main.c
+
+- Check if miredo.conf is readable before daemon(),
+- Some cleanup
+
+------------------------------------------------------------------------
+r374 | remi | 2005-01-05 18:19:38 +0100 (mer, 05 jan 2005) | 2 lines
+Changed paths:
+   M /trunk/libteredo/server.cpp
+   M /trunk/src/miredo.cpp
+
+Minor signal handling security improvement
+
+------------------------------------------------------------------------
+r373 | remi | 2005-01-05 16:05:00 +0100 (mer, 05 jan 2005) | 2 lines
+Changed paths:
+   M /trunk/misc/miredo
+   M /trunk/misc/miredo.sh
+
+Updates for sample init scripts
+
+------------------------------------------------------------------------
+r372 | remi | 2005-01-04 23:27:07 +0100 (mar, 04 jan 2005) | 3 lines
+Changed paths:
+   M /trunk/miredo.8
+   M /trunk/src/main.c
+
+Remove very hard to setup "early" chroot feature, obsoleted by late
+chroot feature
+
+------------------------------------------------------------------------
+r371 | remi | 2005-01-04 22:52:37 +0100 (mar, 04 jan 2005) | 2 lines
+Changed paths:
+   M /trunk/TODO
+   M /trunk/configure.ac
+   M /trunk/libteredo/security.cpp
+   M /trunk/libteredo/security.h
+   M /trunk/src/main.c
+   M /trunk/src/miredo.cpp
+
+Easy late chroot (path configurable with --enable-chroot configure option)
+
+------------------------------------------------------------------------
+r370 | remi | 2005-01-04 15:04:39 +0100 (mar, 04 jan 2005) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+
+Change syslog message severity
+
+------------------------------------------------------------------------
+r369 | remi | 2005-01-04 13:35:38 +0100 (mar, 04 jan 2005) | 2 lines
+Changed paths:
+   M /trunk/src/miredo.cpp
+
+Fixes infinite loop when processing SIGHUP
+
+------------------------------------------------------------------------
+r368 | remi | 2005-01-04 00:54:24 +0100 (mar, 04 jan 2005) | 3 lines
+Changed paths:
+   M /trunk/Makefile.am
+
+Fixes bug where miredo.conf.5 was installed as "man 8 miredo.conf"
+instead of "man 5 miredo.conf"
+
+------------------------------------------------------------------------
+r367 | remi | 2005-01-04 00:52:33 +0100 (mar, 04 jan 2005) | 2 lines
+Changed paths:
+   M /trunk/misc/miredo.conf-dist
+   M /trunk/src/miredo.cpp
+   M /trunk/src/privproc.cpp
+   M /trunk/src/privproc.h
+
+DefaultRoute boolean directive implementation
+
+------------------------------------------------------------------------
+r366 | remi | 2005-01-04 00:42:16 +0100 (mar, 04 jan 2005) | 2 lines
+Changed paths:
+   M /trunk/src/conf.cpp
+   M /trunk/src/conf.h
+
+Support for parsing boolean directives
+
+------------------------------------------------------------------------
+r365 | remi | 2005-01-02 21:49:54 +0100 (dim, 02 jan 2005) | 2 lines
+Changed paths:
+   M /trunk/misc/miredo.conf-dist
+
+Comment about client mode
+
+------------------------------------------------------------------------
+r364 | remi | 2005-01-02 21:46:49 +0100 (dim, 02 jan 2005) | 2 lines
+Changed paths:
+   M /trunk/src/main.c
+
+Fix bogus duplicate option error
+
+------------------------------------------------------------------------
+r363 | remi | 2005-01-02 21:20:24 +0100 (dim, 02 jan 2005) | 2 lines
+Changed paths:
+   M /trunk/README
+
+Note about configuration file and chroot
+
+------------------------------------------------------------------------
+r362 | remi | 2005-01-02 21:15:57 +0100 (dim, 02 jan 2005) | 2 lines
+Changed paths:
+   M /trunk/NEWS
+
+Updated NEWS
+
+------------------------------------------------------------------------
+r361 | remi | 2005-01-02 21:10:37 +0100 (dim, 02 jan 2005) | 2 lines
+Changed paths:
+   M /trunk/src/miredo.cpp
+
+Fix memory leak
+
+------------------------------------------------------------------------
+r360 | remi | 2005-01-02 21:02:19 +0100 (dim, 02 jan 2005) | 2 lines
+Changed paths:
+   M /trunk/README
+
+Updated README
+
+------------------------------------------------------------------------
+r359 | remi | 2005-01-02 20:43:57 +0100 (dim, 02 jan 2005) | 3 lines
+Changed paths:
+   M /trunk/misc/Makefile.am
+   D /trunk/misc/miredo.conf
+   A /trunk/misc/miredo.conf-dist (from /trunk/misc/miredo.conf:358)
+
+Rename the sample conf file so that it does not override local older
+customized configuration file
+
+------------------------------------------------------------------------
+r358 | remi | 2005-01-02 20:42:54 +0100 (dim, 02 jan 2005) | 2 lines
+Changed paths:
+   M /trunk/misc/miredo.conf
+
+Update sample conf file
+
+------------------------------------------------------------------------
+r357 | remi | 2005-01-02 20:39:17 +0100 (dim, 02 jan 2005) | 2 lines
+Changed paths:
+   M /trunk/src/conf.cpp
+   M /trunk/src/conf.h
+   M /trunk/src/miredo.cpp
+
+Implement RelayType as documented in miredo.conf.5
+
+------------------------------------------------------------------------
+r356 | remi | 2005-01-02 14:48:20 +0100 (dim, 02 jan 2005) | 2 lines
+Changed paths:
+   M /trunk/po/fr.po
+   M /trunk/po/miredo.pot
+
+French translation update
+
+------------------------------------------------------------------------
+r355 | remi | 2005-01-02 14:45:31 +0100 (dim, 02 jan 2005) | 3 lines
+Changed paths:
+   M /trunk/Makefile.am
+   M /trunk/miredo.conf.5
+
+miredo.conf reference
+(does not match current implementation)
+
+------------------------------------------------------------------------
+r354 | remi | 2005-01-01 22:10:54 +0100 (sam, 01 jan 2005) | 2 lines
+Changed paths:
+   M /trunk/miredo.conf.5
+
+Partial miredo.conf manpage (to be completed)
+
+------------------------------------------------------------------------
+r353 | remi | 2005-01-01 22:04:43 +0100 (sam, 01 jan 2005) | 2 lines
+Changed paths:
+   M /trunk/miredo.8
+   A /trunk/miredo.conf.5 (from /trunk/miredo.8:336)
+
+Updates miredo.8 man page with new syntax
+
+------------------------------------------------------------------------
+r352 | remi | 2005-01-01 21:27:50 +0100 (sam, 01 jan 2005) | 2 lines
+Changed paths:
+   M /trunk/src/main.c
+
+Cleanup
+
+------------------------------------------------------------------------
+r351 | remi | 2005-01-01 13:51:52 +0100 (sam, 01 jan 2005) | 2 lines
+Changed paths:
+   M /trunk/TODO
+
+Updates TODO list
+
+------------------------------------------------------------------------
+r350 | remi | 2005-01-01 13:50:26 +0100 (sam, 01 jan 2005) | 2 lines
+Changed paths:
+   M /trunk/misc/miredo.conf
+   M /trunk/src/miredo.cpp
+
+Gets interface & Teredo prefix from config file
+
+------------------------------------------------------------------------
+r349 | remi | 2005-01-01 12:08:35 +0100 (sam, 01 jan 2005) | 2 lines
+Changed paths:
+   M /trunk/src/Makefile.am
+   M /trunk/src/main.c
+
+New (much simpler) command line syntax for use with conf file
+
+------------------------------------------------------------------------
+r348 | remi | 2005-01-01 01:27:14 +0100 (sam, 01 jan 2005) | 2 lines
+Changed paths:
+   M /trunk/po/fr.po
+   M /trunk/po/miredo.pot
+   M /trunk/src/conf.cpp
+
+PO updates
+
+------------------------------------------------------------------------
+r347 | remi | 2005-01-01 01:21:55 +0100 (sam, 01 jan 2005) | 2 lines
+Changed paths:
+   M /trunk/src/miredo.cpp
+
+Fixed syslog messages
+
+------------------------------------------------------------------------
+r346 | remi | 2005-01-01 01:18:16 +0100 (sam, 01 jan 2005) | 3 lines
+Changed paths:
+   M /trunk/src/miredo.cpp
+
+- fix BindPort byte order
+- clean up main process termination & reload
+
+------------------------------------------------------------------------
+r345 | remi | 2005-01-01 00:50:42 +0100 (sam, 01 jan 2005) | 2 lines
+Changed paths:
+   M /trunk/src/miredo.cpp
+
+Fix parameters ordering in call to miredo_run()
+
+------------------------------------------------------------------------
+r344 | remi | 2005-01-01 00:45:38 +0100 (sam, 01 jan 2005) | 2 lines
+Changed paths:
+   M /trunk/src/miredo.cpp
+
+Do not create a relay when running server only
+
+------------------------------------------------------------------------
+r343 | remi | 2005-01-01 00:44:14 +0100 (sam, 01 jan 2005) | 2 lines
+Changed paths:
+   M /trunk/src/miredo.cpp
+
+Do not export a route to Teredo when running a server without relay
+
+------------------------------------------------------------------------
+r342 | remi | 2005-01-01 00:41:43 +0100 (sam, 01 jan 2005) | 3 lines
+Changed paths:
+   M /trunk/src/conf.cpp
+
+- Removed debug messages
+- Ignore "empty" comment lines
+
+------------------------------------------------------------------------
+r341 | remi | 2005-01-01 00:39:12 +0100 (sam, 01 jan 2005) | 3 lines
+Changed paths:
+   M /trunk/misc/miredo.conf
+   M /trunk/po/POTFILES.in
+   M /trunk/src/Makefile.am
+   A /trunk/src/conf.cpp
+   A /trunk/src/conf.h
+   M /trunk/src/main.c
+   M /trunk/src/miredo.cpp
+   M /trunk/src/miredo.h
+
+Configuration file parsing
+(many regressions to be fixed later -- hardly useable revision)
+
+------------------------------------------------------------------------
+r340 | remi | 2004-12-31 14:28:42 +0100 (ven, 31 déc 2004) | 2 lines
+Changed paths:
+   M /trunk/src/main.c
+
+Typos in comments
+
+------------------------------------------------------------------------
+r339 | remi | 2004-12-31 14:10:45 +0100 (ven, 31 déc 2004) | 2 lines
+Changed paths:
+   M /trunk/README
+
+Do no longer requires /var/run/miredo directory
+
+------------------------------------------------------------------------
+r338 | remi | 2004-12-31 14:09:52 +0100 (ven, 31 déc 2004) | 3 lines
+Changed paths:
+   M /trunk/configure.ac
+   M /trunk/src/main.c
+
+- Create pid file in /var/run instead of /var/run/miredo
+- Get root to remove pid file before exit
+
+------------------------------------------------------------------------
+r337 | remi | 2004-12-31 14:05:00 +0100 (ven, 31 déc 2004) | 2 lines
+Changed paths:
+   M /trunk/src/main.c
+
+Create pid file as root
+
+------------------------------------------------------------------------
+r336 | remi | 2004-12-31 13:41:06 +0100 (ven, 31 déc 2004) | 2 lines
+Changed paths:
+   M /trunk/src/main.c
+
+Fixed comment
+
+------------------------------------------------------------------------
+r335 | remi | 2004-12-31 13:39:29 +0100 (ven, 31 déc 2004) | 2 lines
+Changed paths:
+   M /trunk/src/main.c
+
+Safe pid file creation
+
+------------------------------------------------------------------------
+r334 | remi | 2004-12-30 16:57:52 +0100 (jeu, 30 déc 2004) | 2 lines
+Changed paths:
+   M /trunk/po/POTFILES.in
+   M /trunk/po/fr.po
+   M /trunk/po/miredo.pot
+
+POTFILES update
+
+------------------------------------------------------------------------
+r333 | remi | 2004-12-30 16:55:03 +0100 (jeu, 30 déc 2004) | 2 lines
+Changed paths:
+   M /trunk/src/Makefile.am
+
+FreeBSD compile fix
+
+------------------------------------------------------------------------
+r332 | remi | 2004-12-30 16:50:30 +0100 (jeu, 30 déc 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/packets.h
+   M /trunk/libteredo/relay-udp.h
+   M /trunk/libteredo/relay.h
+
+#include headers cleanup
+
+------------------------------------------------------------------------
+r331 | remi | 2004-12-30 16:42:33 +0100 (jeu, 30 déc 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/Makefile.am
+   M /trunk/libteredo/packets.cpp
+   A /trunk/libteredo/relay-udp.cpp (from /trunk/libteredo/teredo-udp.cpp:330)
+   A /trunk/libteredo/relay-udp.h (from /trunk/libteredo/teredo-udp.h:330)
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/relay.h
+   M /trunk/libteredo/teredo-udp.cpp
+   M /trunk/libteredo/teredo-udp.h
+
+Another code split
+
+------------------------------------------------------------------------
+r330 | remi | 2004-12-30 16:33:00 +0100 (jeu, 30 déc 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/Makefile.am
+   A /trunk/libteredo/server-udp.cpp (from /trunk/libteredo/teredo-udp.cpp:329)
+   A /trunk/libteredo/server-udp.h (from /trunk/libteredo/teredo-udp.h:329)
+   M /trunk/libteredo/server.cpp
+   M /trunk/libteredo/server.h
+   M /trunk/libteredo/teredo-udp.cpp
+   M /trunk/libteredo/teredo-udp.h
+
+Code split
+
+------------------------------------------------------------------------
+r329 | remi | 2004-12-30 16:17:52 +0100 (jeu, 30 déc 2004) | 3 lines
+Changed paths:
+   M /trunk/libteredo/teredo-udp.cpp
+   M /trunk/libteredo/teredo-udp.h
+
+Cleanup to prepare separation of Teredo(Relay|Client|Server)UDP
+out of teredo-udp.*
+
+------------------------------------------------------------------------
+r328 | remi | 2004-12-30 15:58:18 +0100 (jeu, 30 déc 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/teredo-udp.cpp
+   M /trunk/libteredo/teredo-udp.h
+
+TeredoClientUDP / Multicast socket support
+
+------------------------------------------------------------------------
+r327 | remi | 2004-12-30 15:48:18 +0100 (jeu, 30 déc 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/teredo.h
+
+Add symbolic constants for Teredo Discovery multicast address
+
+------------------------------------------------------------------------
+r326 | remi | 2004-12-30 14:43:47 +0100 (jeu, 30 déc 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/teredo-udp.cpp
+   M /trunk/libteredo/teredo-udp.h
+
+Common Receive...() code factorization
+
+------------------------------------------------------------------------
+r325 | remi | 2004-12-30 14:35:05 +0100 (jeu, 30 déc 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/server.cpp
+   M /trunk/libteredo/server.h
+   M /trunk/libteredo/teredo-udp.cpp
+   M /trunk/libteredo/teredo-udp.h
+   M /trunk/src/miredo.cpp
+
+Processes packets from server's secondary IP address even if the primary IP sockets is permanently busy
+
+------------------------------------------------------------------------
+r324 | remi | 2004-12-30 14:22:45 +0100 (jeu, 30 déc 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/server.cpp
+
+Cleanup server processing rules
+
+------------------------------------------------------------------------
+r323 | remi | 2004-12-30 13:37:35 +0100 (jeu, 30 déc 2004) | 3 lines
+Changed paths:
+   M /trunk/libteredo/server.cpp
+   M /trunk/libteredo/teredo-udp.cpp
+   M /trunk/libteredo/teredo-udp.h
+
+- Better error handling in TeredoServerUDP::ListenIP
+- Fixed thread-safety issue with use_secondary_ip in TeredoServer
+
+------------------------------------------------------------------------
+r322 | remi | 2004-12-30 13:08:38 +0100 (jeu, 30 déc 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/server.cpp
+
+Thread-safety fixes
+
+------------------------------------------------------------------------
+r321 | remi | 2004-12-30 12:06:18 +0100 (jeu, 30 déc 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/queue.h
+
+Packet::unsafe_Trash made static
+
+------------------------------------------------------------------------
+r320 | remi | 2004-12-29 17:28:58 +0100 (mer, 29 déc 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/teredo-udp.cpp
+
+Set Multicast TTL to 1
+
+------------------------------------------------------------------------
+r319 | remi | 2004-12-29 11:41:10 +0100 (mer, 29 déc 2004) | 3 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+
+Minimalistic source IPv6 address checks on received packets
+(drop link-local packets for security's sake)
+
+------------------------------------------------------------------------
+r318 | remi | 2004-12-29 10:12:26 +0100 (mer, 29 déc 2004) | 2 lines
+Changed paths:
+   M /trunk/src/miredo.cpp
+
+Handle error case properly
+
+------------------------------------------------------------------------
+r317 | remi | 2004-12-28 21:35:12 +0100 (mar, 28 déc 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/server.cpp
+
+Same as previous commit - for server stuff
+
+------------------------------------------------------------------------
+r316 | remi | 2004-12-28 21:19:24 +0100 (mar, 28 déc 2004) | 6 lines
+Changed paths:
+   M /trunk/TODO
+   M /trunk/libteredo/packets.cpp
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/teredo-udp.cpp
+   M /trunk/libteredo/teredo-udp.h
+
+Got rid of the big full IPv6 packet memcpy()
+on the UDP socket side.
+
+(We had already gotten rid of the other memcpy in IPv6Tunnel with the help of
+writev()/readv(). There is no longer any memcpy of a entire packet)
+
+------------------------------------------------------------------------
+r315 | remi | 2004-12-28 20:44:08 +0100 (mar, 28 déc 2004) | 2 lines
+Changed paths:
+   M /trunk/THANKS
+
+Update
+
+------------------------------------------------------------------------
+r314 | remi | 2004-12-25 17:33:16 +0100 (sam, 25 déc 2004) | 2 lines
+Changed paths:
+   M /trunk/po/fr.po
+   M /trunk/po/miredo.pot
+
+Update PO files
+
+------------------------------------------------------------------------
+r313 | remi | 2004-12-25 17:27:01 +0100 (sam, 25 déc 2004) | 2 lines
+Changed paths:
+   M /trunk/misc/miredo.sh
+
+Fix Debian-style initscript
+
+------------------------------------------------------------------------
+r312 | remi | 2004-12-25 17:21:32 +0100 (sam, 25 déc 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/Makefile.am
+   M /trunk/libteredo/packets.cpp
+   M /trunk/libteredo/relay.cpp
+   M /trunk/src/miredo.cpp
+   M /trunk/src/relay.cpp
+   M /trunk/src/relay.h
+
+Option for not compiling Teredo client support
+
+------------------------------------------------------------------------
+r311 | remi | 2004-12-25 17:04:18 +0100 (sam, 25 déc 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/Makefile.am
+   M /trunk/src/Makefile.am
+   M /trunk/src/miredo.cpp
+
+Support for not compiling relay/client support
+
+------------------------------------------------------------------------
+r310 | remi | 2004-12-25 16:54:45 +0100 (sam, 25 déc 2004) | 2 lines
+Changed paths:
+   M /trunk/configure.ac
+
+Options (unhandled) to disable relay/client or only client
+
+------------------------------------------------------------------------
+r309 | remi | 2004-12-25 16:29:55 +0100 (sam, 25 déc 2004) | 2 lines
+Changed paths:
+   M /trunk/configure.ac
+
+- Fix and cleanup Autoconf/M4 quoting
+
+------------------------------------------------------------------------
+r308 | remi | 2004-12-25 15:09:29 +0100 (sam, 25 déc 2004) | 2 lines
+Changed paths:
+   M /trunk/src/miredo.cpp
+
+Removed unused variable
+
+------------------------------------------------------------------------
+r307 | remi | 2004-12-25 15:08:43 +0100 (sam, 25 déc 2004) | 2 lines
+Changed paths:
+   M /trunk/src/miredo.cpp
+
+Fix race condition in the select() call with signal handlers.
+
+------------------------------------------------------------------------
+r306 | remi | 2004-12-25 14:47:22 +0100 (sam, 25 déc 2004) | 2 lines
+Changed paths:
+   M /trunk/TODO
+   M /trunk/libteredo/relay.cpp
+
+--disable-teredo-client is a TODO
+
+------------------------------------------------------------------------
+r305 | remi | 2004-12-25 14:27:35 +0100 (sam, 25 déc 2004) | 3 lines
+Changed paths:
+   M /trunk/src/privproc.cpp
+
+Avoid warning from GCC
+(GCC is wrong though)
+
+------------------------------------------------------------------------
+r304 | remi | 2004-12-25 14:19:10 +0100 (sam, 25 déc 2004) | 2 lines
+Changed paths:
+   M /trunk/configure.ac
+   M /trunk/libteredo/Makefile.am
+   M /trunk/src/Makefile.am
+   M /trunk/src/miredo.cpp
+
+--disable-teredo-server option to not compile Teredo server support
+
+------------------------------------------------------------------------
+r303 | remi | 2004-12-24 15:36:24 +0100 (ven, 24 déc 2004) | 2 lines
+Changed paths:
+   M /trunk/misc/Makefile.am
+   A /trunk/misc/miredo.conf
+
+Default Miredo config file (unused yet)
+
+------------------------------------------------------------------------
+r302 | remi | 2004-12-22 09:58:17 +0100 (mer, 22 déc 2004) | 2 lines
+Changed paths:
+   M /trunk/libtun6/ipv6-tunnel.cpp
+
+- Fixed typo in comment
+
+------------------------------------------------------------------------
+r301 | remi | 2004-12-22 09:58:08 +0100 (mer, 22 déc 2004) | 2 lines
+Changed paths:
+   M /trunk/po/fr.po
+   M /trunk/po/miredo.pot
+
+Remerge PO files
+
+------------------------------------------------------------------------
+r300 | remi | 2004-12-22 09:57:55 +0100 (mer, 22 déc 2004) | 2 lines
+Changed paths:
+   M /trunk/configure.ac
+
+- update version to future 0.3.3
+
+------------------------------------------------------------------------
+r298 | remi | 2004-12-17 17:11:24 +0100 (ven, 17 déc 2004) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog
+
+- ChangeLog for 0.3.2 release
+
+------------------------------------------------------------------------
 r297 | remi | 2004-12-17 17:09:53 +0100 (Fri, 17 Dec 2004) | 2 lines
 Changed paths:
    M /trunk/NEWS
