@@ -1,6 +1,6 @@
 /*
  * relay.h - Teredo relay peers list declaration
- * $Id: relay.h,v 1.20 2004/08/27 14:54:52 rdenisc Exp $
+ * $Id: relay.h,v 1.21 2004/08/27 16:21:10 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -136,7 +136,7 @@ class TeredoRelay
 		 * a Teredo packet is received.
 		 * Not thread-safe yet.
 		 */
-		int ReceivePacket (void);
+		int ReceivePacket (const fd_set *reaset);
 
 		/*
 		 * Sends pending queued UDP packets (Teredo bubbles,

@@ -1,6 +1,6 @@
 /*
  * teredo-udp.cpp - UDP sockets class definition
- * $Id: teredo-udp.cpp,v 1.5 2004/08/27 10:21:59 rdenisc Exp $
+ * $Id: teredo-udp.cpp,v 1.6 2004/08/27 16:21:10 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -244,28 +244,11 @@ TeredoRelayUDP::RegisterReadSet (fd_set *readset) const
 
 
 int
-TeredoRelayUDP::ReceivePacket (TeredoPacket& packet) const
+TeredoRelayUDP::ReceivePacket (const fd_set *readset,
+				TeredoPacket& packet) const
 {
-	if (fd != -1)
-	{
-		fd_set set;
-
-		FD_ZERO (&set);
-		FD_SET (fd, &set);
-
-		struct timeval tv;
-		tv.tv_sec = 0;
-		tv.tv_usec = 0;
-
-		// FIXME:
-		// decide whether we should block or not
-		// (at the moment: non-blocking but documented as
-		// blocking!!)
-		// and make this thread-blocking-safe.
-		if (select (fd + 1, &set, NULL, NULL, &tv) == 1)
-			return packet.Receive (fd);
-	}
-	return -1;
+	return ((fd != -1) && FD_ISSET (fd, readset))
+		? packet.Receive (fd) : -1;
 }
 
 
@@ -343,32 +326,24 @@ int TeredoServerUDP::RegisterReadSet (fd_set *readset) const
 
 // FIXME: re-entrancy (regarding was_secondary)
 int
-TeredoServerUDP::ReceivePacket (TeredoPacket& packet)
+TeredoServerUDP::ReceivePacket (const fd_set *set, TeredoPacket& packet)
 {
+	int fd = -1;
+
 	/* Is there a packet on any of the UDP sockets? */
-	fd_set set;
-	int fd = RegisterReadSet (&set);
-
-	struct timeval tv;
-	tv.tv_sec = 0;
-	tv.tv_usec = 0;
-	
-	if (select (fd, &set, NULL, NULL, &tv) <= 0)
-		return -1;
-
-	if ((fd_primary != -1) && FD_ISSET (fd_primary, &set))
+	if ((fd_primary != -1) && FD_ISSET (fd_primary, set))
 	{
 		fd = fd_primary;
 		was_secondary = false;
 	}
 	else
-	if ((fd_secondary != -1) && FD_ISSET (fd_secondary, &set))
+	if ((fd_secondary != -1) && FD_ISSET (fd_secondary, set))
 	{
 		fd = fd_secondary;
 		was_secondary = true;
 	}
 	
-	return (fd == -1) ? -1 : packet.Receive (fd);
+	return (fd != -1) ? packet.Receive (fd) : -1;
 }
 
 

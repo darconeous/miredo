@@ -1,7 +1,7 @@
 /*
  * miredo.cpp - Unix Teredo server & relay implementation
  *              core functions
- * $Id: miredo.cpp,v 1.36 2004/08/27 15:04:32 rdenisc Exp $
+ * $Id: miredo.cpp,v 1.37 2004/08/27 16:21:10 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -147,12 +147,12 @@ teredo_server_relay (IPv6Tunnel& tunnel, TeredoRelay *relay = NULL,
 
 		/* Wait until one of them is ready for read */
 		maxfd = select (maxfd + 1, &readset, NULL, NULL, &tv);
-		if (maxfd <= 0) // interrupted by signal
+		if (maxfd < 0) // interrupted by signal
 			continue;
 
 		/* Handle incoming data */
 		if (server != NULL)
-			server->ProcessTunnelPacket ();
+			server->ProcessTunnelPacket (&readset);
 
 		if (relay != NULL)
 		{
@@ -170,7 +170,7 @@ teredo_server_relay (IPv6Tunnel& tunnel, TeredoRelay *relay = NULL,
 
 			/* Forwards Teredo packet to IPv6
 			 * (Packet reception) */
-			relay->ReceivePacket ();
+			relay->ReceivePacket (&readset);
 		}
 	}
 

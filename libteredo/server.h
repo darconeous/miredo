@@ -1,6 +1,6 @@
 /*
  * server.h - Declarations for server.cpp
- * $Id: server.h,v 1.2 2004/07/31 19:58:43 rdenisc Exp $
+ * $Id: server.h,v 1.3 2004/08/27 16:21:10 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -64,7 +64,7 @@ class TeredoServer
 			prefix = pref;
 		}
 
-		int ProcessTunnelPacket (void);
+		int ProcessTunnelPacket (const fd_set *readset);
 
 		uint32_t GetPrefix (void) const
 		{

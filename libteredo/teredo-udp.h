@@ -1,6 +1,6 @@
 /*
  * teredo-udp.h - UDP sockets class declaration
- * $Id: teredo-udp.h,v 1.6 2004/08/27 10:21:59 rdenisc Exp $
+ * $Id: teredo-udp.h,v 1.7 2004/08/27 16:21:10 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -132,7 +132,8 @@ class TeredoRelayUDP
 
 		// Thread safe functions:
 		int RegisterReadSet (fd_set *readset) const;
-		int ReceivePacket (TeredoPacket& packet) const;
+		int ReceivePacket (const fd_set *readset,
+					TeredoPacket& packet) const;
 		int SendPacket (const void *packet, size_t len,
 				uint32_t dest_ip, uint16_t dest_port) const;
 
@@ -181,7 +182,8 @@ class TeredoServerUDP
 		 * or they were not valid Terdo-encapsulated-packets.
 		 * FIXME: NOT thread-safe
 		 */
-		int ReceivePacket (TeredoPacket& packet);
+		int ReceivePacket (const fd_set *readset,
+					TeredoPacket& packet);
 
 		/*
 		 * Sends an UDP packet at <packet>, of length <len>

@@ -1,6 +1,6 @@
 /*
  * relay.cpp - Teredo relay peers list definition
- * $Id: relay.cpp,v 1.24 2004/08/27 14:54:52 rdenisc Exp $
+ * $Id: relay.cpp,v 1.25 2004/08/27 16:21:09 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -155,6 +155,10 @@ SendRS (const TeredoRelayUDP& sock, uint32_t server_ip, unsigned char *nonce,
 		memcpy (&rs.ip6.ip6_dst, &in6addr_allrouters,
 			sizeof (rs.ip6.ip6_dst));
 	
+		// avoids memory disclosure, and allows
+		// precomputed checksum:
+		memset (&rs.rs, 0, sizeof (rs.rs));
+
 		rs.rs.nd_rs_type = ND_ROUTER_SOLICIT;
 		rs.rs.nd_rs_code = 0;
 		// Checksums are pre-computed
@@ -240,6 +244,12 @@ TeredoRelay::TeredoRelay (uint32_t pref, uint16_t port, bool cone)
 TeredoRelay::TeredoRelay (uint32_t server_ip, uint16_t port)
 	: head (NULL)
 {
+	addr.teredo.prefix = PREFIX_UNSET;
+	addr.teredo.server_ip = server_ip;
+	addr.teredo.flags = htons (TEREDO_FLAGS_CONE);
+	addr.teredo.client_ip = 0;
+	addr.teredo.client_port = 0;
+
 	if (sock.ListenPort (port) == 0)
 	{
 		state.probe = PROBE_CONE;
@@ -504,11 +514,11 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
  * (as specified per paragraph 5.4.2). That's called "Packet reception".
  * Returns 0 on success, -1 on error.
  */
-int TeredoRelay::ReceivePacket (void)
+int TeredoRelay::ReceivePacket (const fd_set *readset)
 {
 	TeredoPacket packet;
 
-	if (sock.ReceivePacket (packet))
+	if (sock.ReceivePacket (readset, packet))
 		return -1;
 
 	size_t length;

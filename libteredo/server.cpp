@@ -1,6 +1,6 @@
 /*
  * server.cpp - Handling of a single Teredo datagram (server-side).
- * $Id: server.cpp,v 1.6 2004/08/27 10:21:59 rdenisc Exp $
+ * $Id: server.cpp,v 1.7 2004/08/27 16:21:10 rdenisc Exp $
  */
 
 /***********************************************************************
@@ -282,11 +282,11 @@ static const struct in6_addr in6addr_allrouters =
  * Checks and handles an Teredo-encapsulated packet.
  */
 int
-TeredoServer::ProcessTunnelPacket (void)
+TeredoServer::ProcessTunnelPacket (const fd_set *readset)
 {
 	TeredoPacket packet;
 
-	if (sock.ReceivePacket (packet))
+	if (sock.ReceivePacket (readset, packet))
 		return -1;
 
 	// Teredo server check number 3
