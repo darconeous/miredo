@@ -18,10 +18,15 @@ changes, run 'miredo -h' to get help. For detailled internal changes, see
 ChangeLog.
 
 =============================================================================
-BETA RELEASE 0.3.2 : Minor feature enhancement
+BETA RELEASE 0.3.2 : Minor bugfixes
 
 # Configure option --enable-pidfile=<path> to change the pidfile path
   (or --disable-pidfile to disable pidfile generation)
+
+# Safer default configuration : Miredo uses the "nobody" user which
+  should exists on any system, instead of root by default.
+
+# FreeBSD compilation fixes.
 
 =============================================================================
 BETA RELEASE 0.3.1 : Minor feature enhancement
