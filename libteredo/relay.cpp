@@ -1,6 +1,6 @@
 /*
  * relay.cpp - Teredo relay peers list definition
- * $Id: relay.cpp,v 1.39 2004/08/29 17:31:06 rdenisc Exp $
+ * $Id: relay.cpp,v 1.40 2004/08/29 19:04:50 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -35,6 +35,11 @@
 #include <netinet/in.h>
 #include <netinet/ip6.h> // struct ip6_hdr
 #include <syslog.h>
+
+#ifdef USE_OPENSSL
+# include <openssl/rand.h>
+# include <openssl/err.h>
+#endif
 
 #include "teredo.h"
 #include <v4global.h> // is_ipv4_global_unicast()
@@ -321,11 +326,27 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
 			p->queue = NULL;
 		}
 
-		p->flags.flags.nonce = 1;
 
 		// FIXME: queue packet
 		// FIXME: re-send echo request if no response
-		// FIXME: re-use the same nonce
+#ifdef USE_OPENSSL
+		if (!p->flags.flags.nonce)
+		{
+			p->flags.flags.nonce = 1;
+
+			if (!RAND_pseudo_bytes (p->nonce, 8))
+			{
+				char buf[120];
+
+				syslog (LOG_WARNING,
+					_("Possibly predictable nonce: %s"),
+					ERR_error_string (ERR_get_error (),
+								buf));
+			}
+		}
+#else
+		return -1;
+#endif
 		return SendPing (sock, &addr, &dst->ip6, p->nonce);
 	}
 
@@ -591,7 +612,7 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 		// Client case 2 (untrusted non-Teredo node):
 		// FIXME: or maybe untrusted non-cone Teredo client
 		if ((!p->flags.flags.trusted) && p->flags.flags.nonce
-		/* && FIXME: nonce match? */)
+		 && CheckPing (packet, p->nonce))
 		{
 			p->flags.flags.trusted = p->flags.flags.replied = 1;
 			p->flags.flags.nonce = 0;
@@ -701,7 +722,23 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 
 	// FIXME: queue packet in incoming queue
 	// FIXME: re-send echo request if no response
-	// FIXME: re-use the same nonce
+#ifdef USE_OPENSSL
+	if (!p->flags.flags.nonce)
+	{
+		p->flags.flags.nonce = 1;
+
+		if (!RAND_pseudo_bytes (p->nonce, 8))
+		{
+			char buf[120];
+
+			syslog (LOG_WARNING,
+				_("Possibly predictable nonce: %s"),
+				ERR_error_string (ERR_get_error (), buf));
+		}
+	}
+#else
+	return -1;
+#endif
 	return SendPing (sock, &addr, &ip6.ip6_src, p->nonce);
 }
 

@@ -1,13 +1,10 @@
 Incomplete raw ToDo list:
 ==========================
-$Id: TODO,v 1.12 2004/08/26 09:47:08 rdenisc Exp $
+$Id: TODO,v 1.13 2004/08/29 19:04:50 rdenisc Exp $
 
 Features:
 ----------
 - some statistics,
-- (incomplete yet) automatic relay IPv6 address configuration,
-- automatic relay IPv6 address re-configuration/update,
-- Teredo client support,
 - fixed TODOs in source code,
 
 Security:
@@ -33,12 +30,6 @@ Performance/scalibility:
 - minimum usage of memcpy()/memmove(),
 - faster peer lists lookups/updates,
 
-Re-usability:
---------------
-- libteredo API stabilization,
-- thread-safety in libteredo,
-- libteredo C bindings,
-
 Portability:
 -------------
 - big-endianess/byte-alignment compatibility tests,
@@ -55,5 +46,10 @@ Documentation & support:
 -------------------------
 - custom INSTALL file,
 - init.d sample script,
-- RPM and Debian packaging.
+- RPM and Debian packaging,
 
+Re-usability:
+--------------
+- libteredo API stabilization,
+- thread-safety in libteredo,
+- libteredo C bindings.

@@ -1,6 +1,6 @@
 /*
  * relay-packets.cpp - helpers to send Teredo packet from relay/client
- * $Id: relay-packets.cpp,v 1.4 2004/08/29 17:39:04 rdenisc Exp $
+ * $Id: relay-packets.cpp,v 1.5 2004/08/29 19:04:50 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -35,7 +35,7 @@
 #include <netinet/icmp6.h> // router solicication
 #include <syslog.h>
 
-#ifdef USE_OPENSSL
+#ifdef USE_OPENSSL // FIXME: move out of this file
 # include <openssl/rand.h>
 # include <openssl/err.h>
 #endif
@@ -298,6 +298,9 @@ ParseRA (const TeredoPacket& packet, union teredo_addr *newaddr, bool cone)
 			(((uint8_t *)pi) + (pi->nd_opt_pi_len << 3));
 	}
 
+	// TODO: check that there is only one prefix
+	// TODO: extract MTU option as well(?)
+
 	if ((pi->nd_opt_pi_len != (sizeof (struct nd_opt_prefix_info) >> 3))
 	 || (pi->nd_opt_pi_prefix_len != 64))
 		return false;
@@ -328,7 +331,7 @@ ParseRA (const TeredoPacket& packet, union teredo_addr *newaddr, bool cone)
  * Sends an ICMPv6 Echo request toward an IPv6 node through the Teredo server.
  */
 int SendPing (const TeredoRelayUDP& sock, const union teredo_addr *src,
-		const struct in6_addr *dst, uint8_t *nonce)
+		const struct in6_addr *dst, const uint8_t *nonce)
 {
 	struct
 	{
@@ -351,21 +354,38 @@ int SendPing (const TeredoRelayUDP& sock, const union teredo_addr *src,
 	ping.icmp6.icmp6_id = 0;
 	ping.icmp6.icmp6_seq = 0;
 	 */
-#ifdef USE_OPENSSL
-	if (!RAND_pseudo_bytes ((unsigned char *)&ping.icmp6.icmp6_id, 8))
-	{
-		char buf[120];
-
-		syslog (LOG_WARNING, _("Possibly predictable RS: %s"),
-			ERR_error_string (ERR_get_error (), buf));
-	}
-#else
-	memset (&ping.icmp6.icmp6_id, 0, 8);
-#endif
-	memcpy (nonce, &ping.icmp6.icmp6_id, 8);
+	memcpy (&ping.icmp6.icmp6_id, nonce, 8);
 
 	ping.icmp6.icmp6_cksum = icmp6_checksum (&ping.ip6, &ping.icmp6);
 
 	return sock.SendPacket (&ping, sizeof (ping), IN6_TEREDO_SERVER (src),
 				htons (IPPORT_TEREDO));
+}
+
+
+/*
+ * Checks that the packet is an ICMPv6 Echo reply and that it matches the
+ * specified nonce value. Returns true if that is the case, false otherwise.
+ */
+bool
+CheckPing (const TeredoPacket& packet, const uint8_t *nonce)
+{
+	size_t length;
+	const struct ip6_hdr *ip6 = packet.GetIPv6Header (length);
+
+	// Only read bytes, so no need to align
+	if ((ip6->ip6_nxt != IPPROTO_ICMPV6)
+	 || (length != sizeof (struct ip6_hdr) + sizeof (struct icmp6_hdr)+4))
+		return false;
+
+	const struct icmp6_hdr *icmp6 = (const struct icmp6_hdr *)
+		(((uint8_t *)ip6) + sizeof (struct ip6_hdr));
+
+	if ((icmp6->icmp6_type != ICMP6_ECHO_REPLY)
+	 || (icmp6->icmp6_code != 0)
+	/* TODO: check the sum(?) */
+	 || memcmp (&icmp6->icmp6_id, nonce, 8))
+		return false;
+
+	return true;
 }
