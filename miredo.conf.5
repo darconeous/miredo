@@ -1,5 +1,5 @@
 .\" ***********************************************************************
-.\" *  Copyright (C) 2004 Remi Denis-Courmont.                            *
+.\" *  Copyright (C) 2004-2005 Remi Denis-Courmont.                       *
 .\" *  This program is free software; you can redistribute and/or modify  *
 .\" *  it under the terms of the GNU General Public License as published  *
 .\" *  by the Free Software Foundation; version 2 of the license.         *
@@ -13,46 +13,19 @@
 .\" *  along with this program; if not, you can get it from:              *
 .\" *  http://www.gnu.org/copyleft/gpl.html                               *
 .\" ***********************************************************************
-.TH "MIREDO" "8" "$Date$" "miredo" "System Manager's Manual"
+.TH "MIREDO" "5" "$Date$" "miredo" "System Manager's Manual"
 .SH NAME
-miredo \- Teredo IPv6 tunneling for Unix
+miredo.conf \- configuration for Miredo
 .SH SYNOPSIS
-.BR "miredo" " [" "-b bind_ip" "] [" "-C" "] [" "-i ifname" "] ["
-.BR "-p bind_port" "] [" "-P prefix" "] [" "-t rootdir" "] ["
-.BR "-u user" "] [" "-s server_ip" "] [" "server name" "]"
+.B miredo.conf
 
 .SH DESCRIPTON
-.B Miredo
-is an Unix daemon program which implements the "Teredo:
-Tunneling IPv6 over UDP through NATs" Internet draft specification.
-It can provide both server and relay functionnality.
+.BR "miredo.conf" " is the configuration file for " "Miredo" "."
+Each configuration directive consists of one directive name possibly
+followed by one or several spaces and a value for the directive.
+White spaces, empty lines and lines starting with '#' are ignored.
 
-It can be used to provide IPv6 connectivity to users behind NAT which
-do not support IPv6, and not even proto-41 forwarding. For this to
-work, users need to have a Teredo client running on their system.
-
-A Teredo relay is an IPv6 router which forwards IPv6 packets between
-the IPv6 Internet and Teredo clients through UDP/IPv4.
-
-A Teredo client is an IPv6-enabled host which is located behind an
-IPv4-only Network Address Translator (a.k.a. NAT), and encapsulates its
-IPv6 traffic inside UDP over IPv4 packets.
-
-A Teredo server is a special Teredo relay which is required for Teredo
-clients to setup their IPv6 connectivity through Teredo. A Teredo
-server must have to global static subsequent IPv4 addresses. It
-receives packets from Teredo clients and Teredo relays on UDP port
-3544.
-
-This version of the program is designed according to
-.IR "draft-huitema-v6ops-teredo-03.txt" ", although it might not be"
-entirely conformant to that version of the Teredo specification.
-
-.SH OPTIONS
-
-.TP
-.BR "\-h" " or " "\-\-help"
-Display some help and exit.
+.SH GENERAL OPTIONS
 
 .TP
 .BR "\-b ip_address" " or " "\-\-bind ip_address"
@@ -97,102 +70,14 @@ With this option, Miredo will behave as a Teredo server on IPv4, with
 That option must not be used when Miredo serves as a Teredo client.
 
 .TP
-.BR "\-t rootdir" " or " "\-\-chroot rootdir"
-.RI "Run the program in a " "chroot jail" ", for enhanced security."
-.RB "If " "rootdir" " is not specified, the home of the " "setuid user"
-.RB "will be used instead. See option " "-u" "."
-
-.TP
-.BR "\-u username" " or " "\-\-user username"
-Override the user that the program will run as. By default, it runs as
-.BR "miredo" "."
-
-.TP
-.BR "\-V" " or " "\-\-version"
-Display program version and license and exit.
-
-.TP
-.BR "\-v" " or " "\-\-verbose"
-Print program configuration at startup.
-
-.TP
 .BR "server name"
 Server name should be valid a IPv4 host name or IPv4 address. Miredo
 will try to qualify as a Teredo client with this Teredo server.
 This enable Miredo to serve as a Teredo client.
 .RB "It conflicts with options " "-C" "," "-P" " and " "-s" "."
 
-.\".SH DIAGNOSTICS
-.SH BUGS
-.RB "Miredo does not support " "secure qualification" "."
-I don't know any client or server implementation that supports it
-either, so it is not a real problem at the moment.
-
-.RB "The Internet draft specification for " "Teredo" " has not yet"
-been validated. As such it is subject to change and miredo might not
-work correctly with other implementations.
-
-.RB "Routing on " "FreeBSD" " does not work automatically yet."
-You have to add a route to the Teredo prefix if you run a Teredo relay.
-This can typically be done this way:
-
-route add -inet6 -net 3ffe:831f::
--prefixlen 32 fe80::8000:5445:5245:444f%tun0
-
-.RI "Where " "tun0" " is the Teredo tunneling interface name,"
-.IR "3ffe:831f::" " is the Teredo IPv6 prefix and "
-.IR "fe80::8000:5445:5245:444f" " is the link-local tunnel"
-interface's address.
-
-.RB "Routing and IPv6 addressing on " "Darwin" ", " "NetBSD" " and "
-.BR "OpenBSD" " is not implemented. Miredo is untested on these"
-platforms.
-
-.SH SECURITY
-.B Miredo
-requires
-.I root
-privileges to create its IPv6 tunneling network interface, and to set
-it up properly. Once its initialization is complete, it will drop
-.RB "privileges, setuid (see option " "-u" "), setgid and possibly"
-.RB "chroot (see option " "-t" ") so as to decrease your system"
-to potential security issues.
-If Miredo runs as a Teredo client, it needs root privileges when
-running, so as to change the tunneling network interface settings
-automatically. To prevent possible root compromises, Miredo implements
-.IR "priveleges separation" ". The process that handles input from"
-the outside has is not privileged.
-
-Miredo is still beta quality code. As such, it should not be deployed
-in production or security-sensitive environment. It is supposedly easy
-to deny service by flooding the relay with vaguely carefully crafted
-IPv6 packets.
-
-Teredo connectivity throughout the IPv6 Internet seems pretty poor and
-unstable at the time of writing these lines. That will hopefully
-improve as time goes.
-
-While that is not specific to nor dependant on Miredo, it should be
-noted that Teredo connectivity allows anyone behind a NAT to obtain
-global public IPv6 connectivity, even if that breaks some corporate
-policy. If that is an issue, outgoing UDP packets to port 3544 should
-be blocked at the perimeter firewall.
-
-.SH SIGNALS
-.BR "SIGHUP" " Force a reload of the daemon."
-
-.BR "SIGINT" ", " "SIGTERM" " Shutdown the daemon."
-
-.BR "SIGUSR1" ", " "SIGUSR2" " Do nothing, might be used in future "
-versions.
-
-.SH FILES
-.TP
-.I /var/run/miredo/miredo.pid
-The default process-id file.
-
 .SH "SEE ALSO"
-ng_teredo(4), ipv6(7), route(8), ip(8)
+miredo(8)
 
 .SH AUTHOR
 Remi Denis-Courmont <rdenis at simphalempin.com>
