@@ -469,10 +469,6 @@ init_security (const char *username, const char *rootdir, int nodetach)
 }
 
 
-#ifndef MIREDO_DEFAULT_PIDFILE
-# define MIREDO_DEFAULT_PIDFILE NULL
-#endif
-
 #ifndef MIREDO_DEFAULT_CONFFILE
 # define MIREDO_DEFAULT_CONFFILE SYSCONFDIR "/miredo.conf"
 #endif
@@ -481,8 +477,7 @@ int
 main (int argc, char *argv[])
 {
 	const char *username = NULL, *rootdir = NULL,
-			*conffile = MIREDO_DEFAULT_CONFFILE,
-			*pidfile = MIREDO_DEFAULT_PIDFILE;
+			*conffile = NULL, *pidfile = NULL;
 	struct
 	{
 		unsigned foreground:1; /* Run in the foreground */
@@ -566,6 +561,11 @@ main (int argc, char *argv[])
 	if (init_security (username, rootdir, flags.foreground))
 		return 1;
 
+#ifdef MIREDO_DEFAULT_PIDFILE
+	if (pidfile == NULL)
+		pidfile = MIREDO_DEFAULT_PIDFILE;
+#endif
+
 	if (pidfile != NULL)
 	{
 		seteuid (0);
@@ -578,6 +578,9 @@ main (int argc, char *argv[])
 		create_pidfile (pidfile);
 		seteuid (unpriv_uid);
 	}
+
+	if (conffile == NULL)
+		conffile = MIREDO_DEFAULT_CONFFILE;
 
 	/*
 	 * Run
