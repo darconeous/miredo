@@ -340,26 +340,47 @@ TeredoServer::ProcessTunnelPacket (const fd_set *readset)
 		return teredo_send_ra (sock, packet, &ip6.ip6_src, secondary,
 					prefix, GetServerIP ());
 
-	// Teredo server case number 5 (in the negative)
-	if (!IN6_MATCHES_TEREDO_CLIENT (&ip6.ip6_src, packet.GetClientIP (),
-						packet.GetClientPort ())
-	// Teredo server case number 6 (in the negative)
-	 && (IN6_TEREDO_PREFIX (&ip6.ip6_src) == prefix
-	  || IN6_TEREDO_SERVER (&ip6.ip6_dst) != GetServerIP ()))
-		// Teredo server case number 7
-		return 0; // packet not allowed through server
+	if (IN6_TEREDO_PREFIX (&ip6.ip6_src) == prefix)
+	{
+		// Source address is Teredo
 
-	// Ensures that the packet destination has a global scope
-	// (ie 2000::/3). That's not in the spec.
-	if ((ip6.ip6_dst.s6_addr[0] & 0xe0) != 0x20)
-		return 0; // must be discarded
+		if (!IN6_MATCHES_TEREDO_CLIENT (&ip6.ip6_src,
+						packet.GetClientIP (),
+						packet.GetClientPort ()))
+			return 0; // case 7
 
-	// Accepts packet:
-	if (IN6_TEREDO_PREFIX(&ip6.ip6_dst) != prefix)
-		// forwards packet to native IPv6:
-		return SendIPv6Packet (buf, ip6len + 40);
+		// Teredo server case number 5
+		/*
+		 * TODO: Theoretically, we "should" accept ICMPv6 toward the
+		 * server's own local-link address or the ip6-allrouters
+		 * multicast address. In practice, it never happens.
+		 */
+
+		// Ensures that the packet destination has a global scope
+		// (ie 2000::/3) - as specified.
+		if ((ip6.ip6_dst.s6_addr[0] & 0xe0) != 0x20)
+			return 0; // must be discarded
+
+		if (IN6_TEREDO_PREFIX(&ip6.ip6_dst) != prefix)
+			return SendIPv6Packet (buf, ip6len + 40);
+
+		/*
+		 * If the IPv6 destination is a Teredo address, the packet
+		 * should be forwarded over UDP
+		 */
+	}
+	else
+	{
+		// Source address is not Teredo
+		if (IN6_TEREDO_PREFIX (&ip6.ip6_dst) != prefix
+		  || IN6_TEREDO_SERVER (&ip6.ip6_dst) != GetServerIP ())
+			return 0; // case 7
+
+		// Teredo server case number 6
+	}
 
 	// forwards packet over Teredo:
+	// (destination is a Teredo IPv6 address)
 	return ForwardUDPPacket (sock, packet,
 		IN6_TEREDO_SERVER (&ip6.ip6_dst) == GetServerIP ());
 }
