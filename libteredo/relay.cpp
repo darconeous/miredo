@@ -291,9 +291,11 @@ TeredoRelay::SendUnreach (int code, const void *in, size_t inlen)
 		struct ip6_hdr hdr;
 		uint8_t fill[1280 - sizeof (struct ip6_hdr)];
 	} buf;
+
+	/* FIXME: implement ICMP rate limit */
 	size_t outlen = BuildICMPv6Error (&buf.hdr, &teredo_cone, 1, code,
 						in, inlen);
-	return SendIPv6Packet (&buf, outlen);
+	return outlen ? SendIPv6Packet (&buf, outlen) : 0;
 }
 
 
