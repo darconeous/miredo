@@ -360,7 +360,7 @@ init_security (const char *username, const char *rootdir, int nodetach)
 	}
 
 	/* Unpriviledged user (step 2) */
-	if (setreuid (unpriv_uid, 0) || seteuid (unpriv_uid))
+	if (setreuid (unpriv_uid, -1) || seteuid (unpriv_uid))
 	{
 		fprintf (stderr, _("SetUID to user ID %u: %s\n"),
 				(unsigned)unpriv_uid, strerror (errno));
