@@ -1,6 +1,6 @@
 /*
  * relay-packets.cpp - helpers to send Teredo packet from relay/client
- * $Id: relay-packets.cpp,v 1.2 2004/08/29 15:56:07 rdenisc Exp $
+ * $Id: relay-packets.cpp,v 1.3 2004/08/29 17:30:08 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -45,8 +45,37 @@
 #include "teredo-udp.h"
 
 /*
- * Sends a Teredo Bubble to the server specified in Teredo address <dst>.
+ * Sends a Teredo Bubble to the specified IPv4/port tuple.
  * Returns 0 on success, -1 on error.
+ */
+int
+SendBubble (const TeredoRelayUDP& sock, uint32_t ip, uint16_t port,
+		const struct in6_addr *src, const struct in6_addr *dst)
+{
+	if (ip && is_ipv4_global_unicast (ip))
+	{
+		struct ip6_hdr hdr;
+
+		hdr.ip6_flow = htonl (0x60000000);
+		hdr.ip6_plen = 0;
+		hdr.ip6_nxt = IPPROTO_NONE;
+		hdr.ip6_hlim = 255;
+		memcpy (&hdr.ip6_src, src, sizeof (hdr.ip6_src));
+		memcpy (&hdr.ip6_dst, dst, sizeof (hdr.ip6_dst));
+
+		return sock.SendPacket (&hdr, sizeof (hdr), ip, port);
+	}
+
+	return 0;
+}
+
+
+/*
+ * Sends a Teredo Bubble to the server (if indirect is true) or the client (if
+ * indirect is false) specified in Teredo address <dst>.
+ * Returns 0 on success, -1 on error.
+ * FIXME: do not use link-local addresses in bubbles.
+ * FIXME: use the previous function
  */
 int
 SendBubble (const TeredoRelayUDP& sock, const struct in6_addr *d,
@@ -304,6 +333,7 @@ ParseRA (const TeredoPacket& packet, union teredo_addr *newaddr, bool cone)
 	newaddr->teredo.prefix = prefix;
 	// only accept the cone flag:
 	newaddr->teredo.flags = cone ? htons (TEREDO_FLAG_CONE) : 0;
+	// ip and port obscured on both sides:
 	newaddr->teredo.client_port = ind->orig_port;
 	newaddr->teredo.client_ip = ind->orig_addr;
 	return true;
