@@ -213,6 +213,15 @@ chroot_notice (void)
 }
 
 
+static void
+setuid_notice (void)
+{
+	fputs (_(
+"That is usually an indication that you are trying to start\n"
+"the program as an user with insufficient system privileges.\n"
+"This program should normally be started by root.\n"), stderr);
+}
+
 static int
 init_security (const char *username, const char *rootdir, int nodetach)
 {
@@ -306,11 +315,9 @@ init_security (const char *username, const char *rootdir, int nodetach)
 		fprintf (stderr, _("SetGID to group ID %u: %s\n"),
 				(unsigned)pw->pw_gid, strerror (errno));
 		fputs (_("Error: This program tried to change its system\n"
-			"group(s) security context but it failed.\n"
-			"That is usually an indication that you are trying\n"
-			"to start the program as an user with insufficient\n"
-			"system privileges. This program should normally be\n"
-			"started by root.\n"), stderr);
+			"group(s) security context but it failed.\n"),
+			stderr);
+		setuid_notice ();
 		return -1;
 	}
 
@@ -365,11 +372,8 @@ init_security (const char *username, const char *rootdir, int nodetach)
 		fprintf (stderr, _("SetUID to user ID %u: %s\n"),
 				(unsigned)unpriv_uid, strerror (errno));
 		fputs (_("Error: This program tried to change its system\n"
-			"user security context but it failed.\n"
-			"That is usually an indication that you are trying\n"
-			"to start the program as an unprivileged user.\n"
-			"This program should normally be started only by\n"
-			"root, the system administrative user.\n"), stderr);
+			"user security context but it failed.\n"), stderr);
+		setuid_notice ();
 		return -1;
 	}
 	/* Real and effective UIDs are set; only saved UID is 0. */
@@ -387,6 +391,7 @@ init_security (const char *username, const char *rootdir, int nodetach)
 			perror (_("Fatal error"));
 			return -1;
 		}
+
 		if (cap_set_flag (s, CAP_PERMITTED, 1, &v, CAP_SET))
 		{
 			/* Unlikely */
@@ -397,8 +402,12 @@ init_security (const char *username, const char *rootdir, int nodetach)
 
 		if (cap_set_proc (s))
 		{
-			perror (_("Setting permitted privileges"));
+			perror (_("Getting networking privileges"));
 			cap_free (s);
+			fputs (_("Error: This program tried to obtain "
+				"system networking administration\n"
+				"privileges but it failed.\n"), stderr);
+			setuid_notice ();
 			return -1;
 		}
 		cap_free (s);
