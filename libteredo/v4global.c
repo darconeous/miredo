@@ -1,6 +1,6 @@
 /*
  * v4global.c - Check whether an IPv4 address is global
- * $Id: v4global.c,v 1.1 2004/07/22 17:38:29 rdenisc Exp $
+ * $Id$
  */
 
 /***********************************************************************
@@ -26,6 +26,7 @@
 #include "v4global.h"
 
 #include <inttypes.h>
+#include <sys/types.h>
 #include <netinet/in.h> // ntohl()
 
 /*
