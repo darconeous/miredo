@@ -37,8 +37,12 @@ sbin_PROGRAMS = miredo
 #	} > $@
 
 # miredo
-miredo_SOURCES = main.c miredo.cpp miredo.h privproc.cpp privproc.h \
-		relay.cpp relay.h
+miredo_SOURCES = main.c miredo.cpp miredo.h
+
+if TEREDO_RELAY
+miredo_SOURCES += relay.cpp relay.h privproc.cpp privproc.h
+endif
+
 if TEREDO_SERVER
 miredo_SOURCES += server.cpp server.h
 endif

@@ -56,13 +56,19 @@
 #include <libtun6/ipv6-tunnel.h>
 
 #include <libteredo/teredo.h>
+
 #ifdef MIREDO_TEREDO_SERVER
 # include "server.h"
 #else
 # define teredo_server_relay( t, r, s ) teredo_relay( t, r )
 #endif
-#include "relay.h"
-#include <privproc.h>
+
+#ifdef MIREDO_TEREDO_RELAY
+# include "relay.h"
+# include <privproc.h>
+#else
+# define teredo_server_relay(t, r, s ) teredo_server( t, s )
+#endif
 
 /*
  * Signal handlers
@@ -146,6 +152,7 @@ teredo_server_relay (IPv6Tunnel& tunnel, TeredoRelay *relay = NULL,
 		}
 #endif
 
+#ifdef MIREDO_TEREDO_RELAY
 		if (relay != NULL)
 		{
 			int val = tunnel.RegisterReadSet (&readset);
@@ -156,6 +163,7 @@ teredo_server_relay (IPv6Tunnel& tunnel, TeredoRelay *relay = NULL,
 			if (val > maxfd)
 				maxfd = val;
 		}
+#endif
 
 		/*
 		 * Short time-out to call relay->Proces () quite often.
@@ -176,6 +184,7 @@ teredo_server_relay (IPv6Tunnel& tunnel, TeredoRelay *relay = NULL,
 			server->ProcessTunnelPacket (&readset);
 #endif
 
+#ifdef MIREDO_TEREDO_RELAY
 		if (relay != NULL)
 		{
 			char pbuf[65535];
@@ -194,6 +203,7 @@ teredo_server_relay (IPv6Tunnel& tunnel, TeredoRelay *relay = NULL,
 			 * (Packet reception) */
 			relay->ReceivePacket (&readset);
 		}
+#endif
 	}
 
 	/* Termination */
@@ -322,7 +332,9 @@ miredo_run (uint16_t bind_port, const char *bind_ip, const char *server_name,
 			mode |= MIREDO_CONE; // server mode implies no NAT
 	}
 
+#ifdef MIREDO_TEREDO_RELAY
 	MiredoRelay *relay = NULL;
+#endif
 #ifdef MIREDO_TEREDO_SERVER
 	MiredoServer *server = NULL;
 #endif
@@ -358,6 +370,9 @@ miredo_run (uint16_t bind_port, const char *bind_ip, const char *server_name,
 		goto abort;
 	}
 
+#ifdef MIREDO_TEREDO_RELAY
+	// FIXME: support for being server only
+	// (in that case, don't set route to the Teredo prefix)
 	if (mode & MIREDO_CLIENT)
 	{
 		fd = miredo_privileged_process (tunnel, unpriv_uid);
@@ -369,6 +384,7 @@ miredo_run (uint16_t bind_port, const char *bind_ip, const char *server_name,
 		}
 	}
 	else
+#endif
 	{
 		if (tunnel.BringUp ()
 		 || tunnel.AddAddress ((mode & MIREDO_CONE) ? &teredo_cone
@@ -442,6 +458,7 @@ miredo_run (uint16_t bind_port, const char *bind_ip, const char *server_name,
 		goto abort;
 	}
 
+#ifdef MIREDO_TEREDO_RELAY
 	if (mode & MIREDO_CLIENT)
 	{
 		// Sets up client
@@ -502,14 +519,17 @@ miredo_run (uint16_t bind_port, const char *bind_ip, const char *server_name,
 			"of the program is not already running."));
 		goto abort;
 	}
+#endif
 
 	retval = teredo_server_relay (tunnel, relay, server);
 
 abort:
 	if (fd != -1)
 		close (fd);
+#ifdef MIREDO_TEREDO_RELAY
 	if (relay != NULL)
 		delete relay;
+#endif
 #ifdef MIREDO_TEREDO_SERVER
 	if (server != NULL)
 		delete server;
