@@ -623,7 +623,6 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 		}
 
 		// Client case 2 (untrusted non-Teredo node):
-		// FIXME: or maybe untrusted non-cone Teredo client
 		if ((!p->flags.flags.trusted) && p->flags.flags.nonce
 		 && CheckPing (packet, p->nonce))
 		{
