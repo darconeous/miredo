@@ -23,8 +23,6 @@
 # include <config.h>
 #endif
 
-#include <gettext.h>
-
 #include <stddef.h>
 #include <string.h> /* memcpy(), memset() */
 #if HAVE_STDINT_H
@@ -217,10 +215,10 @@ teredo_send_ra (const TeredoServerUDP& sock, const TeredoPacket& p,
 
 		inp.s_addr = sock->GetClientIP ();
 		syslog (LOG_DEBUG,
-			_("Router Advertisement sent to %s (%s)\n"),
+			"Router Advertisement sent to %s (%s)",
 			inet_ntoa (inp), IN6_IS_TEREDO_ADDR_CONE(dest_ip6)
-				? _("cone flag set")
-				: _("cone flag not set"));
+				? "cone flag set"
+				: "cone flag not set");
 #endif
 		return 0;
 	}
@@ -250,7 +248,7 @@ ForwardUDPPacket (const TeredoServerUDP& sock, const TeredoPacket& packet,
 		struct in_addr addr;
 
 		addr.s_addr = dest_ip;
-		syslog (LOG_DEBUG, "DEBUG: Forwarding packet to %s:%u\n",
+		syslog (LOG_DEBUG, "DEBUG: Forwarding packet to %s:%u",
 			inet_ntoa (addr), ntohs (~dst.teredo.client_port));
 	}
 #endif

@@ -60,13 +60,13 @@ OpenTeredoSocket (uint32_t bind_ip, uint16_t port)
 	int fd = socket (PF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	if (fd == -1)
 	{
-		syslog (LOG_ALERT, _("Fatal socket error: %m\n"));
+		syslog (LOG_ALERT, _("Fatal socket error: %m"));
 		return -1; // failure
 	}
 
 	if (bind (fd, (struct sockaddr *)&myaddr, sizeof (myaddr)))
 	{
-		syslog (LOG_ALERT, _("Fatal bind error: %m\n"));
+		syslog (LOG_ALERT, _("Fatal bind error: %m"));
 		return -1;
 	}
 
@@ -102,13 +102,14 @@ SendUDPPacket (int fd, const void *packet, size_t plen,
 				sizeof (nat_addr));
 	if (check == -1)
 	{
-		syslog (LOG_WARNING, _("Couldn't send UDP packet: %m\n"));
+		syslog (LOG_WARNING, _("Couldn't send UDP packet: %m"));
 		return -1;
 	}
 	else if ((size_t)check < plen)
 	{
+		/* FIXME: handle singular properly */
 		syslog (LOG_WARNING, _("UDP packet shortened: sent %d bytes "
-				"instead of %u\n"), check, plen);
+				"instead of %u"), check, plen);
 		return -1;
 	}
 	return 0;
@@ -137,7 +138,7 @@ TeredoPacket::Receive (int fd)
 		if (length < 0)
 		{
 			syslog (LOG_WARNING,
-				_("Error receiving UDP packet: %m\n"));
+				_("Error receiving UDP packet: %m"));
 			return -1;
 		}
 
@@ -278,7 +279,7 @@ int TeredoServerUDP::ListenIP (uint32_t ip1, uint32_t ip2)
 	if (ip1 == INADDR_ANY || ip2 == INADDR_ANY)
 	{
 		syslog (LOG_ERR, _("Teredo server UDP socket error: "
-			"Server IPv4 addresses must not be wildcard.\n"));
+			"Server IPv4 addresses must not be wildcard."));
 		return -1;
 	}
 

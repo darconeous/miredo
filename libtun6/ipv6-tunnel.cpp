@@ -310,7 +310,6 @@ IPv6Tunnel::SetState (bool up) const
 	secure_strncpy (req.ifr_name, ifname, IFNAMSIZ);
 	if (ioctl (reqfd, SIOCGIFFLAGS, &req))
 	{
-		syslog (LOG_ERR, _("Tunnel error (SIOCGIFFLAGS): %m"));
 		close (reqfd);
 		return -1;
 	}
@@ -327,12 +326,9 @@ IPv6Tunnel::SetState (bool up) const
 	if (ioctl (reqfd, SIOCSIFFLAGS, &req) == 0)
 	{
 		close (reqfd);
-		syslog (LOG_DEBUG, "%s tunnel brought %s", ifname,
-			up ? "up" : "down");
 		return 0;
 	}
 
-	syslog (LOG_ERR, _("%s tunnel error (SIOCSIFFLAGS): %m"), ifname);
 	close (reqfd);
 	return -1;
 
@@ -378,15 +374,9 @@ static int
 _iface_addr (const char *ifname, bool add,
 		const struct in6_addr *addr, unsigned prefix_len)
 {
-	if (ifname == NULL)
+	if ((ifname == NULL)
+	 || (prefix_len > 128))
 		return -1;
-
-	if (prefix_len > 128)
-	{
-		syslog (LOG_ERR, _("IPv6 prefix length too long: %u"),
-			prefix_len);
-		return -1;
-	}
 
 	int reqfd = socket_udp6 ();
 	if (reqfd == -1)
@@ -452,8 +442,8 @@ _iface_addr (const char *ifname, bool add,
 		req = &r.delreq6;
 	}
 #else
-	syslog (LOG_WARNING, _("%s tunnel address setup not supported.\n"
-				"Please do it manually."), ifname);
+	syslog (LOG_WARNING, "%s tunnel address setup not supported.\n"
+				"Please do it manually.", ifname);
 	return 0;
 #endif
 	int retval = -1;
@@ -464,8 +454,8 @@ _iface_addr (const char *ifname, bool add,
 
 	char str[INET6_ADDRSTRLEN];
 	if (inet_ntop (AF_INET6, addr, str, sizeof (str)) == NULL)
-		secure_strncpy (str, _("[unknown_address]"), sizeof (str));
-	
+		return retval;
+
 	int level;
 	const char *msg;
 
@@ -502,15 +492,9 @@ static int
 _iface_route (const char *ifname, bool add,
 		const struct in6_addr *addr, unsigned prefix_len)
 {
-	if (ifname == NULL)
+	if ((ifname == NULL)
+	 || (prefix_len > 128))
 		return -1;
-
-	if (prefix_len > 128)
-	{
-		syslog (LOG_ERR, _("IPv6 prefix length too long: %u"),
-			prefix_len);
-		return -1;
-	}
 
 	int retval = -1;
 
@@ -608,7 +592,8 @@ _iface_route (const char *ifname, bool add,
 		 && (errno == 0))
 			retval = 0;
 		else
-			syslog (LOG_ERR, _("PF_ROUTE error: %m"));
+			/* FIXME */
+			syslog (LOG_ERR, "PF_ROUTE error: %m");
 
 		/*
 		 * Setting a route on FreeBSD is a real pain, with which I am
@@ -622,25 +607,26 @@ _iface_route (const char *ifname, bool add,
 		if (retval)
 		{
 			syslog (LOG_ERR,
-				_("Setting a route on FreeBSD does not work "
-				"fine. Please do it by hand."));
+				"Setting a route on FreeBSD does not work "
+				"fine. Please do it by hand.");
 			retval = 0;
 		}
 
 		close (s);
 	}
 	else
-		syslog (LOG_ERR, _("socket (PF_ROUTE) error: %m"));
+		syslog (LOG_ERR, "socket (PF_ROUTE) error: %m");
 #else
-	syslog (LOG_WARNING, _("%s tunnel route setup not supported.\n"
-				"Please do it manually."), ifname);
+	/* FIXME: print address */
+	syslog (LOG_WARNING, "%s tunnel route setup not supported.\n"
+				"Please do it manually.", ifname);
 	retval = 0;
 #endif
 
 	char str[INET6_ADDRSTRLEN];
 	if (inet_ntop (AF_INET6, addr, str, sizeof (str)) == NULL)
-		secure_strncpy (str, _("[unknown_route]"), sizeof (str));
-	
+		return retval;
+
 	int level;
 	const char *msg;
 
@@ -703,19 +689,8 @@ IPv6Tunnel::DelRoute (const struct in6_addr *addr, unsigned prefix_len) const
 int
 IPv6Tunnel::SetMTU (unsigned mtu) const
 {
-	if (ifname == NULL)
+	if ((ifname == NULL) || (mtu < 1280) || (mtu > 65535))
 		return -1;
-
-	if (mtu < 1280)
-	{
-		syslog (LOG_ERR, _("IPv6 MTU too small (<1280): %u"), mtu);
-		return -1;
-	}
-	if (mtu > 65535)
-	{
-		syslog (LOG_ERR, _("IPv6 MTU too big (>65535): %u"), mtu);
-		return -1;
-	}
 
 	int reqfd = socket_udp6 ();
 	if (reqfd == -1)
@@ -728,13 +703,10 @@ IPv6Tunnel::SetMTU (unsigned mtu) const
 
 	if (ioctl (reqfd, SIOCSIFMTU, &req))
 	{
-		syslog (LOG_ERR, _("%s tunnel MTU error (SIOCSIFMTU): %m"),
-			ifname);
 		close (reqfd);
 		return -1;
 	}
 
-	syslog (LOG_DEBUG, _("%s tunnel MTU set to %u"), ifname, mtu);
 	return 0;
 }
 
@@ -791,18 +763,12 @@ IPv6Tunnel::ReceivePacket (const fd_set *readset, void *buffer, size_t maxlen)
 #endif /* USE_TUNHEAD */
 
 	if (len == -1)
-	{
-		syslog (LOG_ERR, _("Cannot receive packet: %m"));
 		return -1;
-	}
 #if defined (USE_TUNHEAD)
 	len -= sizeof (head);
 
 	if (len < 0)
-	{
-		syslog (LOG_ERR, _("Received packet too short"));
 		return -1;
-	}
 #endif /* USE_TUNHEAD */
 
 #if defined (HAVE_LINUX)
@@ -825,13 +791,7 @@ IPv6Tunnel::ReceivePacket (const fd_set *readset, void *buffer, size_t maxlen)
 int
 IPv6Tunnel::SendPacket (const void *packet, size_t len) const
 {
-	if (len > 65535)
-	{
-		syslog (LOG_ERR, _("Packet of %u bytes too big."), len);
-		return -1;
-	}
-	
-	if (fd == -1)
+	if ((len > 65535) || (fd == -1))
 		return -1;
 
 #if defined (HAVE_LINUX)
@@ -857,23 +817,14 @@ IPv6Tunnel::SendPacket (const void *packet, size_t len) const
 #endif /* USE_TUNHEAD */
 
 	if (val == -1)
-	{
-		syslog (LOG_ERR, _("Cannot send packet to tunnel: %m"));
 		return -1;
-	}
 
 #if defined (USE_TUNHEAD)
 	val -= sizeof (head);
 
 	if (val < 0)
-	{
-		syslog (LOG_ERR, _("Sent packet too short"));
 		return -1;
-	}
 #endif
-
-	if (val < (int)len)
-		syslog (LOG_ERR, _("Packet truncated to %d byte(s)"), val);
 
 	return val;
 }
