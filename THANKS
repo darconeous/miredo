@@ -2,7 +2,7 @@
 particular thanks for their contribution to the project:
 
 Gene Cronk
-	Extremely usefull FreeBSD testing platform and shell.
+	Extremely useful FreeBSD testing platform and shell.
 
 François-Xavier Potel
 	Support, help and good appreciation of the initial study at the
@@ -10,4 +10,8 @@ François-Xavier Potel
 
 Laurent Granger
 	Some testing of the server and relay with Windows XP's client.
+
+Michael H. Warfield
+	Compilation fix on RedHat 7.3,
+	Testing.
 
