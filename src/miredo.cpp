@@ -1,7 +1,7 @@
 /*
  * miredo.cpp - Unix Teredo server & relay implementation
  *              core functions
- * $Id: miredo.cpp,v 1.30 2004/08/24 09:49:39 rdenisc Exp $
+ * $Id: miredo.cpp,v 1.31 2004/08/24 14:25:35 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -241,10 +241,13 @@ uid_t unpriv_uid = 0;
 
 
 // TODO: support for client
+#define MIREDO_CLIENT 2
+#define MIREDO_CONE   1
+
 static int
-miredo_run (uint16_t client_port, const char *server_name,
+miredo_run (uint16_t client_port, const char *const *server_names,
 		const char *prefix_name, const char *ifname,
-		int cone)
+		int mode)
 {
 	seteuid (unpriv_uid);
 
@@ -326,11 +329,11 @@ miredo_run (uint16_t client_port, const char *server_name,
 	}
 
 	// Sets up server sockets
-	if (server_name != NULL)
+	if ((mode & MIREDO_CLIENT == 0) && (*server_names != NULL))
 	{
 		uint32_t ipv4;
 		 
-		if (getipv4byname (server_name, &ipv4))
+		if (getipv4byname (*server_names, &ipv4))
 		{
 			syslog (LOG_ALERT, _("Fatal configuration error"));
 			goto abort;
@@ -360,7 +363,8 @@ miredo_run (uint16_t client_port, const char *server_name,
 	// TODO: ability to use the other constructor, for Teredo client
 	try {
 		relay = new MiredoRelay (&tunnel, prefix.teredo.prefix,
-					 htons (client_port), cone);
+					 htons (client_port),
+					 mode & MIREDO_CONE != 0);
 	}
 	catch (...)
 	{
@@ -440,9 +444,9 @@ init_signals (void)
 static const char *const daemon_ident = "miredo";
 
 extern "C" int
-miredo (uint16_t client_port, const char *server_name,
+miredo_main (uint16_t client_port, const char *const *server_names,
 		const char *prefix_name, const char *ifname,
-		int cone)
+		int mode)
 {
 	int facility = LOG_DAEMON;
 	openlog (daemon_ident, LOG_PID, facility);
@@ -484,9 +488,10 @@ miredo (uint16_t client_port, const char *server_name,
 
 			case 0:
 			{
-				retval = miredo_run (client_port, server_name,
+				retval = miredo_run (client_port,
+							server_names,
 							prefix_name, ifname,
-							cone);
+							mode);
 				closelog ();
 				exit (-retval);
 			}
@@ -527,3 +532,20 @@ miredo (uint16_t client_port, const char *server_name,
 	return retval;
 }
 
+
+extern "C" int
+miredo (uint16_t client_port, const char *server_name,
+	const char *prefix_name, const char *ifname, int cone)
+{
+	return miredo_main (client_port, &server_name, prefix_name, ifname,
+				cone ? MIREDO_CONE : 0);
+}
+
+
+extern "C" int
+miredo_client (const char *const *server_names, uint16_t client_port,
+		const char *ifname)
+{
+	return miredo_main (client_port, server_names, NULL, ifname,
+				MIREDO_CLIENT);
+}

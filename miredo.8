@@ -13,12 +13,13 @@
 .\" *  along with this program; if not, you can get it from:              *
 .\" *  http://www.gnu.org/copyleft/gpl.html                               *
 .\" ***********************************************************************
-.TH "MIREDO" "8" "$Date: 2004/08/24 09:49:39 $" "miredo" "System Manager's Manual"
+.TH "MIREDO" "8" "$Date: 2004/08/24 14:25:34 $" "miredo" "System Manager's Manual"
 .SH NAME
 miredo \- Teredo IPv6 tunneling for Unix
 .SH SYNOPSIS
 .BR "miredo" " [" "-C" "] [" "-i ifname" "] [" "-p relay_port" "] ["
 .BR "-P prefix" "] [" "-t rootdir" "] [" "-u user" "] [" "-s server_ip" "]"
+.RB "[" "server1" " [" "server2" "] ...]"
 
 .SH DESCRIPTON
 .B Miredo
@@ -58,6 +59,7 @@ Display some help and exit.
 .RI "Assume that we are behind a " "cone" " NAT device, or no NAT at"
 all (ie. that we have a public IPv4 address). This is an optimization
 to emit fewer Teredo packets.
+That option must not be used when Miredo serves as a Teredo client.
 
 .TP
 .BR "\-i ifname" ", " "\-\-iface ifname"
@@ -77,6 +79,7 @@ discouraged as it can cause trouble if the selected port is firewalled.
 Override the Teredo prefix (3ffe:831f:: at the moment).
 .BR "Do not use that feature" " if you don't know what you are doing, "
 as it is more than likely to break your IPv6 connectivity.
+That option must not be used when Miredo serves as a Teredo client.
 
 .TP
 .BR "\-s server_ip" " or " "\-\-server server_ip"
@@ -84,6 +87,7 @@ as it is more than likely to break your IPv6 connectivity.
 With this option, Miredo will behave as a Teredo server on IPv4, with
 .RB "primary IPv4 address " "server_ip" " and secondary IPv4 address"
 .RB "server_ip + 1" "."
+That option must not be used when Miredo serves as a Teredo client.
 
 .TP
 .BR "\-t rootdir" " or " "\-\-chroot rootdir"
@@ -99,6 +103,17 @@ Override the user that the program will run as. By default, it runs as
 .TP
 .BR "\-V" " or " "\-\-version"
 Display program version and license and exit.
+
+.TP
+.BR "\-v" " or " "\-\-verbose"
+Print program configuration at startup.
+
+.TP
+.BR "server names"
+Server names should be valid IPv4 host names or addresses. Miredo will
+try to qualify as a Teredo client with the each servers in the list
+until one works. This enable Miredo to serve as a Teredo client.
+.RB "It conflicts with options " "-C" "," "-P" " and " "-s" "."
 
 .\".SH DIAGNOSTICS
 .SH BUGS
@@ -150,7 +165,7 @@ ng_teredo(4), ipv6(7), route(8), ip(8)
 .SH AUTHOR
 Remi Denis-Courmont <rdenis at simphalempin.com>
 
-$Id: miredo.8,v 1.7 2004/08/24 09:49:39 rdenisc Exp $
+$Id: miredo.8,v 1.8 2004/08/24 14:25:34 rdenisc Exp $
 
 http://www.simphalempin.com/dev/miredo/
 

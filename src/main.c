@@ -1,7 +1,7 @@
 /*
  * main.c - Unix Teredo server & relay implementation
  *          command line handling and core functions
- * $Id: main.c,v 1.21 2004/08/24 09:49:39 rdenisc Exp $
+ * $Id: main.c,v 1.22 2004/08/24 14:25:34 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -71,7 +71,7 @@ static int
 usage (void)
 {
         puts (_(
-"Usage: miredo [OPTION]...\n"
+"Usage: miredo [OPTION] [SERVER NAME 1]...\n"
 "Creates a Teredo tunneling interface for encapsulation of IPv6.\n"
 "\n"
 "  -C, --cone       assume that we are relaying behind a cone NAT\n"
@@ -84,7 +84,8 @@ usage (void)
 "                   and specify primary server IPv4 address\n"
 "  -t, --chroot     override the chroot directory\n"
 "  -u, --user       override the user to set UID to\n"
-"  -V, --version    display program version and exit\n"));
+"  -V, --version    display program version and exit\n"
+"  -v, --verbose    print configuration before starting\n"));
 
 	printf (_("Default Teredo prefix: %s:/32\n"),
 		DEFAULT_TEREDO_PREFIX_STR);
@@ -385,11 +386,16 @@ main (int argc, char *argv[])
 	const char *server = NULL, *prefix = NULL, *ifname = NULL,
 			*username = NULL, *rootdir = NULL;
 	uint16_t client_port = 0;
-	int foreground = 0, cone = 0;
-	
+	struct
+	{
+		unsigned foreground:1; /* Run in the foreground */
+		unsigned cone:1; /* Assume cone NAT or no NAT */
+		unsigned verbose:1; /* Be verbose at startup */
+		unsigned manual:1; /* A non-client option was used */
+	} flags;
+
 	const struct option opts[] =
 	{
-		/* FIXME: option for non-cone relay */
 		/*{ "config",	required_argument,	NULL, 'c' },*/
 		{ "cone",	no_argument,		NULL, 'C' },
 		{ "foreground",	no_argument,		NULL, 'f' },
@@ -402,6 +408,7 @@ main (int argc, char *argv[])
 		{ "chroot",	required_argument,	NULL, 't' },
 		{ "user",	required_argument,	NULL, 'u' },
 		{ "version",	no_argument,		NULL, 'V' },
+		{ "verbose",	no_argument,		NULL, 'v' },
 		{ NULL,		no_argument,		NULL, '\0'}
 	};
 
@@ -413,7 +420,9 @@ main (int argc, char *argv[])
 	else \
 		setting = optarg;
 
-	while ((c = getopt_long (argc, argv, "Cfhi:p:P:s:t:u:V", opts, NULL))
+	memset (&flags, 0, sizeof (flags));
+
+	while ((c = getopt_long (argc, argv, "Cfhi:p:P:s:t:u:Vv", opts, NULL))
 			!= -1)
 		switch (c)
 		{
@@ -421,11 +430,12 @@ main (int argc, char *argv[])
 				return quick_usage ();
 
 			case 'C':
-				cone = 1;
+				flags.cone = 1;
+				flags.manual = 1;
 				break;
 
 			case 'f':
-				foreground = 1;
+				flags.foreground = 1;
 				break;
 
 			case 'h':
@@ -458,10 +468,12 @@ main (int argc, char *argv[])
 				
 			case 'P':
 				ONETIME_SETTING (prefix);
+				flags.manual = 1;
 				break;
 
 			case 's':
 				ONETIME_SETTING (server);
+				flags.manual = 1;
 				break;
 
 			case 't':
@@ -475,6 +487,10 @@ main (int argc, char *argv[])
 			case 'V':
 				return version ();
 
+			case 'v':
+				flags.verbose = 1;
+				break;
+
 			default:
 				fprintf (stderr, _(
 "Returned unknown option -%c :\n"
@@ -482,13 +498,71 @@ main (int argc, char *argv[])
 				return 1;
 		}
 
-	if (optind < argc)
-		return error_extra (argv[optind]);
+	if (optind >= argc)
+		flags.manual = 1; /* No servers to qualify with */
 
-	if (init_security (username, rootdir, foreground))
+	if (flags.manual && (optind < argc))
+	{
+		fputs (_("You have selected conflicting parameters.\n"
+			"Refer to the manual page for more details.\n"),
+			stderr);
+		return error_extra (argv[optind]);
+	}
+
+	/*
+	 * Display configuration
+	 */
+	if (flags.verbose)
+	{
+		puts (_("Miredo configuration :"));
+		puts ("----------------------------------------------------");
+		if (client_port)
+			printf (_("Client/relay UDP port       : %u\n"),
+				(unsigned)client_port);
+		else
+			puts (_("Client/relay UDP port       : default"));
+
+		printf (_("Tunnel interface name       : %s\n"),
+			ifname != NULL ? ifname : _("default"));
+
+		if (flags.manual)
+		{
+			printf (_("Server primary IPv4 address : %s\n"),
+				server != NULL ? server : _("disabled"));
+			printf (_("Teredo IPv6 prefix          : %s\n"),
+				prefix != NULL ? prefix : _("default"));
+			printf (_("Assumed NAT type            : %s\n"),
+				gettext (flags.cone
+				? N_("none/cone")
+				: N_("restricted")));
+		}
+		else
+		{
+			int i;
+
+			puts (_("Server(s) list:"));
+			for (i = optind; i < argc; i++)
+				printf ("%2d: %s\n", i + 1 - optind, argv[i]);
+			puts ("CLIENT MODE NOT SUPPORTED YET");
+			return 2;
+		}
+		puts ("----------------------------------------------------");
+	}
+
+	/*
+	 * Initialize POSIX context
+	 */
+	if (init_security (username, rootdir, flags.foreground))
 		return 1;
 
-	if (miredo (client_port, server, prefix, ifname, cone))
+	/*
+	 * Run
+	 */
+	if (flags.manual
+			? miredo (client_port, server, prefix, ifname,
+					flags.cone)
+			: miredo_client ((const char *const *)&argv[optind],
+						client_port, ifname))
 		return 1;
 	else
 		return 0;
