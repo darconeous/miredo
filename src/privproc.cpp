@@ -1,6 +1,6 @@
 /*
  * privproc.cpp - Privileged process for Miredo
- * $Id: privproc.cpp,v 1.7 2004/08/28 12:23:06 rdenisc Exp $
+ * $Id: privproc.cpp,v 1.8 2004/08/29 07:56:11 rdenisc Exp $
  */
 
 /***********************************************************************
@@ -35,12 +35,10 @@
 
 
 int
-miredo_privileged_process (IPv6Tunnel& tunnel,
-				const struct in6_addr *initial_addr)
+miredo_privileged_process (IPv6Tunnel& tunnel, uid_t unpriv)
 {
-	uid_t unpriv = geteuid ();
-
 	int fd[2];
+
 	if (pipe (fd))
 		return -1;
 
@@ -60,28 +58,15 @@ miredo_privileged_process (IPv6Tunnel& tunnel,
 			return fd[1];
 	}
 
-	struct in6_addr oldter, newter;
-	const struct in6_addr *p_oldloc, *p_newloc = &teredo_cone;
+	struct in6_addr oldter;
+	const struct in6_addr *p_oldloc;
 
 	memcpy (&oldter, &in6addr_any, 16);
-	memcpy (&newter, initial_addr, 16);
-	seteuid (0);
 
 	while (1)
 	{
-		if (memcmp (&newter, &in6addr_any, 16))
-		{
-			if (memcmp (&oldter, &in6addr_any, 16) == 0)
-				tunnel.BringUp ();
-
-			tunnel.AddAddress (p_newloc, 64);
-			tunnel.AddAddress (&newter, 32);
-		}
-		// TODO: create a default route for client?
-		seteuid (unpriv);
-
-		p_oldloc = p_newloc;
-		memcpy (&oldter, &newter, 16);
+		struct in6_addr newter;
+		const struct in6_addr *p_newloc;
 
 		do
 			if (read (fd[0], &newter, 16) != 16)
@@ -92,14 +77,28 @@ miredo_privileged_process (IPv6Tunnel& tunnel,
 				? &teredo_cone : &teredo_restrict;
 
 		seteuid (0);
+
 		if (memcmp (&oldter, &in6addr_any, 16))
 		{
 			tunnel.DelAddress (p_oldloc, 64);
 			tunnel.DelAddress (&oldter, 32);
-
-			if (memcmp (&newter, &in6addr_any, 16) == 0)
-				tunnel.BringDown ();
 		}
+		else
+			tunnel.BringUp ();
+
+		if (memcmp (&newter, &in6addr_any, 16))
+		{
+			tunnel.AddAddress (p_newloc, 64);
+			tunnel.AddAddress (&newter, 32);
+			// TODO: create a default route for client?
+		}
+		else
+			tunnel.BringDown ();
+
+		seteuid (unpriv);
+
+		p_oldloc = p_newloc;
+		memcpy (&oldter, &newter, 16);
 	}
 
 die:

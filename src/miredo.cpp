@@ -1,7 +1,7 @@
 /*
  * miredo.cpp - Unix Teredo server & relay implementation
  *              core functions
- * $Id: miredo.cpp,v 1.41 2004/08/28 12:29:26 rdenisc Exp $
+ * $Id: miredo.cpp,v 1.42 2004/08/29 07:56:10 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -276,9 +276,7 @@ miredo_run (uint16_t client_port, const char *server_name,
 		ifname = "teredo";
 
 	union teredo_addr prefix;
-	if (mode & MIREDO_CLIENT)
-		memcpy (&prefix.ip6, &in6addr_any, sizeof (prefix.ip6));
-	else
+	if ((mode & MIREDO_CLIENT) == 0)
 	{
 		if (prefix_name == NULL)
 			prefix_name = DEFAULT_TEREDO_PREFIX_STR":";
@@ -329,23 +327,34 @@ miredo_run (uint16_t client_port, const char *server_name,
 	 */
 	if (!tunnel || tunnel.SetMTU (1280))
 	{
-		syslog (LOG_ALERT, _("Teredo tunnel setup failed."
-					" You should be root to do that."));
+		syslog (LOG_ALERT, _("Teredo tunnel setup failed:\n %s"),
+				_("You should be root to do that."));
 		goto abort;
 	}
 
-	if (seteuid (unpriv_uid)
-	 || ((fd = miredo_privileged_process (tunnel, &prefix.ip6)) == -1))
+	if (mode & MIREDO_CLIENT)
 	{
-		syslog (LOG_ALERT,
-			_("Privileged process initialization failed: %m"));
-		goto abort;
+		fd = miredo_privileged_process (tunnel, unpriv_uid);
+		if (fd == -1)
+		{
+			syslog (LOG_ALERT,
+				_("Privileged process setup failed: %m"));
+			goto abort;
+		}
+	}
+	else
+	{
+		if (tunnel.AddRoute (&prefix.ip6, 32))
+		{
+			syslog (LOG_ALERT, _("Teredo routing failed:\n %s"),
+				_("You should be root to do that."));
+		}
 	}
 
 	// Definitely drops privileges
 	if (setuid (unpriv_uid))
 	{
-		syslog (LOG_ALERT, _("setuid failed: %m"));
+		syslog (LOG_ALERT, _("Setting UID failed: %m"));
 		goto abort;
 	}
 
@@ -430,15 +439,6 @@ miredo_run (uint16_t client_port, const char *server_name,
 		{
 			relay = NULL;
 		}
-
-		/*
-		 * In this case, the privileged process is useless, since we
-		 * won't get an IPv6 Teredo address, and won't change our
-		 * tunnel interface IPv6 address.
-		 */
-		close (fd); // privileged process will exit
-		wait (NULL); // privileged process exited
-		fd = -1;
 	}
 
 	if (relay == NULL)

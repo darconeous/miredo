@@ -1,6 +1,6 @@
 /*
  * privproc.h - Privileged process for Miredo
- * $Id: privproc.h,v 1.3 2004/08/18 09:42:35 rdenisc Exp $
+ * $Id: privproc.h,v 1.4 2004/08/29 07:56:11 rdenisc Exp $
  */
 
 /***********************************************************************
@@ -33,7 +33,6 @@
 struct in6_addr;
 
 int
-miredo_privileged_process (IPv6Tunnel& tunnel,
-				const struct in6_addr *initial_addr);
+miredo_privileged_process (IPv6Tunnel& tunnel, uid_t unpriv);
 
 #endif
