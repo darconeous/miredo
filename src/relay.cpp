@@ -1,6 +1,6 @@
 /*
  * relay.cpp - Teredo relay peers list definition
- * $Id: relay.cpp,v 1.9 2004/06/27 17:37:21 rdenisc Exp $
+ * $Id: relay.cpp,v 1.10 2004/07/10 16:29:06 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -178,13 +178,18 @@ int MiredoRelay::TransmitPacket (void)
 	/* Initial destination address checks */
 	if (addr.teredo.prefix != GetPrefix ())
 	{
-		// FIXME: no warning for autoconf packets
-		// automatically sent by the kernel
-		syslog (LOG_WARNING,
-			_("Dropped packet with non-Teredo address"
-			" (prefix %08x instead of %08x):\n"
-			" Possible routing table misconfiguration."),
-			ntohl (addr.teredo.prefix), ntohl (GetPrefix ()));
+		if (addr.ip6.s6_addr[0] != 0xff)
+		{
+			// NOTE:
+			// Print a warning except for multicast packets,
+			// which the kernel tend to send automatically.
+			syslog (LOG_WARNING,
+				_("Dropped packet with non-Teredo address"
+				" (prefix %08x instead of %08x):\n"
+				" Possible routing table misconfiguration."),
+				ntohl (addr.teredo.prefix),
+				ntohl (GetPrefix ()));
+		}
 		return 0;
 	}
 
