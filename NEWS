@@ -1,11 +1,11 @@
 RELEASE NOTES for Miredo
-version 0.2.0 (beta version)
+version 0.2.1 (beta version)
 =============================
 $Id$
 
   This is an early release of the program. It is not finished and might not
 work properly. It is not suited for use in production environment.
-Users of previous releases 0.1.x are encouraged to upgrade.
+Users of previous releases are encouraged to upgrade.
 
   There are no known issues at the moment, but missing features. Please
 report any problem by email at address :
@@ -16,6 +16,13 @@ Thanks for your help.
 informations on this program, see README. For syntax details and
 changes, run 'miredo -h' to get help. For detailled internal changes, see
 ChangeLog.
+
+=============================================================================
+BETA RELEASE 0.2.1 : Major bugfixes
+
+# Fixed a segmentation fault in Teredo server code.
+# Fixed client-to-client connectivity with Microsoft and ng_teredo servers.
+# Various minor client timing problem fixed.
 
 =============================================================================
 BETA RELEASE 0.2.0 : Major feature enhancement
