@@ -1,6 +1,6 @@
 /*
  * relay.cpp - Teredo relay peers list definition
- * $Id: relay.cpp,v 1.21 2004/08/26 13:33:34 rdenisc Exp $
+ * $Id: relay.cpp,v 1.22 2004/08/26 15:19:11 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -49,148 +49,6 @@
 #include "relay.h"
 
 #define TEREDO_TIMEOUT 30 // seconds
-
-#define EXPIRED( date, now ) ((((unsigned)now) - (unsigned)date) > 30)
-#define ENTRY_EXPIRED( peer, now ) (peer->flags.flags.replied \
-					? EXPIRED (peer->last_rx, now) \
-					: EXPIRED (peer->last_xmit, now))
-
-// is_valid_teredo_prefix (PREFIX_UNSET) MUST return false
-# define PREFIX_UNSET 0xffffffff
-
-struct __TeredoRelay_peer
-{
-	struct __TeredoRelay_peer *next;
-
-	struct in6_addr addr;
-	uint32_t mapped_addr;
-	uint16_t mapped_port;
-	union
-	{
-		struct
-		{
-			unsigned trusted:1;
-			unsigned replied:1;
-			unsigned bubbles:2;
-		} flags;
-		uint16_t all_flags;
-	} flags;
-	/* nonce: only for client */
-	time_t last_rx;
-	time_t last_xmit;
-
-	uint8_t *queue;
-	size_t queuelen;
-};
-
-
-static int DoQualification (TeredoRelayUDP& socket, uint32_t server_ip,
-				struct in6_addr *addr);
-
-
-TeredoRelay::TeredoRelay (uint32_t pref, uint16_t port, bool cone)
-	: head (NULL)
-{
-	addr.teredo.prefix = pref;
-	addr.teredo.server_ip = 0;
-	addr.teredo.flags = cone ? htons (TEREDO_FLAGS_CONE) : 0;
-	addr.teredo.client_ip = 0;
-	addr.teredo.client_port = 0; 
-
-	sock.ListenPort (port);
-}
-
-
-TeredoRelay::TeredoRelay (uint32_t server_ip, uint16_t port)
-	: head (NULL)
-{
-	if (sock.ListenPort (port) == 0)
-	{
-		DoQualification (sock, server_ip, &addr.ip6);
-	}
-}
-
-
-/* Releases peers list entries */
-TeredoRelay::~TeredoRelay (void)
-{
-	struct __TeredoRelay_peer *p = head;
-
-	while (p != NULL)
-	{
-		struct __TeredoRelay_peer *buf = p->next;
-		if (p->queue != NULL)
-			delete p->queue;
-		delete p;
-		p = buf;
-	}
-}
-
-
-int TeredoRelay::NotifyUp (const struct in6_addr *addr)
-{
-	return 0;
-}
-
-
-int TeredoRelay::NotifyDown (void)
-{
-	return 0;
-}
-
-
-/* 
- * Allocates a peer entry. It is up to the caller to fill informations
- * correctly.
- *
- * FIXME: number of entry should be bound
- */
-struct __TeredoRelay_peer *TeredoRelay::AllocatePeer (void)
-{
-	time_t now;
-	time (&now);
-
-	/* Tries to recycle a timed-out peer entry */
-	for (struct __TeredoRelay_peer *p = head; p != NULL; p = p->next)
-		if (ENTRY_EXPIRED (p, now))
-			return p;
-
-	/* Otherwise allocates a new peer entry */
-	struct __TeredoRelay_peer *p;
-	try
-	{
-		p = new struct __TeredoRelay_peer;
-	}
-	catch (...)
-	{
-		return NULL;
-	}
-
-	/* Puts new entry at the head of the list */
-	p->next = head;
-	head = p;
-	return p;
-}
-
-
-/*
- * Returns a pointer to the first peer entry matching <addr>,
- * or NULL if none were found.
- */
-struct __TeredoRelay_peer *TeredoRelay::FindPeer (const struct in6_addr *addr)
-{
-	time_t now;
-
-	time(&now);
-
-	for (struct __TeredoRelay_peer *p = head; p != NULL; p = p->next)
-		if (memcmp (&p->addr, addr, sizeof (struct in6_addr)) == 0)
-			if (!ENTRY_EXPIRED (p, now))
-				return p; // found!
-	
-	return NULL;
-}
-
 
 /*
  * Sends a Teredo Bubble to the server specified in Teredo address <dst>.
@@ -326,14 +184,144 @@ SendRS (const TeredoRelayUDP& sock, uint32_t server_ip, unsigned char *nonce,
 }
 
 
-static int
-DoQualification (TeredoRelayUDP& sock, uint32_t server_ip,
-			struct in6_addr *addr)
-{
-	unsigned char nonce[8];
+#define EXPIRED( date, now ) ((((unsigned)now) - (unsigned)date) > 30)
+#define ENTRY_EXPIRED( peer, now ) (peer->flags.flags.replied \
+					? EXPIRED (peer->last_rx, now) \
+					: EXPIRED (peer->last_xmit, now))
 
-	SendRS (sock, server_ip, nonce, true, false);
+// is_valid_teredo_prefix (PREFIX_UNSET) MUST return false
+# define PREFIX_UNSET 0xffffffff
+
+struct __TeredoRelay_peer
+{
+	struct __TeredoRelay_peer *next;
+
+	struct in6_addr addr;
+	uint32_t mapped_addr;
+	uint16_t mapped_port;
+	union
+	{
+		struct
+		{
+			unsigned trusted:1;
+			unsigned replied:1;
+			unsigned bubbles:2;
+		} flags;
+		uint16_t all_flags;
+	} flags;
+	/* nonce: only for client */
+	time_t last_rx;
+	time_t last_xmit;
+
+	uint8_t *queue;
+	size_t queuelen;
+};
+
+
+TeredoRelay::TeredoRelay (uint32_t pref, uint16_t port, bool cone)
+	: head (NULL)
+{
+	addr.teredo.prefix = pref;
+	addr.teredo.server_ip = 0;
+	addr.teredo.flags = cone ? htons (TEREDO_FLAGS_CONE) : 0;
+	addr.teredo.client_ip = 0;
+	addr.teredo.client_port = 0; 
+
+	sock.ListenPort (port);
+}
+
+
+TeredoRelay::TeredoRelay (uint32_t server_ip, uint16_t port)
+	: head (NULL)
+{
+	if (sock.ListenPort (port) == 0)
+	{
+	/*
+		SendRS (sock, server_ip, nonce, true, false);
+		gettimeofday (&last_rs);
+	*/
+	}
+}
+
+
+/* Releases peers list entries */
+TeredoRelay::~TeredoRelay (void)
+{
+	struct __TeredoRelay_peer *p = head;
+
+	while (p != NULL)
+	{
+		struct __TeredoRelay_peer *buf = p->next;
+		if (p->queue != NULL)
+			delete p->queue;
+		delete p;
+		p = buf;
+	}
+}
+
+
+int TeredoRelay::NotifyUp (const struct in6_addr *addr)
+{
 	return 0;
+}
+
+
+int TeredoRelay::NotifyDown (void)
+{
+	return 0;
+}
+
+
+/* 
+ * Allocates a peer entry. It is up to the caller to fill informations
+ * correctly.
+ *
+ * FIXME: number of entry should be bound
+ */
+struct __TeredoRelay_peer *TeredoRelay::AllocatePeer (void)
+{
+	time_t now;
+	time (&now);
+
+	/* Tries to recycle a timed-out peer entry */
+	for (struct __TeredoRelay_peer *p = head; p != NULL; p = p->next)
+		if (ENTRY_EXPIRED (p, now))
+			return p;
+
+	/* Otherwise allocates a new peer entry */
+	struct __TeredoRelay_peer *p;
+	try
+	{
+		p = new struct __TeredoRelay_peer;
+	}
+	catch (...)
+	{
+		return NULL;
+	}
+
+	/* Puts new entry at the head of the list */
+	p->next = head;
+	head = p;
+	return p;
+}
+
+
+/*
+ * Returns a pointer to the first peer entry matching <addr>,
+ * or NULL if none were found.
+ */
+struct __TeredoRelay_peer *TeredoRelay::FindPeer (const struct in6_addr *addr)
+{
+	time_t now;
+
+	time(&now);
+
+	for (struct __TeredoRelay_peer *p = head; p != NULL; p = p->next)
+		if (memcmp (&p->addr, addr, sizeof (struct in6_addr)) == 0)
+			if (!ENTRY_EXPIRED (p, now))
+				return p; // found!
+	
+	return NULL;
 }
 
 
