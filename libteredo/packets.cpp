@@ -55,7 +55,7 @@ int
 SendBubble (const TeredoRelayUDP& sock, uint32_t ip, uint16_t port,
 		const struct in6_addr *src, const struct in6_addr *dst)
 {
-	if (ip && is_ipv4_global_unicast (ip))
+	if (is_ipv4_global_unicast (ip))
 	{
 		struct ip6_hdr hdr;
 
