@@ -1,7 +1,7 @@
 /*
  * miredo.cpp - Unix Teredo server & relay implementation
  *              core functions
- * $Id: miredo.cpp,v 1.27 2004/08/18 09:42:35 rdenisc Exp $
+ * $Id: miredo.cpp,v 1.28 2004/08/18 09:53:58 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -374,6 +374,7 @@ miredo_run (uint16_t client_port, const char *server_name,
 	 * addres and _then_ close our pipe.
 	 */
 	close (fd); // privileged process will exit
+	wait (NULL); // privileged process exited
 
 	if (!*relay)
 	{
@@ -494,6 +495,8 @@ miredo (uint16_t client_port, const char *server_name,
 				syslog (LOG_NOTICE,
 					_("Exiting on signal %d (%s)"),
 					should_exit, strsignal (should_exit));
+				wait (NULL); // child exited
+
 				closelog ();
 				return 0;
 			}

@@ -1,3 +1,8 @@
+2004-08-18  Remi Denis-Courmont
+
+	* src/miredo.cpp, src/privproc.*:
+	- fixed privileged process.
+
 2004-08-17  Remi Denis-Courmont
 
 	* libtun6/ipv6-tunnel.*:
@@ -6,7 +11,7 @@
 	- removed ReceiveIPv6Packet callback (one step toward
 	re-entrancy and thread-safety),
 	- tunnel addresses changes implemented
-	* libteredo/mireco.*:
+	* src/miredo.cpp, src/relay.*:
 	- implemented a privileged process to set up tunnel addresses.
 
 2004-07-31  Remi Denis-Courmont
