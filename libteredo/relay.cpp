@@ -508,7 +508,7 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 		return -1;
 
 	size_t length;
-	const struct ip6_hdr *buf = packet.GetIPv6Header (length);
+	const uint8_t *buf = packet.GetIPv6Packet (length);
 	struct ip6_hdr ip6;
 
 	// Checks packet

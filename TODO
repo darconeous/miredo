@@ -32,7 +32,6 @@ Testing:
 
 Performance/scalibility:
 -------------------------
-- minimum usage of memcpy()/memmove(),
 - faster peer lists lookups/updates,
 - configure option to disable Teredo client support,
 - configure option to disable Teredo relay (?)

@@ -40,17 +40,12 @@ class TeredoPacket
 {
 	private:
 		struct teredo_orig_ind *orig;
-		uint8_t *nonce;
+		uint8_t *nonce, *ip6;
 		uint32_t last_ip;
 		int ip6len;
 		uint16_t last_port;
 
-		union
-		{
-			struct ip6_hdr ip6;
-			uint8_t fill[65507];
-		} ipv6_buf;
-		uint8_t nonce_buf[9];
+		uint8_t buf[65507];
 		struct teredo_orig_ind orig_buf;
 
 	public:
@@ -61,13 +56,14 @@ class TeredoPacket
 		int Receive (int fd);
 
 		/*
-		 * Returns a pointer to the IPv6 header of the packet
-		 * last received with ReceivePacket().
+		 * Returns a pointer to the IPv6 packet last received with
+		 * ReceivePacket() (the packet is NOT aligned, you may have
+		 * to copy the first 40 bytes to a struct ip6_hdr).
 		 */
-		const struct ip6_hdr *GetIPv6Header (size_t& len) const
+		const uint8_t *GetIPv6Packet (size_t& len) const
 		{
 			len = ip6len;
-			return &ipv6_buf.ip6;
+			return ip6;
 		}
 
 		/*

@@ -243,18 +243,23 @@ SendRS (const TeredoRelayUDP& sock, uint32_t server_ip,
  * - newaddr must be 4-bytes aligned.
  * - newaddr->teredo.server_ip must be set to the server's expected IP by the
  *   caller.
- * - IPv6 header is valid (ie. version 6, plen matches packet's length).
+ * - IPv6 header is valid (ie. version 6, plen matches packet's length, and
+ *   the full packet is at least 40 bytes long).
  */
 bool
 ParseRA (const TeredoPacket& packet, union teredo_addr *newaddr, bool cone)
 {
 	const struct teredo_orig_ind *ind = packet.GetOrigInd ();
+
+	if (ind == NULL)
+		return false;
+
 	size_t length;
+	// Only read ip6_next (1 byte), so no need to align
+	const struct ip6_hdr *ip6 =
+		(const struct ip6_hdr *)packet.GetIPv6Packet (length);
 
-	const struct ip6_hdr *ip6 = packet.GetIPv6Header (length);
-
-	if ((ind == NULL)
-	 || memcmp (&ip6->ip6_dst, cone ? &teredo_cone : &teredo_restrict,
+	if (memcmp (&ip6->ip6_dst, cone ? &teredo_cone : &teredo_restrict,
 			sizeof (ip6->ip6_dst))
 	 || (ip6->ip6_nxt != IPPROTO_ICMPV6)
 	 || (length < sizeof (struct nd_router_advert)))
@@ -365,7 +370,8 @@ bool
 CheckPing (const TeredoPacket& packet, const uint8_t *nonce)
 {
 	size_t length;
-	const struct ip6_hdr *ip6 = packet.GetIPv6Header (length);
+	const struct ip6_hdr *ip6 =
+		(const struct ip6_hdr *)packet.GetIPv6Packet (length);
 
 	// Only read bytes, so no need to align
 	if ((ip6->ip6_nxt != IPPROTO_ICMPV6)

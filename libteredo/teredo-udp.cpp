@@ -114,7 +114,6 @@ SendUDPPacket (int fd, const void *packet, size_t plen,
 int
 TeredoPacket::Receive (int fd)
 {
-	uint8_t buffer[65507];
 	int length;
 
 	// Receive a UDP packet
@@ -122,7 +121,7 @@ TeredoPacket::Receive (int fd)
 		struct sockaddr_in ad;
 		socklen_t alen = sizeof (ad);
 
-		length = recvfrom (fd, buffer, sizeof (buffer), 0,
+		length = recvfrom (fd, buf, sizeof (buf), 0,
 					(struct sockaddr *)&ad, &alen);
 
 		if (length < 0)
@@ -133,7 +132,7 @@ TeredoPacket::Receive (int fd)
 	}
 
 	// Check type of Teredo header:
-	uint8_t *ptr = buffer;
+	uint8_t *ptr = buf;
 	orig = NULL;
 	nonce = NULL;
 
@@ -160,13 +159,12 @@ TeredoPacket::Receive (int fd)
 		ptr += id_len + au_len;
 
 		/* Nonce + confirmation byte */
-		length -= sizeof (nonce_buf);
+		length -= 9;
 		if (length < 0)
 			return -1;
 
-		memcpy (nonce_buf, ptr, sizeof (nonce_buf));
-		nonce = nonce_buf;
-		ptr += sizeof (nonce_buf);
+		nonce = ptr;
+		ptr += 9;
 	}
 
 	// Teredo Origin Indication
@@ -184,10 +182,9 @@ TeredoPacket::Receive (int fd)
 	if (length < 0)
 		return -1;
 
-	// length <= 65507
-	// TODO: work around that big memcpy
-	memcpy (&ipv6_buf.ip6, ptr, length);
+	// length <= 65507 = sizeof(buf)
 	ip6len = length;
+	ip6 = ptr;
 
 	return 0;
 }
