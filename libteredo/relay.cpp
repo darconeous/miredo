@@ -341,11 +341,11 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
 
 		// FIXME: queue packet
 		// FIXME: re-send echo request if no response
-#ifdef USE_OPENSSL
 		if (!p->flags.flags.nonce)
 		{
 			p->flags.flags.nonce = 1;
-
+			memset (p->nonce, 0, 8);
+#ifdef USE_OPENSSL
 			if (!RAND_pseudo_bytes (p->nonce, 8))
 			{
 				char buf[120];
@@ -355,10 +355,8 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
 					ERR_error_string (ERR_get_error (),
 								buf));
 			}
-		}
-#else
-		return -1;
 #endif
+		}
 		return SendPing (sock, &addr, &dst->ip6, p->nonce);
 	}
 
