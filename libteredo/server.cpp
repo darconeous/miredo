@@ -1,6 +1,6 @@
 /*
  * server.cpp - Handling of a single Teredo datagram (server-side).
- * $Id: server.cpp,v 1.3 2004/08/24 18:48:34 rdenisc Exp $
+ * $Id: server.cpp,v 1.4 2004/08/24 19:12:17 rdenisc Exp $
  */
 
 /***********************************************************************
@@ -99,18 +99,21 @@ teredo_send_ra (const TeredoServerUDP& sock, const struct in6_addr *dest_ip6,
 		*ptr = packet;
 
 	// Authentification header
+	// TODO: support for secure qualification
 	const uint8_t *nonce = sock.GetAuthNonce ();
 	if (nonce != NULL)
 	{
-		struct teredo_simple_auth auth;
+		// No particular alignment issue
+		struct teredo_simple_auth *auth;
 
-		auth.hdr.hdr.zero = 0;
-		auth.hdr.hdr.code = teredo_auth_hdr;
-		auth.hdr.id_len = auth.hdr.au_len = 0;
-		memcpy (&auth.nonce, nonce, 8);
-		auth.confirmation = 0;
+		auth = (struct teredo_simple_auth *)ptr;
 
-		memcpy (ptr, &auth, 13);
+		auth->hdr.hdr.zero = 0;
+		auth->hdr.hdr.code = teredo_auth_hdr;
+		auth->hdr.id_len = auth->hdr.au_len = 0;
+		memcpy (&auth->nonce, nonce, 8);
+		auth->confirmation = 0;
+
 		ptr += 13;
 	}
 
