@@ -427,6 +427,5 @@ BuildICMPv6Error (struct ip6_hdr *out, const struct in6_addr *src,
 	memcpy (h + 1, in, len);
 
 	h->icmp6_cksum = icmp6_checksum (out, h);
-	syslog (LOG_DEBUG, "DEBUG: resuming: %x", (unsigned)icmp6_checksum (out, h));
 	return len;
 }
