@@ -40,6 +40,7 @@ class MiredoConf
 	public:
 		MiredoConf (void);
 		~MiredoConf (void);
+		void Clear (unsigned show = 5);
 
 		/* Adds a setting. Returns false if memory is missing. */
 		bool Set (const char *name, const char *value, unsigned line);

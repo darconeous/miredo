@@ -50,18 +50,26 @@ MiredoConf::MiredoConf (void) : head (NULL)
 
 MiredoConf::~MiredoConf (void)
 {
+	Clear (0);
+}
+
+
+void
+MiredoConf::Clear (unsigned show)
+{
 	struct setting *ptr = head;
-	int disp = 5;
+
+	head = NULL;
 
 	while (ptr != NULL)
 	{
 		struct setting *buf = ptr->next;
-		if (disp > 0)
+		if (show > 0)
 		{
 			syslog (LOG_WARNING,
 				_("Superfluous directive %s at line %u"),
 				ptr->name, ptr->line);
-			disp--;
+			show--;
 		}
 		free (ptr->name);
 		free (ptr->value);
