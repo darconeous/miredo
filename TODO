@@ -1,0 +1,39 @@
+Incomplete raw ToDo list:
+==========================
+
+Features:
+----------
+- improvements of the overall program structure,
+- ability to disable server,
+- ability to disabled relay?
+- Teredo prefix override,
+- some statistics,
+- automatic teredo interface configuration,
+- teredo interface name override,
+- init.d sample script,
+
+Security:
+----------
+- chroot() support,
+- better setuid() support,
+- proper incoming IPv6 packets checks,
+
+Conformance:
+-------------
+- queueing of more than one packet toward restricted NATs,
+- implement proper/draft-compliant timeouts,
+
+Portability:
+-------------
+- big-endianess/byte-alignment compatibility tests,
+- Solaris & FreeBSD compilation,
+
+Compatibility:
+---------------
+- investigate deeper into relay possible incompatibility with
+  ng_teredo's server,
+
+Documentation:
+---------------
+- man page.
+

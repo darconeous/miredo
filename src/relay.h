@@ -1,0 +1,109 @@
+/*
+ * relay.h - Teredo relay peers list declaration
+ * $Id: relay.h,v 1.1 2004/06/14 14:45:58 rdenisc Exp $
+ *
+ * See "Teredo: Tunneling IPv6 over UDP through NATs"
+ * for more information
+ */
+
+/***********************************************************************
+ *  Copyright (C) 2004 Remi Denis-Courmont.                            *
+ *  This program is free software; you can redistribute and/or modify  *
+ *  it under the terms of the GNU General Public License as published  *
+ *  by the Free Software Foundation; version 2 of the license.         *
+ *                                                                     *
+ *  This program is distributed in the hope that it will be useful,    *
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of     *
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.               *
+ *  See the GNU General Public License for more details.               *
+ *                                                                     *
+ *  You should have received a copy of the GNU General Public License  *
+ *  along with this program; if not, you can get it from:              *
+ *  http://www.gnu.org/copyleft/gpl.html                               *
+ ***********************************************************************/
+
+#ifndef MIREDO_RELAY_H
+# define MIREDO_RELAY_H
+
+# include <time.h> // time_t
+# include <netinet/in.h> // struct in6_addr
+# include <string.h> // memcpy()
+
+class MiredoRelayUDP;
+class IPv6Tunnel;
+union teredo_addr;
+
+
+class MiredoRelay
+{
+	private:
+		struct peer
+		{
+			struct peer *next;
+
+			struct in6_addr addr;
+			uint32_t mapped_addr;
+			uint16_t mapped_port;
+			union
+			{
+				struct
+				{
+					unsigned trusted:1;
+					unsigned replied:1;
+					unsigned bubbles:2;
+				} flags;
+				uint16_t all_flags;
+			} flags;
+			/* nonce: only for client */
+			time_t last_rx;
+			time_t last_xmit;
+
+			uint8_t *queue;
+			size_t queuelen;
+		} *head;
+
+		const MiredoRelayUDP *sock;
+		const IPv6Tunnel *tunnel;
+		struct in6_addr myaddr;
+	
+		struct peer *AllocatePeer (void);
+		struct peer *FindPeer (const struct in6_addr *addr);
+
+		int SendBubble (const union teredo_addr *dst) const;
+		bool IsBubble (const struct ip6_hdr *hdr) const;
+
+	public:
+		MiredoRelay () : head (NULL)
+		{
+		}
+
+		~MiredoRelay ();
+
+		void SetSocket (const MiredoRelayUDP *udpsock)
+		{
+			sock = udpsock;
+		}
+
+		void SetTunnel (const IPv6Tunnel *tun)
+		{
+			tunnel = tun;
+		}
+
+		void SetLocalAddress (const struct in6_addr *ip6)
+		{
+			memcpy (&myaddr, ip6, sizeof (myaddr));
+		}
+
+		/*
+		 * Transmits a packet via Teredo.
+		 */
+		int TransmitPacket (void);
+
+		/*
+		 * Receives a packet via Teredo.
+		 */
+		int ReceivePacket (void);
+};
+
+#endif /* ifndef MIREDO_RELAY_H */
+

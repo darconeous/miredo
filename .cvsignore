@@ -1,0 +1,15 @@
+aclocal.m4
+config.h.in
+configure
+COPYING
+INSTALL
+Makefile.in
+autom4te.cache
+config.cache
+config.h
+config.log
+config.status
+Makefile
+stamp-h1
+miredo-*.tar.bz2
+miredo-*.tar.gz

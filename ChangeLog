@@ -1,0 +1,45 @@
+2004-05-07  Remi Denis-Courmont
+
+	* README:
+	- initial english-public version,
+	- removed French internal doc.
+	* doc/*:
+	- removed non-GPL documentation,
+	* dump/*:
+	- removed possibly ECP-ownership encumbered files.
+
+2004-03-27  Rémi Denis-Courmont
+
+	* src/*: forwarding of packet from UDP to IPv6 or from UDP to
+	UDP for the server. Server implementation should be complete,
+	possibly with bugs.
+
+2004-03-22  Rémi Denis-Courmont
+
+	* src/*: 
+	- hopefully fixed the handling if the "Cone" flag for client
+	qualification => client should now qualify properly with the
+	server,
+	- (partial) Solaris 8 compilation fix.
+
+2004-03-21  Rémi Denis-Courmont
+
+	* src/server_pkt.cpp:
+	- sending of Router Advertisement for client "qualification".
+
+2004-03-20  Rémi Denis-Courmont
+
+	* src/teredo-udp.cpp:
+	- parsing of Teredo packets headers.
+
+2004-03-14  Rémi Denis-Courmont
+
+	* src/main.cpp:
+	- initial source code (non-working).
+
+2004-03-10  Rémi Denis-Courmont
+
+	* configure.ac, Makefile.am:
+	- initial CVS repository,
+	- initial configure scripts, and Makefiles.
+
