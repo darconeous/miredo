@@ -1,6 +1,6 @@
 /*
  * teredo-udp.cpp - UDP sockets class definition
- * $Id: teredo-udp.cpp,v 1.7 2004/08/29 15:33:53 rdenisc Exp $
+ * $Id$
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -247,7 +247,9 @@ int
 TeredoRelayUDP::SendPacket (const void *packet, size_t len,
 				uint32_t dest_ip, uint16_t dest_port) const
 {
-	return SendUDPPacket (fd, packet, len, dest_ip, dest_port);
+	return (fd != -1)
+		? SendUDPPacket (fd, packet, len, dest_ip, dest_port)
+		: -1;
 }
 
 
@@ -343,6 +345,10 @@ TeredoServerUDP::SendPacket (const void *packet, size_t len,
 				uint32_t dest_ip, uint16_t dest_port,
 				bool use_secondary_ip) const
 {
-	return SendUDPPacket (use_secondary_ip ? fd_secondary : fd_primary,
-				packet, len, dest_ip, dest_port);
+	int fd = use_secondary_ip ? fd_secondary : fd_primary;
+
+	return (fd != -1)
+		? SendUDPPacket (fd, packet, len, dest_ip, dest_port)
+		: -1;
 }
+

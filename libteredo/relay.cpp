@@ -246,7 +246,7 @@ inline bool IsBubble (const struct ip6_hdr *hdr)
 int TeredoRelay::SendPacket (const void *packet, size_t length)
 {
 	/* Makes sure we are qualified properly */
-	if (!IsRunning () || !sock)
+	if (!IsRunning ())
 		return -1; // TODO: send ICMPv6 error?
 
 	struct ip6_hdr ip6;
