@@ -1,10 +1,18 @@
 2004-24-08  Remi Denis-Courmont
 
-	* libteredo/main.c:
+	* src/main.c:
 	- option to enable cone relay optimization;
-	Miredo will now assume restricted relay by default.
+	Miredo will now assume restricted relay by default,
+	- command line support for client mode,
+	- verbose option for the command line,
 	* README, NEWS, miredo.8:
-	- reflect above command line change.
+	- reflect above command line change,
+	* src/miredo.*:
+	- checks validity of Teredo prefix before using it,
+	* src/miredo.*, src/relay.*, libteredo/relay.*:
+	- support for creating a Teredo client instance,
+	* libteredo/teredu-udp.cpp:
+	- simpler parsing of incoming Teredo packets.
 
 2004-22-08  Remi Denis-Courmont
 

@@ -1,6 +1,6 @@
 /*
  * teredo-udp.cpp - UDP sockets class definition
- * $Id: teredo-udp.cpp,v 1.3 2004/08/22 15:38:26 rdenisc Exp $
+ * $Id: teredo-udp.cpp,v 1.4 2004/08/24 18:53:52 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -155,71 +155,63 @@ TeredoCommonUDP::ReceivePacket (int fd)
 	nonce = NULL;
 
 	// Parse Teredo headers
-	while ((length >= 2) && ptr[0] == 0)
+	if (length < 2)
+		return -1; // too small
+
+	// Teredo Authentication header
+	if ((ptr[0] == 0) && (ptr[1] == teredo_auth_hdr))
 	{
-		switch (ptr[1])
-		{
-			// Teredo Authentication header
-			case teredo_auth_hdr:
-			{
-				ptr += 2;
-				/* ID and Auth */
-				length -= 4;
-				if (length < 0)
-					return -1; // too small
+		ptr += 2;
+		/* ID and Auth */
+		length -= 4;
+		if (length < 0)
+			return -1; // too small
 
-				uint8_t id_len = *ptr;
-				ptr++;
-				uint8_t au_len = *ptr;
-				ptr++;
+		uint8_t id_len = *ptr;
+		ptr++;
+		uint8_t au_len = *ptr;
+		ptr++;
 
-				length -= id_len + au_len;
-				/* TODO: secure qualification */
-				ptr += id_len + au_len;
+		length -= id_len + au_len;
+		/* TODO: secure qualification */
+		ptr += id_len + au_len;
 
-				/* Nonce */
-				length -= sizeof (nonce_buf);
-				if (length < 0)
-					return -1;
+		/* Nonce */
+		length -= sizeof (nonce_buf);
+		if (length < 0)
+			return -1;
 
-				memcpy (nonce_buf, ptr, sizeof (nonce_buf));
-				nonce = nonce_buf;
-				ptr += sizeof (nonce_buf);
+		memcpy (nonce_buf, ptr, sizeof (nonce_buf));
+		nonce = nonce_buf;
+		ptr += sizeof (nonce_buf);
 
-				/* Confirmation */
-				length --;
-				if (length < 0)
-					return -1;
+		/* Confirmation */
+		length --;
+		if (length < 0)
+			return -1;
 
-				if (/* confirmation = */ *(ptr++))
-					// confirmation byte MUST be 0
-					return -1;
-				break;
-			}
+		if (/* confirmation = */ *(ptr++))
+			// confirmation byte MUST be 0
+		return -1;
+	}
 
-			// Teredo Origin Indication
-			case teredo_orig_ind:
-			{
-				length -= sizeof (orig_buf);
-				if (length < 0)
-					return -1; // too small
+	// Teredo Origin Indication
+	if ((ptr[0] == 0) && (ptr[1] == teredo_orig_ind))
+	{
+		length -= sizeof (orig_buf);
+		if (length < 0)
+			return -1; // too small
 
-				memcpy (&orig_buf, ptr, sizeof (orig_buf));
-				orig = &orig_buf;
-				ptr += sizeof (orig_buf);
-				break;
-			}
-
-			// Unknown Teredo header
-			default:
-				return -1; // malformatted packet
-		}
+		memcpy (&orig_buf, ptr, sizeof (orig_buf));
+		orig = &orig_buf;
+		ptr += sizeof (orig_buf);
 	}
 
 	if (length < 0)
 		return -1;
 
 	// length <= 65507
+	// TODO: work around that big memcpy
 	memcpy (&ipv6_buf.ip6, ptr, length);
 	ip6len = length;
 
