@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: miredo 0.4.0\n"
 "Report-Msgid-Bugs-To: rdenis@simphalempin.com\n"
-"POT-Creation-Date: 2005-01-07 15:57+0100\n"
-"PO-Revision-Date: 2005-01-05 23:05+0100\n"
+"POT-Creation-Date: 2005-01-08 01:11+0100\n"
+"PO-Revision-Date: 2005-01-05 01:13+0100\n"
 "Last-Translator: Rémi Denis-Courmont <rdenis (at) simphalempin (dot) com>\n"
 "Language-Team: N/A\n"
 "MIME-Version: 1.0\n"
@@ -394,7 +394,7 @@ msgid "Reading configuration from %s: %s\n"
 msgstr "Lecture de la configuration depuis %s: %s\n"
 
 #: src/main.c:512
-#, fuzzy, c-format
+#, c-format
 msgid "Chroot directory %s: %s\n"
 msgstr "Répertoire de cloisement (chroot) %s: %s\n"
 
@@ -460,74 +460,79 @@ msgstr "Échec du port de service Teredo: ouverture d'un port UDP impossible"
 msgid "pipe failed: %m"
 msgstr "Échec de pipe: %m"
 
-#: src/miredo.cpp:505
+#: src/miredo.cpp:491
 #, c-format
 msgid "Loading configuration from %s failed"
 msgstr "Échec du chargement de la configuration depuis %s"
 
-#: src/miredo.cpp:546 src/miredo.cpp:556 src/miredo.cpp:566 src/miredo.cpp:591
+#: src/miredo.cpp:501 src/miredo.cpp:510 src/miredo.cpp:519
 msgid "Fatal configuration error"
 msgstr "Erreur fatale de configuration"
 
-#: src/miredo.cpp:576
+#: src/miredo.cpp:528
 msgid "Fatal bind IPv4 address error"
 msgstr "Erreur fatale d'adresse IPv4"
 
-#: src/miredo.cpp:583
+#: src/miredo.cpp:535
 msgid "Fatal bind UDP port error"
 msgstr "Erreur fatale de port UDP"
 
-#: src/miredo.cpp:603
+#: src/miredo.cpp:607
 #, c-format
 msgid "fork failed: %m"
 msgstr "Échec de fork: %m"
 
-#: src/miredo.cpp:629
+#: src/miredo.cpp:633
 #, c-format
 msgid "Exiting on signal %d (%s)"
 msgstr "Arrêt suite au signal %d (%s)"
 
-#: src/miredo.cpp:637
+#: src/miredo.cpp:641
 #, c-format
 msgid "Reloading configuration on signal %d (%s)"
 msgstr "Rechargement de la configuration suite au signal %d (%s)"
 
-#: src/miredo.cpp:646
+#: src/miredo.cpp:650
 #, c-format
 msgid "Terminated (exit code: %d)"
 msgstr "Terminé (code de retour: %d)"
 
-#: src/miredo.cpp:654
+#: src/miredo.cpp:658
 #, c-format
 msgid "Child %d killed by signal %d (%s)"
 msgstr "Fils %d tué par le signal %d (%s)"
 
-#: src/conf.cpp:97
+#: src/conf.cpp:62
+#, c-format
+msgid "Superfluous directive %s at line %u"
+msgstr "Directive %s superflue à la ligne %u"
+
+#: src/conf.cpp:105
 #, c-format
 msgid "Memory problem: %m"
 msgstr "Problème de mémoire: %m"
 
-#: src/conf.cpp:119
+#: src/conf.cpp:128
 #, c-format
 msgid "Skipped overly long line %u"
 msgstr "Ligne %u trop longue ignorée"
 
-#: src/conf.cpp:136
+#: src/conf.cpp:146
 #, c-format
 msgid "Ignoring line %u: %s"
 msgstr "Line %u ignorée: %s"
 
-#: src/conf.cpp:144
+#: src/conf.cpp:154
 #, c-format
 msgid "Error reading configuration file: %m"
 msgstr "Erreur de lecture du fichier de configuration: %m"
 
-#: src/conf.cpp:161
+#: src/conf.cpp:171
 #, c-format
 msgid "Error opening configuration file %s: %m"
 msgstr "Erreur d'ouverture du fichier de configuration %s: %m"
 
-#: src/conf.cpp:227
+#: src/conf.cpp:222
 #, c-format
 msgid "Invalid integer value \"%s\" for %s: %m"
 msgstr "Valeur entière invalide «%s» pour %s: %m"
@@ -537,25 +542,25 @@ msgstr "Valeur entière invalide «%s» pour %s: %m"
 msgid "Invalid boolean value \"%s\" for %s"
 msgstr "Valeur booléenne incorrecte «%s» pour %s"
 
-#: src/conf.cpp:305 src/conf.cpp:336
+#: src/conf.cpp:306 src/conf.cpp:339
 #, c-format
 msgid "Invalid hostname \"%s\" at line %u: %s"
 msgstr "Nom d'hôte invalide «%s» à la ligne %u: %s"
 
-#: src/conf.cpp:360
+#: src/conf.cpp:365
 #, c-format
 msgid "Invalid Teredo IPv6 prefix: %x::/32"
 msgstr "Préfixe Teredo IPv6 invalide: %x::/32"
 
-#: src/conf.cpp:391
+#: src/conf.cpp:396
 #, c-format
 msgid "Invalid relay type \"%s\" at line %u"
 msgstr "Type de relais invalide «%s» à la ligne %u"
 
-#: src/conf.cpp:468
-#, fuzzy, c-format
+#: src/conf.cpp:476
+#, c-format
 msgid "Unknown syslog facility \"%s\" at line %u"
-msgstr "Type de relais invalide «%s» à la ligne %u"
+msgstr "Catégorie syslog «%s» inconnue à la ligne %u"
 
 #~ msgid "Default Teredo prefix: %s:/32\n"
 #~ msgstr "Préfixe Teredo par défaut: %s:/32\n"

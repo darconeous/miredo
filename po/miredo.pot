@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: rdenis@simphalempin.com\n"
-"POT-Creation-Date: 2005-01-07 15:57+0100\n"
+"POT-Creation-Date: 2005-01-08 01:11+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -398,74 +398,79 @@ msgstr ""
 msgid "pipe failed: %m"
 msgstr ""
 
-#: src/miredo.cpp:505
+#: src/miredo.cpp:491
 #, c-format
 msgid "Loading configuration from %s failed"
 msgstr ""
 
-#: src/miredo.cpp:546 src/miredo.cpp:556 src/miredo.cpp:566 src/miredo.cpp:591
+#: src/miredo.cpp:501 src/miredo.cpp:510 src/miredo.cpp:519
 msgid "Fatal configuration error"
 msgstr ""
 
-#: src/miredo.cpp:576
+#: src/miredo.cpp:528
 msgid "Fatal bind IPv4 address error"
 msgstr ""
 
-#: src/miredo.cpp:583
+#: src/miredo.cpp:535
 msgid "Fatal bind UDP port error"
 msgstr ""
 
-#: src/miredo.cpp:603
+#: src/miredo.cpp:607
 #, c-format
 msgid "fork failed: %m"
 msgstr ""
 
-#: src/miredo.cpp:629
+#: src/miredo.cpp:633
 #, c-format
 msgid "Exiting on signal %d (%s)"
 msgstr ""
 
-#: src/miredo.cpp:637
+#: src/miredo.cpp:641
 #, c-format
 msgid "Reloading configuration on signal %d (%s)"
 msgstr ""
 
-#: src/miredo.cpp:646
+#: src/miredo.cpp:650
 #, c-format
 msgid "Terminated (exit code: %d)"
 msgstr ""
 
-#: src/miredo.cpp:654
+#: src/miredo.cpp:658
 #, c-format
 msgid "Child %d killed by signal %d (%s)"
 msgstr ""
 
-#: src/conf.cpp:97
+#: src/conf.cpp:62
+#, c-format
+msgid "Superfluous directive %s at line %u"
+msgstr ""
+
+#: src/conf.cpp:105
 #, c-format
 msgid "Memory problem: %m"
 msgstr ""
 
-#: src/conf.cpp:119
+#: src/conf.cpp:128
 #, c-format
 msgid "Skipped overly long line %u"
 msgstr ""
 
-#: src/conf.cpp:136
+#: src/conf.cpp:146
 #, c-format
 msgid "Ignoring line %u: %s"
 msgstr ""
 
-#: src/conf.cpp:144
+#: src/conf.cpp:154
 #, c-format
 msgid "Error reading configuration file: %m"
 msgstr ""
 
-#: src/conf.cpp:161
+#: src/conf.cpp:171
 #, c-format
 msgid "Error opening configuration file %s: %m"
 msgstr ""
 
-#: src/conf.cpp:227
+#: src/conf.cpp:222
 #, c-format
 msgid "Invalid integer value \"%s\" for %s: %m"
 msgstr ""
@@ -475,22 +480,22 @@ msgstr ""
 msgid "Invalid boolean value \"%s\" for %s"
 msgstr ""
 
-#: src/conf.cpp:305 src/conf.cpp:336
+#: src/conf.cpp:306 src/conf.cpp:339
 #, c-format
 msgid "Invalid hostname \"%s\" at line %u: %s"
 msgstr ""
 
-#: src/conf.cpp:360
+#: src/conf.cpp:365
 #, c-format
 msgid "Invalid Teredo IPv6 prefix: %x::/32"
 msgstr ""
 
-#: src/conf.cpp:391
+#: src/conf.cpp:396
 #, c-format
 msgid "Invalid relay type \"%s\" at line %u"
 msgstr ""
 
-#: src/conf.cpp:468
+#: src/conf.cpp:476
 #, c-format
 msgid "Unknown syslog facility \"%s\" at line %u"
 msgstr ""
