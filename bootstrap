@@ -40,7 +40,7 @@ exit 1
 
 echo "Restoring CVS files ..."
 for f in m4/Makefile.am Makefile.am configure.ac; do
-	mv -f $f-cvs $f
+	mv -f $f-svn $f
 done
 
 echo "Removing backups ..."
