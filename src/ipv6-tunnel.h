@@ -1,6 +1,6 @@
 /*
  * ipv6-tunnel.h - IPv6 interface class declaration
- * $Id: ipv6-tunnel.h,v 1.4 2004/06/20 13:53:35 rdenisc Exp $
+ * $Id: ipv6-tunnel.h,v 1.5 2004/06/20 17:48:07 rdenisc Exp $
  */
 
 /***********************************************************************
@@ -43,8 +43,7 @@ class IPv6Tunnel
 		char *ifname;
 
 	public:
-		IPv6Tunnel (const char *req_name = NULL,
-				const char *tundev = NULL);
+		IPv6Tunnel (const char *req_name = NULL);
 		~IPv6Tunnel ();
 
 		int operator! (void)
@@ -67,6 +66,10 @@ class IPv6Tunnel
 		int SetAddress (const struct in6_addr *addr,
 				int prefix_len = 64) const;
 		int SetMTU (int mtu) const;
+		int AddRoute (const struct in6_addr *addr, int prefix_len)
+									const;
+		int DelRoute (const struct in6_addr *addr, int prefix_len)
+									const;
 
 		/*
 		 * Registers file descriptors in an fd_set for use with

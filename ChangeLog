@@ -2,6 +2,9 @@
 
 	* configure.ac, src/*:
 	- FreeBSD compilation fixes, except tunneling driver.
+	* src/main.cpp, src/ipv6-tunnel.cpp, src/miredo.cpp:
+	- removed useless option to specify tunnel device file,
+	- automatically add a route to the tunnel for the Teredo prefix.
 
 2004-05-19  Remi Denis-Courmont
 

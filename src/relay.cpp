@@ -1,6 +1,6 @@
 /*
  * relay.cpp - Teredo relay peers list definition
- * $Id: relay.cpp,v 1.2 2004/06/20 13:53:35 rdenisc Exp $
+ * $Id: relay.cpp,v 1.3 2004/06/20 17:48:07 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -185,7 +185,7 @@ int MiredoRelay::TransmitPacket (void)
 			_("Dropped packet with non-Teredo address"
 			" (prefix %08x instead of %08x);"
 			" Possible routing table misconfiguration."),
-			addr.teredo.prefix, TEREDO_PREFIX);
+			ntohl (addr.teredo.prefix), TEREDO_PREFIX);
 		return 0;
 	}
 

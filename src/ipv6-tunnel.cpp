@@ -1,6 +1,6 @@
 /*
  * ipv6-tunnel.cpp - IPv6 interface class definition
- * $Id: ipv6-tunnel.cpp,v 1.6 2004/06/20 13:53:35 rdenisc Exp $
+ * $Id: ipv6-tunnel.cpp,v 1.7 2004/06/20 17:48:07 rdenisc Exp $
  */
 
 /***********************************************************************
@@ -61,6 +61,8 @@ struct in6_ifreq {
 	uint32_t ifr6_prefixlen;
 	int ifr6_ifindex;
 };
+
+# include <net/route.h> // struct in6_rtmsg
 #endif
 
 #include "ipv6-tunnel.h"
@@ -83,11 +85,12 @@ secure_strncpy (char *tgt, const char *src, size_t len)
 }
 
 
-
-IPv6Tunnel::IPv6Tunnel (const char *req_name, const char *tundev)
+/*
+ * Allocates a tunnel network interface from the kernel
+ */
+IPv6Tunnel::IPv6Tunnel (const char *req_name)
 {
-	if (tundev == NULL)
-		tundev = "/dev/net/tun";
+	const char *tundev = "/dev/net/tun";
 
 	fd = open (tundev, O_RDWR);
 	if (fd == -1)
@@ -118,15 +121,19 @@ IPv6Tunnel::IPv6Tunnel (const char *req_name, const char *tundev)
 		close (fd);
 		fd = -1;
 	}
-	syslog (LOG_INFO, _("Tunneling interface %s created.\n"), ifname);
+	syslog (LOG_INFO, _("Tunneling interface %s created\n"), ifname);
 }
 
 
+/*
+ * Removes the tunnel interface
+ */
 IPv6Tunnel::~IPv6Tunnel ()
 {
 	if (fd != -1)
 	{
-		syslog (LOG_INFO, _("Tunneling interface %s removed.\n"),
+		SetState (false);
+		syslog (LOG_INFO, _("Tunneling interface %s removed\n"),
 			ifname);
 		close (fd);
 		free (ifname);
@@ -134,6 +141,14 @@ IPv6Tunnel::~IPv6Tunnel ()
 }
 
 
+/*
+ * Unless otherwise stated, all the methods thereafter should return -1 on
+ * error, and 0 on success. Similarly, they should require root privileges.
+ */
+
+/*
+ * Brings the tunnel interface up or down.
+ */
 int
 IPv6Tunnel::SetState (bool up) const
 {
@@ -174,6 +189,11 @@ IPv6Tunnel::SetState (bool up) const
 }
 
 
+/*
+ * Sets the (single) tunnel interface address and netmask.
+ * I known IPv6 interfaces usually have multiple addresses, but it is far
+ * more complex to handle and I dont' need that so far.
+ */
 int
 IPv6Tunnel::SetAddress (const struct in6_addr *addr, int prefix_len) const
 {
@@ -197,6 +217,7 @@ IPv6Tunnel::SetAddress (const struct in6_addr *addr, int prefix_len) const
 	secure_strncpy (req.ifr_name, ifname, IFNAMSIZ);
 	if (ioctl (reqfd, SIOCGIFINDEX, &req) == 0)
 	{
+		// Sets interface address
 		struct in6_ifreq req6;
 
 		memset (&req6, 0, sizeof (req6));
@@ -223,6 +244,83 @@ IPv6Tunnel::SetAddress (const struct in6_addr *addr, int prefix_len) const
 }
 
 
+/*
+ * Adds or removes a route to the tunnel interface from the kernel routing
+ * table.
+ */
+static int
+_linux_route (const char *ifname, bool add,
+		const struct in6_addr *addr, int prefix_len)
+{
+	if (prefix_len < 0)
+		return -1;
+
+	if (prefix_len > 128)
+	{
+		syslog (LOG_ERR, _("IPv6 prefix length too long: %d\n"),
+			prefix_len);
+		return -1;
+	}
+
+	int reqfd = socket_udp6 ();
+	if (reqfd == -1)
+		return -1;
+
+	// Gets kernel's interface index
+	struct ifreq req;
+	memset (&req, 0, sizeof (req));
+	secure_strncpy (req.ifr_name, ifname, IFNAMSIZ);
+	if (ioctl (reqfd, SIOCGIFINDEX, &req) == 0)
+	{
+		// Adds/deletes route
+		struct in6_rtmsg req6;
+
+		memset (&req6, 0, sizeof (req6));
+		req6.rtmsg_flags = RTF_UP;
+		req6.rtmsg_ifindex = req.ifr_ifindex;
+		memcpy (&req6.rtmsg_dst, addr, sizeof (struct in6_addr));
+		req6.rtmsg_dst_len = prefix_len;
+		req6.rtmsg_metric = 1;
+		if (prefix_len == 128)
+			req6.rtmsg_flags |= RTF_HOST;
+		// no gateway
+
+		if (ioctl (reqfd, add ? SIOCADDRT : SIOCDELRT, &req6) == 0)
+		{
+			char str[INET6_ADDRSTRLEN];
+
+			if (inet_ntop (AF_INET6, addr, str, sizeof (str))
+								!= NULL)
+				syslog (LOG_DEBUG,
+					_("%s tunnel route added: %s/%d\n"),
+					ifname, str, prefix_len);
+			close (reqfd);
+			return 0;
+		}
+	}
+
+	close (reqfd);
+	return -1;
+}
+
+
+int
+IPv6Tunnel::AddRoute (const struct in6_addr *addr, int prefix_len) const
+{
+	return _linux_route (ifname, true, addr, prefix_len);
+}
+
+
+int
+IPv6Tunnel::DelRoute (const struct in6_addr *addr, int prefix_len) const
+{
+	return _linux_route (ifname, false, addr, prefix_len);
+}
+
+
+/*
+ * Defines the tunnel interface Max Transmission Unit (bytes).
+ */
 int
 IPv6Tunnel::SetMTU (int mtu) const
 {
@@ -259,8 +357,15 @@ IPv6Tunnel::SetMTU (int mtu) const
 }
 
 
-    
 
+/*
+ * These functions do not require root privileges:
+ */
+
+/*
+ * Registers the tunnel file descriptor for select().
+ * When selects return, you should call ReceivePacket() with the same fd_set.
+ */
 int
 IPv6Tunnel::RegisterReadSet (fd_set *readset) const
 {
@@ -270,6 +375,11 @@ IPv6Tunnel::RegisterReadSet (fd_set *readset) const
 }
 
 
+/*
+ * Tries to receive a packet from the kernel networking stack.
+ * Fails if fd is not in the readset. Call this function when select()
+ * returns.
+ */
 int
 IPv6Tunnel::ReceivePacket (const fd_set *readset)
 {
@@ -291,6 +401,9 @@ IPv6Tunnel::ReceivePacket (const fd_set *readset)
 }
 
 
+/*
+ * Sends a packet from userland to the kernel's networking stack.
+ */
 int
 IPv6Tunnel::SendPacket (const void *packet, size_t len) const
 {

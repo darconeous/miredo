@@ -1,7 +1,7 @@
 /*
  * miredo.cpp - Unix Teredo server & relay implementation
  *              core functions
- * $Id: miredo.cpp,v 1.6 2004/06/20 13:53:35 rdenisc Exp $
+ * $Id: miredo.cpp,v 1.7 2004/06/20 17:48:07 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -203,8 +203,7 @@ uid_t unpriv_uid = 0;
  
 extern "C" int
 miredo_run (uint16_t client_port, const char *server_name,
-		const char *prefix_name,
-		const char *ifname, const char *tundev_name)
+		const char *prefix_name, const char *ifname)
 {
 	seteuid (unpriv_uid);
 
@@ -228,25 +227,44 @@ miredo_run (uint16_t client_port, const char *server_name,
 	openlog ("miredo", LOG_PERROR|LOG_PID, LOG_DAEMON);
 
 	// FIXME: using conf.addr for temporary storage is dirty
+	// FIXME: conf.addr should not exist anyway
+	// FIXME: conf should not exist anyway
+	//
+	// FIXME: should be done later (not OK if we are a client)
+	// FIXME: but we need root, and later we are not root
+	// 
+	// FIXME: should set cone flag as appropriate
+	// FIXME: no need to resolve a static address
+	struct in6_addr prefix;
 	if (getipv6byname ("fe80::5445:5245:444f", &conf.addr.ip6))
 	{
 		syslog (LOG_ALERT,
-			_("Teredo prefix not properly set.\n"));
+			_("Teredo interface address not properly set.\n"));
 		closelog ();
 		return -1;
 	}
+
+	if (getipv6byname (prefix_name, &prefix))
+	{
+		syslog (LOG_ALERT,
+			_("Teredo IPv6 prefix not properly set.\n"));
+		closelog ();
+		return -1;
+	}
+
 
 	if (seteuid (0))
 		syslog (LOG_WARNING, _("SetUID to root failed: %m\n"));
 
 	/* Tunneling interface initialization */
 	// must likely be root:
-	IPv6Tunnel tunnel (ifname, tundev_name);
+	IPv6Tunnel tunnel (ifname);
 	// must be root:
 	int retval = !tunnel
 		|| tunnel.SetMTU (1280)
 		|| tunnel.BringUp ()
-		|| tunnel.SetAddress (&conf.addr.ip6, 64);
+		|| tunnel.SetAddress (&conf.addr.ip6, 64)
+		|| tunnel.AddRoute (&prefix, 32);
 
 	// Definitely drops privileges
 	if (setuid (unpriv_uid))
@@ -307,7 +325,6 @@ miredo_run (uint16_t client_port, const char *server_name,
 	}
 
 	// Sets up relay socket
-	// TODO: ability to disable relay(?)
 	try
 	{
 		conf.relay_udp = new MiredoRelayUDP;
@@ -328,16 +345,6 @@ miredo_run (uint16_t client_port, const char *server_name,
 			"of the program is not already running.\n"));
 		goto abort;
 	}
-
-	// FIXME: should not be needed, not that manual way
-	/*
-	if (getipv6byname (ipv6_name, &conf.addr.ip6))
-	{
-		syslog (LOG_ALERT,
-			_("Teredo IPv6 relay address not properly set.\n"));
-		goto abort;
-	}
-	*/
 
 	if (daemon (0, 0))
 	{

@@ -1,7 +1,7 @@
 /*
  * main.c - Unix Teredo server & relay implementation
  *          command line handling and core functions
- * $Id: main.c,v 1.5 2004/06/20 13:53:35 rdenisc Exp $
+ * $Id: main.c,v 1.6 2004/06/20 17:48:07 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -82,7 +82,6 @@ usage (void)
 "  -P, --prefix   define the Teredo prefix to be used\n"
 "  -s, --server   enable Teredo server,\n"
 "                  and specify primary server IPv4 address\n"
-"  -T, --tundev   override tunnel device file\n"
 "  -V, --version  display program version and exit\n"));
 
 	printf (_("Default Teredo prefix: %s\n"), TEREDO_PREFIX_STR);
@@ -264,7 +263,6 @@ main (int argc, char *argv[])
 		{ "port",	required_argument,	NULL, 'p' },
 		{ "prefix",	required_argument,	NULL, 'P' },
 		{ "server",	required_argument,	NULL, 's' },
-		{ "tundev",	required_argument,	NULL, 'T' },
 		{ "version",	no_argument,		NULL, 'V' },
 		{ NULL,		no_argument,		NULL, '\0'}
 	};
@@ -277,7 +275,7 @@ main (int argc, char *argv[])
 	else \
 		setting = optarg;
 
-	while ((c = getopt_long (argc, argv, "hi:p:P:r:s:T:V", opts, NULL))
+	while ((c = getopt_long (argc, argv, "hi:p:P:r:s:V", opts, NULL))
 			!= -1)
 		switch (c)
 		{
@@ -320,10 +318,6 @@ main (int argc, char *argv[])
 				ONETIME_SETTING (server);
 				break;
 
-			case 'T':
-				ONETIME_SETTING (tundev);
-				break;
-
 			case 'V':
 				return version ();
 
@@ -340,7 +334,7 @@ main (int argc, char *argv[])
 	if (init_security ())
 		return 1;
 
-	if (miredo_run (client_port, server, prefix, ifname, tundev))
+	if (miredo_run (client_port, server, prefix, ifname))
 		return 1;
 	else
 		return 0;
