@@ -59,7 +59,7 @@ sum16 (const uint8_t *data, size_t length, uint32_t sum32 = 0)
 }
 
 /*
- * Computes an IPv6 16-bits checksum
+ * Computes an IPv6 Pseudo-header 16-bits checksum
  */
 static uint16_t 
 ipv6_sum (const struct ip6_hdr *ip6)
@@ -81,6 +81,9 @@ ipv6_sum (const struct ip6_hdr *ip6)
 }
 
 
+/*
+ * Computes an ICMPv6 over IPv6 packet checksum
+ */
 static uint16_t
 icmp6_checksum (const struct ip6_hdr *ip6, const struct icmp6_hdr *icmp6)
 {
