@@ -360,7 +360,7 @@ init_security (const char *username, const char *rootdir, int nodetach)
 	}
 
 	/* Unpriviledged user (step 2) */
-	if (seteuid (unpriv_uid))
+	if (setreuid (unpriv_uid, 0) || seteuid (unpriv_uid))
 	{
 		fprintf (stderr, _("SetUID to user ID %u: %s\n"),
 				(unsigned)unpriv_uid, strerror (errno));
@@ -372,12 +372,13 @@ init_security (const char *username, const char *rootdir, int nodetach)
 			"root, the system administrative user.\n"), stderr);
 		return -1;
 	}
+	/* Real and effective UIDs are set; only saved UID is 0. */
 
 	/* POSIX.1e capabilities support */
 #ifdef HAVE_LIBCAP
 	{
 		cap_t s;
-		cap_value_t v[] = { CAP_SETUID, CAP_NET_ADMIN };
+		cap_value_t v = CAP_NET_ADMIN;
 
 		s = cap_init ();
 		if (s == NULL)
@@ -386,7 +387,7 @@ init_security (const char *username, const char *rootdir, int nodetach)
 			perror (_("Fatal error"));
 			return -1;
 		}
-		if (cap_set_flag (s, CAP_PERMITTED, 2, v, CAP_SET))
+		if (cap_set_flag (s, CAP_PERMITTED, 1, &v, CAP_SET))
 		{
 			/* Unlikely */
 			perror (_("Fatal error"));

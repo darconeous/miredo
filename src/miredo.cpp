@@ -261,8 +261,6 @@ static int
 miredo_run (uint16_t bind_port, const char *bind_ip, const char *server_name,
 		const char *prefix_name, const char *ifname, int mode)
 {
-	seteuid (unpriv_uid);
-
 	/* default values */
 #if 0
 	if (bind_port == 0)
@@ -367,7 +365,8 @@ miredo_run (uint16_t bind_port, const char *bind_ip, const char *server_name,
 	}
 
 	// Definitely drops privileges
-	if (setuid (unpriv_uid))
+	//if (setuid (unpriv_uid)) -- won't set saved UID
+	if (setreuid (unpriv_uid, unpriv_uid))
 	{
 		syslog (LOG_ALERT, _("Setting UID failed: %m"));
 		goto abort;
