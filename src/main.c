@@ -374,6 +374,7 @@ main (int argc, char *argv[])
 
 	const struct option opts[] =
 	{
+		{ "bind",	required_argument,	NULL, 'b' },
 		/*{ "config",	required_argument,	NULL, 'c' },*/
 		{ "cone",	no_argument,		NULL, 'C' },
 		{ "foreground",	no_argument,		NULL, 'f' },
@@ -400,8 +401,8 @@ main (int argc, char *argv[])
 
 	memset (&flags, 0, sizeof (flags));
 
-	while ((c = getopt_long (argc, argv, "Cfhi:p:P:s:t:u:Vv", opts, NULL))
-			!= -1)
+	while ((c = getopt_long (argc, argv, "b:Cfhi:p:P:s:t:u:Vv", opts,
+					NULL)) != -1)
 		switch (c)
 		{
 			case '?':
@@ -511,6 +512,11 @@ main (int argc, char *argv[])
 				(unsigned)client_port);
 		else
 			puts (_("Client/relay UDP port       : default"));
+		if (client_ip != NULL)
+			printf (_("Client/relay IPv4 address   : %s\n"),
+				client_ip);
+		else
+			puts (_("Client/relay IPv4 address   : any"));
 
 		printf (_("Tunnel interface name       : %s\n"),
 			ifname != NULL ? ifname : _("default"));
