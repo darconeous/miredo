@@ -114,7 +114,12 @@ TeredoRelay::TeredoRelay (uint32_t server_ip, uint16_t port)
 	addr.teredo.client_ip = 0;
 	addr.teredo.client_port = 0;
 
-	if (!GenerateNonce (probe.nonce, true)
+	if (!is_ipv4_global_unicast (server_ip))
+		syslog (LOG_CRIT,
+			_("Server as a non global IPv4 address. "
+			"It will most likely not work."));
+
+	if (GenerateNonce (probe.nonce, true)
 	 && (sock.ListenPort (port) == 0))
 	{
 		probe.state = PROBE_CONE;

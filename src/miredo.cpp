@@ -248,7 +248,6 @@ getipv6byname (const char *name, struct in6_addr *ipv6)
 uid_t unpriv_uid = 0;
 
 
-// TODO: support for client
 #define MIREDO_CLIENT 2
 #define MIREDO_CONE   1
 
@@ -420,7 +419,6 @@ miredo_run (uint16_t client_port, const char *server_name,
 			goto abort;
 		}
 
-		// TODO: check the server has a global unicast address(?)
 		try
 		{
 			relay = new MiredoRelay (fd, &tunnel, ipv4,

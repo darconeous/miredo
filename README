@@ -87,6 +87,9 @@ DNS resolution of the Teredo server works:
 
 /etc/resolv.conf
 /etc/hosts
+/etc/host.conf
+and your system's DNS resolver library. If in doubt, don't chroot if
+you intend to run Miredo as a Teredo client.
 
   Finally, you must tell your syslog daemon to listen to
 /var/run/miredo/dev/log. That is usually done by adding that option to
