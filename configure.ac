@@ -69,7 +69,7 @@ dnl AC_SEARCH_LIBS(inet_aton, [resolv])
 RDC_REPLACE_FUNC_GETOPT_LONG
 AC_CHECK_FUNCS([clearenv])
 
-AC_CHECK_LIB([ssl], RAND_bytes, [openssl=true], [openssl=false])
+AC_CHECK_LIB([ssl], RAND_pseudo_bytes, [openssl=true], [openssl=false])
 AH_TEMPLATE(USE_OPENSSL,
             [Define to 1 if you wan to use the OpenSSL library.])
 AS_IF([test "${openssl}" = true], AC_DEFINE(USE_OPENSSL)
