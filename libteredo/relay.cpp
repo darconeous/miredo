@@ -26,6 +26,8 @@
 # include <config.h>
 #endif
 
+#include <gettext.h>
+
 #include <string.h>
 #include <time.h> // TODO: use gettimeofday
 #if HAVE_STDINT_H

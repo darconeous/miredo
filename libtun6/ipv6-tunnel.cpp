@@ -23,6 +23,8 @@
 # include <config.h>
 #endif
 
+#include <gettext.h>
+
 #include <string.h>
 #include <stdlib.h> // free()
 #if HAVE_STDINT_H

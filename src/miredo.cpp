@@ -27,6 +27,8 @@
 # include <config.h>
 #endif
 
+#include <gettext.h>
+
 #include <string.h> // memset(), strsignal()
 #include <stdlib.h> // daemon() on FreeBSD
 #if HAVE_STDINT_H

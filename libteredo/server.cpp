@@ -23,6 +23,8 @@
 # include <config.h>
 #endif
 
+#include <gettext.h>
+
 #include <stddef.h>
 #include <string.h> /* memcpy(), memset() */
 #if HAVE_STDINT_H

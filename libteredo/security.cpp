@@ -23,6 +23,8 @@
 # include <config.h>
 #endif
 
+#include <gettext.h>
+
 #include <sys/types.h>
 #include <fcntl.h> // open()
 #include <unistd.h> // read(), close()

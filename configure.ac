@@ -109,8 +109,6 @@ AS_IF([test "${enable_miredo_user}" != "no"],
 
 # Defines for <config.h>
 AH_BOTTOM([
-#define gettext( str )		(str)
-#define gettext_noop( str )	(str)
 #define _( str )		gettext (str)
 #define N_( str )		gettext_noop (str)
 ])
@@ -118,5 +116,5 @@ AH_BOTTOM([
 
 # END
 AS_MESSAGE(writing results...)
-AC_CONFIG_FILES([Makefile m4/Makefile libtun6/Makefile libteredo/Makefile src/Makefile po/Makefile.in ])
+AC_CONFIG_FILES([Makefile m4/Makefile include/Makefile libtun6/Makefile libteredo/Makefile src/Makefile po/Makefile.in ])
 AC_OUTPUT

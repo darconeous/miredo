@@ -26,6 +26,8 @@
 # include <config.h>
 #endif
 
+#include <gettext.h>
+
 #include <inttypes.h>
 #include <string.h> // memset()
 

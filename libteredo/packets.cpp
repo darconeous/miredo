@@ -26,6 +26,8 @@
 # include <config.h>
 #endif
 
+#include <gettext.h>
+
 #include <string.h>
 #if HAVE_STDINT_H
 # include <stdint.h>
