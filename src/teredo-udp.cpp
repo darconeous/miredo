@@ -1,6 +1,6 @@
 /*
  * teredo-udp.cpp - UDP sockets class definition
- * $Id: teredo-udp.cpp,v 1.4 2004/06/20 13:53:35 rdenisc Exp $
+ * $Id: teredo-udp.cpp,v 1.5 2004/07/11 09:10:18 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -92,7 +92,7 @@ MiredoCommonUDP::ReceivePacket (int fd)
 {
 	// Receive a UDP packet
 	struct sockaddr_in ad;
-	size_t alen;
+	socklen_t alen = sizeof (ad);
 	int check = recvfrom (fd, pbuf, sizeof (pbuf), 0,
 				(struct sockaddr *)&ad, &alen);
 

@@ -1,3 +1,9 @@
+2004-07-11  Remi Denis-Courmont
+
+	* src/teredo-udp.cpp:
+	- fixed call to recvfrom() that caused problems with
+	  determining UDP packets source
+
 2004-07-10  Remi Denis-Courmont
 
 	* libtun6.ipv6-tunnel.c:
