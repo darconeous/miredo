@@ -1,6 +1,6 @@
 /*
  * teredo.h - Common Teredo protocol typedefs
- * $Id: teredo.h,v 1.2 2004/07/31 19:58:43 rdenisc Exp $
+ * $Id: teredo.h,v 1.3 2004/08/24 18:49:09 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -86,6 +86,11 @@ int in6_matches_teredo_client (union teredo_addr *ip6,
 int in6_matches_teredo_server (union teredo_addr *ip6, uint32_t ip4);
 
 int in6_is_teredo_addr_cone (union teredo_addr *ip6);
+
+/*
+ * Returns true if prefix can be used as a Teredo prefix.
+ */
+int is_valid_teredo_prefix (uint32_t prefix);
 
 #ifdef __cplusplus
 }

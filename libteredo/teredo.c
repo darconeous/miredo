@@ -1,6 +1,6 @@
 /*
  * teredo.c - Common Teredo helper functions
- * $Id: teredo.c,v 1.1 2004/07/22 17:38:29 rdenisc Exp $
+ * $Id: teredo.c,v 1.2 2004/08/24 18:49:09 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -27,6 +27,7 @@
 #endif
 
 #include "teredo.h"
+#include <inttypes.h>
 #include <netinet/ip6.h>
 
 /*
@@ -57,5 +58,17 @@ int
 in6_is_teredo_addr_cone (union teredo_addr *ip6)
 {
 	return ip6->teredo.flags & htons (TEREDO_FLAGS_CONE);
+}
+
+
+/*
+ * Returns true if prefix can be used as a Teredo prefix.
+ * As per RFC3513, anything could be used for Teredo (unicast)
+ * except the multicast range (ff00::/8).
+ */
+int
+is_valid_teredo_prefix (uint32_t prefix)
+{
+	return (prefix & 0xff000000) != 0xff000000;
 }
 
