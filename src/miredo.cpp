@@ -206,15 +206,23 @@ teredo_server_relay (IPv6Tunnel& tunnel, TeredoRelay *relay = NULL,
  */
 uid_t unpriv_uid = 0;
 
+struct miredo_conf
+{
+	char *ifname;
+	union teredo_addr prefix;
+	int mode;
+	uint32_t server_ip; /* FIXME: pass list of names */
+	uint32_t bind_ip;
+	uint16_t bind_port;
+	bool default_route;
+};
+
 
 static int
-miredo_run (int mode, const char *ifname,
-		uint16_t bind_port, uint32_t bind_ip,
-		uint32_t server_ip, union teredo_addr *prefix,
-		bool default_route)
+miredo_run (const struct miredo_conf *conf)
 {
 #ifdef MIREDO_TEREDO_CLIENT
-	if (mode == TEREDO_CLIENT)
+	if (conf->mode == TEREDO_CLIENT)
 		InitNonceGenerator ();
 #endif
 
@@ -231,7 +239,7 @@ miredo_run (int mode, const char *ifname,
 	 * Must likely be root (unless the user was granted access to the
 	 * device file).
 	 */
-	IPv6Tunnel tunnel (ifname);
+	IPv6Tunnel tunnel (conf->ifname);
 
 	/*
 	 * Must be root to do that.
@@ -255,9 +263,9 @@ miredo_run (int mode, const char *ifname,
 
 
 #ifdef MIREDO_TEREDO_CLIENT
-	if (mode == TEREDO_CLIENT)
+	if (conf->mode == TEREDO_CLIENT)
 	{
-		fd = miredo_privileged_process (tunnel, default_route);
+		fd = miredo_privileged_process (tunnel, conf->default_route);
 		if (fd == -1)
 		{
 			syslog (LOG_ALERT,
@@ -269,9 +277,10 @@ miredo_run (int mode, const char *ifname,
 #endif
 	{
 		if (tunnel.BringUp ()
-		 || tunnel.AddAddress (mode == TEREDO_RESTRICT
+		 || tunnel.AddAddress (conf->mode == TEREDO_RESTRICT
 		 			? &teredo_restrict : &teredo_cone)
-		 || (mode && tunnel.AddRoute (&prefix->ip6, 32)))
+		 || (conf->mode != TEREDO_DISABLED
+		  && tunnel.AddRoute (&conf->prefix.ip6, 32)))
 		{
 			syslog (LOG_ALERT, _("Teredo routing failed:\n %s"),
 				_("You should be root to do that."));
@@ -294,12 +303,21 @@ miredo_run (int mode, const char *ifname,
 
 #ifdef MIREDO_TEREDO_SERVER
 	// Sets up server sockets
-	if ((mode != TEREDO_CLIENT) && server_ip)
+	if ((conf->mode != TEREDO_CLIENT) && conf->server_ip)
 	{
+		/*
+		 * NOTE:
+		 * While it is not specified in the draft Teredo
+		 * specification, it really seems that the secondary
+		 * server IPv4 address has to be the one just after
+		 * the primary server IPv4 address.
+		 */
+		uint32_t server_ip2 = htonl (ntohl (conf->server_ip) + 1);
+
 		try
 		{
-			server = new MiredoServer (server_ip, htonl (ntohl (
-							server_ip) + 1));
+			server = new MiredoServer (conf->server_ip,
+							server_ip2);
 		}
 		catch (...)
 		{
@@ -308,13 +326,6 @@ miredo_run (int mode, const char *ifname,
 			goto abort;
 		}
 
-		/*
-		 * NOTE:
-		 * While it is nowhere in the draft Teredo
-		 * specification, it really seems that the secondary
-		 * server IPv4 address has to be the one just after
-		 * the primary server IPv4 address.
-		 */
 		if (!*server)
 		{
 			syslog (LOG_ALERT, _("Teredo UDP port failure"));
@@ -324,7 +335,7 @@ miredo_run (int mode, const char *ifname,
 		}
 
 		// FIXME: read union teredo_addr instead of prefix ?
-		server->SetPrefix (prefix->teredo.prefix);
+		server->SetPrefix (conf->prefix.teredo.prefix);
 		server->SetTunnel (&tunnel);
 	}
 #endif
@@ -333,13 +344,14 @@ miredo_run (int mode, const char *ifname,
 
 #ifdef MIREDO_TEREDO_RELAY
 # ifdef MIREDO_TEREDO_CLIENT
-	if (mode == TEREDO_CLIENT)
+	if (conf->mode == TEREDO_CLIENT)
 	{
 		// Sets up client
 		try
 		{
-			relay = new MiredoRelay (fd, &tunnel, server_ip,
-						 bind_port, bind_ip);
+			relay = new MiredoRelay (fd, &tunnel, conf->server_ip,
+						 conf->bind_port,
+						 conf->bind_ip);
 		}
 		catch (...)
 		{
@@ -348,16 +360,17 @@ miredo_run (int mode, const char *ifname,
 	}
 	else
 # endif /* ifdef MIREDO_TEREDO_CLIENT */
-	if (mode != TEREDO_DISABLED)
+	if (conf->mode != TEREDO_DISABLED)
 	{
 		// Sets up relay
 		try
 		{
 			// FIXME: read union teredo_addr instead of prefix ?
 			relay = new MiredoRelay (&tunnel,
-						 prefix->teredo.prefix,
-						 bind_port, bind_ip,
-						 mode == TEREDO_CONE);
+						 conf->prefix.teredo.prefix,
+						 conf->bind_port,
+						 conf->bind_ip,
+						 conf->mode == TEREDO_CONE);
 		}
 		catch (...)
 		{
@@ -373,11 +386,11 @@ miredo_run (int mode, const char *ifname,
 
 	if (!*relay)
 	{
-		if (bind_port)
+		if (conf->bind_port)
 			syslog (LOG_ALERT,
 				_("Teredo service port failure: "
 				"cannot open UDP port %u"),
-				(unsigned int)ntohs (bind_port));
+				(unsigned int)ntohs (conf->bind_port));
 		else
 			syslog (LOG_ALERT,
 				_("Teredo service port failure: "
@@ -399,7 +412,7 @@ abort:
 	if (relay != NULL)
 		delete relay;
 # ifdef MIREDO_TEREDO_CLIENT
-	if (mode == TEREDO_CLIENT)
+	if (conf->mode == TEREDO_CLIENT)
 		DeinitNonceGenerator ();
 # endif
 #endif
@@ -474,9 +487,7 @@ DeinitSignals (void)
 
 
 static bool
-ParseConf (const char *path, int *newfac, int *mode, uint32_t *server_ip,
-		bool *default_route, union teredo_addr *prefix,
-		uint32_t *bind_ip, uint16_t *bind_port, char **ifname)
+ParseConf (const char *path, int *newfac, struct miredo_conf *conf)
 {
 	MiredoConf cnf;
 	if (!cnf.ReadFile (path))
@@ -489,16 +500,16 @@ ParseConf (const char *path, int *newfac, int *mode, uint32_t *server_ip,
 	// TODO: support for disabling logging completely
 	(void)ParseSyslogFacility (cnf, "SyslogFacility", newfac);
 
-	if (!ParseRelayType (cnf, "RelayType", mode))
+	if (!ParseRelayType (cnf, "RelayType", &conf->mode))
 	{
 		syslog (LOG_ALERT, _("Fatal configuration error"));
 		return false;
 	}
 
-	if (*mode == TEREDO_CLIENT)
+	if (conf->mode == TEREDO_CLIENT)
 	{
-		if (!ParseIPv4 (cnf, "ServerAddress", server_ip)
-		 || !cnf.GetBoolean ("DefaultRoute", default_route))
+		if (!ParseIPv4 (cnf, "ServerAddress", &conf->server_ip)
+		 || !cnf.GetBoolean ("DefaultRoute", &conf->default_route))
 		{
 			syslog (LOG_ALERT, _("Fatal configuration error"));
 			return false;
@@ -506,32 +517,32 @@ ParseConf (const char *path, int *newfac, int *mode, uint32_t *server_ip,
 	}
 	else
 	{
-		if (!ParseIPv4 (cnf, "ServerBindAddress", server_ip)
-		 || !ParseIPv6 (cnf, "Prefix", &prefix->ip6))
+		if (!ParseIPv4 (cnf, "ServerBindAddress", &conf->server_ip)
+		 || !ParseIPv6 (cnf, "Prefix", &conf->prefix.ip6))
 		{
 			syslog (LOG_ALERT, _("Fatal configuration error"));
 			return false;
 		}
 	}
 
-	if (mode != TEREDO_DISABLED)
+	if (conf->mode != TEREDO_DISABLED)
 	{
-		if (!ParseIPv4 (cnf, "BindAddress", bind_ip))
+		if (!ParseIPv4 (cnf, "BindAddress", &conf->bind_ip))
 		{
 			syslog (LOG_ALERT, _("Fatal bind IPv4 address error"));
 			return false;
 		}
 
-		uint16_t port = htons (*bind_port);
+		uint16_t port = htons (conf->bind_port);
 		if (!cnf.GetInt16 ("BindPort", &port))
 		{
 			syslog (LOG_ALERT, _("Fatal bind UDP port error"));
 			return false;
 		}
-		*bind_port = htons (port);
+		conf->bind_port = htons (port);
 	}
 
-	*ifname = cnf.GetRawValue ("InterfaceName");
+	conf->ifname = cnf.GetRawValue ("InterfaceName");
 
 	return true;
 }
@@ -556,14 +567,14 @@ miredo (const char *confpath)
 			continue;
 
 		/* Default settings */
-		int mode = TEREDO_CLIENT;
-		bool default_route = true;
-		char *ifname = NULL;
-		uint32_t bind_ip = INADDR_ANY, server_ip = 0;
 		int newfac = LOG_DAEMON;
-		union teredo_addr prefix;
-		memset (&prefix, 0, sizeof (prefix));
-		prefix.teredo.prefix = htonl (DEFAULT_TEREDO_PREFIX);
+		struct miredo_conf conf =
+		{
+			NULL,		// ifname
+			{ 0 },		// prefix
+			TEREDO_CLIENT,	// mode
+			0,		// server_ip
+			INADDR_ANY,	// bind_ip
 #if 0
 		/*
 		 * We use 3545 as a Teredo service port.
@@ -573,14 +584,15 @@ miredo (const char *confpath)
 		 * often firewalled port, such as 1214 as it happened
 		 * to me once).
 		 */
-		uint16_t bind_port = htons (IPPORT_TEREDO + 1);
+			htons (IPPORT_TEREDO + 1),
 #else
-		uint16_t bind_port = 0;
+			0,		// bind_port
 #endif
+			true		// default_route
+		};
+		conf.prefix.teredo.prefix = htonl (DEFAULT_TEREDO_PREFIX);
 
-		if (!ParseConf (confpath, &newfac, &mode, &server_ip,
-				&default_route, &prefix, &bind_ip, &bind_port,
-				&ifname))
+		if (!ParseConf (confpath, &newfac, &conf))
 			continue;
 
 		// Apply syslog facility change if needed
@@ -602,19 +614,15 @@ miredo (const char *confpath)
 
 			case 0:
 				asyncsafe_close (signalfd[1]);
-				retval = miredo_run (mode, ifname != NULL
-							? ifname : ident,
-							bind_port, bind_ip,
-							server_ip, &prefix,
-							default_route);
-				if (ifname != NULL)
-					free (ifname);
+				retval = miredo_run (&conf);
+				if (conf.ifname != NULL)
+					free (conf.ifname);
 				closelog ();
 				exit (-retval);
 		}
 
-		if (ifname != NULL)
-			free (ifname);
+		if (conf.ifname != NULL)
+			free (conf.ifname);
 
 		// Waits until the miredo process terminates
 		while (waitpid (pid, &retval, 0) == -1);
