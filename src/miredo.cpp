@@ -1,7 +1,7 @@
 /*
  * miredo.cpp - Unix Teredo server & relay implementation
  *              core functions
- * $Id: miredo.cpp,v 1.25 2004/08/17 17:31:14 rdenisc Exp $
+ * $Id: miredo.cpp,v 1.26 2004/08/17 19:21:13 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -52,6 +52,7 @@
 #include <libteredo/teredo.h>
 #include "server.h"
 #include "relay.h"
+#include <privproc.h>
 
 /*
  * Signal handlers
@@ -266,6 +267,8 @@ miredo_run (uint16_t client_port, const char *server_name,
 	}
 	uint32_t prefix32 = prefix.teredo.prefix;
 
+	MiredoRelay *relay = NULL;
+	MiredoServer *server = NULL;
 
 	if (seteuid (0))
 		syslog (LOG_WARNING, _("SetUID to root failed: %m"));
@@ -291,21 +294,22 @@ miredo_run (uint16_t client_port, const char *server_name,
 		|| tunnel.AddAddress (&teredo_cone)
 		|| tunnel.AddRoute (&prefix.ip6, 32);
 
-#if 0
-	pipe ();
+	int priv_fd[2];
+
+	pipe (priv_fd);
 	switch (fork ())
 	{
 		case -1:
 			syslog (LOG_ALERT, _("fork failed: %m"));
 			goto abort;
 
-		case 0: // TODO: implement secure root child
+		case 0:
+			close (priv_fd[1]);
+			miredo_privileged_process (priv_fd[0], &tunnel,
+							unpriv_uid);
 			exit (0);
 	}
-#endif
-
-	MiredoRelay *relay = NULL;
-	MiredoServer *server = NULL;
+	close (priv_fd[0]);
 
 	// Definitely drops privileges
 	if (setuid (unpriv_uid))
@@ -353,6 +357,7 @@ miredo_run (uint16_t client_port, const char *server_name,
 
 	// Sets up relay
 	// TODO: ability to not be a relay at all
+	// TODO: ability to use the other constructor, for Teredo client
 	try {
 		relay = new MiredoRelay (&tunnel, prefix32,
 					 htons (client_port));
@@ -363,6 +368,15 @@ miredo_run (uint16_t client_port, const char *server_name,
 		syslog (LOG_ALERT, _("Teredo relay failure"));
 		goto abort;
 	}
+
+	/*
+	 * In this case, the privileged process is useless, since we won't
+	 * get an IPv6 Teredo address, and won't change our tunnel interface
+	 * IPv6 address.
+	 * FIXME: should (try to?) use the privileged process to set our
+	 * addres and _then_ close our pipe.
+	 */
+	close (priv_fd[1]); // privileged process will exit
 
 	if (!*relay)
 	{

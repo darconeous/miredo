@@ -4,7 +4,10 @@
 	- libtun6 made thread-safe
 	* libteredo/relay.*:
 	- removed ReceiveIPv6Packet callback (one step toward
-	re-entrancy and thread-safety).
+	re-entrancy and thread-safety),
+	- tunnel addresses changes implemented
+	* libteredo/mireco.*:
+	- implemented a privileged process to set up tunnel addresses.
 
 2004-07-31  Remi Denis-Courmont
 
