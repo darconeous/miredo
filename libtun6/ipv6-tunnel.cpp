@@ -44,6 +44,8 @@
 
 # include <stdio.h> // snprintf() for BSD drivers
 
+# include <errno.h>
+
 #if defined (HAVE_LINUX)
 /*
  * Linux tunneling driver
@@ -872,5 +874,75 @@ IPv6Tunnel::SendPacket (const void *packet, size_t len) const
 		syslog (LOG_ERR, _("Packet truncated to %d byte(s)"), val);
 
 	return val;
+}
+
+
+extern "C"
+int libtun6_driver_diagnose (char *errbuf)
+{
+#if defined (HAVE_LINUX)
+	const char *const tundev = "/dev/net/tun";
+#else
+	const char *const tundev = "/dev/tun0";
+#endif
+
+	int fd = open (tundev, O_RDWR);
+	if (fd >= 0)
+	{
+		close (fd);
+		snprintf (errbuf, LIBTUN6_ERRBUF_SIZE - 1,
+				"%s tunneling driver found.", os_driver);
+		errbuf[LIBTUN6_ERRBUF_SIZE - 1] = '\0';
+		return 0;
+	}
+
+	if (errno == ENOENT)
+	{
+		strncpy (errbuf, _("Error: /dev/net/tun character device "
+			"not found or unavailable.\n"),
+			LIBTUN6_ERRBUF_SIZE - 1);
+#if defined (HAVE_LINUX)
+		strncat (errbuf,
+			_("You should run these commands to create it :\n"
+			"# mkdir -p /dev/net\n"
+			"# mknod /dev/net/tun c 10 200\n"
+			"(you must be root to do that).\n"),
+			LIBTUN6_ERRBUF_SIZE - 1);
+#endif
+		errbuf[LIBTUN6_ERRBUF_SIZE - 1] = '\0';
+		return -1;
+	}
+	else
+	/* Linux retunrs ENODEV instead of ENXIO */
+	if ((errno == ENXIO) || (errno == ENODEV))
+	{
+		strncpy (errbuf,
+			_("Error: your operating system does not "
+			"seem to provide a network tunnneling\n"
+			"device driver, which is required.\n"),
+			LIBTUN6_ERRBUF_SIZE - 1);
+#if defined (HAVE_LINUX)
+		strncat (errbuf,
+			_("Make sure your Linux kernel includes "
+			"the \"Universal TUNTAP driver\"\n"
+			"(CONFIG_TUN option), possibly as a module.\n"),
+			LIBTUN6_ERRBUF_SIZE - 1);
+#elif defined (HAVE_DARWIN)
+		strncat (errbuf,
+			_("You can obtain a tunnel device for the "
+			"Darwin kernel (Mac OS X) from :\n"
+			"http://chrisp.de/en/projects/tunnel.html\n"),
+			LIBTUN6_ERRBUF_SIZE - 1);
+#endif
+		errbuf[LIBTUN6_ERRBUF_SIZE - 1] = '\0';
+		return -1;
+	}
+
+	snprintf (errbuf, LIBTUN6_ERRBUF_SIZE - 1,
+		_("Error: cannot open device file %s (%s)\n"
+		"IPv6 tunneling will not work.\n"), tundev,
+		strerror (errno));
+	errbuf[LIBTUN6_ERRBUF_SIZE - 1] = '\0';
+	return -1;
 }
 

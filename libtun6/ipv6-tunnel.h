@@ -22,12 +22,18 @@
 #ifndef MIREDO_IPV6_TUNNEL_H
 # define MIREDO_IPV6_TUNNEL_H
 
-# ifndef __cplusplus
-#  error C++ only header
-# endif
 
-# include <sys/types.h>
-# include <sys/select.h>
+# define LIBTUN6_ERRBUF_SIZE 4096
+
+# ifdef __cplusplus
+extern "C"
+# endif
+int libtun6_driver_diagnose (char *errbuf);
+
+# ifdef __cplusplus
+
+#  include <sys/types.h>
+#  include <sys/select.h>
 
 struct ip6_hdr;
 
@@ -136,4 +142,7 @@ class IPv6Tunnel
 
 
 #endif /* ifndef MIREDO_IPV6TUNNEL_H */
+
+
+# endif /* C++ */
 
