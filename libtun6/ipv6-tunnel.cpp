@@ -343,15 +343,19 @@ _iface_addr (const char *ifname, bool add,
 	/*
 	 * Linux ioctl interface
 	 */
-	struct in6_ifreq req6;
+	union
+	{
+		struct in6_ifreq req6;
+		struct ifreq req;
+	} r;
 
-	memset (&req6, 0, sizeof (req6));
-	req6.ifr6_ifindex = if_nametoindex (ifname);
-	memcpy (&req6.ifr6_addr, addr, sizeof (req6.ifr6_addr));
-	req6.ifr6_prefixlen = prefix_len;
+	memset (&r, 0, sizeof (r));
+	r.req6.ifr6_ifindex = if_nametoindex (ifname);
+	memcpy (&r.req6.ifr6_addr, addr, sizeof (r.req6.ifr6_addr));
+	r.req6.ifr6_prefixlen = prefix_len;
 
 	cmd = add ? SIOCSIFADDR : SIOCDIFADDR;
-	req = &req6;
+	req = &r;
 #elif defined (SIOCAIFADDR_IN6)
 	/*
 	 * FreeBSD ioctl interface
@@ -468,7 +472,7 @@ _iface_route (const char *ifname, bool add,
 	memset (&req6, 0, sizeof (req6));
 	req6.rtmsg_flags = RTF_UP;
 	req6.rtmsg_ifindex = if_nametoindex (ifname);
-	memcpy (&req6.rtmsg_dst, addr, sizeof (struct in6_addr));
+	memcpy (&req6.rtmsg_dst, addr, sizeof (req6.rtmsg_dst));
 	req6.rtmsg_dst_len = (unsigned short)prefix_len;
 	req6.rtmsg_metric = 1;
 	if (prefix_len == 128)
