@@ -84,7 +84,7 @@ class TeredoPacket
 		/*
 		 * Return the value of the confirmation byte
 		 */
-		const uint8_t GetConfByte (void) const
+		uint8_t GetConfByte (void) const
 		{
 			return nonce[8];
 		}
