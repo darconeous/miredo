@@ -46,6 +46,7 @@
 
 #include "packets.h"
 #include "security.h"
+#include "queue.h"
 #include <libteredo/relay.h>
 
 #define TEREDO_TIMEOUT 30 // seconds
@@ -57,11 +58,76 @@
 					: EXPIRED (peer->last_xmit, now))
 
 // is_valid_teredo_prefix (PREFIX_UNSET) MUST return false
-# define PREFIX_UNSET 0xffffffff
+#define PREFIX_UNSET 0xffffffff
 
-struct __TeredoRelay_peer
+
+#define MAXQUEUE 1280 // bytes
+
+
+/*
+ * Queueng of packets from the IPv6 toward Teredo
+ */
+class TeredoRelay::OutQueue : public PacketsQueue
 {
-	struct __TeredoRelay_peer *next;
+	private:
+		TeredoRelayUDP *sock;
+		uint32_t addr;
+		uint16_t port;
+
+		virtual int SendPacket (const void *p, size_t len)
+		{
+			/* FIXME: remove this */
+			if (addr == 0)
+				syslog (LOG_ERR,
+				"DEBUG error flushing unmapped queue");
+			
+			return sock->SendPacket (p, len, addr, port);
+		}
+
+	public:
+		OutQueue (TeredoRelayUDP *s) : PacketsQueue (MAXQUEUE),
+					       sock (s)
+		{
+			/* FIXME: remove this one day */
+			addr = 0;
+		}
+
+		void SetMapping (uint32_t mapped_addr, uint16_t mapped_port)
+		{
+			addr = mapped_addr;
+			port = mapped_port;
+		}
+};
+
+/*
+ * Queueing of packets from Teredo toward the IPv6
+ */
+class TeredoRelay::InQueue : public PacketsQueue
+{
+	private:
+		TeredoRelay *relay;
+
+		virtual int SendPacket (const void *p, size_t len)
+		{
+			return relay->SendIPv6Packet (p, len);
+		}
+
+	public:
+		InQueue (TeredoRelay *r) : PacketsQueue (MAXQUEUE), relay (r)
+		{
+		}
+};
+
+
+
+struct TeredoRelay::peer
+{
+	peer (TeredoRelayUDP *sock, TeredoRelay *r)
+		: outqueue (sock), inqueue (r)
+	{
+	}
+		
+	struct peer *next;
 
 	struct in6_addr addr;
 	uint32_t mapped_addr;
@@ -82,10 +148,8 @@ struct __TeredoRelay_peer
 	time_t last_rx;
 	time_t last_xmit;
 
-	uint8_t *queue;
-	size_t queuelen;
-
-	// TODO: implement incoming queue
+	OutQueue outqueue;
+	InQueue inqueue;
 };
 
 #define PROBE_CONE	1
@@ -140,13 +204,11 @@ TeredoRelay::TeredoRelay (uint32_t server_ip, uint16_t port, uint32_t ipv4)
 /* Releases peers list entries */
 TeredoRelay::~TeredoRelay (void)
 {
-	struct __TeredoRelay_peer *p = head;
+	struct peer *p = head;
 
 	while (p != NULL)
 	{
-		struct __TeredoRelay_peer *buf = p->next;
-		if (p->queue != NULL)
-			delete p->queue;
+		struct peer *buf = p->next;
 		delete p;
 		p = buf;
 	}
@@ -172,25 +234,25 @@ int TeredoRelay::NotifyDown (void)
  * FIXME: number of entry should be bound
  * FIXME: move to another file
  */
-struct __TeredoRelay_peer *TeredoRelay::AllocatePeer (void)
+struct TeredoRelay::peer *TeredoRelay::AllocatePeer (void)
 {
 	time_t now;
 	time (&now);
 
 	/* Tries to recycle a timed-out peer entry */
-	for (struct __TeredoRelay_peer *p = head; p != NULL; p = p->next)
+	for (struct peer *p = head; p != NULL; p = p->next)
 		if (ENTRY_EXPIRED (p, now))
 		{
-			if (p->queue != NULL)
-				delete p->queue;
+			p->outqueue.Trash ();
+			p->inqueue.Trash ();
 			return p;
 		}
 
 	/* Otherwise allocates a new peer entry */
-	struct __TeredoRelay_peer *p;
+	struct peer *p;
 	try
 	{
-		p = new struct __TeredoRelay_peer;
+		p = new struct peer (&sock, this);
 	}
 	catch (...)
 	{
@@ -208,13 +270,13 @@ struct __TeredoRelay_peer *TeredoRelay::AllocatePeer (void)
  * Returns a pointer to the first peer entry matching <addr>,
  * or NULL if none were found.
  */
-struct __TeredoRelay_peer *TeredoRelay::FindPeer (const struct in6_addr *addr)
+struct TeredoRelay::peer *TeredoRelay::FindPeer (const struct in6_addr *addr)
 {
 	time_t now;
 
 	time(&now);
 
-	for (struct __TeredoRelay_peer *p = head; p != NULL; p = p->next)
+	for (struct peer *p = head; p != NULL; p = p->next)
 		if (memcmp (&p->addr, addr, sizeof (struct in6_addr)) == 0)
 			if (!ENTRY_EXPIRED (p, now))
 				return p; // found!
@@ -277,7 +339,7 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
 		return 0;
 
 
-	struct __TeredoRelay_peer *p = FindPeer (&ip6.ip6_dst);
+	struct peer *p = FindPeer (&ip6.ip6_dst);
 #ifdef DEBUG
 	{
 		struct in_addr a;
@@ -333,12 +395,13 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
 			p->mapped_addr = 0;
 			p->flags.all_flags = 0;
 			time (&p->last_xmit);
-			p->queue = NULL;
 		}
 
+		// FIXME: re-send echo request later if no response
 
-		// FIXME: queue packet
-		// FIXME: re-send echo request if no response
+		syslog (LOG_DEBUG, "DEBUG: queue out");
+		p->outqueue.Queue (packet, length);
+
 		if (!p->flags.flags.nonce)
 		{
 			if (!GenerateNonce (p->nonce))
@@ -369,9 +432,9 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
 		memcpy (&p->addr, &ip6.ip6_dst, sizeof (struct in6_addr));
 		p->mapped_port = IN6_TEREDO_PORT (dst);
 		p->mapped_addr = IN6_TEREDO_IPV4 (dst);
+		p->outqueue.SetMapping (p->mapped_addr, p->mapped_port);
 		p->flags.all_flags = 0;
 		time (&p->last_xmit);
-		p->queue = NULL;
 	
 		/* Client case 4 & relay case 2: new cone peer */
 		if (IN6_IS_TEREDO_ADDR_CONE (&ip6.ip6_dst))
@@ -384,24 +447,7 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
 	}
 
 	/* Client case 5 & relay case 3: untrusted non-cone peer */
-	/* TODO: enqueue more than one packet 
-	 * (and do this in separate functions) */
-	if (p->queue == NULL)
-	{
-		try
-		{
-			p->queue = new uint8_t[length];
-		}
-		catch (...)
-		{
-			p->queue = NULL; // memory error
-		}
-
-		memcpy (p->queue, packet, length);
-		p->queuelen = length;
-	}
-	else
-		syslog (LOG_DEBUG, _("FIXME: packet not queued\n"));
+	p->outqueue.Queue (packet, length);
 
 	// Sends no more than one bubble every 2 seconds,
 	// and 3 bubbles every 30 secondes
@@ -645,7 +691,7 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 	/* Actual packet reception, either as a relay or a client */
 
 	// Checks source IPv6 address / looks up peer in the list:
-	struct __TeredoRelay_peer *p = FindPeer (&ip6.ip6_src);
+	struct peer *p = FindPeer (&ip6.ip6_src);
 
 	if (p != NULL)
 	{
@@ -669,15 +715,21 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 
 			p->mapped_port = packet.GetClientPort ();
 			p->mapped_addr = packet.GetClientIP ();
+			p->outqueue.SetMapping (p->mapped_addr,
+						p->mapped_port);
 			time (&p->last_rx);
 
-			// FIXME: dequeue incoming and outgoing packets
-			syslog (LOG_DEBUG, "FIXME should dequeue packets");
+			syslog (LOG_DEBUG, "DEBUG: flush in & out");
+			p->outqueue.Flush ();
+			p->inqueue.Flush ();
+
 			/*
 			 * NOTE:
 			 * This implies the kernel will see Echo replies sent
 			 * for Teredo tunneling maintenance. It's not really
 			 * an issue, as IPv6 stacks ignore them.
+			 *
+			 * FIXME: do not do this
 			 */
 			return SendIPv6Packet (buf, length);
 		}
@@ -690,7 +742,7 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 
 	if (IN6_TEREDO_PREFIX (&ip6.ip6_src) == GetPrefix ())
 	{
-		// Client case 3 (unknown matching Teredo client):
+		// Client case 3 (unknown or untrusted matching Teredo client):
 		if (IN6_MATCHES_TEREDO_CLIENT (&ip6.ip6_src,
 						packet.GetClientIP (),
 						packet.GetClientPort ()))
@@ -717,17 +769,16 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 					IN6_TEREDO_PORT (&ip6.ip6_dst);
 				p->mapped_addr =
 					IN6_TEREDO_IPV4 (&ip6.ip6_dst);
+				p->outqueue.SetMapping (p->mapped_addr,
+							p->mapped_port);
 				p->flags.all_flags = 0;
-				p->queue = NULL;
 			}
 			else
-			if (p->queue != NULL)
 			{
-				sock.SendPacket (p->queue, p->queuelen,
-							p->mapped_addr,
-							p->mapped_port);
-				delete p->queue;
-				p->queue = NULL;
+				syslog (LOG_DEBUG,
+					"DEBUG possibly impossible case");
+				p->outqueue.Flush ();
+				/* p->inqueue.Flush (); -- always empty */
 			}
 
 			p->flags.flags.trusted = p->flags.flags.replied = 1;
@@ -768,12 +819,12 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 		p->mapped_addr = 0;
 		p->flags.all_flags = 0;
 		time (&p->last_rx);
-		p->queue = NULL;
 	}
 
-	// FIXME: queue packet in incoming queue
-	syslog (LOG_DEBUG, "FIXME: incoming paquet should be queued!");
-	// FIXME: re-send echo request if no response
+	syslog (LOG_DEBUG, "DEBUG: queue in");
+	p->inqueue.Queue (buf, length);
+	
+	// FIXME: re-send echo request later if no response
 	if (!p->flags.flags.nonce)
 	{
 		if (!GenerateNonce (p->nonce))

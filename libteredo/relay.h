@@ -34,7 +34,6 @@ struct ip6_hdr;
 struct in6_addr;
 union teredo_addr;
 
-struct __TeredoRelay_peer;
 
 
 // big TODO: make all functions re-entrant safe
@@ -42,6 +41,10 @@ struct __TeredoRelay_peer;
 class TeredoRelay
 {
 	private:
+		struct peer;
+		class OutQueue;
+		class InQueue;
+
 		/*** Internal stuff ***/
 		union teredo_addr addr;
 		struct
@@ -53,12 +56,12 @@ class TeredoRelay
 		} probe;
 		uint32_t server_ip2;
 
-		struct __TeredoRelay_peer *head;
+		struct peer *head;
 
 		TeredoRelayUDP sock;
 
-		struct __TeredoRelay_peer *AllocatePeer (void);
-		struct __TeredoRelay_peer *FindPeer (const struct in6_addr *addr);
+		struct peer *AllocatePeer (void);
+		struct peer *FindPeer (const struct in6_addr *addr);
 
 		/*** Callbacks ***/
 		/*
