@@ -1,6 +1,6 @@
 /*
  * relay.cpp - Teredo relay peers list definition
- * $Id: relay.cpp,v 1.40 2004/08/29 19:04:50 rdenisc Exp $
+ * $Id$
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -122,6 +122,7 @@ TeredoRelay::TeredoRelay (uint32_t server_ip, uint16_t port)
 	{
 		probe.state = PROBE_CONE;
 		probe.count = 0;
+		gettimeofday (&probe.next, NULL);
 		Process ();
 	}
 }
