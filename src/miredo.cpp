@@ -1,7 +1,7 @@
 /*
  * miredo.cpp - Unix Teredo server & relay implementation
  *              core functions
- * $Id: miredo.cpp,v 1.42 2004/08/29 07:56:10 rdenisc Exp $
+ * $Id$
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -296,6 +296,9 @@ miredo_run (uint16_t client_port, const char *server_name,
 				prefix_name);
 			return -1;
 		}
+
+		if (server_name != NULL)
+			mode |= MIREDO_CONE; // server mode implies no NAT
 	}
 
 	MiredoRelay *relay = NULL;
@@ -344,7 +347,10 @@ miredo_run (uint16_t client_port, const char *server_name,
 	}
 	else
 	{
-		if (tunnel.AddRoute (&prefix.ip6, 32))
+		if (tunnel.BringUp ()
+		 || tunnel.AddAddress ((mode & MIREDO_CONE) ? &teredo_cone
+			 				: &teredo_restrict)
+		 || tunnel.AddRoute (&prefix.ip6, 32))
 		{
 			syslog (LOG_ALERT, _("Teredo routing failed:\n %s"),
 				_("You should be root to do that."));
