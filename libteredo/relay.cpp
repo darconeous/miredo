@@ -1,6 +1,6 @@
 /*
  * relay.cpp - Teredo relay peers list definition
- * $Id: relay.cpp,v 1.19 2004/08/26 09:37:53 rdenisc Exp $
+ * $Id: relay.cpp,v 1.20 2004/08/26 10:43:41 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -95,7 +95,10 @@ TeredoRelay::TeredoRelay (uint32_t server_ip, uint16_t port)
 	: is_cone (true), prefix (PREFIX_UNSET), server_ip (server_ip),
 	server_interaction (0), head (NULL)
 {
-	sock.ListenPort (port);
+	if (sock.ListenPort (port) == 0)
+	{
+		SendRS (server_nonce);
+	}
 }
 
 
@@ -222,19 +225,15 @@ int TeredoRelay::SendBubble (const struct in6_addr *d, bool indirect) const
 
 /*
  * Sends a router solication with an Authentication header to the server.
- * If cone is true, the source IPv6 address will have the cone Teredo flag
- * enabled. If secondary is true, the packet will be sent to the server's
- * secondary IPv4 adress instead of the primary one.
- *
- * FIXME: lacks a way to return the nonce value used.
+ * If secondary is true, the packet will be sent to the server's secondary
+ * IPv4 adress instead of the primary one.
  *
  * Returns 0 on success, -1 on error.
  */
 static const struct in6_addr in6addr_allrouters =
         { { { 0xff, 0x02, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x2 } } };
 
-int TeredoRelay::SendRS (bool cone, bool secondary,
-				unsigned char *nonce) const
+int TeredoRelay::SendRS (unsigned char *nonce, bool secondary) const
 {
 	uint8_t packet[13 + sizeof (struct ip6_hdr)
 			+ sizeof (struct nd_router_solicit)
@@ -251,7 +250,7 @@ int TeredoRelay::SendRS (bool cone, bool secondary,
 		auth->hdr.hdr.code = teredo_auth_hdr;
 		auth->hdr.id_len = auth->hdr.au_len = 0;
 #ifdef USE_OPENSSL
-		if (RAND_pseudo_bytes (nonce, 8))
+		if (!RAND_pseudo_bytes (nonce, 8))
 		{
 			char buf[120];
 
@@ -280,7 +279,7 @@ int TeredoRelay::SendRS (bool cone, bool secondary,
 		rs.ip6.ip6_plen = htons (sizeof (rs));
 		rs.ip6.ip6_nxt = IPPROTO_ICMPV6;
 		rs.ip6.ip6_hlim = 255;
-		memcpy (&rs.ip6.ip6_src, cone
+		memcpy (&rs.ip6.ip6_src, IsCone ()
 			? &teredo_cone : &teredo_restrict,
 			sizeof (rs.ip6.ip6_src));
 		memcpy (&rs.ip6.ip6_dst, &in6addr_allrouters,
@@ -289,7 +288,7 @@ int TeredoRelay::SendRS (bool cone, bool secondary,
 		rs.rs.nd_rs_type = ND_ROUTER_SOLICIT;
 		rs.rs.nd_rs_code = 0;
 		// Checksums are pre-computed
-		rs.rs.nd_rs_cksum = htons (cone ? 0x114b : 0x914b);
+		rs.rs.nd_rs_cksum = htons (IsCone () ? 0x114b : 0x914b);
 
 		/*
 		 * Microsoft Windows XP sends a 14 byte nul
@@ -300,7 +299,7 @@ int TeredoRelay::SendRS (bool cone, bool secondary,
 		 * checksum and it is not specified.
 		 */
 		rs.opt.nd_opt_type = ND_OPT_SOURCE_LINKADDR;
-		rs.opt.nd_opt_len = 16;
+		rs.opt.nd_opt_len = 2; // 16 bytes
 
 		memset (rs.lladdr, 0, sizeof (rs.lladdr));
 
