@@ -1,7 +1,7 @@
 /*
  * main.c - Unix Teredo server & relay implementation
  *          command line handling and core functions
- * $Id: main.c,v 1.13 2004/07/12 09:34:51 rdenisc Exp $
+ * $Id: main.c,v 1.14 2004/07/12 11:23:38 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -175,6 +175,16 @@ static int open_null (void)
 	return fd;
 }
 
+
+#ifndef HAVE_CLEARENV
+extern char **environ;
+
+int clearenv (void)
+{
+	environ = NULL;
+	return 0;
+}
+#endif
 
 static int
 init_security (const char *username, const char *rootdir, int nodetach)

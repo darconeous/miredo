@@ -1,6 +1,6 @@
 /*
  * teredo-udp.h - UDP sockets class declaration
- * $Id: teredo-udp.h,v 1.6 2004/07/12 08:48:30 rdenisc Exp $
+ * $Id: teredo-udp.h,v 1.7 2004/07/12 11:23:38 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -34,6 +34,7 @@
 
 # include <sys/types.h>
 # include <sys/select.h> // fd_set
+# include <netinet/in.h> // for <netinet/ip6.h> on FreeBSD
 # include <netinet/ip6.h> // struct ip6_hdr
 
 # include "teredo.h"

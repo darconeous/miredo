@@ -63,6 +63,7 @@ RDC_FUNC_SOCKET
 AC_SEARCH_LIBS(inet_ntoa, [nsl])
 dnl AC_SEARCH_LIBS(inet_aton, [resolv])
 RDC_REPLACE_FUNC_GETOPT_LONG
+AC_CHECK_FUNCS([clearenv])
 
 
 # Defines for <config.h>
