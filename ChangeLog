@@ -1,158 +1,1459 @@
-2004-08-29  Remi Denis-Courmont
+------------------------------------------------------------------------
+r153 | remi | 2004-09-01 13:50:09 +0200 (Wed, 01 Sep 2004) | 2 lines
+Changed paths:
+   M /trunk/configure.ac
+   M /trunk/src/Makefile.am
 
-	* src/privproc.*, src/miredo.cpp:
-	- do not use privsep for Teredo relay/server,
-	  it was broken anyway (relays must use a Teredo route, not a
-	  Teredo address),
-	- fix setuid for Teredo client,
-	* libteredo/relay.cpp:
-	- fixed memory leak when recycling peer entry,
-	- fixed memory leak in Packet transmission,
-	- implemented client packet reception,
-	- check confirmation byte from server,
-	* libteredo/teredo-udp.*:
-	- support for getting the confirmation byte in auth header,
-	* libteredo/relay-packets.*:
-	- support for sending Teredo ICMPv6 Echo request.
+Removed checks for OpenSSL
 
-2004-08-28  Remi Denis-Courmont
+------------------------------------------------------------------------
+r152 | remi | 2004-09-01 13:48:47 +0200 (Wed, 01 Sep 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/Makefile.am
+   M /trunk/libteredo/relay.cpp
+   A /trunk/libteredo/security.cpp
+   A /trunk/libteredo/security.h
 
-	* src/privproc.cpp:
-	- fixed nasty memcpy instead of memcmp typing error,
-	- cleaned up.
-	* libteredo/relay.cpp:
-	- initial support for Teredo client qualification.
-	* libteredo/relay-packets.*:
-	- code split from libteredo/relay.cpp.
+Removed dependency on OpenSSL library
 
-2004-08-27  Remi Denis-Courmont
+------------------------------------------------------------------------
+r151 | remi | 2004-09-01 13:47:24 +0200 (Wed, 01 Sep 2004) | 2 lines
+Changed paths:
+   M /trunk/src/main.c
 
-	* libteredo/teredo-udp.*:
-	- replaced thread-unsafe by design TeredoCommonUDP class,
-	  with TeredoPacket: Smaller memory footprint,
-	  libteredo nearly thread-safe.
+Use daemon() (more secure)
 
-2004-08-25  Remi Denis-Courmont
+------------------------------------------------------------------------
+r150 | remi | 2004-09-01 13:46:58 +0200 (Wed, 01 Sep 2004) | 2 lines
+Changed paths:
+   M /trunk/src/miredo.cpp
 
-	* libterdo/relay.cpp, configure.ac, src/Makefile.am:
-	- use OpenSSL to sets the authentication nonce,
-	* libteredo/relay.*, src/relay.*, src/main.cpp, src/miredo.*:
-	- only specify one server name for client, much less confusing,
-	* libtun6/ipv6-tunnel.cpp:
-	- use writev()/readv() to avoid using memcpy(),
-	- fixes SendPacket's return value.
+Fix error message UDP port number
 
-2004-08-24  Remi Denis-Courmont
+------------------------------------------------------------------------
+r149 | remi | 2004-09-01 12:44:59 +0200 (Wed, 01 Sep 2004) | 2 lines
+Changed paths:
+   M /trunk/README
 
-	* src/main.c:
-	- option to enable cone relay optimization;
-	Miredo will now assume restricted relay by default,
-	- command line support for client mode,
-	- verbose option for the command line,
-	* README, NEWS, miredo.8:
-	- reflect above command line change,
-	* src/miredo.*:
-	- checks validity of Teredo prefix before using it,
-	* src/miredo.*, src/relay.*, libteredo/relay.*:
-	- support for creating a Teredo client instance,
-	* libteredo/teredu-udp.cpp:
-	- simpler parsing of incoming Teredo packets.
+New chroot instructions for Teredo client
 
-2004-08-22  Remi Denis-Courmont
+------------------------------------------------------------------------
+r148 | remi | 2004-08-31 22:02:53 +0200 (Tue, 31 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/relay.h
 
-	* libteredo/relay.*:
-	- support for relay behind restricted NAT,
-	- partial support for client packet transmission.
+Export some client qualification settings
 
-2004-08-18  Remi Denis-Courmont
+------------------------------------------------------------------------
+r147 | remi | 2004-08-31 21:53:06 +0200 (Tue, 31 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.h
 
-	* src/miredo.cpp, src/privproc.*:
-	- fixed privileged process.
+Global settings for qualification procedure created
 
-2004-08-17  Remi Denis-Courmont
+------------------------------------------------------------------------
+r146 | remi | 2004-08-31 21:46:29 +0200 (Tue, 31 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
 
-	* libtun6/ipv6-tunnel.*:
-	- libtun6 made thread-safe
-	* libteredo/relay.*:
-	- removed ReceiveIPv6Packet callback (one step toward
-	re-entrancy and thread-safety),
-	- tunnel addresses changes implemented
-	* src/miredo.cpp, src/relay.*:
-	- implemented a privileged process to set up tunnel addresses.
+Bogus comment removed
 
-2004-07-31  Remi Denis-Courmont
+------------------------------------------------------------------------
+r145 | remi | 2004-08-31 10:48:19 +0200 (Tue, 31 Aug 2004) | 3 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
 
-	* libteredo/*, src/*:
-	- huge code split: libteredo handles teredo in userland
-	miredo links libteredo with libtun6.
+- made TeredoRelay class re-entrant (not thread-safe though),
+- notify the kernel when the tunnel connectivity is lost.
 
-2004-07-14  Remi Denis-Courmont
+------------------------------------------------------------------------
+r144 | remi | 2004-08-30 19:05:18 +0200 (Mon, 30 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/README
 
-	* src/main.c (init-security):
-	- do not setsid if nodetach mode is enabled,
-	- do not chroot if running as root.
+Fixed some outdated informations and some minor improvements
 
-2004-07-12  Remi Denis-Courmont
+------------------------------------------------------------------------
+r143 | remi | 2004-08-30 18:13:05 +0200 (Mon, 30 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/AUTHORS
 
-	* src/teredo-udp.cpp (MiredoCommonUDP::ReceivePacket):
-	- supposedly fixed alignments issues.
-	* src/main.c:
-	- more explicit error messages.
+Removed possibly incorrect use of english word "autonomous"
 
-2004-07-11  Remi Denis-Courmont
+------------------------------------------------------------------------
+r142 | remi | 2004-08-30 17:55:52 +0200 (Mon, 30 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/NEWS
+   M /trunk/configure.ac
+   M /trunk/miredo.8
 
-	* src/teredo-udp.cpp:
-	- fixed call to recvfrom() that caused problems with
-	  determining UDP packets source,
-	* src/server.cpp:
-	- fixed likely byte-alignments issues (teredo_send_ra),
-	- clean up, use of MiredoServer class
+Change version number. Documentation fix.
 
-2004-07-10  Remi Denis-Courmont
+------------------------------------------------------------------------
+r141 | remi | 2004-08-30 15:10:35 +0200 (Mon, 30 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/miredo.8
 
-	* libtun6.ipv6-tunnel.c:
-	- no longer (try to) bring iface down in ~IPv6Tunnel(),
-	* configure.ac:
-	- removed --enable-miredo-group, use user's group instead,
-	* src/main.c:
-	- support for chroot(),
-	- ability to override setuid user from the command line,
-	* src/relay.cpp:
-	- do not print routing warning when receiving multicast packet,
-	* src/miredo.cpp:
-	- daemonize before setuid,
-	- ability to reload (not yet existing) the configuration file,
-	- initial signal handling.
+The right route command for FreeBSD
 
-2004-06-27  Remi Denis-Courmont
+------------------------------------------------------------------------
+r140 | remi | 2004-08-30 14:52:05 +0200 (Mon, 30 Aug 2004) | 3 lines
+Changed paths:
+   M /trunk/src/miredo.cpp
 
-	* include/teredo.c:
-	- allow unknown Teredo address flags, as specified per new draft 02,
-	* src/server_pkt.cpp:
-	- clean ups,
-	- set IPv6 source correctly in server Router Advertisements,
-	* src/relay.cpp, src/server_pkt.cpp:
-	- check that destination matches 2000:/3 before transmitting,
-	- use user-specified Teredo prefix, rather than hardcoded one,
-	* libtun6/ipv6-tunnel.cpp, libtun6/ipv6-tunnel.h:
-	- sanity checks,
-	- fix byte ordering for sending/receiving packets on FreeBSD,
-	- separated from Miredo's own sources.
+Fix for relay mode :
+bring interface up and set up link-local address
 
-2004-06-26  Remi Denis-Courmont
+------------------------------------------------------------------------
+r139 | remi | 2004-08-30 14:41:04 +0200 (Mon, 30 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/v4global.c
 
-	* miredo.8, Makefile.am:
-	- initial man page,
-	* src/miredo.cpp, src/relay.cpp:
-	- removed useless memory checks (the program will be killed if we run
-	  out of memory anyway),
-	- check that server primary IPv4 address is a global unicast one.
+FreeBSD compilation fix
 
-2004-06-25  Remi Denis-Courmont
+------------------------------------------------------------------------
+r138 | remi | 2004-08-30 14:28:46 +0200 (Mon, 30 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/configure.ac
+   M /trunk/libtun6/ipv6-tunnel.cpp
 
-	* src/ipv6-tunnnel.cpp:
-	- compile fix for broken pre-08-2003 Kame implementations,
-	- fixed support for adding/deleting tunnel addresses on FreeBSD.
+FreeBSD compilation fix
+
+------------------------------------------------------------------------
+r137 | remi | 2004-08-30 14:07:43 +0200 (Mon, 30 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/Makefile.am
+   A /trunk/libteredo/packets.cpp (from /trunk/libteredo/relay-packets.cpp:133)
+   A /trunk/libteredo/packets.h (from /trunk/libteredo/relay-packets.h:133)
+   D /trunk/libteredo/relay-packets.cpp
+   D /trunk/libteredo/relay-packets.h
+   M /trunk/libteredo/relay.cpp
+
+Clean up
+
+------------------------------------------------------------------------
+r136 | remi | 2004-08-30 13:49:19 +0200 (Mon, 30 Aug 2004) | 3 lines
+Changed paths:
+   M /trunk/libtun6/ipv6-tunnel.cpp
+
+Make IPv6 addresses requests as big as struct ifreq on Linux
+(make valgrind happy)
+
+------------------------------------------------------------------------
+r135 | remi | 2004-08-30 13:25:40 +0200 (Mon, 30 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+
+Make valgrind happy with RAND_*bytes
+
+------------------------------------------------------------------------
+r134 | remi | 2004-08-30 12:32:20 +0200 (Mon, 30 Aug 2004) | 3 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/teredo-udp.cpp
+
+Check TeredoRelayUDP / TeredoServerUDP socket state before trying to send a
+packet
+
+------------------------------------------------------------------------
+r133 | remi | 2004-08-30 12:29:01 +0200 (Mon, 30 Aug 2004) | 3 lines
+Changed paths:
+   M /trunk/libteredo/relay-packets.cpp
+   M /trunk/libteredo/relay-packets.h
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/relay.h
+
+Do not regenerate auth nonce every time.
+Use a truly random nonce.
+
+------------------------------------------------------------------------
+r132 | remi | 2004-08-30 12:13:42 +0200 (Mon, 30 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/src/privproc.cpp
+
+Call IPv6Tunnel::CleanUp explicitly
+
+------------------------------------------------------------------------
+r131 | remi | 2004-08-30 12:12:22 +0200 (Mon, 30 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/libtun6/ipv6-tunnel.cpp
+   M /trunk/libtun6/ipv6-tunnel.h
+
+Added a CleanUp () function.
+
+------------------------------------------------------------------------
+r130 | remi | 2004-08-30 11:32:53 +0200 (Mon, 30 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+
+Fix use of unitialized value
+
+------------------------------------------------------------------------
+r129 | remi | 2004-08-30 11:24:35 +0200 (Mon, 30 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/configure.ac
+
+Check the right function in -lssl
+
+------------------------------------------------------------------------
+r128 | remi | 2004-08-30 11:17:57 +0200 (Mon, 30 Aug 2004) | 3 lines
+Changed paths:
+   M /trunk/src/main.c
+
+Do not chroot when this is not needed.
+Do not print a confusing error if setgroups fails.
+
+------------------------------------------------------------------------
+r127 | rdenisc | 2004-08-29 21:28:03 +0200 (Sun, 29 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/NEWS
+   M /trunk/README
+   M /trunk/THANKS
+   M /trunk/miredo.8
+
+Documentation updates
+
+------------------------------------------------------------------------
+r126 | rdenisc | 2004-08-29 21:04:50 +0200 (Sun, 29 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/TODO
+   M /trunk/libteredo/relay-packets.cpp
+   M /trunk/libteredo/relay-packets.h
+   M /trunk/libteredo/relay.cpp
+
+Check nonce value in ICMPv6 echo replies
+
+------------------------------------------------------------------------
+r125 | rdenisc | 2004-08-29 19:39:04 +0200 (Sun, 29 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay-packets.cpp
+   M /trunk/libteredo/relay-packets.h
+
+Clean up functions to send bubbles
+
+------------------------------------------------------------------------
+r124 | rdenisc | 2004-08-29 19:31:06 +0200 (Sun, 29 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+
+Reply to server bubbles
+
+------------------------------------------------------------------------
+r123 | rdenisc | 2004-08-29 19:30:08 +0200 (Sun, 29 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay-packets.cpp
+   M /trunk/libteredo/relay-packets.h
+
+More general support for sending bubbles
+
+------------------------------------------------------------------------
+r122 | rdenisc | 2004-08-29 18:59:37 +0200 (Sun, 29 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+
+Adjust/Fix server ping delay when qualification succeeds
+
+------------------------------------------------------------------------
+r121 | rdenisc | 2004-08-29 18:15:32 +0200 (Sun, 29 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay-packets.h
+   M /trunk/libteredo/relay.cpp
+
+Send echo request to discover relay
+
+------------------------------------------------------------------------
+r120 | rdenisc | 2004-08-29 17:56:07 +0200 (Sun, 29 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog
+   M /trunk/libteredo/relay-packets.cpp
+
+Support for sending ICMPv6 Echo request
+
+------------------------------------------------------------------------
+r119 | rdenisc | 2004-08-29 17:33:53 +0200 (Sun, 29 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/teredo-udp.cpp
+   M /trunk/libteredo/teredo-udp.h
+
+Check confirmation byte from server
+
+------------------------------------------------------------------------
+r118 | rdenisc | 2004-08-29 15:20:07 +0200 (Sun, 29 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog
+   M /trunk/libteredo/relay.cpp
+
+Client packet reception implementation  + some fixes
+
+------------------------------------------------------------------------
+r117 | rdenisc | 2004-08-29 11:10:12 +0200 (Sun, 29 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog
+   M /trunk/libteredo/relay.cpp
+
+Fixed memory leak when a recycling peer entry
+
+------------------------------------------------------------------------
+r116 | rdenisc | 2004-08-29 09:56:11 +0200 (Sun, 29 Aug 2004) | 4 lines
+Changed paths:
+   M /trunk/ChangeLog
+   M /trunk/src/miredo.cpp
+   M /trunk/src/privproc.cpp
+   M /trunk/src/privproc.h
+
+Do not use privsep for Teredo relay,
+set up a route instead of a buggy Teredo address.
+Fix setuid for Teredo client
+
+------------------------------------------------------------------------
+r115 | rdenisc | 2004-08-28 17:14:25 +0200 (Sat, 28 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+
+Client address change detection
+
+------------------------------------------------------------------------
+r114 | rdenisc | 2004-08-28 15:49:53 +0200 (Sat, 28 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog
+   M /trunk/libteredo/Makefile.am
+   A /trunk/libteredo/relay-packets.cpp
+   A /trunk/libteredo/relay-packets.h
+   M /trunk/libteredo/relay.cpp
+
+Code split
+
+------------------------------------------------------------------------
+r113 | rdenisc | 2004-08-28 14:29:51 +0200 (Sat, 28 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+
+Removed bogus DEBUG message
+
+------------------------------------------------------------------------
+r112 | rdenisc | 2004-08-28 14:29:26 +0200 (Sat, 28 Aug 2004) | 3 lines
+Changed paths:
+   M /trunk/src/miredo.cpp
+
+Use privsep to bring up the interface,
+Fix initial_addr in case of Teredo client
+
+------------------------------------------------------------------------
+r111 | rdenisc | 2004-08-28 14:23:06 +0200 (Sat, 28 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/src/privproc.cpp
+
+Support for changing interface state from privproc
+
+------------------------------------------------------------------------
+r110 | rdenisc | 2004-08-28 14:07:23 +0200 (Sat, 28 Aug 2004) | 3 lines
+Changed paths:
+   M /trunk/ChangeLog
+   M /trunk/src/privproc.cpp
+
+Fixes memcpy instead of memcmp,
+some cleanups
+
+------------------------------------------------------------------------
+r109 | rdenisc | 2004-08-28 13:51:21 +0200 (Sat, 28 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+   M /trunk/src/privproc.cpp
+
+Fixes for Qualitification
+
+------------------------------------------------------------------------
+r108 | rdenisc | 2004-08-28 12:36:50 +0200 (Sat, 28 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/relay.h
+   M /trunk/src/miredo.cpp
+
+Increase select delay
+
+------------------------------------------------------------------------
+r107 | rdenisc | 2004-08-28 11:56:19 +0200 (Sat, 28 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/teredo.h
+
+Comment about alignment
+
+------------------------------------------------------------------------
+r106 | rdenisc | 2004-08-27 18:58:57 +0200 (Fri, 27 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/server.cpp
+   M /trunk/libteredo/teredo.c
+   M /trunk/libteredo/teredo.h
+
+a flag is singular
+
+------------------------------------------------------------------------
+r105 | rdenisc | 2004-08-27 18:57:32 +0200 (Fri, 27 Aug 2004) | 3 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+   M /trunk/src/miredo.cpp
+
+Complete previous commit
+Some comment
+
+------------------------------------------------------------------------
+r104 | rdenisc | 2004-08-27 18:42:19 +0200 (Fri, 27 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/relay.h
+   M /trunk/src/miredo.cpp
+
+state -> probe
+
+------------------------------------------------------------------------
+r103 | rdenisc | 2004-08-27 18:21:10 +0200 (Fri, 27 Aug 2004) | 3 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/relay.h
+   M /trunk/libteredo/server.cpp
+   M /trunk/libteredo/server.h
+   M /trunk/libteredo/teredo-udp.cpp
+   M /trunk/libteredo/teredo-udp.h
+   M /trunk/src/miredo.cpp
+
+Fix router solicitation
+Fix select/ReceivePacket usage
+
+------------------------------------------------------------------------
+r102 | rdenisc | 2004-08-27 17:04:32 +0200 (Fri, 27 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/src/miredo.cpp
+
+Call relay->Process() every 100th milliseconds
+
+------------------------------------------------------------------------
+r101 | rdenisc | 2004-08-27 16:54:52 +0200 (Fri, 27 Aug 2004) | 3 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/relay.h
+
+Partial qualification procedure implementation
+(only send)
+
+------------------------------------------------------------------------
+r100 | rdenisc | 2004-08-27 12:21:59 +0200 (Fri, 27 Aug 2004) | 3 lines
+Changed paths:
+   M /trunk/ChangeLog
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/server.cpp
+   M /trunk/libteredo/teredo-udp.cpp
+   M /trunk/libteredo/teredo-udp.h
+
+Replaced TeredoCommonUDP with TeredoPacket.
+Big step toward libteredo's thread-safety
+
+------------------------------------------------------------------------
+r99 | rdenisc | 2004-08-26 21:54:36 +0200 (Thu, 26 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/libtun6/ipv6-tunnel.cpp
+
+Better error handling, cleanup
+
+------------------------------------------------------------------------
+r98 | rdenisc | 2004-08-26 19:19:28 +0200 (Thu, 26 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog
+   M /trunk/configure.ac
+   M /trunk/libtun6/ipv6-tunnel.cpp
+   M /trunk/libtun6/ipv6-tunnel.h
+
+Use writev/readv to avoid using memcpy
+
+------------------------------------------------------------------------
+r97 | rdenisc | 2004-08-26 17:19:11 +0200 (Thu, 26 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/relay.h
+
+Some cleanups
+
+------------------------------------------------------------------------
+r96 | rdenisc | 2004-08-26 17:04:51 +0200 (Thu, 26 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/teredo-udp.h
+
+Removed thread-unsafe by design function ReplyPacket
+
+------------------------------------------------------------------------
+r95 | rdenisc | 2004-08-26 17:03:57 +0200 (Thu, 26 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/server.cpp
+
+Do not user TeredoCommonUDP::ReplyPacket. Not thread-safe by design.
+
+------------------------------------------------------------------------
+r94 | rdenisc | 2004-08-26 15:33:34 +0200 (Thu, 26 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/relay.h
+
+Cleanups
+
+------------------------------------------------------------------------
+r93 | rdenisc | 2004-08-26 15:32:51 +0200 (Thu, 26 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/teredo.c
+   M /trunk/libteredo/teredo.h
+
+use 'const' qualifier where appropriate
+
+------------------------------------------------------------------------
+r92 | rdenisc | 2004-08-26 12:43:42 +0200 (Thu, 26 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/relay.h
+
+Fix router solicitation
+
+------------------------------------------------------------------------
+r91 | rdenisc | 2004-08-26 12:20:48 +0200 (Thu, 26 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/src/miredo.cpp
+   M /trunk/src/privproc.cpp
+
+Don't try to terminate privsep twice
+
+------------------------------------------------------------------------
+r90 | rdenisc | 2004-08-26 11:47:08 +0200 (Thu, 26 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/TODO
+
+Updated todo list
+
+------------------------------------------------------------------------
+r89 | rdenisc | 2004-08-26 11:37:54 +0200 (Thu, 26 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/relay.h
+   M /trunk/miredo.8
+   M /trunk/src/main.c
+   M /trunk/src/miredo.cpp
+   M /trunk/src/miredo.h
+   M /trunk/src/relay.cpp
+   M /trunk/src/relay.h
+
+Only one server for client. Some cleanups.
+
+------------------------------------------------------------------------
+r88 | rdenisc | 2004-08-26 10:02:22 +0200 (Thu, 26 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog
+   M /trunk/configure.ac
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/relay.h
+   M /trunk/src/Makefile.am
+
+Gerenate random auth nonce with OpenSSL
+
+------------------------------------------------------------------------
+r87 | rdenisc | 2004-08-24 21:58:23 +0200 (Tue, 24 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/relay.h
+
+Method to send a Router Solicitation
+
+------------------------------------------------------------------------
+r86 | rdenisc | 2004-08-24 21:12:17 +0200 (Tue, 24 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/server.cpp
+
+Removed useless Authentication header memcpy
+
+------------------------------------------------------------------------
+r85 | rdenisc | 2004-08-24 21:03:42 +0200 (Tue, 24 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+
+Got rid of a useless IPv6 address copy
+
+------------------------------------------------------------------------
+r84 | rdenisc | 2004-08-24 20:58:32 +0200 (Tue, 24 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/libtun6/ipv6-tunnel.cpp
+
+Fixes for some ICC warnings
+
+------------------------------------------------------------------------
+r83 | rdenisc | 2004-08-24 20:53:52 +0200 (Tue, 24 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog
+   M /trunk/libteredo/teredo-udp.cpp
+
+Simpler Teredo header decoding
+
+------------------------------------------------------------------------
+r82 | rdenisc | 2004-08-24 20:52:49 +0200 (Tue, 24 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+
+Implement update of last server interaction time
+
+------------------------------------------------------------------------
+r81 | rdenisc | 2004-08-24 20:52:04 +0200 (Tue, 24 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.h
+
+Remember server last interaction time
+
+------------------------------------------------------------------------
+r80 | rdenisc | 2004-08-24 20:50:53 +0200 (Tue, 24 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/teredo-udp.h
+
+Comment
+
+------------------------------------------------------------------------
+r79 | rdenisc | 2004-08-24 20:49:40 +0200 (Tue, 24 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/src/miredo.cpp
+
+Check Teredo prefix for validity before use
+
+------------------------------------------------------------------------
+r78 | rdenisc | 2004-08-24 20:49:09 +0200 (Tue, 24 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/teredo.c
+   M /trunk/libteredo/teredo.h
+
+Added function to check a Teredo prefix
+
+------------------------------------------------------------------------
+r77 | rdenisc | 2004-08-24 20:48:34 +0200 (Tue, 24 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/server.cpp
+
+Remove useless #include
+
+------------------------------------------------------------------------
+r76 | rdenisc | 2004-08-24 18:00:26 +0200 (Tue, 24 Aug 2004) | 3 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/relay.h
+   M /trunk/src/miredo.cpp
+   M /trunk/src/relay.cpp
+   M /trunk/src/relay.h
+
+Support for client mode in Miredo core
+(though the underlying support in libteredo is largely incomplete)
+
+------------------------------------------------------------------------
+r75 | rdenisc | 2004-08-24 16:25:35 +0200 (Tue, 24 Aug 2004) | 3 lines
+Changed paths:
+   M /trunk/miredo.8
+   M /trunk/src/main.c
+   M /trunk/src/miredo.cpp
+   M /trunk/src/miredo.h
+
+Verbose option to print config at startup
+Command line support for client mode (not yet supported internally)
+
+------------------------------------------------------------------------
+r74 | rdenisc | 2004-08-24 11:49:39 +0200 (Tue, 24 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog
+   M /trunk/NEWS
+   M /trunk/README
+   M /trunk/miredo.8
+   M /trunk/src/main.c
+   M /trunk/src/miredo.cpp
+   M /trunk/src/miredo.h
+   M /trunk/src/relay.cpp
+   M /trunk/src/relay.h
+
+Support for relaying behind a restricted NAT
+
+------------------------------------------------------------------------
+r73 | rdenisc | 2004-08-22 18:58:53 +0200 (Sun, 22 Aug 2004) | 3 lines
+Changed paths:
+   M /trunk/ChangeLog
+   M /trunk/TODO
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/relay.h
+   M /trunk/src/main.c
+
+Support for creating relay behind a restricted NAT
+(a command line option to enable that feature is still missing)
+
+------------------------------------------------------------------------
+r72 | rdenisc | 2004-08-22 18:53:43 +0200 (Sun, 22 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+
+Send direct bubble if appropriate
+
+------------------------------------------------------------------------
+r71 | rdenisc | 2004-08-22 18:43:54 +0200 (Sun, 22 Aug 2004) | 3 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+
+Catch very unlikely lack of memory error.
+We still have a potential DoS in the relay code.
+
+------------------------------------------------------------------------
+r70 | rdenisc | 2004-08-22 18:40:05 +0200 (Sun, 22 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/relay.h
+
+Packet transmission method re-ordering for future client support
+
+------------------------------------------------------------------------
+r69 | rdenisc | 2004-08-22 17:38:26 +0200 (Sun, 22 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/relay.h
+   M /trunk/libteredo/teredo-udp.cpp
+   M /trunk/libteredo/teredo-udp.h
+
+Comments
+
+------------------------------------------------------------------------
+r68 | rdenisc | 2004-08-22 17:19:32 +0200 (Sun, 22 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/relay.h
+   M /trunk/src/miredo.cpp
+
+Cosmetic cleanups
+
+------------------------------------------------------------------------
+r67 | rdenisc | 2004-08-22 16:39:38 +0200 (Sun, 22 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/bootstrap
+
+Rewritten as a Makefile
+
+------------------------------------------------------------------------
+r66 | rdenisc | 2004-08-18 11:53:58 +0200 (Wed, 18 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog
+   M /trunk/src/miredo.cpp
+
+Wait for child processes termination where appropriate
+
+------------------------------------------------------------------------
+r65 | rdenisc | 2004-08-18 11:42:35 +0200 (Wed, 18 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/src/miredo.cpp
+   M /trunk/src/privproc.cpp
+   M /trunk/src/privproc.h
+
+Fixes for privileged process and cave-at for routing on FreeBSD
+
+------------------------------------------------------------------------
+r64 | rdenisc | 2004-08-18 11:41:46 +0200 (Wed, 18 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/src/main.c
+
+More explicit error messages
+
+------------------------------------------------------------------------
+r63 | rdenisc | 2004-08-18 11:33:24 +0200 (Wed, 18 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/libtun6/ipv6-tunnel.h
+
+More comments
+
+------------------------------------------------------------------------
+r62 | rdenisc | 2004-08-18 11:26:35 +0200 (Wed, 18 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/libtun6/ipv6-tunnel.cpp
+
+More explicit comment
+
+------------------------------------------------------------------------
+r61 | rdenisc | 2004-08-17 21:21:13 +0200 (Tue, 17 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog
+   M /trunk/src/miredo.cpp
+
+Privileged miredo process to change tunnel addresses
+
+------------------------------------------------------------------------
+r60 | rdenisc | 2004-08-17 21:09:51 +0200 (Tue, 17 Aug 2004) | 3 lines
+Changed paths:
+   M /trunk/src/relay.cpp
+   M /trunk/src/relay.h
+
+Callbacks for Teredo client support
+(client constructor still missing)
+
+------------------------------------------------------------------------
+r59 | rdenisc | 2004-08-17 21:09:12 +0200 (Tue, 17 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/src/privproc.cpp
+   M /trunk/src/privproc.h
+
+Cleanup
+
+------------------------------------------------------------------------
+r58 | rdenisc | 2004-08-17 19:31:14 +0200 (Tue, 17 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/relay.h
+   M /trunk/libtun6/ipv6-tunnel.cpp
+   M /trunk/libtun6/ipv6-tunnel.h
+   M /trunk/src/miredo.cpp
+   M /trunk/src/relay.cpp
+   M /trunk/src/relay.h
+
+Made libtun6 thread-safe
+
+------------------------------------------------------------------------
+r57 | rdenisc | 2004-08-17 18:55:41 +0200 (Tue, 17 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/relay.h
+
+Initial (not implemented) Teredo client API
+
+------------------------------------------------------------------------
+r56 | rdenisc | 2004-08-17 18:42:38 +0200 (Tue, 17 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/relay.h
+
+Move virtual function implementations in .c file
+
+------------------------------------------------------------------------
+r55 | rdenisc | 2004-08-17 18:40:03 +0200 (Tue, 17 Aug 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/relay.h
+
+Code cleanup
+
+------------------------------------------------------------------------
+r54 | rdenisc | 2004-07-31 22:15:07 +0200 (Sat, 31 Jul 2004) | 2 lines
+Changed paths:
+   A /trunk/src/privproc.cpp
+   A /trunk/src/privproc.h
+
+Initial support for changing Teredo addresses while running
+
+------------------------------------------------------------------------
+r53 | rdenisc | 2004-07-31 21:58:44 +0200 (Sat, 31 Jul 2004) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/relay.h
+   M /trunk/libteredo/server.cpp
+   M /trunk/libteredo/server.h
+   M /trunk/libteredo/teredo-udp.cpp
+   M /trunk/libteredo/teredo-udp.h
+   M /trunk/libteredo/teredo.h
+   M /trunk/src/Makefile.am
+   M /trunk/src/miredo.cpp
+   A /trunk/src/relay.cpp
+   A /trunk/src/relay.h
+   A /trunk/src/server.cpp
+   A /trunk/src/server.h
+
+Huge patch to separate miredo from libteredo
+
+------------------------------------------------------------------------
+r52 | rdenisc | 2004-07-25 13:50:48 +0200 (Sun, 25 Jul 2004) | 2 lines
+Changed paths:
+   D /trunk/libteredo/Makefile.in
+
+Should not have been commited in the first place
+
+------------------------------------------------------------------------
+r51 | rdenisc | 2004-07-23 18:44:52 +0200 (Fri, 23 Jul 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/relay.h
+
+Support for sending direct bubbles (not yet used)
+
+------------------------------------------------------------------------
+r50 | rdenisc | 2004-07-22 19:38:29 +0200 (Thu, 22 Jul 2004) | 2 lines
+Changed paths:
+   M /trunk/Makefile.am
+   M /trunk/configure.ac
+   D /trunk/include
+   A /trunk/libteredo
+   A /trunk/libteredo/.cvsignore
+   A /trunk/libteredo/Makefile.am
+   A /trunk/libteredo/Makefile.in
+   A /trunk/libteredo/relay.cpp
+   A /trunk/libteredo/relay.h
+   A /trunk/libteredo/server.cpp
+   A /trunk/libteredo/server.h
+   A /trunk/libteredo/teredo-udp.cpp
+   A /trunk/libteredo/teredo-udp.h
+   A /trunk/libteredo/teredo.c
+   A /trunk/libteredo/teredo.h
+   A /trunk/libteredo/v4global.c
+   A /trunk/libteredo/v4global.h
+   M /trunk/src/Makefile.am
+   D /trunk/src/common_pkt.cpp
+   D /trunk/src/common_pkt.h
+   M /trunk/src/main.c
+   M /trunk/src/miredo.cpp
+   D /trunk/src/relay.cpp
+   D /trunk/src/relay.h
+   D /trunk/src/server.cpp
+   D /trunk/src/server.h
+   D /trunk/src/teredo-udp.cpp
+   D /trunk/src/teredo-udp.h
+
+Initial libteredo, separated from miredo core
+
+------------------------------------------------------------------------
+r49 | rdenisc | 2004-07-21 18:37:41 +0200 (Wed, 21 Jul 2004) | 2 lines
+Changed paths:
+   M /trunk/configure.ac
+   M /trunk/src/common_pkt.cpp
+   M /trunk/src/common_pkt.h
+   M /trunk/src/relay.cpp
+   M /trunk/src/server.cpp
+
+Got rid of useless ForwardPacket
+
+------------------------------------------------------------------------
+r48 | rdenisc | 2004-07-14 16:23:56 +0200 (Wed, 14 Jul 2004) | 3 lines
+Changed paths:
+   M /trunk/README
+   M /trunk/src/main.c
+   M /trunk/src/miredo.cpp
+
+SetEUID before fork/setsid.
+README updates
+
+------------------------------------------------------------------------
+r47 | rdenisc | 2004-07-14 15:51:10 +0200 (Wed, 14 Jul 2004) | 3 lines
+Changed paths:
+   M /trunk/ChangeLog
+   M /trunk/configure.ac
+   M /trunk/miredo.8
+   M /trunk/src/main.c
+
+Do not setsid when nodetach is on,
+Do not chroot in root's home by default while running as root.
+
+------------------------------------------------------------------------
+r46 | rdenisc | 2004-07-13 11:53:36 +0200 (Tue, 13 Jul 2004) | 3 lines
+Changed paths:
+   M /trunk/ChangeLog
+   M /trunk/README
+   M /trunk/TODO
+   M /trunk/miredo.8
+   M /trunk/src/main.c
+
+No longer chroot by default.
+Documentation updates.
+
+------------------------------------------------------------------------
+r45 | rdenisc | 2004-07-12 13:23:38 +0200 (Mon, 12 Jul 2004) | 2 lines
+Changed paths:
+   M /trunk/configure.ac
+   M /trunk/src/main.c
+   M /trunk/src/relay.cpp
+   M /trunk/src/teredo-udp.h
+
+FreeBSD compilation fixes
+
+------------------------------------------------------------------------
+r44 | rdenisc | 2004-07-12 11:34:51 +0200 (Mon, 12 Jul 2004) | 2 lines
+Changed paths:
+   M /trunk/src/main.c
+   M /trunk/src/server.cpp
+   M /trunk/src/teredo-udp.cpp
+
+Fixes for bugs in previous commit
+
+------------------------------------------------------------------------
+r43 | rdenisc | 2004-07-12 10:48:30 +0200 (Mon, 12 Jul 2004) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog
+   M /trunk/libtun6/ipv6-tunnel.cpp
+   M /trunk/src/miredo.cpp
+   M /trunk/src/server.cpp
+   M /trunk/src/teredo-udp.cpp
+   M /trunk/src/teredo-udp.h
+
+Fix for possible align problem on non-Intel platforms
+
+------------------------------------------------------------------------
+r42 | rdenisc | 2004-07-12 10:45:48 +0200 (Mon, 12 Jul 2004) | 2 lines
+Changed paths:
+   M /trunk/src/main.c
+
+Better diagnostic messages
+
+------------------------------------------------------------------------
+r41 | rdenisc | 2004-07-11 15:52:22 +0200 (Sun, 11 Jul 2004) | 2 lines
+Changed paths:
+   M /trunk/NEWS
+   M /trunk/README
+   M /trunk/TODO
+   M /trunk/include/teredo.h
+   M /trunk/libtun6/ipv6-tunnel.h
+   M /trunk/src/miredo.cpp
+   M /trunk/src/miredo.h
+   M /trunk/src/teredo-udp.h
+
+Doc updates, clean ups
+
+------------------------------------------------------------------------
+r40 | rdenisc | 2004-07-11 12:43:29 +0200 (Sun, 11 Jul 2004) | 2 lines
+Changed paths:
+   M /trunk/TODO
+   M /trunk/src/relay.cpp
+   M /trunk/src/server.cpp
+
+A lot less debug messages
+
+------------------------------------------------------------------------
+r39 | rdenisc | 2004-07-11 12:34:41 +0200 (Sun, 11 Jul 2004) | 2 lines
+Changed paths:
+   M /trunk/include/teredo.c
+
+Fix broken client port check
+
+------------------------------------------------------------------------
+r38 | rdenisc | 2004-07-11 12:17:34 +0200 (Sun, 11 Jul 2004) | 2 lines
+Changed paths:
+   M /trunk/src/server.cpp
+
+(Likely useless) support for not inserting an origin indication
+
+------------------------------------------------------------------------
+r37 | rdenisc | 2004-07-11 12:08:13 +0200 (Sun, 11 Jul 2004) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog
+   M /trunk/TODO
+   M /trunk/src/Makefile.am
+   M /trunk/src/miredo.cpp
+   M /trunk/src/miredo.h
+   M /trunk/src/relay.h
+   A /trunk/src/server.cpp
+   A /trunk/src/server.h
+   D /trunk/src/server_pkt.cpp
+   D /trunk/src/server_pkt.h
+   M /trunk/src/teredo-udp.cpp
+
+MiredoServer class, clean up
+
+------------------------------------------------------------------------
+r36 | rdenisc | 2004-07-11 11:10:18 +0200 (Sun, 11 Jul 2004) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog
+   M /trunk/src/teredo-udp.cpp
+
+Fixed recvfrom() call
+
+------------------------------------------------------------------------
+r35 | rdenisc | 2004-07-10 19:52:07 +0200 (Sat, 10 Jul 2004) | 3 lines
+Changed paths:
+   M /trunk/src/miredo.cpp
+
+Implement signal handling in parent process,
+Safer signals handlers
+
+------------------------------------------------------------------------
+r34 | rdenisc | 2004-07-10 19:51:20 +0200 (Sat, 10 Jul 2004) | 2 lines
+Changed paths:
+   M /trunk/src/main.c
+
+Fix a warning
+
+------------------------------------------------------------------------
+r33 | rdenisc | 2004-07-10 18:31:56 +0200 (Sat, 10 Jul 2004) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog
+   M /trunk/configure.ac
+   M /trunk/src/main.c
+   M /trunk/src/miredo.cpp
+   M /trunk/src/miredo.h
+
+Signal handling, chroot support, setuid user passed from the command line
+
+------------------------------------------------------------------------
+r32 | rdenisc | 2004-07-10 18:31:25 +0200 (Sat, 10 Jul 2004) | 2 lines
+Changed paths:
+   M /trunk/m4/sockaddr.m4
+
+Resync with tcpreen
+
+------------------------------------------------------------------------
+r31 | rdenisc | 2004-07-10 18:29:06 +0200 (Sat, 10 Jul 2004) | 2 lines
+Changed paths:
+   M /trunk/src/relay.cpp
+
+*Silently* ignore multicast packets received from the kernel
+
+------------------------------------------------------------------------
+r30 | rdenisc | 2004-07-10 18:28:34 +0200 (Sat, 10 Jul 2004) | 2 lines
+Changed paths:
+   M /trunk/libtun6/ipv6-tunnel.cpp
+
+No longer bring interface down manually on tunnel object deletion
+
+------------------------------------------------------------------------
+r29 | rdenisc | 2004-06-27 19:37:21 +0200 (Sun, 27 Jun 2004) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog
+   M /trunk/include/teredo.c
+   M /trunk/include/teredo.h
+   M /trunk/libtun6/ipv6-tunnel.cpp
+   M /trunk/src/main.c
+   M /trunk/src/miredo.cpp
+   M /trunk/src/miredo.h
+   M /trunk/src/relay.cpp
+   M /trunk/src/relay.h
+   M /trunk/src/server_pkt.cpp
+
+User-specified Teredo prefix rather than hardcoded one
+
+------------------------------------------------------------------------
+r28 | rdenisc | 2004-06-27 17:40:25 +0200 (Sun, 27 Jun 2004) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog
+   M /trunk/src/server_pkt.cpp
+
+Set IPv6 source address correctly in server's RA
+
+------------------------------------------------------------------------
+r27 | rdenisc | 2004-06-27 17:27:12 +0200 (Sun, 27 Jun 2004) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog
+   M /trunk/Makefile.am
+   M /trunk/configure.ac
+   A /trunk/libtun6
+   A /trunk/libtun6/.cvsignore
+   A /trunk/libtun6/Makefile.am
+   A /trunk/libtun6/ipv6-tunnel.cpp
+   A /trunk/libtun6/ipv6-tunnel.h
+   M /trunk/src/Makefile.am
+   M /trunk/src/common_pkt.cpp
+   D /trunk/src/ipv6-tunnel.cpp
+   D /trunk/src/ipv6-tunnel.h
+   M /trunk/src/miredo.cpp
+   M /trunk/src/relay.cpp
+
+IPv6Tunnel made a library
+
+------------------------------------------------------------------------
+r26 | rdenisc | 2004-06-27 12:25:24 +0200 (Sun, 27 Jun 2004) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog
+   M /trunk/TODO
+   M /trunk/include/teredo.c
+   M /trunk/miredo.8
+   M /trunk/src/relay.cpp
+   M /trunk/src/server_pkt.cpp
+
+Updates for draft 02
+
+------------------------------------------------------------------------
+r25 | rdenisc | 2004-06-26 22:14:28 +0200 (Sat, 26 Jun 2004) | 2 lines
+Changed paths:
+   M /trunk/miredo.8
+
+More complete man page. Typos fixed.
+
+------------------------------------------------------------------------
+r24 | rdenisc | 2004-06-26 21:58:26 +0200 (Sat, 26 Jun 2004) | 2 lines
+Changed paths:
+   M /trunk/miredo.8
+
+Spacing fix
+
+------------------------------------------------------------------------
+r23 | rdenisc | 2004-06-26 21:55:33 +0200 (Sat, 26 Jun 2004) | 4 lines
+Changed paths:
+   M /trunk/ChangeLog
+   M /trunk/Makefile.am
+   M /trunk/README
+   M /trunk/TODO
+   A /trunk/miredo.8
+   M /trunk/src/ipv6-tunnel.cpp
+   M /trunk/src/miredo.cpp
+   M /trunk/src/relay.cpp
+
+Broken FreeBSD routes support,
+Initial man page,
+Use local-scope Teredo cone address rather than restricted one
+
+------------------------------------------------------------------------
+r22 | rdenisc | 2004-06-26 17:47:26 +0200 (Sat, 26 Jun 2004) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog
+   M /trunk/NEWS
+   M /trunk/README
+
+Doc update for upcoming release 0.1.1
+
+------------------------------------------------------------------------
+r21 | rdenisc | 2004-06-26 17:24:26 +0200 (Sat, 26 Jun 2004) | 3 lines
+Changed paths:
+   M /trunk/ChangeLog
+   M /trunk/src/common_pkt.cpp
+   M /trunk/src/ipv6-tunnel.cpp
+   M /trunk/src/miredo.cpp
+
+Check that server primary IPv4 address is global unicast,
+Code cleanups
+
+------------------------------------------------------------------------
+r20 | rdenisc | 2004-06-26 16:54:35 +0200 (Sat, 26 Jun 2004) | 2 lines
+Changed paths:
+   M /trunk/configure.ac
+   M /trunk/src/ipv6-tunnel.cpp
+   M /trunk/src/miredo.cpp
+
+Code cleanup
+
+------------------------------------------------------------------------
+r19 | rdenisc | 2004-06-26 10:51:32 +0200 (Sat, 26 Jun 2004) | 3 lines
+Changed paths:
+   M /trunk/ChangeLog
+   M /trunk/src/ipv6-tunnel.cpp
+   M /trunk/src/miredo.cpp
+   M /trunk/src/relay.cpp
+
+FreeBSD addresses setup fix
+Removed useless memory checks
+
+------------------------------------------------------------------------
+r18 | rdenisc | 2004-06-25 17:00:42 +0200 (Fri, 25 Jun 2004) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog
+   M /trunk/src/ipv6-tunnel.cpp
+
+Compile fix for broken old KAME
+
+------------------------------------------------------------------------
+r17 | rdenisc | 2004-06-24 21:16:14 +0200 (Thu, 24 Jun 2004) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog
+   M /trunk/configure.ac
+   M /trunk/src/ipv6-tunnel.cpp
+   M /trunk/src/ipv6-tunnel.h
+   M /trunk/src/miredo.cpp
+
+Most of the FreeBSD tunneling driver (broken)
+
+------------------------------------------------------------------------
+r16 | rdenisc | 2004-06-22 18:39:53 +0200 (Tue, 22 Jun 2004) | 2 lines
+Changed paths:
+   M /trunk/include/teredo.c
+   M /trunk/src/common_pkt.cpp
+   M /trunk/src/main.c
+   M /trunk/src/miredo.cpp
+   M /trunk/src/miredo.h
+   M /trunk/src/server_pkt.cpp
+
+Some ICC compilation fixes
+
+------------------------------------------------------------------------
+r15 | rdenisc | 2004-06-22 18:20:25 +0200 (Tue, 22 Jun 2004) | 2 lines
+Changed paths:
+   M /trunk/bootstrap
+   M /trunk/configure.ac
+   M /trunk/src/ipv6-tunnel.cpp
+
+Teredo is not point-to-point
+
+------------------------------------------------------------------------
+r14 | rdenisc | 2004-06-21 19:48:55 +0200 (Mon, 21 Jun 2004) | 2 lines
+Changed paths:
+   M /trunk/include/teredo.c
+   M /trunk/include/teredo.h
+   M /trunk/src/ipv6-tunnel.cpp
+   M /trunk/src/ipv6-tunnel.h
+   M /trunk/src/main.c
+   M /trunk/src/miredo.cpp
+   M /trunk/src/miredo.h
+   M /trunk/src/relay.cpp
+   M /trunk/src/relay.h
+
+Various code cleanups
+
+------------------------------------------------------------------------
+r13 | rdenisc | 2004-06-20 19:48:07 +0200 (Sun, 20 Jun 2004) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog
+   M /trunk/src/ipv6-tunnel.cpp
+   M /trunk/src/ipv6-tunnel.h
+   M /trunk/src/main.c
+   M /trunk/src/miredo.cpp
+   M /trunk/src/miredo.h
+   M /trunk/src/relay.cpp
+
+Add route to the Teredo prefix via the tunnel.
+
+------------------------------------------------------------------------
+r12 | rdenisc | 2004-06-20 15:53:35 +0200 (Sun, 20 Jun 2004) | 4 lines
+Changed paths:
+   M /trunk/ChangeLog
+   A /trunk/THANKS
+   M /trunk/configure.ac
+   M /trunk/m4/sockaddr.m4
+   M /trunk/src/common_pkt.cpp
+   M /trunk/src/ipv6-tunnel.cpp
+   M /trunk/src/ipv6-tunnel.h
+   M /trunk/src/main.c
+   M /trunk/src/miredo.cpp
+   M /trunk/src/miredo.h
+   M /trunk/src/relay.cpp
+   M /trunk/src/relay.h
+   M /trunk/src/server_pkt.cpp
+   M /trunk/src/teredo-udp.cpp
+   M /trunk/src/teredo-udp.h
+
+Lots of FreeBSD compilation fixes
+(still have to port tunnel driver)
+Thanks to Gene Cronk for providing the testing platform
+
+------------------------------------------------------------------------
+r11 | rdenisc | 2004-06-20 12:02:41 +0200 (Sun, 20 Jun 2004) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog
+   M /trunk/TODO
+   M /trunk/configure.ac
+   M /trunk/m4/getopt.m4
+   M /trunk/src/ipv6-tunnel.cpp
+   M /trunk/src/main.c
+   M /trunk/src/miredo.cpp
+   M /trunk/src/miredo.h
+
+No longer require relay IPv6 vaddress specification
+
+------------------------------------------------------------------------
+r10 | rdenisc | 2004-06-18 00:52:28 +0200 (Fri, 18 Jun 2004) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog
+   M /trunk/src/ipv6-tunnel.cpp
+   M /trunk/src/ipv6-tunnel.h
+   M /trunk/src/main.c
+   M /trunk/src/miredo.cpp
+
+Set MTU, set Teredo prefix.
+
+------------------------------------------------------------------------
+r9 | rdenisc | 2004-06-16 10:38:48 +0200 (Wed, 16 Jun 2004) | 2 lines
+Changed paths:
+   M /trunk/src/miredo.cpp
+
+Obvious bug fixes
+
+------------------------------------------------------------------------
+r8 | rdenisc | 2004-06-16 10:38:09 +0200 (Wed, 16 Jun 2004) | 2 lines
+Changed paths:
+   A /trunk/m4/Makefile.am
+
+Forgot to add this file
+
+------------------------------------------------------------------------
+r7 | rdenisc | 2004-06-15 18:09:22 +0200 (Tue, 15 Jun 2004) | 3 lines
+Changed paths:
+   M /trunk/ChangeLog
+   M /trunk/TODO
+   M /trunk/src/ipv6-tunnel.cpp
+   M /trunk/src/main.c
+   M /trunk/src/miredo.cpp
+   M /trunk/src/miredo.h
+   M /trunk/src/teredo-udp.cpp
+   M /trunk/src/teredo-udp.h
+
+- relay address autoconfiguration,
+- optional relay(/client) port manual setup
+
+------------------------------------------------------------------------
+r6 | rdenisc | 2004-06-14 23:52:32 +0200 (Mon, 14 Jun 2004) | 4 lines
+Changed paths:
+   M /trunk/ChangeLog
+   M /trunk/Makefile.am
+   M /trunk/README
+   M /trunk/TODO
+   A /trunk/bootstrap
+   M /trunk/configure.ac
+   A /trunk/m4/getopt.m4
+   A /trunk/m4/hostname.m4
+   M /trunk/m4/sockaddr.m4
+   M /trunk/src/Makefile.am
+   D /trunk/src/conf.h
+   M /trunk/src/ipv6-tunnel.cpp
+   M /trunk/src/ipv6-tunnel.h
+   A /trunk/src/main.c
+   D /trunk/src/main.cpp
+   A /trunk/src/miredo.cpp
+   A /trunk/src/miredo.h
+   M /trunk/src/server_pkt.cpp
+   M /trunk/src/server_pkt.h
+   M /trunk/src/teredo-udp.cpp
+   M /trunk/src/teredo-udp.h
+
+- support for command line options,
+- support for non-root user/group,
+- bring tunnel interface automatically up.
+
+------------------------------------------------------------------------
+r2 | rdenisc | 2004-06-14 16:45:57 +0200 (Mon, 14 Jun 2004) | 2 lines
+Changed paths:
+   M /trunk
+   A /trunk/.cvsignore
+   A /trunk/AUTHORS
+   A /trunk/ChangeLog
+   A /trunk/Makefile.am
+   A /trunk/NEWS
+   A /trunk/README
+   A /trunk/TODO
+   A /trunk/admin
+   A /trunk/admin/.cvsignore
+   A /trunk/configure.ac
+   A /trunk/include
+   A /trunk/include/.cvsignore
+   A /trunk/include/Makefile.am
+   A /trunk/include/teredo.c
+   A /trunk/include/teredo.h
+   A /trunk/m4
+   A /trunk/m4/.cvsignore
+   A /trunk/m4/sockaddr.m4
+   A /trunk/src
+   A /trunk/src/.cvsignore
+   A /trunk/src/Makefile.am
+   A /trunk/src/common_pkt.cpp
+   A /trunk/src/common_pkt.h
+   A /trunk/src/conf.h
+   A /trunk/src/ipv6-tunnel.cpp
+   A /trunk/src/ipv6-tunnel.h
+   A /trunk/src/main.cpp
+   A /trunk/src/relay.cpp
+   A /trunk/src/relay.h
+   A /trunk/src/server_pkt.cpp
+   A /trunk/src/server_pkt.h
+   A /trunk/src/teredo-udp.cpp
+   A /trunk/src/teredo-udp.h
+
+Initial revision
+
+------------------------------------------------------------------------
+r1 | remi | 2004-06-14 16:45:57 +0200 (Mon, 14 Jun 2004) | 1 line
+Changed paths:
+   A /branches
+   A /tags
+   A /trunk
+
+New repository initialized by cvs2svn.
+------------------------------------------------------------------------
+
+ChangeLog from first internal CVS repository:
 
 2004-05-24  Remi Denis-Courmont
 
