@@ -1,6 +1,6 @@
 /*
  * privproc.cpp - Privileged process for Miredo
- * $Id: privproc.cpp,v 1.8 2004/08/29 07:56:11 rdenisc Exp $
+ * $Id$
  */
 
 /***********************************************************************
@@ -106,7 +106,7 @@ die:
 	setuid (unpriv);
 
 	close (fd[0]);
-	// Release the tunnel device automatically:
+	tunnel.CleanUp ();
 	exit (0);
 }
 
