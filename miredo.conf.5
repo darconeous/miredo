@@ -20,61 +20,174 @@ miredo.conf \- configuration for Miredo
 .B miredo.conf
 
 .SH DESCRIPTON
-.BR "miredo.conf" " is the configuration file for " "Miredo" "."
-Each configuration directive consists of one directive name possibly
+.I miredo.conf
+.RB " is the configuration file for " "Miredo" "."
+Each configuration directive consists of one directive name, possibly
 followed by one or several spaces and a value for the directive.
 White spaces, empty lines and lines starting with '#' are ignored.
 
-.SH GENERAL OPTIONS
+Directives are case-insensitive. A comprehensive list of the supported
+directives follows:
+
+.SH MODES
 
 .TP
-.BR "\-b ip_address" " or " "\-\-bind ip_address"
-Bind the Teredo relay or Teredo client to a specific IPv4 address.
-By default, it is not bound to any particular IPv4 address.
-
-Only use this option if you have trouble with the default value, such
-as if you have a multi-homed host with equal-cost IPv4 routing, or if
-you have specific firewalling constraints.
+.BR "RelayType" " (" "client" "|" "cone" "|" "restricted" "|" "disabled" ")"
+Specifies what type of Teredo relay/client Miredo will serve as.
+There are four possible choices:
 
 .TP
-.BR "\-C" " or " "\-\-cone"
-.RI "Assume that we are behind a " "cone" " NAT device, or no NAT at"
-all (ie. that we have a public IPv4 address). This is an optimization
-to emit fewer Teredo packets.
+.BR "client" " mode (the default)"
+.RB "In " "client" " mode, " "Miredo" " acts as a "
+.IR "Teredo client" ". Miredo will first authenticate with a "
+.I "Teredo server"
+.RB "(see " "ServerAddress" "), and if successful, will setup a Teredo"
+tunneling interface with a public Teredo IPv6 address and a default
+IPv6 route. That virtual networking interface can be used to reach the
+IPv6 Internet as well as Teredo clients.
+
+The use of Miredo as a Teredo client allows nodes to get an IPv6
+connectivity from behind a NAT router device, as it tunnels IPv6
+packets over UDP/IPv4 with special support for NAT routers. Routers of
+that kind usually only forward TCP, UDP and ICMP over IPv4 packets
+.RB "(with some limitation), so that " "6to4 tunneling" " and "
+.BR "Proto-41 " "forwarding cannot be used to reach the IPv6 Internet"
+from behind them.
+
+.BR "NOTE:" " Use of " "Miredo" " as a"
+.IR "Teredo client" " is possible even if the system already has IPv6"
+connectivity through another way (native, 6to4, TSP, etc). In that
+case, Miredo will only be used to reach other Teredo clients. Care
+should be taken that default IPv6 routes metrics are adequate
+.RB "(see also " "DefaultRoute" ")."
+
+.TP
+.BR "cone" " mode"
+.RB "In " "cone" " mode, " "Miredo" " acts as a "
+.IR "Teredo relay" ". It will assume that it has public global " "IPv4"
+.RI "connectivity or from behind a " "cone" " NAT device. Miredo will"
+create a virtual networking interface with a route toward Teredo
+clients.
+
+.IR "Teredo relays" " forward IPv6 packets between " "Teredo clients"
+.RB "and the IPv6 Internet. For that to work, Teredo relays " "MUST"
+have a working IPv6 connectivity through a way other than Teredo
+tunneling.
+
+This mode can be used if the node has a public IPv4 address or if it is
+.RI "behind a NAT router of " "cone" " type. If the type of NAT is not"
+.RI "known, " "restricted" " mode should be used instead."
+
+.TP
+.BR "restricted" " mode"
+.RB "In " "restricted" " mode, " "Miredo" " acts as a "
+.IR "Teredo relay" ", as in " "cone" " mode. However, optimizations "
+for Teredo relaying behind a cone NAT are disabled.
+
+.BR "NOTE:" " NAT devices of type"
+.IR "symmetric" " are not supported by the " "Teredo protocol" "."
+.RB "Miredo " "cannot" " be used from behind that kind of NAT routers."
+
+.TP
+.BR "disabled" " mode"
+.RB "In " "disabled" " mode, the Teredo client/relay support of "
+.BR "Miredo" " is completely disabled."
+.RB "This mode is meant to be used with the " "ServerBindAddress"
+directive.
+
+
+.SH CLIENT OPTIONS
+.RI "The following directives are only available in " "client" " mode."
+
+.TP
+.BI "ServerAddress " "hostname"
+.RB "The " "ServerAddress" " directive specifies the hostname or "
+.RI "numerical IPv4 address of the " "Teredo server" " to use."
+.IR "Teredo clients" " needs a  " "Teredo server" " to establish and"
+maintain their IPv6 over UDP/IPv4 tunnel across a NAT device.
+
+.RB "This directive " "MUST" " be specified when Miredo is in"
+.IR "client" " mode. " "hostname" " must resolve to a valid IPv4"
+address.
+
+.TP
+.BR "DefaultRoute " "on/off"
+Enable or disable the creation of a default IPv6 route through the
+Teredo tunneling interface.
+.RB "Defaults to " "on" "."
+
+
+.SH RELAY OPTION
+.RI "The following directive is only available in " "cone" ", "
+.IR "restricted" " and " "disabled" " mode. They are not available in"
+.IR "client" " mode."
+
+.TP
+.BI "Prefix " "teredo_prefix"
+.RB "This directive specifies the " "Teredo prefix" " which the Teredo"
+relay and/or server will advertise.
+.IR "teredo_prefix" " must be a valid IPv6 prefix."
+
+.RB "Currently, the default value is " "3ffe:831f:: but it is subject"
+to change.
+
+.BR "Do not use that directive" " if you don't know what you are"
+doing, as it is more than likely to break your IPv6 connectivity.
 That option must not be used when Miredo serves as a Teredo client.
 
+.SH SERVER OPTION
+.RI "Miredo can also serve as a " "Teredo server" "."
+
+.RI "The following directive is only available in " "cone" " and "
+.IR "disabled" " mode. Miredo cannot serve as a Teredo client and "
+server at the same time. Additionnaly, it is not possible to run a
+Teredo server from behind a NAT.
+
 .TP
-.BR "\-i ifname" ", " "\-\-iface ifname"
+.BI "ServerBindAddress " "server_ip"
+.RI "Turn on " "Teredo server" " functionnality."
+With the above option, Miredo will bind to UDP/IPv4 port 3544 and waits
+for packets from Teredo clients. It will advertise the Teredo prefix
+.RB "which is defined with the " "Prefix" " directive."
+
+A Teredo server needs two subsequent IPv4 addresses. It will wait for
+UDP IPv4 packets on port 3544 on both addresses.
+.IR "server_ip" " specifies the lowest of both IPv4 addresses, which is"
+known as the primary IPv4 server address. The secondary IPv4 address
+.RB "is always " "server_ip + 1" " and must also be assigned to the "
+server.
+
+.SH GENERAL OPTIONS
+.TP
+.BI "InterfaceName " "ifname"
 Specify the name of the Teredo tunneling interface which Miredo will
-create ("teredo" by default). On some systems, it is not possible to
+create ("miredo" by default). On some systems, it is not possible to
 redefine the tunnel name.
 
 .TP
-.BR "\-p port" " or " "\-\-port port"
-Define the UDP (over IPv4) port number to be used by the relay or
-client (automatic by default).
+.BI "BindAddress " "bind_address"
+Bind the Teredo relay or Teredo client to a specific IPv4 address.
+By default, it is not bound to any particular IPv4 address.
+
+Use this option if you have trouble with the default value, such as if
+you have a multi-homed host with equal-cost IPv4 routing, or if you
+have specific firewalling constraints.
 
 .TP
-.BR "\-P prefix" " or " "\-\-prefix prefix"
-Override the Teredo prefix (3ffe:831f:: at the moment).
-.BR "Do not use that feature" " if you don't know what you are doing, "
-as it is more than likely to break your IPv6 connectivity.
-That option must not be used when Miredo serves as a Teredo client.
+.BI "BindPort " "udp_port"
+Define the UDP (IPv4) port number to be used by the relay or client.
+By default, the operating system allocates an unused port
+automatically.
+
+Use this option if you have firewalling constraints which can cause
+Miredo to fail when not using a fixed predefined port.
 
 .TP
-.BR "\-s server_ip" " or " "\-\-server server_ip"
-.RI "Turn on " "Teredo server mode" "."
-With this option, Miredo will behave as a Teredo server on IPv4, with
-.RB "primary IPv4 address " "server_ip" " and secondary IPv4 address"
-.RB "server_ip + 1" "."
-That option must not be used when Miredo serves as a Teredo client.
-
-.TP
-.BR "server name"
-Server name should be valid a IPv4 host name or IPv4 address. Miredo
-will try to qualify as a Teredo client with this Teredo server.
-This enable Miredo to serve as a Teredo client.
-.RB "It conflicts with options " "-C" "," "-P" " and " "-s" "."
+.BI "SyslogFacility " "facility"
+Specify which syslog's facility is to be used by Miredo for logging.
+.RB "Possible values are: " "daemon" " (the default), " "local0" ","
+.RB "... " "local7" ", " "kernel" " and " "user" " (see syslog(2))."
+\" FIXME: implement this
 
 .SH "SEE ALSO"
 miredo(8)
