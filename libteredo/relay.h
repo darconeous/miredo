@@ -1,6 +1,6 @@
 /*
  * relay.h - Teredo relay peers list declaration
- * $Id: relay.h,v 1.21 2004/08/27 16:21:10 rdenisc Exp $
+ * $Id: relay.h,v 1.22 2004/08/27 16:42:19 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -49,9 +49,9 @@ class TeredoRelay
 		{
 			struct timeval next, serv;
 			unsigned char nonce[8];
-			unsigned probe:2;
+			unsigned state:2;
 			unsigned count:3;
-		} state;
+		} probe;
 
 		struct __TeredoRelay_peer *head;
 

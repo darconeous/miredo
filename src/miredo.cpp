@@ -1,7 +1,7 @@
 /*
  * miredo.cpp - Unix Teredo server & relay implementation
  *              core functions
- * $Id: miredo.cpp,v 1.37 2004/08/27 16:21:10 rdenisc Exp $
+ * $Id: miredo.cpp,v 1.38 2004/08/27 16:42:19 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -400,6 +400,7 @@ miredo_run (uint16_t client_port, const char *server_name,
 			goto abort;
 		}
 
+		// TODO: check the server has a global unicast address(?)
 		try
 		{
 			relay = new MiredoRelay (fd, &tunnel, ipv4,
