@@ -4,20 +4,20 @@ $Id$
 
 Features:
 ----------
-- better startup error diagnostic
-  (e.g. when /dev/net/tun is not found).
-- help with chroot setup,
 - easy support for DNS resolution when chrooted,
 - fix connectivity loss detection,
 - some statistics,
 - fixed TODOs in source code,
 - better support for lossy IPv4 connectivity,
+- local Teredo discovery,
+- use of a config file, instead of command line options (XML?),
 
 Security:
 ----------
 - secure qualification support,
 - access control,
 - peer list size limit,
+- libcap / POSIX capabilities support,
 
 Conformance:
 -------------
@@ -38,8 +38,8 @@ Performance/scalibility:
 Portability:
 -------------
 - big-endianess/byte-alignment compatibility tests,
-- Solaris/NetBSD/OpenBSD compilation,
-- FreeBSD tunneling tests,
+- Darwin/Solaris/NetBSD/OpenBSD compilation,
+- FreeBSD routing tests,
 - libteredo on Windows (?)
 
 Compatibility:
@@ -52,9 +52,11 @@ Documentation & support:
 - custom INSTALL file,
 - init.d sample script,
 - RPM and Debian packaging,
+- support for creating a pid file,
 
 Re-usability:
 --------------
 - libteredo API stabilization,
 - thread-safety in libteredo,
 - libteredo C bindings.
+
