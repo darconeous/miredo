@@ -4,6 +4,10 @@ $Id$
 
 Features:
 ----------
+- better startup error diagnostic
+  (e.g. when /dev/net/tun is not found).
+- help with chroot setup,
+- easy support for DNS resolution when chrooted,
 - some statistics,
 - fixed TODOs in source code,
 - better support for lossy IPv4 connectivity,
