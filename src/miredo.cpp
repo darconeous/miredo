@@ -1,7 +1,7 @@
 /*
  * miredo.cpp - Unix Teredo server & relay implementation
  *              core functions
- * $Id: miredo.cpp,v 1.40 2004/08/28 10:36:50 rdenisc Exp $
+ * $Id: miredo.cpp,v 1.41 2004/08/28 12:29:26 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -274,23 +274,30 @@ miredo_run (uint16_t client_port, const char *server_name,
 
 	if (ifname == NULL)
 		ifname = "teredo";
-	if (prefix_name == NULL)
-		prefix_name = DEFAULT_TEREDO_PREFIX_STR":";
-
 
 	union teredo_addr prefix;
-	if (getipv6byname (prefix_name, &prefix.ip6))
+	if (mode & MIREDO_CLIENT)
+		memcpy (&prefix.ip6, &in6addr_any, sizeof (prefix.ip6));
+	else
 	{
-		syslog (LOG_ALERT,
-			_("Teredo IPv6 prefix not properly set."));
-		return -1;
-	}
+		if (prefix_name == NULL)
+			prefix_name = DEFAULT_TEREDO_PREFIX_STR":";
 
-	if (!is_valid_teredo_prefix (prefix.teredo.prefix))
-	{
-		syslog (LOG_ALERT,
-			_("Invalid Teredo IPv6 prefix: %s."), prefix_name);
-		return -1;
+
+		if (getipv6byname (prefix_name, &prefix.ip6))
+		{
+			syslog (LOG_ALERT,
+				_("Teredo IPv6 prefix not properly set."));
+			return -1;
+		}
+
+		if (!is_valid_teredo_prefix (prefix.teredo.prefix))
+		{
+			syslog (LOG_ALERT,
+				_("Invalid Teredo IPv6 prefix: %s."),
+				prefix_name);
+			return -1;
+		}
 	}
 
 	MiredoRelay *relay = NULL;
@@ -319,11 +326,8 @@ miredo_run (uint16_t client_port, const char *server_name,
 	 * Must be root to do that.
 	 * TODO: move SetMTU() to privsep, as it may be overriden by the
 	 * server if we're a client
-	 * TODO: move BringUp() to privileged process, not for security, but
-	 * to let the kernel know when the interface is really ready to
-	 * reveive packets (ie. after qualification in case of Teredo client).
 	 */
-	if (!tunnel || tunnel.SetMTU (1280) || tunnel.BringUp ())
+	if (!tunnel || tunnel.SetMTU (1280))
 	{
 		syslog (LOG_ALERT, _("Teredo tunnel setup failed."
 					" You should be root to do that."));
@@ -428,11 +432,9 @@ miredo_run (uint16_t client_port, const char *server_name,
 		}
 
 		/*
-		 * In this case, the privileged process is useless, since we won't
-		 * get an IPv6 Teredo address, and won't change our tunnel interface
-		 * IPv6 address.
-		 * FIXME: should (try to?) use the privileged process to set our
-		 * addres and _then_ close our pipe.
+		 * In this case, the privileged process is useless, since we
+		 * won't get an IPv6 Teredo address, and won't change our
+		 * tunnel interface IPv6 address.
 		 */
 		close (fd); // privileged process will exit
 		wait (NULL); // privileged process exited
