@@ -292,9 +292,9 @@ init_security (const char *username, const char *rootdir, int nodetach)
 		return -1;
 	}
 
-#ifdef MIREDO_DEFAULT_USERNAME
 	if (pw->pw_uid == 0)
 	{
+#ifdef MIREDO_DEFAULT_USERNAME
 		fputs (_("Error: This program is not supposed to keep root\n"
 			"privileges. That is potentially very dangerous\n"
 			"(all the more as it is beta quality code that has\n"
@@ -303,8 +303,12 @@ init_security (const char *username, const char *rootdir, int nodetach)
 			"source configure script with --disable-miredo-user\n"
 			"and recompile the program.\n"), stderr);
 		return -1;
-	}
+#else
+		fputs (_("Warning: This program was configured to retain\n"
+			"root privileges while running. That is potentially\n"
+			"very dangerous. PROCEED WITH CAUTION.\n"), stderr);
 #endif
+	}
 
 	unpriv_uid = pw->pw_uid;
 
