@@ -49,6 +49,11 @@ class TeredoPacket
 		struct teredo_orig_ind orig_buf;
 
 	public:
+		static int OpenSocket (uint32_t bind_ip, uint16_t port);
+		static int Send (int fd, const void *data, size_t len,
+					uint32_t ip, uint16_t port);
+		static void CloseSocket (int& fd);
+
 		/*
 		 * Receives and parses a Teredo packet from file descriptor
 		 * fd. This is not thread-safe (the object should be locked).

@@ -45,8 +45,8 @@
 /*
  * Opens a Teredo UDP/IPv4 socket.
  */
-static int
-OpenTeredoSocket (uint32_t bind_ip, uint16_t port)
+int
+TeredoPacket::OpenSocket (uint32_t bind_ip, uint16_t port)
 {
 	struct sockaddr_in myaddr;
 	memset (&myaddr, 0, sizeof (myaddr));
@@ -89,11 +89,22 @@ OpenTeredoSocket (uint32_t bind_ip, uint16_t port)
 }
 
 
-static int
-SendUDPPacket (int fd, const void *packet, size_t plen,
-		uint32_t dest_ip, uint16_t dest_port)
+void
+TeredoPacket::CloseSocket (int& fd)
 {
-	if (plen > 65507)
+	if (fd != -1)
+	{
+		close (fd);
+		fd = -1;
+	}
+}
+
+
+int
+TeredoPacket::Send (int fd, const void *packet, size_t plen,
+			uint32_t dest_ip, uint16_t dest_port)
+{
+	if ((plen > 65507) || (fd == -1))
 		return -1;
 
 	struct sockaddr_in nat_addr;
@@ -205,18 +216,16 @@ TeredoPacket::Receive (const fd_set *readset, int fd)
 #ifdef MIREDO_TEREDO_RELAY
 TeredoRelayUDP::~TeredoRelayUDP (void)
 {
-	if (fd != -1)
-		close (fd);
+	TeredoPacket::CloseSocket (fd);
 }
 
 
 int TeredoRelayUDP::ListenPort (uint16_t port, uint32_t ipv4)
 {
 	// Closes former socket:
-	if (fd != -1)
-		close (fd);
+	TeredoPacket::CloseSocket (fd);
 
-	fd = OpenTeredoSocket (ipv4, port);
+	fd = TeredoPacket::OpenSocket (ipv4, port);
 	return fd != -1 ? 0 : -1;
 }
 
@@ -234,9 +243,7 @@ int
 TeredoRelayUDP::SendPacket (const void *packet, size_t len,
 				uint32_t dest_ip, uint16_t dest_port) const
 {
-	return (fd != -1)
-		? SendUDPPacket (fd, packet, len, dest_ip, dest_port)
-		: -1;
+	return TeredoPacket::Send (fd, packet, len, dest_ip, dest_port);
 }
 
 
@@ -244,15 +251,14 @@ TeredoRelayUDP::SendPacket (const void *packet, size_t len,
 # ifdef MIREDO_TEREDO_CLIENT
 TeredoClientUDP::TeredoClientUDP (void)
 {
-	mfd = OpenTeredoSocket (htonl (TEREDO_DISCOVERY_IP),
-				htons (IPPORT_TEREDO));
+	mfd = TeredoPacket::OpenSocket (htonl (TEREDO_DISCOVERY_IP),
+					htons (IPPORT_TEREDO));
 }
 
 
 TeredoClientUDP::~TeredoClientUDP (void)
 {
-	if (mfd != -1)
-		close (mfd);
+	TeredoPacket::CloseSocket (mfd);
 }
 
 
@@ -273,10 +279,8 @@ TeredoClientUDP::RegisterReadSet (fd_set *readset) const
 #ifdef MIREDO_TEREDO_SERVER
 TeredoServerUDP::~TeredoServerUDP ()
 {
-	if (fd_primary != -1)
-		close (fd_primary);
-	if (fd_secondary != -1)
-		close (fd_secondary);
+	TeredoPacket::CloseSocket (fd_primary);
+	TeredoPacket::CloseSocket (fd_secondary);
 }
 
 
@@ -297,19 +301,17 @@ int TeredoServerUDP::ListenIP (uint32_t ip1, uint32_t ip2)
 		return -1;
 	}
 
-	if (fd_primary != -1)
-		close (fd_primary);
-	fd_primary = OpenTeredoSocket (ip1, htons (IPPORT_TEREDO));
+	TeredoPacket::CloseSocket (fd_primary);
+	TeredoPacket::CloseSocket (fd_secondary);
+
+	fd_primary = TeredoPacket::OpenSocket (ip1, htons (IPPORT_TEREDO));
 	if (fd_primary == -1)
 		return -1;
 
-	if (fd_secondary != -1)
-		close (fd_secondary);
-	fd_secondary = OpenTeredoSocket (ip2, htons (IPPORT_TEREDO));
+	fd_secondary = TeredoPacket::OpenSocket (ip2, htons (IPPORT_TEREDO));
 	if (fd_secondary == -1)
 	{
-		close (fd_primary);
-		fd_primary = -1;
+		TeredoPacket::CloseSocket (fd_primary);
 		return -1;
 	}
 
@@ -342,10 +344,8 @@ TeredoServerUDP::SendPacket (const void *packet, size_t len,
 				uint32_t dest_ip, uint16_t dest_port,
 				bool use_secondary_ip) const
 {
-	int fd = use_secondary_ip ? fd_secondary : fd_primary;
-
-	return (fd != -1)
-		? SendUDPPacket (fd, packet, len, dest_ip, dest_port)
-		: -1;
+	return TeredoPacket::Send (use_secondary_ip
+					? fd_secondary : fd_primary,
+					packet, len, dest_ip, dest_port);
 }
 #endif /* MIREDO_TEREDO_SERVER */
