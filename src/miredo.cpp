@@ -88,12 +88,6 @@
 static int should_exit;
 static int should_reload;
 
-/* 
- * The value of rootpid is defined to the PID of the permanent parent process
- * that reads the configuration before any signal handler is set.
- */
-static pid_t rootpid;
-
 /*
  * Pipe file descriptors (the right way to interrupt select() on Linux
  * from a signal handler, as pselect() is not supported).
@@ -427,7 +421,6 @@ InitSignals (void)
 {
 	struct sigaction sa;
 
-	rootpid = getpid ();
 	if (pipe (signalfd))
 	{
 		syslog (LOG_ALERT, _("pipe failed: %m"));
