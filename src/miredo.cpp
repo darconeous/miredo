@@ -1,7 +1,7 @@
 /*
  * miredo.cpp - Unix Teredo server & relay implementation
  *              core functions
- * $Id: miredo.cpp,v 1.32 2004/08/24 16:00:26 rdenisc Exp $
+ * $Id: miredo.cpp,v 1.33 2004/08/24 18:49:40 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -279,6 +279,13 @@ miredo_run (uint16_t client_port, const char *const *server_names,
 		return -1;
 	}
 
+	if (!is_valid_teredo_prefix (prefix.teredo.prefix))
+	{
+		syslog (LOG_ALERT,
+			_("Invalid Teredo IPv6 prefix: %s."), prefix_name);
+		return -1;
+	}
+
 	MiredoRelay *relay = NULL;
 	MiredoServer *server = NULL;
 	int fd = -1, retval = -1;
@@ -302,9 +309,11 @@ miredo_run (uint16_t client_port, const char *const *server_names,
 	IPv6Tunnel tunnel (ifname);
 
 	/*
-	 * Must be root to do that. It's best to set MTU and bring up now to
-	 * make sure we are root, rather than do it in the child privileged
-	 * process.
+	 * Must be root to do that. It's best to set MTU now to make sure we
+	 * are root, rather than do it in the child privileged process.
+	 * TODO: move BringUp() to privileged process, not for security, but
+	 * to let the kernel know when the interface is really ready to
+	 * reveive packets (ie. after qualification in case of Teredo client).
 	 */
 	if (!tunnel || tunnel.SetMTU (1280) || tunnel.BringUp ())
 	{
@@ -371,7 +380,6 @@ miredo_run (uint16_t client_port, const char *const *server_names,
 
 	// Sets up relay
 	// TODO: ability to not be a relay at all
-	// TODO: ability to use the other constructor, for Teredo client
 	try
 	{
 		relay = (mode & MIREDO_CLIENT)
