@@ -133,7 +133,7 @@ class TeredoRelayUDP
 		~TeredoRelayUDP (void);
 
 		// Not thread-safe (you MUST lock the object when calling):
-		int ListenPort (uint16_t port = 0);
+		int ListenPort (uint16_t port = 0, uint32_t ipv4 = 0);
 
 		// Thread safe functions:
 		int RegisterReadSet (fd_set *readset) const;

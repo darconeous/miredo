@@ -75,6 +75,7 @@ usage (void)
 "Usage: miredo [OPTION] [server name]...\n"
 "Creates a Teredo tunneling interface for encapsulation of IPv6.\n"
 "\n"
+"  -b, --bind       bind relay/client to a specific IPv4 address\n"
 "  -C, --cone       assume that we are relaying behind a cone NAT\n"
 "  -f, --foreground run in the foreground\n"
 "  -h, --help       display this help and exit\n"
@@ -361,7 +362,7 @@ int
 main (int argc, char *argv[])
 {
 	const char *server = NULL, *prefix = NULL, *ifname = NULL,
-			*username = NULL, *rootdir = NULL;
+			*username = NULL, *rootdir = NULL, *client_ip = NULL;
 	uint16_t client_port = 0;
 	struct
 	{
@@ -405,6 +406,10 @@ main (int argc, char *argv[])
 		{
 			case '?':
 				return quick_usage ();
+
+			case 'b':
+				ONETIME_SETTING (client_ip);
+				break;
 
 			case 'C':
 				flags.cone = 1;
@@ -537,9 +542,10 @@ main (int argc, char *argv[])
 	 * Run
 	 */
 	if (flags.manual
-			? miredo (client_port, server, prefix, ifname,
-					flags.cone)
-			: miredo_client (server, client_port, ifname))
+			? miredo (client_port, client_ip, server, prefix,
+					ifname, flags.cone)
+			: miredo_client (server, client_port, client_ip,
+						ifname))
 		return 1;
 	else
 		return 0;

@@ -247,7 +247,7 @@ getipv6byname (const char *name, struct in6_addr *ipv6)
 
 /*
  * Initialization stuff
- * (client_port is is host byte order)
+ * (bind_port is in host byte order)
  */
 uid_t unpriv_uid = 0;
 
@@ -256,13 +256,13 @@ uid_t unpriv_uid = 0;
 #define MIREDO_CONE   1
 
 static int
-miredo_run (uint16_t client_port, const char *server_name,
+miredo_run (uint16_t bind_port, const char *bind_ip, const char *server_name,
 		const char *prefix_name, const char *ifname, int mode)
 {
 	seteuid (unpriv_uid);
 
 	/* default values */
-	if (client_port == 0)
+	if (bind_port == 0)
 		/*
 		 * We use 3545 as a Teredo service port.
 		 * It is better to use a fixed port number for the
@@ -271,7 +271,9 @@ miredo_run (uint16_t client_port, const char *server_name,
 		 * often firewalled port, such as 1214 as it happened
 		 * to me once).
 		 */
-		client_port = IPPORT_TEREDO + 1;
+		bind_port = IPPORT_TEREDO + 1;
+	if (bind_ip == NULL)
+		bind_ip = "0.0.0.0";
 
 	// server_name may be NULL, this is legal
 
@@ -411,23 +413,30 @@ miredo_run (uint16_t client_port, const char *server_name,
 
 	// Sets up relay or client
 	// TODO: ability to not be a relay at all
-	client_port = htons (client_port);
+	bind_port = htons (bind_port);
+	uint32_t bind_ipv4;
+	if (getipv4byname (bind_ip, &bind_ipv4))
+	{
+		syslog (LOG_ALERT, _("Fatal bind IPv4 address error"));
+		goto abort;
+	}
 
 	if (mode & MIREDO_CLIENT)
 	{
 		// Sets up client
-		uint32_t ipv4;
+		uint32_t server_ipv4, bind_ipv4;
 
-		if (getipv4byname (server_name, &ipv4))
+		if (getipv4byname (server_name, &server_ipv4))
 		{
-			syslog (LOG_ALERT, _("Fatal configuration error"));
+			syslog (LOG_ALERT,
+				_("Fatal server IPv4 address error"));
 			goto abort;
 		}
 
 		try
 		{
-			relay = new MiredoRelay (fd, &tunnel, ipv4,
-						 client_port);
+			relay = new MiredoRelay (fd, &tunnel, server_ipv4,
+						 bind_port, bind_ipv4);
 		}
 		catch (...)
 		{
@@ -441,7 +450,7 @@ miredo_run (uint16_t client_port, const char *server_name,
 		{
 			relay = new MiredoRelay (&tunnel,
 						 prefix.teredo.prefix,
-						 client_port,
+						 bind_port, bind_ipv4,
 						 mode & MIREDO_CONE != 0);
 		}
 		catch (...)
@@ -460,7 +469,7 @@ miredo_run (uint16_t client_port, const char *server_name,
 	{
 		syslog (LOG_ALERT,
 			_("Teredo service port failure: "
-			"cannot open UDP port %u\n"), ntohs (client_port));
+			"cannot open UDP port %u\n"), ntohs (bind_port));
 		syslog (LOG_NOTICE, _("Make sure another instance "
 			"of the program is not already running."));
 		goto abort;
@@ -519,9 +528,9 @@ init_signals (void)
 static const char *const daemon_ident = "miredo";
 
 extern "C" int
-miredo_main (uint16_t client_port, const char *server_name,
-		const char *prefix_name, const char *ifname,
-		int mode)
+miredo_main (uint16_t client_port, const char *client_ip,
+		const char *server_name, const char *prefix_name,
+		const char *ifname, int mode)
 {
 	int facility = LOG_DAEMON;
 	openlog (daemon_ident, LOG_PID, facility);
@@ -563,7 +572,8 @@ miredo_main (uint16_t client_port, const char *server_name,
 
 			case 0:
 			{
-				retval = miredo_run (client_port, server_name,
+				retval = miredo_run (client_port, client_ip,
+							server_name,
 							prefix_name, ifname,
 							mode);
 				closelog ();
@@ -608,18 +618,18 @@ miredo_main (uint16_t client_port, const char *server_name,
 
 
 extern "C" int
-miredo (uint16_t client_port, const char *server_name,
+miredo (uint16_t relay_port, const char *relay_ip, const char *server_name,
 	const char *prefix_name, const char *ifname, int cone)
 {
-	return miredo_main (client_port, server_name, prefix_name, ifname,
-				cone ? MIREDO_CONE : 0);
+	return miredo_main (relay_port, relay_ip, server_name, prefix_name,
+				ifname, cone ? MIREDO_CONE : 0);
 }
 
 
 extern "C" int
 miredo_client (const char *server_name, uint16_t client_port,
-		const char *ifname)
+		const char *client_ip, const char *ifname)
 {
-	return miredo_main (client_port, server_name, NULL, ifname,
+	return miredo_main (client_port, client_ip, server_name, NULL, ifname,
 				MIREDO_CLIENT);
 }

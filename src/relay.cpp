@@ -38,15 +38,15 @@
 #include "relay.h"
 
 MiredoRelay::MiredoRelay (const IPv6Tunnel *tun, uint32_t prefix,
-				uint16_t port, bool cone)
-	: TeredoRelay (prefix, port, cone), tunnel (tun), priv_fd (-1)
+				uint16_t port, uint32_t ipv4, bool cone)
+	: TeredoRelay (prefix, port, ipv4, cone), tunnel (tun), priv_fd (-1)
 {
 }
 
 
 MiredoRelay::MiredoRelay (int fd, const IPv6Tunnel *tun, uint32_t server_ip,
-				uint16_t port)
-	: TeredoRelay (server_ip, port), tunnel (tun), priv_fd (fd)
+				uint16_t port, uint32_t ipv4)
+	: TeredoRelay (server_ip, port, ipv4), tunnel (tun), priv_fd (fd)
 {
 }
 

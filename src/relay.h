@@ -46,10 +46,11 @@ class MiredoRelay : public TeredoRelay
 
 	public:
 		MiredoRelay (const IPv6Tunnel *tun, uint32_t prefix,
-				uint16_t port = 0,
+				uint16_t port = 0, uint32_t ipv4 = 0,
 				bool cone = true);
 		MiredoRelay (int fd, const IPv6Tunnel *tun,
-				uint32_t server_ip, uint16_t port = 0);
+				uint32_t server_ip, uint16_t port = 0,
+				uint32_t ipv4 = 0);
 
 		//virtual void ~MiredoRelay (void);
 };

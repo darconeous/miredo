@@ -97,12 +97,9 @@ class TeredoRelay
 		 * If port is nul, the OS will choose an available UDP port
 		 * for communication. This is NOT a good idea if you are
 		 * behind a fascist firewall, as the port might be blocked.
-		 *
-		 * TODO: allow the caller to specify an IPv4 address to bind
-		 * to.
 		 */
 		TeredoRelay (uint32_t pref, uint16_t port /*= 0*/,
-				bool cone /*= true*/);
+				uint32_t ipv4 /* = 0 */, bool cone /*= true*/);
 
 		/*
 		 * Creates a Teredo client/relay automatically. The client
@@ -111,7 +108,8 @@ class TeredoRelay
 		 *
 		 * TODO: support for secure qualification
 		 */
-		TeredoRelay (uint32_t server_ip, uint16_t port = 0);
+		TeredoRelay (uint32_t server_ip, uint16_t port = 0,
+				uint32_t ipv4 = 0);
 
 	public:
 		virtual ~TeredoRelay ();

@@ -213,13 +213,13 @@ TeredoRelayUDP::~TeredoRelayUDP (void)
 }
 
 
-int TeredoRelayUDP::ListenPort (uint16_t port)
+int TeredoRelayUDP::ListenPort (uint16_t port, uint32_t ipv4)
 {
 	// Closes former socket:
 	if (fd != -1)
 		close (fd);
 
-	fd = OpenTeredoSocket (INADDR_ANY, port);
+	fd = OpenTeredoSocket (ipv4, port);
 	return fd != -1 ? 0 : -1;
 }
 

@@ -95,7 +95,8 @@ struct __TeredoRelay_peer
 #define QUALIFIED	0
 
 
-TeredoRelay::TeredoRelay (uint32_t pref, uint16_t port, bool cone)
+TeredoRelay::TeredoRelay (uint32_t pref, uint16_t port, uint32_t ipv4,
+				bool cone)
 	: server_ip2 (0), head (NULL)
 {
 	addr.teredo.prefix = pref;
@@ -105,11 +106,11 @@ TeredoRelay::TeredoRelay (uint32_t pref, uint16_t port, bool cone)
 	addr.teredo.client_port = 0;
 	probe.state = QUALIFIED;
 
-	sock.ListenPort (port);
+	sock.ListenPort (port, ipv4);
 }
 
 
-TeredoRelay::TeredoRelay (uint32_t server_ip, uint16_t port)
+TeredoRelay::TeredoRelay (uint32_t server_ip, uint16_t port, uint32_t ipv4)
 	: head (NULL)
 {
 	if (!is_ipv4_global_unicast (server_ip))
@@ -126,7 +127,7 @@ TeredoRelay::TeredoRelay (uint32_t server_ip, uint16_t port)
 	server_ip2 = htonl (ntohl (server_ip) + 1);
 
 	if (GenerateNonce (probe.nonce, true)
-	 && (sock.ListenPort (port) == 0))
+	 && (sock.ListenPort (port, ipv4) == 0))
 	{
 		probe.state = PROBE_CONE;
 		probe.count = 0;
