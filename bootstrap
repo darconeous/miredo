@@ -38,7 +38,7 @@ echo "You need GNU gettext version 0.12.1 or higher."
 exit 1
 }
 
-echo "Restoring CVS files ..."
+echo "Restoring SVN files ..."
 for f in m4/Makefile.am Makefile.am configure.ac; do
 	mv -f $f-svn $f
 done
