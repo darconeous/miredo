@@ -378,27 +378,30 @@ miredo_run (const struct miredo_conf *conf)
 		}
 	}
 
-	if (relay == NULL)
+	if (conf->mode != TEREDO_DISABLED)
 	{
-		syslog (LOG_ALERT, _("Teredo service failure"));
-		goto abort;
-	}
+		if (relay == NULL)
+		{
+			syslog (LOG_ALERT, _("Teredo service failure"));
+			goto abort;
+		}
 
-	if (!*relay)
-	{
-		if (conf->bind_port)
-			syslog (LOG_ALERT,
-				_("Teredo service port failure: "
-				"cannot open UDP port %u"),
-				(unsigned int)ntohs (conf->bind_port));
-		else
-			syslog (LOG_ALERT,
-				_("Teredo service port failure: "
-				"cannot open an UDP port"));
+		if (!*relay)
+		{
+			if (conf->bind_port)
+				syslog (LOG_ALERT,
+					_("Teredo service port failure: "
+					"cannot open UDP port %u"),
+					(unsigned int)ntohs (conf->bind_port));
+			else
+				syslog (LOG_ALERT,
+					_("Teredo service port failure: "
+					"cannot open an UDP port"));
 
-		syslog (LOG_NOTICE, _("Make sure another instance "
-			"of the program is not already running."));
-		goto abort;
+			syslog (LOG_NOTICE, _("Make sure another instance "
+				"of the program is not already running."));
+			goto abort;
+		}
 	}
 #endif /* ifdef MIREDO_TEREDO_RELAY */
 
