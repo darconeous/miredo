@@ -29,8 +29,6 @@
 
 # include "queue.h"
 
-#include <syslog.h> //FIXME: remove
-
 PacketsQueue::PacketsQueue (size_t maxbytes)
 	: max (maxbytes), left (maxbytes), head (NULL), tail (NULL)
 {
@@ -54,7 +52,6 @@ PacketsQueue::Queue (const void *p, size_t len)
 		return -1;
 	}
 
-	syslog (LOG_DEBUG, "DEBUG: queueing packet (%u bytes)", len);
 	memcpy (d, p, len);
 	e->data = d;
 	e->len = len;
@@ -96,7 +93,6 @@ PacketsQueue::Flush (void)
 	while (ptr != NULL)
 	{
 		retval |= (SendPacket (ptr->data, ptr->len) != (int)ptr->len);
-		syslog (LOG_DEBUG, "DEBUG: flushing packet (%u bytes)", ptr->len);
 
 		struct packet_list *buf = ptr->next;
 		free (ptr->data);
