@@ -526,7 +526,9 @@ _iface_route (const char *ifname, bool add,
 	req6.rtmsg_ifindex = if_nametoindex (ifname);
 	memcpy (&req6.rtmsg_dst, addr, sizeof (req6.rtmsg_dst));
 	req6.rtmsg_dst_len = (unsigned short)prefix_len;
-	req6.rtmsg_metric = 1;
+	/* By default, the Linux kernel's metric is 256 for subnets,
+	 * and 1024 for gatewayed route. */
+	req6.rtmsg_metric = 1024;
 	if (prefix_len == 128)
 		req6.rtmsg_flags |= RTF_HOST;
 	// no gateway
