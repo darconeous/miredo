@@ -202,6 +202,9 @@ IPv6Tunnel::IPv6Tunnel (const char *req_name) : fd (-1), ifname (NULL)
  */
 IPv6Tunnel::~IPv6Tunnel ()
 {
+	if (ifname != NULL)
+		syslog (LOG_INFO, _("Tunneling interface %s removed"),
+			ifname);
 	CleanUp ();
 }
 
@@ -222,8 +225,6 @@ void IPv6Tunnel::CleanUp ()
 	
 	if (ifname != NULL)
 	{
-		syslog (LOG_INFO, _("Tunneling interface %s removed"),
-			ifname);
 		free (ifname);
 		ifname = NULL;
 	}
