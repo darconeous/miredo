@@ -27,7 +27,11 @@
 
 #include <stdio.h>
 #include <stdlib.h> // malloc(), free()
-#include <stdint.h>
+#if HAVE_STDINT_H
+# include <stdint.h>
+#elif HAVE_INTTYPES_H
+# include <inttypes.h>
+#endif
 #include <string.h>
 #define stricmp( a, b ) strcasecmp( a, b )
 #include <syslog.h>
