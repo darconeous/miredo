@@ -1,6 +1,6 @@
 /*
  * relay.cpp - Teredo relay peers list definition
- * $Id: relay.cpp,v 1.29 2004/08/28 10:36:50 rdenisc Exp $
+ * $Id: relay.cpp,v 1.30 2004/08/28 11:51:20 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -638,6 +638,7 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 
 		union teredo_addr newaddr;
 
+		newaddr.teredo.server_ip = GetServerIP ();
 		if (!ParseRA (packet, &newaddr, probe.state == PROBE_CONE))
 			return 0;
 
@@ -674,10 +675,12 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 				gettext (probe.state == PROBE_CONE
 				? N_("cone") : N_("restricted")));
 			probe.state = QUALIFIED;
+			syslog (LOG_DEBUG, "DEBUG Prefix: %lx", ntohl (newaddr.teredo.prefix));
+			NotifyUp (&newaddr.ip6);
 		}
 
 		memcpy (&addr, &newaddr, sizeof (addr));
-		return NotifyUp (&addr.ip6);
+		return 0;
 	}
 
 	/*

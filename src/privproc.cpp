@@ -1,6 +1,6 @@
 /*
  * privproc.cpp - Privileged process for Miredo
- * $Id: privproc.cpp,v 1.4 2004/08/26 10:20:48 rdenisc Exp $
+ * $Id: privproc.cpp,v 1.5 2004/08/28 11:51:21 rdenisc Exp $
  */
 
 /***********************************************************************
@@ -101,7 +101,7 @@ miredo_privileged_process (IPv6Tunnel& tunnel,
 			seteuid (0);
 			if (memcmp (&oldter, &in6addr_any, sizeof (oldter)))
 				tunnel.DelAddress (&oldter, 32);
-			if (memcpy (&newter, &in6addr_any, sizeof (newter)))
+			if (memcmp (&newter, &in6addr_any, sizeof (newter)))
 				tunnel.AddAddress (&newter, 32);
 			seteuid (unpriv);
 
