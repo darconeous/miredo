@@ -1,6 +1,6 @@
 /*
  * privproc.cpp - Privileged process for Miredo
- * $Id: privproc.cpp,v 1.3 2004/08/18 09:42:35 rdenisc Exp $
+ * $Id: privproc.cpp,v 1.4 2004/08/26 10:20:48 rdenisc Exp $
  */
 
 /***********************************************************************
@@ -99,8 +99,10 @@ miredo_privileged_process (IPv6Tunnel& tunnel,
 		{
 			// TODO: create a default route for client?
 			seteuid (0);
-			tunnel.DelAddress (&oldter, 32);
-			tunnel.AddAddress (&newter, 32);
+			if (memcmp (&oldter, &in6addr_any, sizeof (oldter)))
+				tunnel.DelAddress (&oldter, 32);
+			if (memcpy (&newter, &in6addr_any, sizeof (newter)))
+				tunnel.AddAddress (&newter, 32);
 			seteuid (unpriv);
 
 			memcpy (&oldter, &newter, sizeof (oldter));
