@@ -1,6 +1,6 @@
 /*
  * relay.cpp - Teredo relay peers list definition
- * $Id: relay.cpp,v 1.7 2004/08/17 17:31:14 rdenisc Exp $
+ * $Id: relay.cpp,v 1.8 2004/08/22 15:19:32 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -75,7 +75,7 @@ struct __TeredoRelay_peer
 
 
 TeredoRelay::TeredoRelay (uint32_t pref, uint16_t port)
-	: is_cone (true), prefix (pref), head (NULL)
+	: is_cone (true), prefix (pref), server_ip (0), head (NULL)
 {
 	sock.ListenPort (port);
 }
@@ -165,7 +165,7 @@ int TeredoRelay::SendBubble (const union teredo_addr *dst,
 {
 	uint32_t ip;
 	uint16_t port;
-	
+
 	if (indirect)
 	{
 		ip = dst->teredo.server_ip;
@@ -209,7 +209,8 @@ inline bool IsBubble (const struct ip6_hdr *hdr)
 
 /*
  * Handles a packet coming from the IPv6 Internet, toward a Teredo node
- * (as specified per paragraph 5.4.1).
+ * (as specified per paragraph 5.4.1). That's what the specification calls
+ * "Packet transmission".
  * Returns 0 on success, -1 on error.
  */
 int TeredoRelay::SendPacket (const void *packet, size_t length)
@@ -326,10 +327,10 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
 
 /*
  * Handles a packet coming from the Teredo tunnel
- * (as specified per paragraph 5.4.2).
+ * (as specified per paragraph 5.4.2). That's called "Packet reception".
  * Returns 0 on success, -1 on error.
  */
-int TeredoRelay::ProcessTunnelPacket (void)
+int TeredoRelay::ReceivePacket (void)
 {
 	if (sock.ReceivePacket ())
 		return -1;

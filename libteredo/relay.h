@@ -1,6 +1,6 @@
 /*
  * relay.h - Teredo relay peers list declaration
- * $Id: relay.h,v 1.7 2004/08/17 17:31:14 rdenisc Exp $
+ * $Id: relay.h,v 1.8 2004/08/22 15:19:32 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -42,7 +42,7 @@ class TeredoRelay
 	private:
 		/*** Internal stuff ***/
 		bool is_cone;
-		uint32_t prefix;
+		uint32_t prefix, server_ip;
 
 		struct __TeredoRelay_peer *head;
 
@@ -124,7 +124,7 @@ class TeredoRelay
 		/*
 		 * Receives a packet from Teredo to IPv6 Internet.
 		 */
-		int ProcessTunnelPacket (void);
+		int ReceivePacket (void);
 
 		/*
 		 * Returns true if the relay/client is behind a cone NAT.
