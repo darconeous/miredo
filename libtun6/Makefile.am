@@ -1,5 +1,5 @@
-# Makefile.am - master Makefile for miredo
-# $Id: Makefile.am,v 1.4 2004/06/27 15:27:12 rdenisc Exp $
+# Makefile.am - libtun6/ directory Makefile for miredo
+# $Id: Makefile.am,v 1.1 2004/06/27 15:27:12 rdenisc Exp $
 
 # ***********************************************************************
 # *  Copyright (C) 2004 Remi Denis-Courmont.                            *
@@ -17,9 +17,8 @@
 # *  http://www.gnu.org/copyleft/gpl.html                               *
 # ***********************************************************************
 
-SUBDIRS = m4 include libtun6 src
-man8_MANS = miredo.8
-EXTRA_DIST = $(man8_MANS)
-# doc -- it might not be a good idea to include the doc directory inside
-#        official releases.
-ACLOCAL_AMFLAGS = -I m4
+noinst_LIBRARIES = libtun6.a
+
+# libtun6.a
+libtun6_a_SOURCES = ipv6-tunnel.cpp ipv6-tunnel.h
+

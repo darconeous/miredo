@@ -1,6 +1,6 @@
 /*
  * common_pkt.cpp - Common server and relay functions
- * $Id: common_pkt.cpp,v 1.4 2004/06/26 15:24:26 rdenisc Exp $
+ * $Id: common_pkt.cpp,v 1.5 2004/06/27 15:27:12 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -27,7 +27,7 @@
 #endif
 
 #include "teredo-udp.h"
-#include "ipv6-tunnel.h"
+#include "libtun6/ipv6-tunnel.h"
 #include "common_pkt.h"
 
 #include <syslog.h> // DEBUG

@@ -1,5 +1,5 @@
 # Makefile.am - src/ directory Makefile for miredo
-# $Id: Makefile.am,v 1.2 2004/06/14 21:52:32 rdenisc Exp $
+# $Id: Makefile.am,v 1.3 2004/06/27 15:27:12 rdenisc Exp $
 
 # ***********************************************************************
 # *  Copyright (C) 2004 Remi Denis-Courmont.                            *
@@ -17,7 +17,7 @@
 # *  http://www.gnu.org/copyleft/gpl.html                               *
 # ***********************************************************************
 
-AM_CPPFLAGS = -I@top_srcdir@/include
+AM_CPPFLAGS = -I@top_srcdir@/include -I@top_srcdir@
 
 sbin_PROGRAMS = miredo
 
@@ -34,8 +34,8 @@ sbin_PROGRAMS = miredo
 # miredo
 miredo_SOURCES = ../include/teredo.c main.c miredo.cpp miredo.h \
 			teredo-udp.cpp teredo-udp.h \
-			ipv6-tunnel.cpp ipv6-tunnel.h \
 			relay.cpp relay.h \
 			server_pkt.h server_pkt.cpp \
 			common_pkt.h common_pkt.cpp
+miredo_LDADD = ../libtun6/libtun6.a
 

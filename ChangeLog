@@ -1,7 +1,13 @@
 2004-06-27  Remi Denis-Courmont
 
 	* include/teredo.c:
-	- allow unknown Teredo address flags, as specified per new draft 02.
+	- allow unknown Teredo address flags, as specified per new draft 02,
+	* src/relay.cpp, src/server_pkt.cpp:
+	- check that destination matches 2000:/3 before transmitting,
+	* libtun6/ipv6-tunnel.cpp, libtun6/ipv6-tunnel.h:
+	- sanity checks,
+	- fix byte ordering for sending/receiving packets on FreeBSD,
+	- separated from Miredo's own sources.
 
 2004-06-26  Remi Denis-Courmont
 

@@ -1,6 +1,6 @@
 /*
  * relay.cpp - Teredo relay peers list definition
- * $Id: relay.cpp,v 1.7 2004/06/27 10:25:24 rdenisc Exp $
+ * $Id: relay.cpp,v 1.8 2004/06/27 15:27:12 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -39,7 +39,7 @@
 #include <teredo.h>
 
 #include "relay.h"
-#include "ipv6-tunnel.h"
+#include "libtun6/ipv6-tunnel.h"
 #include "teredo-udp.h"
 #include "common_pkt.h" // is_ipv4_global_unicast()
 

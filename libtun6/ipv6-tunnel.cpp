@@ -1,6 +1,6 @@
 /*
  * ipv6-tunnel.cpp - IPv6 interface class definition
- * $Id: ipv6-tunnel.cpp,v 1.15 2004/06/26 19:55:28 rdenisc Exp $
+ * $Id: ipv6-tunnel.cpp,v 1.1 2004/06/27 15:27:12 rdenisc Exp $
  */
 
 /***********************************************************************
@@ -24,7 +24,7 @@
 #endif
 
 #include <string.h>
-#include <stdlib.h>
+#include <stdlib.h> // free()
 #include <inttypes.h>
 
 #include <sys/types.h>
@@ -101,7 +101,7 @@ secure_strncpy (char *tgt, const char *src, size_t len)
 /*
  * Allocates a tunnel network interface from the kernel
  */
-IPv6Tunnel::IPv6Tunnel (const char *req_name) : fd (-1)
+IPv6Tunnel::IPv6Tunnel (const char *req_name) : fd (-1), ifname (NULL)
 {
 #if defined (TUNSETIFF)
 	/*
@@ -184,7 +184,6 @@ IPv6Tunnel::IPv6Tunnel (const char *req_name) : fd (-1)
 #else
 # error No tunneling driver implemented on your platform!
 #endif
-
 	if (fd != -1)
 		syslog (LOG_INFO, _("Tunneling interface %s created"),
 			ifname);
@@ -201,9 +200,13 @@ IPv6Tunnel::~IPv6Tunnel ()
 	if (fd != -1)
 	{
 		SetState (false);
+		close (fd);
+	}
+	
+	if (ifname != NULL)
+	{
 		syslog (LOG_INFO, _("Tunneling interface %s removed"),
 			ifname);
-		close (fd);
 		free (ifname);
 	}
 }
@@ -220,6 +223,9 @@ IPv6Tunnel::~IPv6Tunnel ()
 int
 IPv6Tunnel::SetState (bool up) const
 {
+	if (ifname == NULL)
+		return -1;
+
 	int reqfd = socket_udp6 ();
 	if (reqfd == -1)
 		return -1;
@@ -298,6 +304,9 @@ static int
 _iface_addr (const char *ifname, bool add,
 		const struct in6_addr *addr, unsigned prefix_len)
 {
+	if (ifname == NULL)
+		return -1;
+
 	if (prefix_len > 128)
 	{
 		syslog (LOG_ERR, _("IPv6 prefix length too long: %d"),
@@ -415,6 +424,9 @@ static int
 _iface_route (const char *ifname, bool add,
 		const struct in6_addr *addr, unsigned prefix_len)
 {
+	if (ifname == NULL)
+		return -1;
+
 	if (prefix_len < 0)
 		return -1;
 
@@ -460,20 +472,19 @@ _iface_route (const char *ifname, bool add,
 	if (s != -1)
 	{
 		shutdown (s, 0);
-		
-		const unsigned length = sizeof (rt_msghdr)
-					+ 2 * sizeof (struct sockaddr_in6)
-					+ 2 * sizeof (struct sockaddr_dl);
 
-		struct rt_msghdr *msg = (struct rt_msghdr *)malloc (length);
-		uint8_t *ptr = (uint8_t *)msg;
+		uint8_t buf[sizeof (rt_msghdr)
+					+ 2 * sizeof (struct sockaddr_in6)
+					+ 2 * sizeof (struct sockaddr_dl)];
+
+		uint8_t *ptr = buf;
 
 		{
 			static int rtm_seq = 0;
 			struct rt_msghdr hdr;
 
 			memset (&hdr, 0, sizeof (hdr));
-			hdr.rtm_msglen =  length;
+			hdr.rtm_msglen = sizeof (buf);
 			hdr.rtm_version = RTM_VERSION;
 			hdr.rtm_type = add ? RTM_ADD : RTM_DELETE;
 			hdr.rtm_index = if_nametoindex (ifname);
@@ -516,7 +527,8 @@ _iface_route (const char *ifname, bool add,
 
 		errno = 0;
 
-		if ((write (s, msg, length) == length) && (errno == 0))
+		if ((write (s, buf, sizeof (buf)) == sizeof (buf))
+		 && (errno == 0))
 			retval = 0;
 		else
 			syslog (LOG_ERR, _("PF_ROUTE error: %m"));
@@ -614,6 +626,9 @@ IPv6Tunnel::DelRoute (const struct in6_addr *addr, unsigned prefix_len) const
 int
 IPv6Tunnel::SetMTU (unsigned mtu) const
 {
+	if (ifname == NULL)
+		return -1;
+
 	if (mtu < 1280)
 	{
 		syslog (LOG_ERR, _("IPv6 MTU too small (<1280): %u"), mtu);
@@ -694,13 +709,8 @@ IPv6Tunnel::ReceivePacket (const fd_set *readset)
 	/* FreeBSD driver */
 	uint32_t af;
 	memcpy (&af, pbuf, 4);
-	if (af != AF_INET6)
-	{
-		// FIXME: remove this:
-		syslog (LOG_DEBUG, "Not an IPv6 packet (%08x instead of %08x)",
-			af, AF_INET6);
+	if (af != htonl (AF_INET6))
 		return -1;
-	}
 	
 #endif
 
@@ -730,7 +740,7 @@ IPv6Tunnel::SendPacket (const void *packet, size_t len) const
 
 #elif defined (TUNSIFHEAD)
 		/* FreeBSD tunnel driver */
-		uint32_t af = AF_INET6; // FIXME: is it htonl (AF_INET6) ?
+		uint32_t af = htonl (AF_INET6);
 
 		memcpy (buf, &af, 4);
 

@@ -1,6 +1,6 @@
 /*
  * ipv6-tunnel.h - IPv6 interface class declaration
- * $Id: ipv6-tunnel.h,v 1.7 2004/06/24 19:16:14 rdenisc Exp $
+ * $Id: ipv6-tunnel.h,v 1.1 2004/06/27 15:27:12 rdenisc Exp $
  */
 
 /***********************************************************************
@@ -48,7 +48,7 @@ class IPv6Tunnel
 
 		int operator! (void)
 		{
-			return fd == -1;
+			return (fd == -1) || (ifname == NULL);
 		}
 
 		int SetState (bool up) const;
@@ -101,6 +101,7 @@ class IPv6Tunnel
 		/*
 		 * Returns a pointer to the last received packet
 		 * (by ReceivePacket()).
+		 * UNDEFINED if no packet received so far.
 		 */
 		const uint8_t *GetPacket (size_t& length) const
 		{

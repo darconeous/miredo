@@ -1,7 +1,7 @@
 /*
  * miredo.cpp - Unix Teredo server & relay implementation
  *              core functions
- * $Id: miredo.cpp,v 1.14 2004/06/26 19:55:33 rdenisc Exp $
+ * $Id: miredo.cpp,v 1.15 2004/06/27 15:27:12 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -46,7 +46,7 @@
 #include "miredo.h" // FIXME: remove conf
 #include "teredo.h" // FIXME: move AddRoute to <relay.cpp>
 #include "teredo-udp.h"
-#include "ipv6-tunnel.h"
+#include "libtun6/ipv6-tunnel.h"
 #include "server_pkt.h"
 #include "common_pkt.h" // is_ipv4_global_unicast() -- FIXME: code clean up
 #include "relay.h"
