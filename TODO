@@ -5,6 +5,8 @@ $Id$
 Features:
 ----------
 - fix connectivity loss detection,
+- support for specifying server from the command line,
+- support for specifying multiples servers for redumdancy,
 - some statistics,
 - fixed TODOs in source code,
 - better support for lossy IPv4 connectivity,
