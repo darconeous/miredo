@@ -1,11 +1,11 @@
 RELEASE NOTES for Miredo
-version 0.1.2 (beta version)
+version 0.2.0 (beta version)
 =============================
-$Id: NEWS,v 1.5 2004/08/29 19:28:03 rdenisc Exp $
+$Id$
 
   This is an early release of the program. It is not finished and might not
 work properly. It is not suited for use in production environment.
-Users of the previous initial release 0.1.0 are encouraged to upgrade.
+Users of previous releases 0.1.x are encouraged to upgrade.
 
   There are no known issues at the moment, but missing features. Please
 report any problem by email at address :
@@ -18,7 +18,7 @@ changes, run 'miredo -h' to get help. For detailled internal changes, see
 ChangeLog.
 
 =============================================================================
-ALPHA RELEASE 0.1.2 : Major feature enhancement
+BETA RELEASE 0.2.0 : Major feature enhancement
 
 # Ability to run as a Teredo client:
     Miredo can now server as a Teredo client. It will set up its Teredo
