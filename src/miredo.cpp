@@ -262,6 +262,7 @@ miredo_run (uint16_t bind_port, const char *bind_ip, const char *server_name,
 	seteuid (unpriv_uid);
 
 	/* default values */
+#if 0
 	if (bind_port == 0)
 		/*
 		 * We use 3545 as a Teredo service port.
@@ -272,6 +273,7 @@ miredo_run (uint16_t bind_port, const char *bind_ip, const char *server_name,
 		 * to me once).
 		 */
 		bind_port = IPPORT_TEREDO + 1;
+#endif
 	if (bind_ip == NULL)
 		bind_ip = "0.0.0.0";
 
