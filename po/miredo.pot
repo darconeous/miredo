@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: rdenis@simphalempin.com\n"
-"POT-Creation-Date: 2004-11-01 18:07+0100\n"
+"POT-Creation-Date: 2004-11-01 18:39+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,281 +16,281 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: libteredo/teredo-udp.cpp:61
+#: libteredo/teredo-udp.cpp:63
 #, c-format
 msgid "Fatal socket error: %m\n"
 msgstr ""
 
-#: libteredo/teredo-udp.cpp:67
+#: libteredo/teredo-udp.cpp:69
 #, c-format
 msgid "Fatal bind error: %m\n"
 msgstr ""
 
-#: libteredo/teredo-udp.cpp:103
+#: libteredo/teredo-udp.cpp:105
 #, c-format
 msgid "Couldn't send UDP packet: %m\n"
 msgstr ""
 
-#: libteredo/teredo-udp.cpp:108
+#: libteredo/teredo-udp.cpp:110
 #, c-format
 msgid "UDP packet shortened: sent %d bytes instead of %u\n"
 msgstr ""
 
-#: libteredo/teredo-udp.cpp:138
+#: libteredo/teredo-udp.cpp:140
 #, c-format
 msgid "Error receiving UDP packet: %m\n"
 msgstr ""
 
-#: libteredo/teredo-udp.cpp:271
+#: libteredo/teredo-udp.cpp:273
 msgid ""
 "Teredo server UDP socket error: Server IPv4 addresses must be global unicast."
 msgstr ""
 
-#: libteredo/teredo-udp.cpp:278
+#: libteredo/teredo-udp.cpp:280
 msgid ""
 "Teredo server UDP socket error: Server IPv4 addresses must not be wildcard.\n"
 msgstr ""
 
-#: libteredo/relay.cpp:175
+#: libteredo/relay.cpp:177
 msgid "Server as a non global IPv4 address. It will most likely not work."
 msgstr ""
 
-#: libteredo/relay.cpp:535
+#: libteredo/relay.cpp:537
 msgid "Authentication refused by server."
 msgstr ""
 
-#: libteredo/relay.cpp:565
+#: libteredo/relay.cpp:567
 msgid "Unsupported symmetric NAT detected."
 msgstr ""
 
-#: libteredo/relay.cpp:577
+#: libteredo/relay.cpp:579
 #, c-format
 msgid "Qualified (NAT type: %s)"
 msgstr ""
 
-#: libteredo/relay.cpp:579
+#: libteredo/relay.cpp:581
 msgid "cone"
 msgstr ""
 
-#: libteredo/relay.cpp:579 src/main.c:555
+#: libteredo/relay.cpp:581 src/main.c:563
 msgid "restricted"
 msgstr ""
 
-#: libteredo/relay.cpp:618
+#: libteredo/relay.cpp:620
 msgid "Teredo address changed"
 msgstr ""
 
-#: libteredo/relay.cpp:929
+#: libteredo/relay.cpp:931
 msgid "Lost Teredo connectivity"
 msgstr ""
 
-#: libteredo/server.cpp:218
+#: libteredo/server.cpp:220
 #, c-format
 msgid "Router Advertisement sent to %s (%s)\n"
 msgstr ""
 
-#: libteredo/server.cpp:220
+#: libteredo/server.cpp:222
 msgid "cone flag set"
 msgstr ""
 
-#: libteredo/server.cpp:221
+#: libteredo/server.cpp:223
 msgid "cone flag not set"
 msgstr ""
 
-#: libteredo/security.cpp:50
+#: libteredo/security.cpp:52
 #, c-format
 msgid "Error reading %s: %m"
 msgstr ""
 
-#: libteredo/packets.cpp:307
+#: libteredo/packets.cpp:309
 msgid "Invalid Teredo prefix received"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:138
+#: libtun6/ipv6-tunnel.cpp:140
 #, c-format
 msgid "IPv6 stack not available: %m"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:165
+#: libtun6/ipv6-tunnel.cpp:167
 #, c-format
 msgid "Tunneling driver error (%s): %m"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:179
+#: libtun6/ipv6-tunnel.cpp:181
 #, c-format
 msgid "Tunnel error (TUNSETIFF): %m"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:215
+#: libtun6/ipv6-tunnel.cpp:217
 #, c-format
 msgid "Tunnel error (SIOCSIFNAME): %m"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:229
+#: libtun6/ipv6-tunnel.cpp:231
 #, c-format
 msgid "%s tunnel error (TUNSIFHEAD): %m"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:243
+#: libtun6/ipv6-tunnel.cpp:245
 #, c-format
 msgid "%s tunneling interface %s created"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:246
+#: libtun6/ipv6-tunnel.cpp:248
 #, c-format
 msgid "%s tunneling interface creation failure"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:259
+#: libtun6/ipv6-tunnel.cpp:261
 #, c-format
 msgid "Tunneling interface %s removed"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:311
+#: libtun6/ipv6-tunnel.cpp:313
 #, c-format
 msgid "Tunnel error (SIOCGIFFLAGS): %m"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:333
+#: libtun6/ipv6-tunnel.cpp:335
 #, c-format
 msgid "%s tunnel error (SIOCSIFFLAGS): %m"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:384 libtun6/ipv6-tunnel.cpp:508
+#: libtun6/ipv6-tunnel.cpp:386 libtun6/ipv6-tunnel.cpp:510
 #, c-format
 msgid "IPv6 prefix length too long: %u"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:453
+#: libtun6/ipv6-tunnel.cpp:455
 #, c-format
 msgid ""
 "%s tunnel address setup not supported.\n"
 "Please do it manually."
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:465
+#: libtun6/ipv6-tunnel.cpp:467
 msgid "[unknown_address]"
-msgstr ""
-
-#: libtun6/ipv6-tunnel.cpp:475
-#, c-format
-msgid "%s tunnel address %s/%u setup error: %m"
 msgstr ""
 
 #: libtun6/ipv6-tunnel.cpp:477
 #, c-format
-msgid "%s tunnel address %s/%u removal error: %m"
+msgid "%s tunnel address %s/%u setup error: %m"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:484
+#: libtun6/ipv6-tunnel.cpp:479
 #, c-format
-msgid "%s tunnel address added: %s/%u"
+msgid "%s tunnel address %s/%u removal error: %m"
 msgstr ""
 
 #: libtun6/ipv6-tunnel.cpp:486
 #, c-format
+msgid "%s tunnel address added: %s/%u"
+msgstr ""
+
+#: libtun6/ipv6-tunnel.cpp:488
+#, c-format
 msgid "%s tunnel address deleted: %s/%u"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:609
+#: libtun6/ipv6-tunnel.cpp:611
 #, c-format
 msgid "PF_ROUTE error: %m"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:623
+#: libtun6/ipv6-tunnel.cpp:625
 msgid "Setting a route on FreeBSD does not work fine. Please do it by hand."
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:631
+#: libtun6/ipv6-tunnel.cpp:633
 #, c-format
 msgid "socket (PF_ROUTE) error: %m"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:633
+#: libtun6/ipv6-tunnel.cpp:635
 #, c-format
 msgid ""
 "%s tunnel route setup not supported.\n"
 "Please do it manually."
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:640
+#: libtun6/ipv6-tunnel.cpp:642
 msgid "[unknown_route]"
-msgstr ""
-
-#: libtun6/ipv6-tunnel.cpp:650
-#, c-format
-msgid "%s tunnel route %s/%u setup error: %m"
 msgstr ""
 
 #: libtun6/ipv6-tunnel.cpp:652
 #, c-format
-msgid "%s tunnel route %s/%u removal error: %m"
+msgid "%s tunnel route %s/%u setup error: %m"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:659
+#: libtun6/ipv6-tunnel.cpp:654
 #, c-format
-msgid "%s tunnel route set: %s/%u"
+msgid "%s tunnel route %s/%u removal error: %m"
 msgstr ""
 
 #: libtun6/ipv6-tunnel.cpp:661
 #, c-format
+msgid "%s tunnel route set: %s/%u"
+msgstr ""
+
+#: libtun6/ipv6-tunnel.cpp:663
+#, c-format
 msgid "%s tunnel route removed: %s/%u"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:709
+#: libtun6/ipv6-tunnel.cpp:711
 #, c-format
 msgid "IPv6 MTU too small (<1280): %u"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:714
+#: libtun6/ipv6-tunnel.cpp:716
 #, c-format
 msgid "IPv6 MTU too big (>65535): %u"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:729
+#: libtun6/ipv6-tunnel.cpp:731
 #, c-format
 msgid "%s tunnel MTU error (SIOCSIFMTU): %m"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:735
+#: libtun6/ipv6-tunnel.cpp:737
 #, c-format
 msgid "%s tunnel MTU set to %u"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:793
+#: libtun6/ipv6-tunnel.cpp:795
 #, c-format
 msgid "Cannot receive packet: %m"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:801
+#: libtun6/ipv6-tunnel.cpp:803
 msgid "Received packet too short"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:828
+#: libtun6/ipv6-tunnel.cpp:830
 #, c-format
 msgid "Packet of %u bytes too big."
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:859
+#: libtun6/ipv6-tunnel.cpp:861
 #, c-format
 msgid "Cannot send packet to tunnel: %m"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:868
+#: libtun6/ipv6-tunnel.cpp:870
 msgid "Sent packet too short"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:874
+#: libtun6/ipv6-tunnel.cpp:876
 #, c-format
 msgid "Packet truncated to %d byte(s)"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:902
+#: libtun6/ipv6-tunnel.cpp:904
 #, c-format
 msgid "Error: %s character device not found or unavailable.\n"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:906
+#: libtun6/ipv6-tunnel.cpp:908
 msgid ""
 "You should run these commands to create it :\n"
 "# mkdir -p /dev/net\n"
@@ -298,36 +298,36 @@ msgid ""
 "(you must be root to do that).\n"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:913 libtun6/ipv6-tunnel.cpp:938
+#: libtun6/ipv6-tunnel.cpp:915 libtun6/ipv6-tunnel.cpp:940
 msgid ""
 "You can obtain a tunnel device for the Darwin kernel (Mac OS X) from :\n"
 "http://chrisp.de/en/projects/tunnel.html\n"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:926
+#: libtun6/ipv6-tunnel.cpp:928
 msgid ""
 "Error: your operating system does not seem to provide a network tunnneling\n"
 "device driver, which is required.\n"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:932
+#: libtun6/ipv6-tunnel.cpp:934
 msgid ""
 "Make sure your Linux kernel includes the \"Universal TUNTAP driver\"\n"
 "(CONFIG_TUN option), possibly as a module.\n"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:948
+#: libtun6/ipv6-tunnel.cpp:950
 #, c-format
 msgid ""
 "Error: cannot open device file %s (%s)\n"
 "IPv6 tunneling will not work.\n"
 msgstr ""
 
-#: src/main.c:67
+#: src/main.c:71
 msgid "Try `miredo -h | more' for more information.\n"
 msgstr ""
 
-#: src/main.c:76
+#: src/main.c:80
 msgid ""
 "Usage: miredo [OPTION] [server name]...\n"
 "Creates a Teredo tunneling interface for encapsulation of IPv6.\n"
@@ -347,47 +347,47 @@ msgid ""
 "  -v, --verbose    print configuration before starting\n"
 msgstr ""
 
-#: src/main.c:93
+#: src/main.c:97
 #, c-format
 msgid "Default Teredo prefix: %s:/32\n"
 msgstr ""
 
-#: src/main.c:110
+#: src/main.c:114
 msgid ""
 "This is free software; see the source for copying conditions.\n"
 "There is NO warranty; not even for MERCHANTABILITY or\n"
 "FITNESS FOR A PARTICULAR PURPOSE.\n"
 msgstr ""
 
-#: src/main.c:113
+#: src/main.c:117
 #, c-format
 msgid ""
 "Written by %s.\n"
 "Configured with: %s\n"
 msgstr ""
 
-#: src/main.c:123
+#: src/main.c:127
 #, c-format
 msgid ""
 "Duplicate parameter `%s' for option -%c\n"
 "would override previous value `%s'.\n"
 msgstr ""
 
-#: src/main.c:134
+#: src/main.c:138
 #, c-format
 msgid "Invalid number (or capacity exceeded) `%s' for option -%c\n"
 msgstr ""
 
-#: src/main.c:142
+#: src/main.c:146
 #, c-format
 msgid "%s: unexpected extra parameter\n"
 msgstr ""
 
-#: src/main.c:151
+#: src/main.c:155
 msgid "Error: missing command line parameter\n"
 msgstr ""
 
-#: src/main.c:198
+#: src/main.c:202
 msgid ""
 "Chroot directory was probably not set up correctly.\n"
 "NOTE: You can use command line option '-t /'\n"
@@ -398,11 +398,11 @@ msgid ""
 "\n"
 msgstr ""
 
-#: src/main.c:266
+#: src/main.c:270
 msgid "User not found"
 msgstr ""
 
-#: src/main.c:268
+#: src/main.c:272
 #, c-format
 msgid ""
 "Error: This program was asked to run in the\n"
@@ -414,7 +414,7 @@ msgid ""
 "user. Running as root is STRONGLY DISCOURAGED.\n"
 msgstr ""
 
-#: src/main.c:282
+#: src/main.c:286
 msgid ""
 "Error: This program is not supposed to keep root\n"
 "privileges. That is potentially very dangerous\n"
@@ -425,12 +425,12 @@ msgid ""
 "and recompile the program.\n"
 msgstr ""
 
-#: src/main.c:299
+#: src/main.c:303
 #, c-format
 msgid "SetGID to group ID %u: %s\n"
 msgstr ""
 
-#: src/main.c:301
+#: src/main.c:305
 msgid ""
 "Error: This program tried to change its system\n"
 "group(s) security context but it failed.\n"
@@ -440,12 +440,12 @@ msgid ""
 "started by root.\n"
 msgstr ""
 
-#: src/main.c:320
+#: src/main.c:324
 #, c-format
 msgid "Root directory jail in %s: %s\n"
 msgstr ""
 
-#: src/main.c:337
+#: src/main.c:341
 #, c-format
 msgid ""
 "Warning: /dev/log not found or invalid: logging will probably not work.\n"
@@ -453,11 +453,11 @@ msgid ""
 " to your syslogd command line to fix that.\n"
 msgstr ""
 
-#: src/main.c:358
+#: src/main.c:362
 msgid "SetUID to unpriviledged user"
 msgstr ""
 
-#: src/main.c:359
+#: src/main.c:363
 msgid ""
 "Error: This program tried to change its system\n"
 "user security context but it failed.\n"
@@ -467,18 +467,18 @@ msgid ""
 "root, the system administrative user.\n"
 msgstr ""
 
-#: src/main.c:374
+#: src/main.c:378
 msgid "Error (daemon)"
 msgstr ""
 
-#: src/main.c:501
+#: src/main.c:509
 #, c-format
 msgid ""
 "Returned unknown option -%c :\n"
 "That is probably a bug. Please report it.\n"
 msgstr ""
 
-#: src/main.c:513
+#: src/main.c:521
 msgid ""
 "You have selected conflicting parameters.\n"
 "It is not possible to run a Teredo relay and/or\n"
@@ -486,166 +486,166 @@ msgid ""
 "Refer to the manual page for more details.\n"
 msgstr ""
 
-#: src/main.c:530
+#: src/main.c:538
 msgid "Miredo configuration :"
 msgstr ""
 
-#: src/main.c:533
+#: src/main.c:541
 #, c-format
 msgid "Client/relay UDP port       : %u\n"
 msgstr ""
 
-#: src/main.c:536
+#: src/main.c:544
 msgid "Client/relay UDP port       : default"
 msgstr ""
 
-#: src/main.c:538
+#: src/main.c:546
 #, c-format
 msgid "Client/relay IPv4 address   : %s\n"
 msgstr ""
 
-#: src/main.c:541
+#: src/main.c:549
 msgid "Client/relay IPv4 address   : any"
 msgstr ""
 
-#: src/main.c:543
+#: src/main.c:551
 #, c-format
 msgid "Tunnel interface name       : %s\n"
 msgstr ""
 
-#: src/main.c:544 src/main.c:551
+#: src/main.c:552 src/main.c:559
 msgid "default"
 msgstr ""
 
-#: src/main.c:548
+#: src/main.c:556
 #, c-format
 msgid "Server primary IPv4 address : %s\n"
 msgstr ""
 
-#: src/main.c:549
+#: src/main.c:557
 msgid "disabled"
-msgstr ""
-
-#: src/main.c:550
-#, c-format
-msgid "Teredo IPv6 prefix          : %s\n"
-msgstr ""
-
-#: src/main.c:552
-#, c-format
-msgid "Assumed NAT type            : %s\n"
-msgstr ""
-
-#: src/main.c:554
-msgid "none/cone"
 msgstr ""
 
 #: src/main.c:558
 #, c-format
+msgid "Teredo IPv6 prefix          : %s\n"
+msgstr ""
+
+#: src/main.c:560
+#, c-format
+msgid "Assumed NAT type            : %s\n"
+msgstr ""
+
+#: src/main.c:562
+msgid "none/cone"
+msgstr ""
+
+#: src/main.c:566
+#, c-format
 msgid "Server name                 : %s\n"
 msgstr ""
 
-#: src/miredo.cpp:209
+#: src/miredo.cpp:211
 #, c-format
 msgid "Invalid hostname `%s': %s"
 msgstr ""
 
-#: src/miredo.cpp:234
+#: src/miredo.cpp:236
 #, c-format
 msgid "Invalid hostname '%s': %s"
 msgstr ""
 
-#: src/miredo.cpp:295
+#: src/miredo.cpp:297
 msgid "Teredo IPv6 prefix not properly set."
 msgstr ""
 
-#: src/miredo.cpp:302
+#: src/miredo.cpp:304
 #, c-format
 msgid "Invalid Teredo IPv6 prefix: %s."
 msgstr ""
 
-#: src/miredo.cpp:316
+#: src/miredo.cpp:318
 #, c-format
 msgid "SetUID to root failed: %m"
 msgstr ""
 
-#: src/miredo.cpp:340
+#: src/miredo.cpp:342
 #, c-format
 msgid ""
 "Teredo tunnel setup failed:\n"
 " %s"
 msgstr ""
 
-#: src/miredo.cpp:341 src/miredo.cpp:363
+#: src/miredo.cpp:343 src/miredo.cpp:365
 msgid "You should be root to do that."
 msgstr ""
 
-#: src/miredo.cpp:351
+#: src/miredo.cpp:353
 #, c-format
 msgid "Privileged process setup failed: %m"
 msgstr ""
 
-#: src/miredo.cpp:362
+#: src/miredo.cpp:364
 #, c-format
 msgid ""
 "Teredo routing failed:\n"
 " %s"
 msgstr ""
 
-#: src/miredo.cpp:370
+#: src/miredo.cpp:372
 #, c-format
 msgid "Setting UID failed: %m"
 msgstr ""
 
-#: src/miredo.cpp:381
+#: src/miredo.cpp:383
 msgid "Fatal configuration error"
 msgstr ""
 
-#: src/miredo.cpp:393
+#: src/miredo.cpp:395
 msgid "Teredo server failure"
 msgstr ""
 
-#: src/miredo.cpp:406
+#: src/miredo.cpp:408
 msgid "Teredo UDP port failure"
 msgstr ""
 
-#: src/miredo.cpp:407 src/miredo.cpp:476
+#: src/miredo.cpp:409 src/miredo.cpp:478
 msgid "Make sure another instance of the program is not already running."
 msgstr ""
 
-#: src/miredo.cpp:422
+#: src/miredo.cpp:424
 msgid "Fatal bind IPv4 address error"
 msgstr ""
 
-#: src/miredo.cpp:434
+#: src/miredo.cpp:436
 msgid "Fatal server IPv4 address error"
 msgstr ""
 
-#: src/miredo.cpp:466
+#: src/miredo.cpp:468
 msgid "Teredo service failure"
 msgstr ""
 
-#: src/miredo.cpp:473
+#: src/miredo.cpp:475
 #, c-format
 msgid "Teredo service port failure: cannot open UDP port %u\n"
 msgstr ""
 
-#: src/miredo.cpp:550
+#: src/miredo.cpp:552
 #, c-format
 msgid "Reloading configuration on signal %d (%s)"
 msgstr ""
 
-#: src/miredo.cpp:573
+#: src/miredo.cpp:575
 #, c-format
 msgid "fork failed: %m"
 msgstr ""
 
-#: src/miredo.cpp:593
+#: src/miredo.cpp:595
 #, c-format
 msgid "Exiting on signal %d (%s)"
 msgstr ""
 
-#: src/miredo.cpp:610
+#: src/miredo.cpp:612
 #, c-format
 msgid "Child %d killed by signal %d (%s)"
 msgstr ""

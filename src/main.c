@@ -35,6 +35,8 @@
 # include <inttypes.h>
 #endif
 
+#include <locale.h>
+
 #include <sys/types.h>
 #include <sys/time.h> /* for <sys/resource.h> */
 #include <sys/resource.h> /* getrlimit() */
@@ -416,6 +418,10 @@ main (int argc, char *argv[])
 	};
 
 	int c;
+
+        setlocale (LC_ALL, "");
+        bindtextdomain (PACKAGE, LOCALEDIR);
+        textdomain (PACKAGE);
 
 #define ONETIME_SETTING( setting ) \
 	if (setting != NULL) \
