@@ -300,7 +300,7 @@ init_security (const char *username, const char *rootdir, int nodetach)
 	 * then current directory to '/' */
 	if (rootdir == NULL)
 		rootdir = pw->pw_dir;
-	if ((strcmp ("/", rootdir) && chroot (rootdir)) || chdir ("/"))
+	if (strcmp ("/", rootdir) && chroot (rootdir))
 	{
 		fprintf (stderr, _("Root directory jail in %s: %s\n"),
 				rootdir, strerror (errno));
@@ -309,15 +309,6 @@ init_security (const char *username, const char *rootdir, int nodetach)
 	}
 
 	errno = 0;
-	fd = open_null ();
-	if (fd == -1)
-	{
-		fprintf (stderr, "/dev/null: %s\n",
-				errno ? strerror (errno) : _("Invalid"));
-		chroot_notice ();
-		return -1;
-	}
-	else
 	{
 		struct stat s;
 
@@ -350,30 +341,10 @@ init_security (const char *username, const char *rootdir, int nodetach)
 	 * Detaches. This is not really a security thing, but it is simpler to
 	 * do it now.
 	 */
-	if (!nodetach)
+	if (!nodetach && daemon (0, 0))
 	{
-		switch (fork ())
-		{
-			case 0:
-				setsid (); // can't fail
-				break;
-
-			case -1:
-				perror (_("Kernel error"));
-				return -1;
-
-			default:
-				exit (0);
-		}
-	}
-
-	/*
-	 * Prevents fchdir from breaking the chroot jail and complete detach
-	 * by re-opening 0, 1 and 2 as /dev/null
-	 */
-	if (dup2 (fd, 0) != 0 || dup2 (fd, 1) != 1 || dup2 (fd, 2) != 2)
-	{
-		perror (_("Kernel error"));
+		perror (_("Error (daemon)"));
+		chroot_notice ();
 		return -1;
 	}
 
