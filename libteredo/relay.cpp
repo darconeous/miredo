@@ -1,6 +1,6 @@
 /*
  * relay.cpp - Teredo relay peers list definition
- * $Id: relay.cpp,v 1.10 2004/08/22 16:40:05 rdenisc Exp $
+ * $Id: relay.cpp,v 1.11 2004/08/22 16:43:54 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -126,7 +126,15 @@ struct __TeredoRelay_peer *TeredoRelay::AllocatePeer (void)
 			return p;
 
 	/* Otherwise allocates a new peer entry */
-	struct __TeredoRelay_peer *p = new struct __TeredoRelay_peer;
+	struct __TeredoRelay_peer *p;
+	try
+	{
+		p = new struct __TeredoRelay_peer;
+	}
+	catch (...)
+	{
+		return NULL;
+	}
 
 	/* Puts new entry at the head of the list */
 	p->next = head;
@@ -297,6 +305,8 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
 
 			// Creates a new entry
 			p = AllocatePeer ();
+			if (p == NULL)
+				return -1; // insufficient memory
 			memcpy (&p->addr, &ip6.ip6_dst,
 				sizeof (struct in6_addr));
 			p->mapped_addr = ~dst->teredo.client_ip;
