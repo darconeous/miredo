@@ -19,15 +19,15 @@
 #
 # "client" will run Miredo as a Teredo client. Use this if you have no
 # IPv6 connectivity and wish to use Miredo to tunnel IPv6 over UDP/IPV4
-# through a NAT device.
+# through a NAT device. That is the default.
 #
 # If there is no NAT behind Miredo and the IPv4 Internet, or if you
 # know you are behind a "cone" NAT (see the Teredo specification for
 # detailled reference), you can use the "cone" type.
 #
-# If you run a Teredo relay from behind a "restricted" NAT, or if you
-# don't know what kind of NAT stands behind you and the Internet, leave
-# the default "restricted".
+# If you run a Teredo relay, and you are located behind a "restricted"
+# NAT or you don't know what kind of NAT stands behind you and the
+# Internet, use "restricted".
 #
 # If you don't want to run a Teredo relay, use "disabled".
 #
@@ -35,7 +35,7 @@
 # Examples: RelayType restricted
 #           RelayType cone
 #
-#RelayType cone
+#RelayType restricted
 
 #
 # Name of the networking interface
