@@ -1,6 +1,6 @@
 /*
  * teredo.h - Common Teredo protocol typedefs
- * $Id: teredo.h,v 1.4 2004/08/26 13:32:51 rdenisc Exp $
+ * $Id: teredo.h,v 1.5 2004/08/27 16:58:57 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -54,7 +54,7 @@ union teredo_addr
 	} teredo;
 };
 
-#define TEREDO_FLAGS_CONE	0x8000
+#define TEREDO_FLAG_CONE	0x8000
 
 #define ip6_teredo( ip6 ) (((union teredo_addr *)ip6)->teredo)
 

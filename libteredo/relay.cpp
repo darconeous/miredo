@@ -1,6 +1,6 @@
 /*
  * relay.cpp - Teredo relay peers list definition
- * $Id: relay.cpp,v 1.27 2004/08/27 16:57:28 rdenisc Exp $
+ * $Id: relay.cpp,v 1.28 2004/08/27 16:58:57 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -227,7 +227,7 @@ TeredoRelay::TeredoRelay (uint32_t pref, uint16_t port, bool cone)
 {
 	addr.teredo.prefix = pref;
 	addr.teredo.server_ip = 0;
-	addr.teredo.flags = cone ? htons (TEREDO_FLAGS_CONE) : 0;
+	addr.teredo.flags = cone ? htons (TEREDO_FLAG_CONE) : 0;
 	addr.teredo.client_ip = 0;
 	addr.teredo.client_port = 0; 
 
@@ -246,7 +246,7 @@ TeredoRelay::TeredoRelay (uint32_t server_ip, uint16_t port)
 {
 	addr.teredo.prefix = PREFIX_UNSET;
 	addr.teredo.server_ip = server_ip;
-	addr.teredo.flags = htons (TEREDO_FLAGS_CONE);
+	addr.teredo.flags = htons (TEREDO_FLAG_CONE);
 	addr.teredo.client_ip = 0;
 	addr.teredo.client_port = 0;
 

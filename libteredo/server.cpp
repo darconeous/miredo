@@ -1,6 +1,6 @@
 /*
  * server.cpp - Handling of a single Teredo datagram (server-side).
- * $Id: server.cpp,v 1.7 2004/08/27 16:21:10 rdenisc Exp $
+ * $Id: server.cpp,v 1.8 2004/08/27 16:58:57 rdenisc Exp $
  */
 
 /***********************************************************************
@@ -151,7 +151,7 @@ teredo_send_ra (const TeredoServerUDP& sock, const TeredoPacket& p,
 			union teredo_addr src;
 			src.teredo.prefix = htonl (0xfe800000);
 			src.teredo.server_ip = 0;
-			src.teredo.flags = htons (TEREDO_FLAGS_CONE);
+			src.teredo.flags = htons (TEREDO_FLAG_CONE);
 			src.teredo.client_port = htons (IPPORT_TEREDO);
 			src.teredo.client_ip = ~server_ip;
 
