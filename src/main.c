@@ -661,6 +661,7 @@ main (int argc, char *argv[])
 	if (init_security (username, rootdir, flags.foreground))
 		return 1;
 
+	/* TODO: ability to change the file path */
 	if (pidfile != NULL)
 		create_pidfile (pidfile);
 
