@@ -79,7 +79,7 @@ quick_usage (void)
 static int
 usage (void)
 {
-        puts (_(
+	puts (_(
 "Usage: miredo [OPTION] [server name]...\n"
 "Creates a Teredo tunneling interface for encapsulation of IPv6.\n"
 "\n"
@@ -117,7 +117,7 @@ version (void)
 "This is free software; see the source for copying conditions.\n"
 "There is NO warranty; not even for MERCHANTABILITY or\n"
 "FITNESS FOR A PARTICULAR PURPOSE.\n"));
-        printf (_("Written by %s.\nConfigured with: %s\n"),
+	printf (_("Written by %s.\nConfigured with: %s\n"),
 		"Remi Denis-Courmont", PACKAGE_CONFIGURE_INVOCATION);
         return 0;
 }
@@ -161,26 +161,50 @@ error_missing (void)
 #endif
 
 
+static FILE *safe_fopen_w (const char *path)
+{
+	int fd;
+
+	unlink (path);
+	fd = open (path, O_WRONLY|O_CREAT|O_EXCL, 0644);
+	if (fd != -1)
+	{
+		struct stat s;
+
+		if (fstat (fd, &s) == 0)
+		{
+			if (S_ISREG(s.st_mode))
+			{
+				FILE *stream;
+
+				stream = fdopen (fd, "w");
+				if (stream != NULL)
+					return stream;
+			}
+		}
+		close (fd);
+	}
+	return NULL;
+}
+
+
 /*
  * Creates a Process-ID file.
- * Only the miredo should be allowed to write in the directory in which the
- * file is to be created. Otherwise, there will be an insecure file creation
- * (vulnerable to symlinking).
  */
 static int
 create_pidfile (const char *path)
 {
 	FILE *stream;
-	int retval = 0;
+	int retval = -1;
 
-	stream = fopen (path, "w");
-	if (stream == NULL)
-		return -1;
+	stream = safe_fopen_w (path);
+	if (stream != NULL)
+	{
+		if (fprintf (stream, "%d", (int)getpid ()) >= 0)
+			retval = 0;
 
-	if (fprintf (stream, "%d", (int)getpid ()) <= 0)
-		retval = -1;
-
-	fclose (stream);
+		fclose (stream);
+	}
 	return retval;
 }
 
