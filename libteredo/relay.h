@@ -1,6 +1,6 @@
 /*
  * relay.h - Teredo relay peers list declaration
- * $Id: relay.h,v 1.5 2004/08/17 16:42:38 rdenisc Exp $
+ * $Id: relay.h,v 1.6 2004/08/17 16:55:41 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -35,6 +35,8 @@ union teredo_addr;
 struct __TeredoRelay_peer;
 
 
+// big TODO: make all functions re-entrant safe
+//           make all functions thread-safe
 class TeredoRelay
 {
 	private:
@@ -73,14 +75,23 @@ class TeredoRelay
 						size_t length) = 0;
 
 		/*
-		 * Tries to define the Teredo client IPv6 address.
+		 * Tries to define the Teredo client IPv6 address. This is an
+		 * indication that the Teredo tunneling interface is ready.
 		 * The default implementation in base class TeredoRelay does
 		 * nothing.
 		 *
 		 * Returns 0 on success, -1 on error.
 		 * TODO: handle error in calling function.
 		 */
-		virtual int SetIPv6Address (const struct in6_addr *addr);
+		virtual int NotifyUp (const struct in6_addr *addr);
+
+		/*
+		 * Indicates that the Teredo tunneling interface is no longer
+		 * ready to process packets.
+		 * Any packet sent when the relay/client is down will be
+		 * ignored.
+		 */
+		virtual int NotifyDown (void);
 
 	protected:
 		const struct ip6_hdr *packet;
@@ -99,6 +110,15 @@ class TeredoRelay
 		 * to.
 		 */
 		TeredoRelay (uint32_t pref, uint16_t port = 0);
+
+		/*
+		 * Creates a Teredo client/relay automatically. The client
+		 * will try to qualify and get a Teredo IPv6 address from each
+		 * of the servers until one of them works.
+		 *
+		 * TODO: support for secure qualification
+		 */
+		TeredoRelay (const char **servers);
 
 	public:
 		virtual ~TeredoRelay ();
