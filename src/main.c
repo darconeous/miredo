@@ -258,7 +258,7 @@ init_security (const char *username, const char *rootdir, int nodetach)
 #ifdef MIREDO_DEFAULT_USERNAME
 		username = MIREDO_DEFAULT_USERNAME; // default user name
 #else
-		username = "root";
+		username = "nobody";
 		if (rootdir == NULL) // do not chroot to "~root"
 			rootdir = "/";
 #endif	
@@ -318,20 +318,13 @@ init_security (const char *username, const char *rootdir, int nodetach)
 
 	if (pw->pw_uid == 0)
 	{
-#ifdef MIREDO_DEFAULT_USERNAME
 		fputs (_("Error: This program is not supposed to keep root\n"
 			"privileges. That is potentially very dangerous\n"
 			"(all the more as it is beta quality code that has\n"
 			"never been audited for security vulnerabilities).\n"
-			"If you really want to run it as root, run the\n"
-			"source configure script with --disable-miredo-user\n"
-			"and recompile the program.\n"), stderr);
+			"Besides, it does not even work properly when root\n"
+			"privileges are kept.\n"), stderr);
 		return -1;
-#else
-		fputs (_("Warning: This program was configured to retain\n"
-			"root privileges while running. That is potentially\n"
-			"very dangerous. PROCEED WITH CAUTION.\n"), stderr);
-#endif
 	}
 
 	unpriv_uid = pw->pw_uid;
@@ -426,21 +419,6 @@ init_security (const char *username, const char *rootdir, int nodetach)
 			perror (_("Fatal error"));
 			cap_free (s);
 			return -1;
-		}
-
-		/*
-		 * If running as root, we must make CAP_NET_ADMIN effective
-		 * because calling seteuid (0) will not make it so.
-		 */
-		if (unpriv_uid == 0)
-		{
-			v = CAP_NET_ADMIN;
-			if (cap_set_flag (s, CAP_EFFECTIVE, 1, &v, CAP_SET))
-			{
-				perror (_("Fatal error"));
-				cap_free (s);
-				return -1;
-			}
 		}
 
 		if (cap_set_proc (s))
