@@ -1,6 +1,6 @@
 /*
  * relay.h - Teredo relay peers list declaration
- * $Id: relay.h,v 1.4 2004/08/17 16:40:03 rdenisc Exp $
+ * $Id: relay.h,v 1.5 2004/08/17 16:42:38 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -80,10 +80,7 @@ class TeredoRelay
 		 * Returns 0 on success, -1 on error.
 		 * TODO: handle error in calling function.
 		 */
-		virtual int SetIPv6Address (const struct in6_addr *addr)
-		{
-			return 0;
-		}
+		virtual int SetIPv6Address (const struct in6_addr *addr);
 
 	protected:
 		const struct ip6_hdr *packet;

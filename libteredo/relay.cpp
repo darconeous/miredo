@@ -1,6 +1,6 @@
 /*
  * relay.cpp - Teredo relay peers list definition
- * $Id: relay.cpp,v 1.4 2004/08/17 16:40:03 rdenisc Exp $
+ * $Id: relay.cpp,v 1.5 2004/08/17 16:42:38 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -93,6 +93,12 @@ TeredoRelay::~TeredoRelay (void)
 		delete p;
 		p = buf;
 	}
+}
+
+
+int TeredoRelay::SetIPv6Address (const struct in6_addr *addr)
+{
+	return 0;
 }
 
 
