@@ -85,19 +85,6 @@ msgstr "Adresse Teredo changée"
 msgid "Lost Teredo connectivity"
 msgstr "Connectivité Teredo perdue"
 
-#: libteredo/server.cpp:220
-#, c-format
-msgid "Router Advertisement sent to %s (%s)\n"
-msgstr "Router Advertisement envoyé"
-
-#: libteredo/server.cpp:222
-msgid "cone flag set"
-msgstr "flag cône présent"
-
-#: libteredo/server.cpp:223
-msgid "cone flag not set"
-msgstr "flag cône absent"
-
 #: libteredo/security.cpp:52
 #, c-format
 msgid "Error reading %s: %m"
