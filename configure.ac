@@ -44,6 +44,7 @@ AM_INIT_AUTOMAKE([dist-bzip2])
 
 
 # Checks for libraries.
+AM_GNU_GETTEXT([external])
 AH_TEMPLATE(HAVE_LINUX,
 		[Define to 1 if the host kernel is Linux.])
 AH_TEMPLATE(HAVE_FREEBSD,
@@ -56,7 +57,7 @@ AH_TEMPLATE(HAVE_DARWIN,
 		[Define to 1 if the host kernel is Darwin (e.g. Mac OS X).])
 
 
-AC_CANONICAL_HOST
+#AC_CANONICAL_HOST
 case $host_os in
   *linux*)
 	AC_DEFINE(HAVE_LINUX)
@@ -117,5 +118,5 @@ AH_BOTTOM([
 
 # END
 AS_MESSAGE(writing results...)
-AC_CONFIG_FILES([Makefile m4/Makefile libtun6/Makefile libteredo/Makefile src/Makefile])
+AC_CONFIG_FILES([Makefile m4/Makefile libtun6/Makefile libteredo/Makefile src/Makefile po/Makefile.in ])
 AC_OUTPUT

@@ -1,5 +1,5 @@
 # Makefile.am - master Makefile for miredo
-# $Id: Makefile.am,v 1.5 2004/07/22 17:38:29 rdenisc Exp $
+# $Id$
 
 # ***********************************************************************
 # *  Copyright (C) 2004 Remi Denis-Courmont.                            *
@@ -17,9 +17,9 @@
 # *  http://www.gnu.org/copyleft/gpl.html                               *
 # ***********************************************************************
 
-SUBDIRS = m4 libtun6 libteredo src
+SUBDIRS = m4 po libtun6 libteredo src
 man8_MANS = miredo.8
-EXTRA_DIST = $(man8_MANS)
+EXTRA_DIST = admin/config.rpath admin/mkinstalldirs  $(man8_MANS)
 # doc -- it might not be a good idea to include the doc directory inside
 #        official releases.
 ACLOCAL_AMFLAGS = -I m4
