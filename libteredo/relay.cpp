@@ -1,6 +1,6 @@
 /*
  * relay.cpp - Teredo relay peers list definition
- * $Id: relay.cpp,v 1.33 2004/08/28 15:14:25 rdenisc Exp $
+ * $Id: relay.cpp,v 1.34 2004/08/29 09:10:12 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -161,7 +161,11 @@ struct __TeredoRelay_peer *TeredoRelay::AllocatePeer (void)
 	/* Tries to recycle a timed-out peer entry */
 	for (struct __TeredoRelay_peer *p = head; p != NULL; p = p->next)
 		if (ENTRY_EXPIRED (p, now))
+		{
+			if (p->queue != NULL)
+				delete p->queue;
 			return p;
+		}
 
 	/* Otherwise allocates a new peer entry */
 	struct __TeredoRelay_peer *p;

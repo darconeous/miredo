@@ -1,10 +1,12 @@
-2004-08_29  Remi Denis-Courmont
+2004-08-29  Remi Denis-Courmont
 
 	* src/privproc.*, src/miredo.cpp:
 	- do not use privsep for Teredo relay/server,
 	  it was broken anyway (relays must use a Teredo route, not a
 	  Teredo address),
 	- fix setuid for Teredo client,
+	* libteredo/relay.cpp:
+	- fixed memory leak when recycling peer entry
 
 2004-08-28  Remi Denis-Courmont
 
