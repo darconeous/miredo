@@ -470,7 +470,7 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
 			 * restricted NAT.
 			 */
 			if (!IsCone ()
-			 && SendBubble (sock, &ip6.ip6_dst, IsCone (), false))
+			 && SendBubble (sock, &ip6.ip6_dst, false, false))
 				return -1;
 
 			return SendBubble (sock, &ip6.ip6_dst, IsCone ());
