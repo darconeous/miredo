@@ -395,6 +395,7 @@ miredo_run (uint16_t bind_port, const char *bind_ip, const char *server_name,
 		{
 			syslog (LOG_ALERT, _("Teredo routing failed:\n %s"),
 				_("You should be root to do that."));
+			goto abort;
 		}
 	}
 
