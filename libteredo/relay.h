@@ -200,7 +200,8 @@ class TeredoRelay
 		}
 
 		static unsigned QualificationRetries;
-		static unsigned QualificationDelay;
+		static unsigned QualificationTimeOut;
+		static unsigned RestartDelay;
 };
 
 #endif /* ifndef MIREDO_RELAY_H */

@@ -453,8 +453,10 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
 // seconds to wait before considering that we've lost contact with the server
 #define SERVER_LOSS_DELAY 35
 #define SERVER_PING_DELAY 30
-#define RESTART_DELAY 300
-#define PROBE_DELAY 4
+
+unsigned TeredoRelay::QualificationTimeOut = 4; // seconds
+unsigned TeredoRelay::QualificationRetries = 3;
+unsigned TeredoRelay::RestartDelay = 300; // seconds
 
 int TeredoRelay::ReceivePacket (const fd_set *readset)
 {
@@ -514,7 +516,7 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 				false, false);
 
 			gettimeofday (&probe.next, NULL);
-			probe.next.tv_sec += PROBE_DELAY;
+			probe.next.tv_sec += QualificationTimeOut;
 			memcpy (&addr, &newaddr, sizeof (addr));
 		}
 		else
@@ -537,7 +539,8 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 				gettext (probe.state == PROBE_CONE
 				? N_("cone") : N_("restricted")));
 			probe.state = QUALIFIED;
-			probe.next.tv_sec += SERVER_PING_DELAY - PROBE_DELAY;
+			probe.next.tv_sec += SERVER_PING_DELAY
+						- QualificationTimeOut;
 
 			// call memcpy before NotifyUp for re-entrancy
 			memcpy (&addr, &newaddr, sizeof (addr));
@@ -790,11 +793,11 @@ int TeredoRelay::Process (void)
 		}
 		else
 		{
-			delay = PROBE_DELAY;
+			delay = QualificationTimeOut;
 
 			if (probe.state == PROBE_CONE)
 			{
-				if (probe.count == 4) // already 4 attempts?
+				if (probe.count >= QualificationRetries)
 				{
 					// Cone qualification failed
 					probe.state = PROBE_RESTRICT;
@@ -811,20 +814,20 @@ int TeredoRelay::Process (void)
 					 */
 					probe.state = PROBE_RESTRICT;
 
-				if (probe.count == 4)
+				if (probe.count >= QualificationRetries)
 					/*
 					 * Restricted qualification failed.
 					 * Restarting from zero.
 					 */
 					probe.state = PROBE_CONE;
 				else
-				if (probe.count == 3)
+				if ((probe.count + 1) == QualificationRetries)
 					/*
 					 * Last restricted qualification
 					 * attempt before declaring failure.
 					 * Defer new attempts for 300 seconds.
 					 */
-					delay = RESTART_DELAY;
+					delay = RestartDelay;
 			}
 
 			probe.count ++;
