@@ -100,23 +100,23 @@ Miredo to use optimizations for cone NATs:
 Securing you Miredo installation
 =================================
 
-  By default, Miredo runs with root privileges, which might be
-disastrous if the program is compromised. You are STRONGLY advised to
-perform the following steps to restrict the impact of a possible
+  By default, Miredo drops its root privileges and runs as user nobody.
+While that is far more secure than keeping root privileges as previous
+versions did by default, it is not optimal. If you are security
+concious, paranoid, or if you are building a package, you are advised
+to perform the following steps to restrict the impact of a possible
 compromise of the Miredo daemon.
 
   They are various steps to secure Miredo installation, because they
 are non trivial and non portable they cannot be done automatically.
+That is why miredo defaults to using "nobody" user account which is
+available on any POSIX-like operating system.
 
-  If you are packaging Miredo for redistribution, I URGE you to follow
-these steps so that Miredo runs more securely on your customers'
-systems.
 
 1) System user:
 ----------------
-  Miredo can leave root privileges before any attempt is made to send
-or receive data to and from the network. They are two ways to achieve
-that:
+  Miredo should run with its own user account rather than common user
+"nobody". They are two ways to do that :
 
 - You can enable the '--enable-miredo-user' command line option when
   running the source code configure script. If you are a packager,
@@ -124,7 +124,7 @@ that:
   default, though that can be overriden with the '-u' command line
   option (see man page miredo(8)).
 
-- You can use the '-u' option when starting Miredo. That avoids the
+- You can use the '-u' option when starting Miredo. That saves the
   cost of recompiling Miredo. For example:
 
   # /usr/local/sbin/miredo -u miredo -t /
@@ -166,8 +166,8 @@ DNS resolution of the Teredo server works:
 /etc/resolv.conf
 /etc/hosts
 /etc/host.conf
-and your system's DNS resolver library. If in doubt, don't chroot if
-you intend to run Miredo as a Teredo client.
+and your system's DNS resolver library in /lib. If in doubt, don't
+chroot if you intend to run Miredo as a Teredo client.
 
   You should also create this directory (where miredo tries to put its
 process-ID file). Only miredo should be allowed to write to it:
@@ -190,7 +190,7 @@ are available. You should not need to worry as it is entirely
 automatic.
 
   If you are a packager, you should consider installing your system's
-POSIX capabilities development files, before building Miredo.
+POSIX capabilities library development files, before building Miredo.
 
 
 Feedback:
