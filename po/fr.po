@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: miredo 0.3.1\n"
 "Report-Msgid-Bugs-To: rdenis@simphalempin.com\n"
-"POT-Creation-Date: 2004-11-01 21:05+0100\n"
+"POT-Creation-Date: 2004-11-01 21:11+0100\n"
 "PO-Revision-Date: 2004-11-01 18:41+0100\n"
 "Last-Translator: Rémi Denis-Courmont <rdenis@simphalempin.com>\n"
 "Language-Team: N/A\n"
@@ -62,7 +62,7 @@ msgstr "Qualifié (type de NAT: %s)"
 msgid "cone"
 msgstr "cône"
 
-#: libteredo/relay.cpp:581 src/main.c:562
+#: libteredo/relay.cpp:581 src/main.c:563
 msgid "restricted"
 msgstr "restreint"
 
@@ -214,7 +214,8 @@ msgstr ""
 "Le tunneling IPv6 ne fonctionnera pas.\n"
 
 #: src/main.c:71
-msgid "Try `miredo -h | more' for more information.\n"
+#, fuzzy
+msgid "Try \"miredo -h | more\" for more information.\n"
 msgstr "Faîtes `miredo -h | more' pour plus de détails.\n"
 
 #: src/main.c:80
@@ -279,17 +280,17 @@ msgstr ""
 "Configuré par: %s\n"
 
 #: src/main.c:127
-#, c-format
+#, fuzzy, c-format
 msgid ""
-"Duplicate parameter `%s' for option -%c\n"
-"would override previous value `%s'.\n"
+"Duplicate parameter \"%s\" for option -%c\n"
+"would override previous value \"%s\".\n"
 msgstr ""
 "Le paramètre doublon `%s' pour l'option -%c\n"
 "redéfinirait la valeur précédente `%s'.\n"
 
 #: src/main.c:138
-#, c-format
-msgid "Invalid number (or capacity exceeded) `%s' for option -%c\n"
+#, fuzzy, c-format
+msgid "Invalid number (or capacity exceeded) \"`%s\" for option -%c\n"
 msgstr "Nombre invalide (ou capacité dépassée) `%s' pour l'option -%c\n"
 
 #: src/main.c:146
@@ -302,9 +303,10 @@ msgid "Error: missing command line parameter\n"
 msgstr "Erreur: paramètre de la ligne de commande manquant\n"
 
 #: src/main.c:202
+#, fuzzy
 msgid ""
 "Chroot directory was probably not set up correctly.\n"
-"NOTE: You can use command line option '-t /'\n"
+"NOTE: You can use command line option \"-t /\"\n"
 "if you don't want to run the program inside a chroot jail.\n"
 "\n"
 "Not using a chroot jail is far easier though less secure.\n"
@@ -325,13 +327,13 @@ msgid "User not found"
 msgstr "Utilisateur non trouvé"
 
 #: src/main.c:272
-#, c-format
+#, fuzzy, c-format
 msgid ""
 "Error: This program was asked to run in the\n"
 "security context of system user \"%s\", but it\n"
 "does not seem to exist on your system.\n"
 "\n"
-"Use command line option '-u <username>' to run\n"
+"Use command line option \"-u <username>\" to run\n"
 "this program in the security context of another\n"
 "user. Running as root is STRONGLY DISCOURAGED.\n"
 msgstr ""
@@ -383,10 +385,10 @@ msgid "Root directory jail in %s: %s\n"
 msgstr "Cloisement dans le répertoire racine (chroot) %s: %s\n"
 
 #: src/main.c:341
-#, c-format
+#, fuzzy, c-format
 msgid ""
 "Warning: /dev/log not found or invalid: logging will probably not work.\n"
-"Try adding '-a %s/dev/log'\n"
+"Try adding \"-a %s/dev/log\"\n"
 " to your syslogd command line to fix that.\n"
 msgstr ""
 "Attention: /dev/log non trouvé ou invalide: la journalisation ne "
@@ -394,12 +396,12 @@ msgstr ""
 "probablement pas. Essayez d'ajouter '-a %s/dev/log'\n"
 " à la ligne de commande de votre syslogd pour rectifier cela.\n"
 
-#: src/main.c:362
+#: src/main.c:363
 #, c-format
 msgid "SetUID to user ID %u: %s\n"
 msgstr "SetUID vers l'ID d'utilisateur %u: %s\n"
 
-#: src/main.c:364
+#: src/main.c:365
 msgid ""
 "Error: This program tried to change its system\n"
 "user security context but it failed.\n"
@@ -415,11 +417,11 @@ msgstr ""
 "ce programme devrait être démarré uniquement par root, l'utilisateur\n"
 "d'administration du système.\n"
 
-#: src/main.c:379
+#: src/main.c:380
 msgid "Error (daemon)"
 msgstr "Erreur (daemon)"
 
-#: src/main.c:510
+#: src/main.c:511
 #, c-format
 msgid ""
 "Read unknown option -%c :\n"
@@ -428,7 +430,7 @@ msgstr ""
 "Option lue inconnue -%c :\n"
 "C'est probablement un bogue. Veuillez le signaler.\n"
 
-#: src/main.c:522
+#: src/main.c:523
 msgid ""
 "You have selected conflicting parameters.\n"
 "It is not possible to run a Teredo relay and/or\n"
@@ -439,67 +441,67 @@ msgstr ""
 "d'exécuter un relais Teredo et/ou un serveur Teredo et un client Teredo\n"
 "simultanément. Référez vous au manuel pour plus de détails.\n"
 
-#: src/main.c:539
+#: src/main.c:540
 msgid "Miredo configuration :"
 msgstr "Configuration de Miredo :"
 
-#: src/main.c:541
+#: src/main.c:542
 msgid "Client/relay UDP port       : "
 msgstr "Port UDP du client/relais          : "
 
-#: src/main.c:545
+#: src/main.c:546
 msgid "automatic"
 msgstr "automatique"
 
-#: src/main.c:547
+#: src/main.c:548
 #, c-format
 msgid "Client/relay IPv4 address   : %s\n"
 msgstr "Adresse IPv4 du client/relais      : %s\n"
 
-#: src/main.c:548
+#: src/main.c:549
 msgid "any"
 msgstr "automatique"
 
-#: src/main.c:550
+#: src/main.c:551
 #, c-format
 msgid "Tunnel interface name       : %s\n"
 msgstr "Nom de l'interface tunnel          : %s\n"
 
-#: src/main.c:551 src/main.c:558
+#: src/main.c:552 src/main.c:559
 msgid "default"
 msgstr "par défaut"
 
-#: src/main.c:555
+#: src/main.c:556
 #, c-format
 msgid "Server primary IPv4 address : %s\n"
 msgstr "Adresse IPv4 principale du serveur : %s\n"
 
-#: src/main.c:556
+#: src/main.c:557
 msgid "disabled"
 msgstr "désactivée"
 
-#: src/main.c:557
+#: src/main.c:558
 #, c-format
 msgid "Teredo IPv6 prefix          : %s\n"
 msgstr "Préfixe Teredo IPv6                : %s\n"
 
-#: src/main.c:559
+#: src/main.c:560
 #, c-format
 msgid "Assumed NAT type            : %s\n"
 msgstr "Type de NAT supposé                : %s\n"
 
-#: src/main.c:561
+#: src/main.c:562
 msgid "none/cone"
 msgstr "aucun/cône"
 
-#: src/main.c:565
+#: src/main.c:566
 #, c-format
 msgid "Server name                 : %s\n"
 msgstr "Nom du serveur                     : %s\n"
 
 #: src/miredo.cpp:211 src/miredo.cpp:236
-#, c-format
-msgid "Invalid hostname `%s': %s"
+#, fuzzy, c-format
+msgid "Invalid hostname \"%s\": %s"
 msgstr "Nom d'hôte invalide `%s': %s"
 
 #: src/miredo.cpp:297

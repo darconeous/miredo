@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: rdenis@simphalempin.com\n"
-"POT-Creation-Date: 2004-11-01 21:05+0100\n"
+"POT-Creation-Date: 2004-11-01 21:11+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -57,7 +57,7 @@ msgstr ""
 msgid "cone"
 msgstr ""
 
-#: libteredo/relay.cpp:581 src/main.c:562
+#: libteredo/relay.cpp:581 src/main.c:563
 msgid "restricted"
 msgstr ""
 
@@ -197,7 +197,7 @@ msgid ""
 msgstr ""
 
 #: src/main.c:71
-msgid "Try `miredo -h | more' for more information.\n"
+msgid "Try \"miredo -h | more\" for more information.\n"
 msgstr ""
 
 #: src/main.c:80
@@ -242,13 +242,13 @@ msgstr ""
 #: src/main.c:127
 #, c-format
 msgid ""
-"Duplicate parameter `%s' for option -%c\n"
-"would override previous value `%s'.\n"
+"Duplicate parameter \"%s\" for option -%c\n"
+"would override previous value \"%s\".\n"
 msgstr ""
 
 #: src/main.c:138
 #, c-format
-msgid "Invalid number (or capacity exceeded) `%s' for option -%c\n"
+msgid "Invalid number (or capacity exceeded) \"`%s\" for option -%c\n"
 msgstr ""
 
 #: src/main.c:146
@@ -263,7 +263,7 @@ msgstr ""
 #: src/main.c:202
 msgid ""
 "Chroot directory was probably not set up correctly.\n"
-"NOTE: You can use command line option '-t /'\n"
+"NOTE: You can use command line option \"-t /\"\n"
 "if you don't want to run the program inside a chroot jail.\n"
 "\n"
 "Not using a chroot jail is far easier though less secure.\n"
@@ -282,7 +282,7 @@ msgid ""
 "security context of system user \"%s\", but it\n"
 "does not seem to exist on your system.\n"
 "\n"
-"Use command line option '-u <username>' to run\n"
+"Use command line option \"-u <username>\" to run\n"
 "this program in the security context of another\n"
 "user. Running as root is STRONGLY DISCOURAGED.\n"
 msgstr ""
@@ -322,16 +322,16 @@ msgstr ""
 #, c-format
 msgid ""
 "Warning: /dev/log not found or invalid: logging will probably not work.\n"
-"Try adding '-a %s/dev/log'\n"
+"Try adding \"-a %s/dev/log\"\n"
 " to your syslogd command line to fix that.\n"
 msgstr ""
 
-#: src/main.c:362
+#: src/main.c:363
 #, c-format
 msgid "SetUID to user ID %u: %s\n"
 msgstr ""
 
-#: src/main.c:364
+#: src/main.c:365
 msgid ""
 "Error: This program tried to change its system\n"
 "user security context but it failed.\n"
@@ -341,18 +341,18 @@ msgid ""
 "root, the system administrative user.\n"
 msgstr ""
 
-#: src/main.c:379
+#: src/main.c:380
 msgid "Error (daemon)"
 msgstr ""
 
-#: src/main.c:510
+#: src/main.c:511
 #, c-format
 msgid ""
 "Read unknown option -%c :\n"
 "That is probably a bug. Please report it.\n"
 msgstr ""
 
-#: src/main.c:522
+#: src/main.c:523
 msgid ""
 "You have selected conflicting parameters.\n"
 "It is not possible to run a Teredo relay and/or\n"
@@ -360,67 +360,67 @@ msgid ""
 "Refer to the manual page for more details.\n"
 msgstr ""
 
-#: src/main.c:539
+#: src/main.c:540
 msgid "Miredo configuration :"
 msgstr ""
 
-#: src/main.c:541
+#: src/main.c:542
 msgid "Client/relay UDP port       : "
 msgstr ""
 
-#: src/main.c:545
+#: src/main.c:546
 msgid "automatic"
 msgstr ""
 
-#: src/main.c:547
+#: src/main.c:548
 #, c-format
 msgid "Client/relay IPv4 address   : %s\n"
 msgstr ""
 
-#: src/main.c:548
+#: src/main.c:549
 msgid "any"
 msgstr ""
 
-#: src/main.c:550
+#: src/main.c:551
 #, c-format
 msgid "Tunnel interface name       : %s\n"
 msgstr ""
 
-#: src/main.c:551 src/main.c:558
+#: src/main.c:552 src/main.c:559
 msgid "default"
 msgstr ""
 
-#: src/main.c:555
+#: src/main.c:556
 #, c-format
 msgid "Server primary IPv4 address : %s\n"
 msgstr ""
 
-#: src/main.c:556
+#: src/main.c:557
 msgid "disabled"
 msgstr ""
 
-#: src/main.c:557
+#: src/main.c:558
 #, c-format
 msgid "Teredo IPv6 prefix          : %s\n"
 msgstr ""
 
-#: src/main.c:559
+#: src/main.c:560
 #, c-format
 msgid "Assumed NAT type            : %s\n"
 msgstr ""
 
-#: src/main.c:561
+#: src/main.c:562
 msgid "none/cone"
 msgstr ""
 
-#: src/main.c:565
+#: src/main.c:566
 #, c-format
 msgid "Server name                 : %s\n"
 msgstr ""
 
 #: src/miredo.cpp:211 src/miredo.cpp:236
 #, c-format
-msgid "Invalid hostname `%s': %s"
+msgid "Invalid hostname \"%s\": %s"
 msgstr ""
 
 #: src/miredo.cpp:297

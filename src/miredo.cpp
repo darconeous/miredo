@@ -208,7 +208,7 @@ getipv4byname (const char *name, uint32_t *ipv4)
 
 	if (check)
 	{
-		syslog (LOG_ERR, _("Invalid hostname `%s': %s"),
+		syslog (LOG_ERR, _("Invalid hostname \"%s\": %s"),
 			name, gai_strerror (check));
 		return -1;
 	}
@@ -233,7 +233,7 @@ getipv6byname (const char *name, struct in6_addr *ipv6)
 
 	if (check)
 	{
-		syslog (LOG_ERR, _("Invalid hostname `%s': %s"),
+		syslog (LOG_ERR, _("Invalid hostname \"%s\": %s"),
 			name, gai_strerror (check));
 		return -1;
 	}

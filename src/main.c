@@ -68,7 +68,7 @@
 static int
 quick_usage (void)
 {
-	fputs (_("Try `miredo -h | more' for more information.\n"), stderr);
+	fputs (_("Try \"miredo -h | more\" for more information.\n"), stderr);
 	return 2;
 }
 
@@ -124,8 +124,8 @@ static int
 error_dup (int opt, const char *already, const char *additionnal)
 {
 	fprintf (stderr, _(
-"Duplicate parameter `%s' for option -%c\n"
-"would override previous value `%s'.\n"),
+"Duplicate parameter \"%s\" for option -%c\n"
+"would override previous value \"%s\".\n"),
 		 additionnal, opt, already);
 	return 2;
 }
@@ -135,7 +135,7 @@ static int
 error_qty (int opt, const char *qty)
 {
 	fprintf (stderr, _(
-"Invalid number (or capacity exceeded) `%s' for option -%c\n"), qty, opt);
+"Invalid number (or capacity exceeded) \"`%s\" for option -%c\n"), qty, opt);
 	return 2;
 }
 
@@ -200,7 +200,7 @@ static void
 chroot_notice (void)
 {
 	fputs (_("Chroot directory was probably not set up correctly.\n"
-		"NOTE: You can use command line option '-t /'\n"
+		"NOTE: You can use command line option \"-t /\"\n"
 		"if you don't want to run the program inside a chroot jail.\n"
 		"\n"
 		"Not using a chroot jail is far easier though less secure.\n"
@@ -273,7 +273,7 @@ init_security (const char *username, const char *rootdir, int nodetach)
 			"security context of system user \"%s\", but it\n"
 			"does not seem to exist on your system.\n"
 			"\n"
-			"Use command line option '-u <username>' to run\n"
+			"Use command line option \"-u <username>\" to run\n"
 			"this program in the security context of another\n"
 			"user. Running as root is STRONGLY DISCOURAGED.\n"
 			), username);
@@ -315,8 +315,8 @@ init_security (const char *username, const char *rootdir, int nodetach)
 	 * This fails if the user is not root. */
 	setgroups (0, NULL);
 
-	/* Changes root directory to rootdir (if it is not '/'),
-	 * then current directory to '/' */
+	/* Changes root directory to rootdir (if it is not "/"),
+	 * then current directory to "/" */
 	if (rootdir == NULL)
 		rootdir = pw->pw_dir;
 	if (strcmp ("/", rootdir) && chroot (rootdir))
@@ -340,8 +340,9 @@ init_security (const char *username, const char *rootdir, int nodetach)
 			fprintf (stderr, _(
 				"Warning: /dev/log not found or invalid: "
 				"logging will probably not work.\n"
-				"Try adding '-a %s/dev/log'\n to your syslogd "
-				"command line to fix that.\n"), rootdir);
+				"Try adding \"-a %s/dev/log\"\n to your "
+				"syslogd command line to fix that.\n"),
+				rootdir);
 			chroot_notice ();
 		}
 	}
