@@ -1,13 +1,13 @@
 /*
- * teredo.c - Common Teredo helper functions
- * $Id: teredo.c,v 1.6 2004/07/11 10:34:41 rdenisc Exp $
+ * server.h - Declarations for server.cpp
+ * $Id: server.h,v 1.1 2004/07/22 17:38:29 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
  */
 
 /***********************************************************************
- *  Copyright (C) 2002-2004 Remi Denis-Courmont.                       *
+ *  Copyright (C) 2004 Remi Denis-Courmont.                            *
  *  This program is free software; you can redistribute and/or modify  *
  *  it under the terms of the GNU General Public License as published  *
  *  by the Free Software Foundation; version 2 of the license.         *
@@ -22,40 +22,70 @@
  *  http://www.gnu.org/copyleft/gpl.html                               *
  ***********************************************************************/
 
-#if HAVE_CONFIG_H
-# include <config.h>
+#ifndef __cplusplus
+# error C++ only header
 #endif
 
-#include "teredo.h"
-#include <netinet/ip6.h>
+#ifndef MIREDO_SERVER_H
+# define MIREDO_SERVER_H
+
+# include <inttypes.h>
+
+class MiredoServerUDP;
+class IPv6Tunnel;
 
 /*
- * Teredo addresses
+ * Checks and handles an Teredo-encapsulated packet.
  */
-const struct in6_addr teredo_restrict =
-	{ { { 0xfe, 0x80, 0, 0, 0, 0, 0, 0,
-		    0, 0, 'T', 'E', 'R', 'E', 'D', 'O' } } };
-const struct in6_addr teredo_cone =
-	{ { { 0xfe, 0x80, 0, 0, 0, 0, 0, 0,
-		    0x80, 0, 'T', 'E', 'R', 'E', 'D', 'O' } } };
-
-
-int
-in6_matches_teredo_client (union teredo_addr *ip6, uint32_t ip, uint16_t port)
+class MiredoServer
 {
-	return (ip == (uint32_t)~ip6->teredo.client_ip)
-		&& (port == (uint16_t)~ip6->teredo.client_port);
-}
+	private:
+		uint32_t prefix;
+		uint32_t server_ip;
+		const MiredoServerUDP *sock;
+		const IPv6Tunnel *tunnel;
 
-int
-in6_matches_teredo_server (union teredo_addr *ip6, uint32_t ip)
-{
-	return ip6->teredo.server_ip == ip;
-}
+	public:
+		MiredoServer (void)
+		{
+		}
 
-int
-in6_is_teredo_addr_cone (union teredo_addr *ip6)
-{
-	return ip6->teredo.flags & htons (TEREDO_FLAGS_CONE);
-}
+		~MiredoServer (void)
+		{
+		}
+
+		void SetPrefix (uint32_t pref)
+		{
+			prefix = pref;
+		}
+
+		void SetServerIP (uint32_t ip)
+		{
+			server_ip = ip;
+		}
+
+		void SetTunnel (const IPv6Tunnel *tun)
+		{
+			tunnel = tun;
+		}
+
+		void SetSocket (const MiredoServerUDP *udp)
+		{
+			sock = udp;
+		}
+
+		int ReceivePacket (void) const;
+
+		uint32_t GetPrefix (void) const
+		{
+			return prefix;
+		}
+
+		uint32_t GetServerIP (void) const
+		{
+			return server_ip;
+		}
+};
+
+#endif /* ifndef MIREDO_SERVER_H */
 

@@ -1,7 +1,7 @@
 /*
  * main.c - Unix Teredo server & relay implementation
  *          command line handling and core functions
- * $Id: main.c,v 1.17 2004/07/14 14:23:56 rdenisc Exp $
+ * $Id: main.c,v 1.18 2004/07/22 17:38:29 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -48,7 +48,7 @@
 #endif
 
 #include "miredo.h"
-#include "teredo.h"
+#include <libteredo/teredo.h>
 
 /*#include "host.h"*/
 

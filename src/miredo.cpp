@@ -1,7 +1,7 @@
 /*
  * miredo.cpp - Unix Teredo server & relay implementation
  *              core functions
- * $Id: miredo.cpp,v 1.22 2004/07/14 14:23:56 rdenisc Exp $
+ * $Id: miredo.cpp,v 1.23 2004/07/22 17:38:29 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -46,12 +46,13 @@
 #endif
 
 #include "miredo.h"
-#include "teredo.h" // FIXME: move AddRoute to <relay.cpp>
-#include "teredo-udp.h"
-#include "libtun6/ipv6-tunnel.h"
-#include "server.h"
-#include "common_pkt.h" // is_ipv4_global_unicast() -- FIXME: code clean up
-#include "relay.h"
+
+#include <libtun6/ipv6-tunnel.h>
+
+#include <libteredo/teredo.h>
+#include <libteredo/teredo-udp.h>
+#include <libteredo/server.h>
+#include <libteredo/relay.h>
 
 /*
  * Signal handlers
@@ -362,14 +363,6 @@ miredo_run (uint16_t client_port, const char *server_name,
 		if (getipv4byname (server_name, &ipv4))
 		{
 			syslog (LOG_ALERT, _("Fatal configuration error"));
-			goto abort;
-		}
-
-		if ((ipv4 == 0) || !is_ipv4_global_unicast (ipv4))
-		{
-			syslog (LOG_ALERT,
-				_("Server IPv4 must be global unicast. "
-								"Exiting."));
 			goto abort;
 		}
 

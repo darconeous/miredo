@@ -1,6 +1,6 @@
 /*
  * teredo-udp.cpp - UDP sockets class definition
- * $Id: teredo-udp.cpp,v 1.8 2004/07/12 09:34:51 rdenisc Exp $
+ * $Id: teredo-udp.cpp,v 1.1 2004/07/22 17:38:29 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -29,6 +29,7 @@
 #include <inttypes.h>
 #include <string.h> // memset()
 
+#include <v4global.h> // is_ipv4_global_unicast()
 #include "teredo-udp.h"
 
 #include <sys/types.h>
@@ -282,6 +283,21 @@ MiredoServerUDP::~MiredoServerUDP ()
 
 int MiredoServerUDP::ListenIP (uint32_t ip1, uint32_t ip2)
 {
+	if (!is_ipv4_global_unicast (ip1)
+	 || !is_ipv4_global_unicast (ip2))
+	{
+		syslog (LOG_ERR, _("Teredo server UDP socket error: "
+			"Server IPv4 addresses must be global unicast."));
+		return -1;
+	}
+
+	if (ip1 == INADDR_ANY || ip2 == INADDR_ANY)
+	{
+		syslog (LOG_ERR, _("Teredo server UDP socket error: "
+			"Server IPv4 addresses must not be wildcard.\n"));
+		return -1;
+	}
+
 	if (fd_primary != -1)
 		close (fd_primary);
 	fd_primary = OpenTeredoSocket (ip1, htons (IPPORT_TEREDO));

@@ -1,5 +1,5 @@
-# Makefile.am - include directory Makefile for miredo
-# $Id: Makefile.am,v 1.1 2004/06/14 14:45:58 rdenisc Exp $
+# Makefile.am - libteredo/ directory Makefile for miredo
+# $Id: Makefile.am,v 1.1 2004/07/22 17:38:29 rdenisc Exp $
 
 # ***********************************************************************
 # *  Copyright (C) 2004 Remi Denis-Courmont.                            *
@@ -17,5 +17,13 @@
 # *  http://www.gnu.org/copyleft/gpl.html                               *
 # ***********************************************************************
 
-noinst_HEADERS = teredo.h
+AM_CPPFLAGS = -I@top_srcdir@/include -I@top_srcdir@
+noinst_LIBRARIES = libteredo.a
+
+# libteredo.a
+libteredo_a_SOURCES =	teredo.c teredo.h \
+			v4global.c v4global.h \
+			teredo-udp.cpp teredo-udp.h \
+			relay.cpp relay.h \
+			server.cpp server.h
 

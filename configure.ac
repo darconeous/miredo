@@ -87,6 +87,6 @@ AH_BOTTOM([
 
 # END
 AS_MESSAGE(writing results...)
-AC_CONFIG_FILES([Makefile m4/Makefile include/Makefile libtun6/Makefile src/Makefile])
+AC_CONFIG_FILES([Makefile m4/Makefile libtun6/Makefile libteredo/Makefile src/Makefile])
 AC_OUTPUT
 

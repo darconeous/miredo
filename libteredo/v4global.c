@@ -1,9 +1,6 @@
 /*
- * server.h - Declarations for server.cpp
- * $Id: server.h,v 1.1 2004/07/11 10:08:13 rdenisc Exp $
- *
- * See "Teredo: Tunneling IPv6 over UDP through NATs"
- * for more information
+ * v4global.c - Check whether an IPv4 address is global
+ * $Id: v4global.c,v 1.1 2004/07/22 17:38:29 rdenisc Exp $
  */
 
 /***********************************************************************
@@ -22,68 +19,35 @@
  *  http://www.gnu.org/copyleft/gpl.html                               *
  ***********************************************************************/
 
-#ifndef __cplusplus
-# error C++ only header
+#if HAVE_CONFIG_H
+# include <config.h>
 #endif
 
-#ifndef MIREDO_SERVER_H
-# define MIREDO_SERVER_H
+#include "v4global.h"
 
-class MiredoServerUDP;
-class IPv6Tunnel;
+#include <inttypes.h>
+#include <netinet/in.h> // ntohl()
 
 /*
- * Checks and handles an Teredo-encapsulated packet.
+ * Checks that ip is a global unicast IPv4 address
+ * (Values shoud maybe not be hardcoded that way).
  */
-class MiredoServer
+int
+is_ipv4_global_unicast (uint32_t ip)
 {
-	private:
-		uint32_t prefix;
-		uint32_t server_ip;
-		const MiredoServerUDP *sock;
-		const IPv6Tunnel *tunnel;
-
-	public:
-		MiredoServer (void)
-		{
-		}
-
-		~MiredoServer (void)
-		{
-		}
-
-		void SetPrefix (uint32_t pref)
-		{
-			prefix = pref;
-		}
-
-		void SetServerIP (uint32_t ip)
-		{
-			server_ip = ip;
-		}
-
-		void SetTunnel (const IPv6Tunnel *tun)
-		{
-			tunnel = tun;
-		}
-
-		void SetSocket (const MiredoServerUDP *udp)
-		{
-			sock = udp;
-		}
-
-		int ReceivePacket (void) const;
-
-		uint32_t GetPrefix (void) const
-		{
-			return prefix;
-		}
-
-		uint32_t GetServerIP (void) const
-		{
-			return server_ip;
-		}
-};
-
-#endif /* ifndef MIREDO_SERVER_H */
+	ip = ntohl (ip);
+	return
+		// Check for class A private range 10.0.0.0/24
+		((ip & 0xff000000) != 0x0a000000) &&
+		// Check for class A loopback range 127.0.0.0/8
+		((ip & 0xff000000) != 0x7f000000) &&
+		// Check for "Microsoft" private range 169.254.0.0/16
+		((ip & 0xffff0000) != 0xa9fe0000) &&
+		// Check for class B private range 172.16.0.0/12
+		 ((ip & 0xfff00000) != 0xac100000) &&
+		// Check for class C private range 192.168.0.0/16
+		((ip & 0xffff0000) != 0xc0a80000) &&
+		// Class D (Multicast), E, bad classes:
+		((ip & 0xe0000000) != 0xe0000000);
+}
 

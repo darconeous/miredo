@@ -1,13 +1,13 @@
 /*
- * common_pkt.h - Declarations for common_pkt.cpp
- * $Id: common_pkt.h,v 1.2 2004/07/21 16:37:41 rdenisc Exp $
+ * teredo.c - Common Teredo helper functions
+ * $Id: teredo.c,v 1.1 2004/07/22 17:38:29 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
  */
 
 /***********************************************************************
- *  Copyright (C) 2004 Remi Denis-Courmont.                            *
+ *  Copyright (C) 2002-2004 Remi Denis-Courmont.                       *
  *  This program is free software; you can redistribute and/or modify  *
  *  it under the terms of the GNU General Public License as published  *
  *  by the Free Software Foundation; version 2 of the license.         *
@@ -22,13 +22,40 @@
  *  http://www.gnu.org/copyleft/gpl.html                               *
  ***********************************************************************/
 
-#ifndef MIREDO_COMMON_PKT_H
-# define MIREDO_COMMON_PKT_H
+#if HAVE_CONFIG_H
+# include <config.h>
+#endif
 
-# include <inttypes.h>
+#include "teredo.h"
+#include <netinet/ip6.h>
 
-extern "C"
-bool is_ipv4_global_unicast (uint32_t ip);
+/*
+ * Teredo addresses
+ */
+const struct in6_addr teredo_restrict =
+	{ { { 0xfe, 0x80, 0, 0, 0, 0, 0, 0,
+		    0, 0, 'T', 'E', 'R', 'E', 'D', 'O' } } };
+const struct in6_addr teredo_cone =
+	{ { { 0xfe, 0x80, 0, 0, 0, 0, 0, 0,
+		    0x80, 0, 'T', 'E', 'R', 'E', 'D', 'O' } } };
 
-#endif /* ifndef MIREDO_COMMON_PKT_H */
+
+int
+in6_matches_teredo_client (union teredo_addr *ip6, uint32_t ip, uint16_t port)
+{
+	return (ip == (uint32_t)~ip6->teredo.client_ip)
+		&& (port == (uint16_t)~ip6->teredo.client_port);
+}
+
+int
+in6_matches_teredo_server (union teredo_addr *ip6, uint32_t ip)
+{
+	return ip6->teredo.server_ip == ip;
+}
+
+int
+in6_is_teredo_addr_cone (union teredo_addr *ip6)
+{
+	return ip6->teredo.flags & htons (TEREDO_FLAGS_CONE);
+}
 
