@@ -1,7 +1,7 @@
 /*
  * main.c - Unix Teredo server & relay implementation
  *          command line handling and core functions
- * $Id: main.c,v 1.12 2004/07/12 08:45:48 rdenisc Exp $
+ * $Id: main.c,v 1.13 2004/07/12 09:34:51 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -297,7 +297,7 @@ init_security (const char *username, const char *rootdir, int nodetach)
 	 * Prevents fchdir from breaking the chroot jail and complete detach
 	 * by re-opening 0, 1 and 2 as /dev/null
 	 */
-	if (dup2 (fd, 0) || dup2 (fd, 1) || dup2 (fd, 2))
+	if (dup2 (fd, 0) != 0 || dup2 (fd, 1) != 1 || dup2 (fd, 2) != 2)
 	{
 		perror (_("Kernel error"));
 		return -1;

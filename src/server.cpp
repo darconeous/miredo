@@ -1,6 +1,6 @@
 /*
  * server.cpp - Handling of a single Teredo datagram (server-side).
- * $Id: server.cpp,v 1.4 2004/07/12 08:48:30 rdenisc Exp $
+ * $Id: server.cpp,v 1.5 2004/07/12 09:34:51 rdenisc Exp $
  */
 
 /***********************************************************************
@@ -239,7 +239,7 @@ ForwardUDPPacket (const MiredoServerUDP *sock, bool insert_orig = true)
 			inet_ntoa (addr), ntohs (~dst.teredo.client_port));
 	}
 #endif
-	
+
 	if (!is_ipv4_global_unicast (dest_ip))
 		return 0; // ignore invalid client IP
 

@@ -1,6 +1,6 @@
 /*
  * teredo-udp.cpp - UDP sockets class definition
- * $Id: teredo-udp.cpp,v 1.7 2004/07/12 08:48:30 rdenisc Exp $
+ * $Id: teredo-udp.cpp,v 1.8 2004/07/12 09:34:51 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -121,29 +121,25 @@ MiredoCommonUDP::ReceivePacket (int fd)
 	orig = NULL;
 	nonce = NULL;
 
-	if (length < 1)
-		return -1; // bogus empty packet
-
 	// Parse Teredo headers
-	while (*(ptr++) == 0)
+	while ((length >= 2) && ptr[0] == 0)
 	{
-		length -= 2;
-		if (length < 0)
-			return -1; // too small
-
-		uint8_t code = *(ptr++);
-		switch (code)
+		switch (ptr[1])
 		{
 			// Teredo Authentication header
 			case teredo_auth_hdr:
 			{
+				ptr += 2;
 				/* ID and Auth */
-				length -= 2;
+				length -= 4;
 				if (length < 0)
 					return -1; // too small
 
-				uint8_t id_len = *(ptr++);
-				uint8_t au_len = *(ptr++);
+				uint8_t id_len = *ptr;
+				ptr++;
+				uint8_t au_len = *ptr;
+				ptr++;
+
 				length -= id_len + au_len;
 				/* TODO: secure qualification */
 				ptr += id_len + au_len;
@@ -171,13 +167,13 @@ MiredoCommonUDP::ReceivePacket (int fd)
 			// Teredo Origin Indication
 			case teredo_orig_ind:
 			{
-				length -= sizeof (orig_buf) - 2;
+				length -= sizeof (orig_buf);
 				if (length < 0)
 					return -1; // too small
 
-				memcpy (&orig_buf, ptr - 2, sizeof (orig_buf));
+				memcpy (&orig_buf, ptr, sizeof (orig_buf));
 				orig = &orig_buf;
-				ptr += sizeof (orig_buf) - 2;
+				ptr += sizeof (orig_buf);
 				break;
 			}
 
@@ -187,7 +183,10 @@ MiredoCommonUDP::ReceivePacket (int fd)
 		}
 	}
 
-	// length >= 0 and length <= 65507
+	if (length < 0)
+		return -1;
+
+	// length <= 65507
 	memcpy (&ipv6_buf.ip6, ptr, length);
 	ip6len = length;
 
