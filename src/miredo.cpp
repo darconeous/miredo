@@ -1,7 +1,7 @@
 /*
  * miredo.cpp - Unix Teredo server & relay implementation
  *              core functions
- * $Id: miredo.cpp,v 1.31 2004/08/24 14:25:35 rdenisc Exp $
+ * $Id: miredo.cpp,v 1.32 2004/08/24 16:00:26 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -339,7 +339,18 @@ miredo_run (uint16_t client_port, const char *const *server_names,
 			goto abort;
 		}
 
-		server = new MiredoServer (ipv4, htonl (ntohl (ipv4) + 1));
+		try
+		{
+			server = new MiredoServer (ipv4, htonl (ntohl (
+							ipv4) + 1));
+		}
+		catch (...)
+		{
+			server = NULL;
+			syslog (LOG_ALERT, _("Teredo server failure"));
+			goto abort;
+		}
+
 		/*
 		 * NOTE:
 		 * While it is nowhere in the draft Teredo
@@ -361,15 +372,19 @@ miredo_run (uint16_t client_port, const char *const *server_names,
 	// Sets up relay
 	// TODO: ability to not be a relay at all
 	// TODO: ability to use the other constructor, for Teredo client
-	try {
-		relay = new MiredoRelay (&tunnel, prefix.teredo.prefix,
+	try
+	{
+		relay = (mode & MIREDO_CLIENT)
+			? new MiredoRelay (&tunnel, server_names,
+						htons (client_port))
+			: new MiredoRelay (&tunnel, prefix.teredo.prefix,
 					 htons (client_port),
 					 mode & MIREDO_CONE != 0);
 	}
 	catch (...)
 	{
 		relay = NULL;
-		syslog (LOG_ALERT, _("Teredo relay failure"));
+		syslog (LOG_ALERT, _("Teredo service failure"));
 		goto abort;
 	}
 

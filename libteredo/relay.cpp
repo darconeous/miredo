@@ -1,6 +1,6 @@
 /*
  * relay.cpp - Teredo relay peers list definition
- * $Id: relay.cpp,v 1.13 2004/08/22 16:58:53 rdenisc Exp $
+ * $Id: relay.cpp,v 1.14 2004/08/24 16:00:26 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -76,6 +76,13 @@ struct __TeredoRelay_peer
 
 TeredoRelay::TeredoRelay (uint32_t pref, uint16_t port, bool cone)
 	: is_cone (cone), prefix (pref), server_ip (0), head (NULL)
+{
+	sock.ListenPort (port);
+}
+
+
+TeredoRelay::TeredoRelay (const char * const* servers, uint16_t port)
+	: is_cone (true), prefix (0), server_ip (0), head (NULL)
 {
 	sock.ListenPort (port);
 }
