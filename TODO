@@ -10,6 +10,8 @@ Features:
 - better support for lossy IPv4 connectivity,
 - local Teredo discovery,
 - use of a config file, instead of command line options (XML?),
+- ability to run a non-relay Teredo server
+- "automatic sunset" / "exit strategy" -- quite complicated,
 
 Security:
 ----------
