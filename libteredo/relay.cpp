@@ -811,7 +811,7 @@ int TeredoRelay::Process (void)
 		{
 			// TODO: randomize refresh interval
 			delay = SERVER_PING_DELAY;
-
+#if 0
 			if (((signed)(now.tv_sec - probe.serv.tv_sec) > 0)
 			 || ((now.tv_sec == probe.serv.tv_sec)
 			  && ((signed)(now.tv_usec - probe.serv.tv_usec) > 0)))
@@ -822,6 +822,7 @@ int TeredoRelay::Process (void)
 							: PROBE_RESTRICT;
 				down = true;
 			}
+#endif
 		}
 		else
 		{
