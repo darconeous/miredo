@@ -178,12 +178,12 @@ msgstr "[adresse_inconnue]"
 #: libtun6/ipv6-tunnel.cpp:477
 #, c-format
 msgid "%s tunnel address %s/%u setup error: %m"
-msgstr "Erreur de réglage de l'adresse %1$s/%2$u pour le tunnel %0$s: %m"
+msgstr "Erreur de réglage de l'adresse %2$s/%3$u pour le tunnel %1$s: %m"
 
 #: libtun6/ipv6-tunnel.cpp:479
 #, c-format
 msgid "%s tunnel address %s/%u removal error: %m"
-msgstr "Erreur de suppression de l'adresse %1$s/%2$u pour le tunnel %0$s: %m"
+msgstr "Erreur de suppression de l'adresse %2$s/%3$u pour le tunnel %1$s: %m"
 
 #: libtun6/ipv6-tunnel.cpp:486
 #, c-format
@@ -226,12 +226,12 @@ msgstr "[route_inconnue]"
 #: libtun6/ipv6-tunnel.cpp:652
 #, c-format
 msgid "%s tunnel route %s/%u setup error: %m"
-msgstr "Erreur de réglage de la route %1$s/%2$u pour le tunnel %0$s: %m"
+msgstr "Erreur de réglage de la route %2$s/%3$u pour le tunnel %1$s: %m"
 
 #: libtun6/ipv6-tunnel.cpp:654
 #, c-format
 msgid "%s tunnel route %s/%u removal error: %m"
-msgstr "Erreur de suppression de la route %1$s/%2$u pour le tunnel %0$s: %m"
+msgstr "Erreur de suppression de la route %2$s/%3$u pour le tunnel %1$s: %m"
 
 #: libtun6/ipv6-tunnel.cpp:661
 #, c-format
