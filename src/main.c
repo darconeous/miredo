@@ -162,6 +162,30 @@ error_missing (void)
 
 
 /*
+ * Creates a Process-ID file.
+ * Only the miredo should be allowed to write in the directory in which the
+ * file is to be created. Otherwise, there will be an insecure file creation
+ * (vulnerable to symlinking).
+ */
+static int
+create_pidfile (const char *path)
+{
+	FILE *stream;
+	int retval = 0;
+
+	stream = fopen (path, "w");
+	if (stream == NULL)
+		return -1;
+
+	if (fprintf (stream, "%u", (unsigned)getpid ()) <= 0)
+		retval = -1;
+
+	fclose (stream);
+	return retval;
+}
+
+
+/*
  * Initialize daemon security settings.
  *
  * We can't setuid to non-root yet. That's done later.
@@ -452,7 +476,8 @@ int
 main (int argc, char *argv[])
 {
 	const char *server = NULL, *prefix = NULL, *ifname = NULL,
-			*username = NULL, *rootdir = NULL, *client_ip = NULL;
+			*username = NULL, *rootdir = NULL, *client_ip = NULL,
+			*pidfile = "/var/run/miredo/miredo.pid";
 	uint16_t client_port = 0;
 	struct
 	{
@@ -636,16 +661,21 @@ main (int argc, char *argv[])
 	if (init_security (username, rootdir, flags.foreground))
 		return 1;
 
+	if (pidfile != NULL)
+		create_pidfile (pidfile);
+
 	/*
 	 * Run
 	 */
-	if (flags.manual
+	c = flags.manual
 			? miredo (client_port, client_ip, server, prefix,
 					ifname, flags.cone)
 			: miredo_client (server, client_port, client_ip,
-						ifname))
-		return 1;
-	else
-		return 0;
+						ifname);
+
+	if (pidfile != NULL)
+		remove (pidfile);
+
+	return c ? 1 : 0;
 }
 
