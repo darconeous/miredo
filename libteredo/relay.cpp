@@ -1,6 +1,6 @@
 /*
  * relay.cpp - Teredo relay peers list definition
- * $Id: relay.cpp,v 1.23 2004/08/27 10:21:59 rdenisc Exp $
+ * $Id: relay.cpp,v 1.24 2004/08/27 14:54:52 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -231,15 +231,20 @@ TeredoRelay::TeredoRelay (uint32_t pref, uint16_t port, bool cone)
 }
 
 
+#define PROBE_CONE	1
+#define PROBE_RESTRICT	2
+#define PROBE_SYMMETRIC	3
+
+#define QUALIFIED	0
+
 TeredoRelay::TeredoRelay (uint32_t server_ip, uint16_t port)
 	: head (NULL)
 {
 	if (sock.ListenPort (port) == 0)
 	{
-	/*
-		SendRS (sock, server_ip, nonce, true, false);
-		gettimeofday (&last_rs);
-	*/
+		state.probe = PROBE_CONE;
+		state.count = 0;
+		Process ();
 	}
 }
 
@@ -535,7 +540,7 @@ int TeredoRelay::ReceivePacket (void)
 	if (IsClient () && (packet.GetClientIP () == GetServerIP ())
 	 && (packet.GetClientPort () == htons (IPPORT_TEREDO)))
 	{
-		gettimeofday (&server_interaction, NULL);
+		gettimeofday (&state.serv, NULL);
 
 		const struct teredo_orig_ind *ind = packet.GetOrigInd ();
 		if (ind != NULL)
@@ -591,3 +596,87 @@ int TeredoRelay::ReceivePacket (void)
 	return SendIPv6Packet (buf, length);
 }
 
+
+int TeredoRelay::Process (void)
+{
+	struct timeval now;
+
+	gettimeofday (&now, NULL);
+
+	if (IsRelay ())
+		return 0;
+
+	/* Qualification or server refresh (only for client) */
+	if (((signed)(now.tv_sec - state.next.tv_sec) > 0)
+	 || ((now.tv_sec == state.next.tv_sec)
+	  && ((signed)(now.tv_usec - state.next.tv_usec) > 0)))
+	{
+		unsigned delay;
+
+		if (state.probe == QUALIFIED)
+		{
+			// TODO: randomize refresh interval
+			delay = 30;
+
+			if (((signed)(now.tv_sec - state.serv.tv_sec) > 0)
+			 || ((now.tv_sec == state.serv.tv_sec)
+			  && ((signed)(now.tv_usec - state.serv.tv_usec) > 0)))
+			{
+				// connectivity with server lost
+				state.count = 1;
+				state.probe = IsCone () ? PROBE_CONE
+							: PROBE_RESTRICT;
+			}
+		}
+		else
+		{
+			delay = 4;
+
+			if (state.probe == PROBE_CONE)
+			{
+				if (state.count == 4) // already 4 attempts?
+				{
+					// Cone qualification failed
+					state.probe = PROBE_RESTRICT;
+					state.count = 0;
+				}
+			}
+			else
+			{
+				if (state.probe == PROBE_SYMMETRIC)
+					/*
+					 * Second half of restricted
+					 * qualification failed: re-trying
+					 * restricted qualifcation
+					 */
+					state.probe = PROBE_RESTRICT;
+
+				if (state.count == 4)
+					/*
+					 * Restricted qualification failed.
+					 * Restarting from zero.
+					 */
+					state.probe = PROBE_CONE;
+				else
+				if (state.count == 3)
+					/*
+					 * Last restricted qualification
+					 * attempt before declaring failure.
+					 * Defer new attempts for 30 seconds.
+					 */
+					delay = 30;
+			}
+
+			state.count ++;
+		}
+
+		SendRS (sock, GetServerIP (), state.nonce,
+			state.probe == PROBE_CONE /* cone */,
+			state.probe == PROBE_RESTRICT /* secondary */);
+
+		gettimeofday (&state.next, NULL);
+		state.next.tv_sec += delay;
+	}
+
+	return 0;
+}

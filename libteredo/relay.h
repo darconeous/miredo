@@ -1,6 +1,6 @@
 /*
  * relay.h - Teredo relay peers list declaration
- * $Id: relay.h,v 1.19 2004/08/26 15:19:11 rdenisc Exp $
+ * $Id: relay.h,v 1.20 2004/08/27 14:54:52 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -45,7 +45,13 @@ class TeredoRelay
 	private:
 		/*** Internal stuff ***/
 		union teredo_addr addr;
-		struct timeval server_interaction, last_rs;
+		struct
+		{
+			struct timeval next, serv;
+			unsigned char nonce[8];
+			unsigned probe:2;
+			unsigned count:3;
+		} state;
 
 		struct __TeredoRelay_peer *head;
 
@@ -120,6 +126,7 @@ class TeredoRelay
 		 * i.e. performs "Packet transmission".
 		 * This function will not block because normal IPv4 stacks do
 		 * not block when sending UDP packets.
+		 * Not thread-safe yet.
 		 */
 		int SendPacket (const void *packet, size_t len);
 
@@ -127,8 +134,18 @@ class TeredoRelay
 		 * Receives a packet from Teredo to IPv6 Internet, i.e.
 		 * performs "Packet reception". This function will block until
 		 * a Teredo packet is received.
+		 * Not thread-safe yet.
 		 */
 		int ReceivePacket (void);
+
+		/*
+		 * Sends pending queued UDP packets (Teredo bubbles,
+		 * Teredo pings, Teredo router solicitation) if any.
+		 *
+		 * Call this function as frequently as possible.
+		 * Not thread-safe yet.
+		 */
+		int Process (void);
 
 		/*
 		 * Returns true if the relay/client is behind a cone NAT.
