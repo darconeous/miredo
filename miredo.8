@@ -13,7 +13,7 @@
 .\" *  along with this program; if not, you can get it from:              *
 .\" *  http://www.gnu.org/copyleft/gpl.html                               *
 .\" ***********************************************************************
-.TH "MIREDO" "8" "$Date: 2004/06/26 19:58:26 $" "miredo" "System Manager's Manual"
+.TH "MIREDO" "8" "$Date: 2004/06/26 20:14:28 $" "miredo" "System Manager's Manual"
 .SH NAME
 miredo \- Teredo IPv6 tunneling for Unix
 .SH SYNOPSIS
@@ -84,16 +84,40 @@ Display program version and license and exit.
 Miredo should chroot() for increased security.
 .RI "Miredo should support " "client mode" "."
 
-.\"
+Miredo does not queue more than one IPv6 packet per Teredo clients.
+That might break some IPv6-enabled applications.
+
+.RB "The Internet draft specification for " "Teredo" " has not yet"
+been validated. As such it is subject to change and miredo might not
+work correctly with other implementations.
+
+.BR "FreeBSD" " support is untested and routing does not work on that"
+platform, so that manual route setup is required.
+
 .SH SECURITY
 .B Miredo
 requires
 .I root
 privileges to be create its IPv6 tunneling network interface, and to
-set it up properly. Once it initialization is complete, it will drop
-.RI "privileges setuid to " "miredo" " and setgid to " "nogroup"
-(Unix user and group names may differ if your vendor has customized
-those).
+set it up properly. Once its initialization is complete, it will drop
+.RI "privileges setuid to " "miredo" " and setgid to " "nogroup" " so"
+as to decrease security exposure (Unix user and group names may differ
+if your vendor has customized those).
+
+Miredo is still beta quality code. As such, it should not be deployed
+in production or security-sensitive environment. It is supposedly easy
+to deny service by flooding the relay with vaguely carefully crafted
+IPv6 packets.
+
+Teredo connectivity throughout the IPv6 Internet seems pretty poor and
+unstable at the time of writing these lines. That will hopefully
+improve as time goes.
+
+While that is not specific to nor dependant on Miredo, it should be
+noted that Teredo connectivity allows anyone behind a NAT to obtain
+global public IPv6 connectivity, even if that breaks some corporate
+policy. If that is an issue, outgoing UDP packets to port 3544 should
+be blocked at the perimeter firewall.
 
 .SH "SEE ALSO"
 ng_teredo(4), ipv6(7), route(8), ip(8)
@@ -101,7 +125,7 @@ ng_teredo(4), ipv6(7), route(8), ip(8)
 .SH AUTHOR
 Remi Denis-Courmont <rdenis at simphalempin.com>
 
-$Id: miredo.8,v 1.2 2004/06/26 19:58:26 rdenisc Exp $
+$Id: miredo.8,v 1.3 2004/06/26 20:14:28 rdenisc Exp $
 
 http://www.simphalempin.com/dev/miredo/
 
