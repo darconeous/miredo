@@ -517,6 +517,12 @@ ParseConf (const char *path, int *newfac, struct miredo_conf *conf)
 			syslog (LOG_ALERT, _("Fatal configuration error"));
 			return false;
 		}
+
+		if (conf->server_ip == INADDR_ANY)
+		{
+			syslog (LOG_ALERT, _("Server address not specified"));
+			return false;
+		}
 	}
 	else
 	{
@@ -547,6 +553,7 @@ ParseConf (const char *path, int *newfac, struct miredo_conf *conf)
 
 	conf->ifname = cnf.GetRawValue ("InterfaceName");
 
+	cnf.Clear (5);
 	return true;
 }
 
@@ -560,7 +567,7 @@ extern "C" int
 miredo (const char *confpath)
 {
 	int facility = LOG_DAEMON, retval;
-	openlog (ident, LOG_PID, facility);
+	openlog (ident, LOG_PID | LOG_PERROR, facility);
 
 	do
 	{
@@ -665,6 +672,11 @@ miredo (const char *confpath)
 		}
 	}
 	while (retval == 2);
+
+	if (retval)
+		syslog (LOG_INFO, _("Terminated with error(s)."));
+	else
+		syslog (LOG_INFO, _("Terminated with no error."));
 
 	closelog ();
 	return -retval;
