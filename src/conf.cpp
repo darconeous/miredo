@@ -230,6 +230,50 @@ MiredoConf::GetInt16 (const char *name, uint16_t *value, unsigned *line)
 
 
 
+const char *true_strings[] = { "yes", "true", "on", "enabled", NULL };
+const char *false_strings[] = { "no", "false", "off", "disabled", NULL };
+
+bool
+MiredoConf::GetBoolean (const char *name, bool *value, unsigned *line)
+{
+	const char *val = GetRawValue (name, line);
+
+	if (val == NULL)
+		return true;
+	else
+	{
+		// check if value is a number
+		long l;
+		char *end;
+
+		l = strtol (val, &end, 0);
+
+		if (*end == '\0') // success
+		{
+			*value = (l != 0);
+			return true;
+		}
+	}
+
+	for (const char **ptr = true_strings; *ptr != NULL; ptr++)
+		if (!stricmp (val, *ptr))
+		{
+			*value = true;
+			return true;
+		}
+
+	for (const char **ptr = false_strings; *ptr != NULL; ptr++)
+		if (!stricmp (val, *ptr))
+		{
+			*value = false;
+			return true;
+		}
+
+	syslog (LOG_ERR, _("Invalid boolean value \"%s\" for %s"), val, name);
+	return false;
+}
+
+
 /*
  * Returns an IPv4 address (network byte order) associated with hostname
  * <name>.

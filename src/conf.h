@@ -69,6 +69,9 @@ class MiredoConf
 		 */
 		bool GetInt16 (const char *name, uint16_t *value,
 						unsigned *line = NULL);
+
+		bool GetBoolean (const char *name, bool *value,
+						unsigned *line = NULL);
 };
 
 
