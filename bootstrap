@@ -47,13 +47,13 @@ echo "Removing backups ..."
 rm -f m4/Makefile.am~ Makefile.am~ configure.ac~ m4/*.m4~ po/*~
 unlink po/Makevars.template
 
-#for d in /usr /usr/local /opt/gettext $HOME ; do
-#	if test -f $d/share/gettext/gettext.h ; then
-#		test -z $gettext_h && ln -sf $d/share/gettext/gettext.h \
-#					include/gettext.h
-#		gettext_h=ok
-#	fi
-#done
+for d in /usr /usr/local /opt/gettext $HOME ; do
+	if test -f $d/share/gettext/gettext.h ; then
+		test -z $gettext_h && ln -sf $d/share/gettext/gettext.h \
+					include/gettext.h
+		gettext_h=ok
+	fi
+done
 
 echo "Generating \`aclocal.m4' with aclocal ..."
 aclocal -I m4 || {
@@ -72,10 +72,10 @@ echo "Generating \`configure' script with autoconf ..."
 autoconf || exit 1
 echo "Done."
 
-#test -z $gettext_h && {
-#echo "Error: can't find <gettext.h> convenience C header."
-#echo "Please put a link to it by hand in src/gettext.h"
-#}
+test -z $gettext_h && {
+echo "Error: can't find <gettext.h> convenience C header."
+echo "Please put a link to it by hand in src/gettext.h"
+}
 
 echo ""
 echo "Type \`./configure' to configure the package for your system"
