@@ -199,6 +199,8 @@ void chroot_notice (void)
 		"if you don't want to run the program inside a chroot jail.\n"
 		"\n"
 		"Not using a chroot jail is far easier though less secure.\n"
+		"\n"
+		"\n"
 		), stderr);
 }
 
