@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: rdenis@simphalempin.com\n"
-"POT-Creation-Date: 2004-12-02 10:31+0100\n"
+"POT-Creation-Date: 2004-12-02 15:10+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -57,7 +57,7 @@ msgstr ""
 msgid "cone"
 msgstr ""
 
-#: libteredo/relay.cpp:581 src/main.c:610
+#: libteredo/relay.cpp:581 src/main.c:650
 msgid "restricted"
 msgstr ""
 
@@ -265,7 +265,7 @@ msgstr ""
 msgid "Error: missing command line parameter\n"
 msgstr ""
 
-#: src/main.c:205
+#: src/main.c:229
 msgid ""
 "Chroot directory was probably not set up correctly.\n"
 "NOTE: You can use command line option \"-t /\"\n"
@@ -276,18 +276,18 @@ msgid ""
 "\n"
 msgstr ""
 
-#: src/main.c:220
+#: src/main.c:244
 msgid ""
 "That is usually an indication that you are trying to start\n"
 "the program as an user with insufficient system privileges.\n"
 "This program should normally be started by root.\n"
 msgstr ""
 
-#: src/main.c:282
+#: src/main.c:306
 msgid "User not found"
 msgstr ""
 
-#: src/main.c:284
+#: src/main.c:308
 #, c-format
 msgid ""
 "Error: This program was asked to run in the\n"
@@ -299,7 +299,7 @@ msgid ""
 "user. Running as root is STRONGLY DISCOURAGED.\n"
 msgstr ""
 
-#: src/main.c:298
+#: src/main.c:322
 msgid ""
 "Error: This program is not supposed to keep root\n"
 "privileges. That is potentially very dangerous\n"
@@ -310,30 +310,30 @@ msgid ""
 "and recompile the program.\n"
 msgstr ""
 
-#: src/main.c:307
+#: src/main.c:331
 msgid ""
 "Warning: This program was configured to retain\n"
 "root privileges while running. That is potentially\n"
 "very dangerous. PROCEED WITH CAUTION.\n"
 msgstr ""
 
-#: src/main.c:319
+#: src/main.c:343
 #, c-format
 msgid "SetGID to group ID %u: %s\n"
 msgstr ""
 
-#: src/main.c:321
+#: src/main.c:345
 msgid ""
 "Error: This program tried to change its system\n"
 "group(s) security context but it failed.\n"
 msgstr ""
 
-#: src/main.c:338
+#: src/main.c:362
 #, c-format
 msgid "Root directory jail in %s: %s\n"
 msgstr ""
 
-#: src/main.c:355
+#: src/main.c:379
 #, c-format
 msgid ""
 "Warning: /dev/log not found or invalid: logging will probably not work.\n"
@@ -341,43 +341,43 @@ msgid ""
 " to your syslogd command line to fix that.\n"
 msgstr ""
 
-#: src/main.c:376
+#: src/main.c:400
 #, c-format
 msgid "SetUID to user ID %u: %s\n"
 msgstr ""
 
-#: src/main.c:378
+#: src/main.c:402
 msgid ""
 "Error: This program tried to change its system\n"
 "user security context but it failed.\n"
 msgstr ""
 
-#: src/main.c:395 src/main.c:402
+#: src/main.c:419 src/main.c:426 src/main.c:440
 msgid "Fatal error"
 msgstr ""
 
-#: src/main.c:409
+#: src/main.c:448
 msgid "Getting networking privileges"
 msgstr ""
 
-#: src/main.c:411
+#: src/main.c:450
 msgid ""
 "Error: This program tried to obtain system networking administration\n"
 "privileges but it failed.\n"
 msgstr ""
 
-#: src/main.c:427
+#: src/main.c:466
 msgid "Error (daemon)"
 msgstr ""
 
-#: src/main.c:558
+#: src/main.c:598
 #, c-format
 msgid ""
 "Read unknown option -%c :\n"
 "That is probably a bug. Please report it.\n"
 msgstr ""
 
-#: src/main.c:570
+#: src/main.c:610
 msgid ""
 "You have selected conflicting parameters.\n"
 "It is not possible to run a Teredo relay and/or\n"
@@ -385,60 +385,60 @@ msgid ""
 "Refer to the manual page for more details.\n"
 msgstr ""
 
-#: src/main.c:587
+#: src/main.c:627
 msgid "Miredo configuration :"
 msgstr ""
 
-#: src/main.c:589
+#: src/main.c:629
 msgid "Client/relay UDP port       : "
 msgstr ""
 
-#: src/main.c:593
+#: src/main.c:633
 msgid "automatic"
 msgstr ""
 
-#: src/main.c:595
+#: src/main.c:635
 #, c-format
 msgid "Client/relay IPv4 address   : %s\n"
 msgstr ""
 
-#: src/main.c:596
+#: src/main.c:636
 msgid "any"
 msgstr ""
 
-#: src/main.c:598
+#: src/main.c:638
 #, c-format
 msgid "Tunnel interface name       : %s\n"
 msgstr ""
 
-#: src/main.c:599 src/main.c:606
+#: src/main.c:639 src/main.c:646
 msgid "default"
 msgstr ""
 
-#: src/main.c:603
+#: src/main.c:643
 #, c-format
 msgid "Server primary IPv4 address : %s\n"
 msgstr ""
 
-#: src/main.c:604
+#: src/main.c:644
 msgid "disabled"
 msgstr ""
 
-#: src/main.c:605
+#: src/main.c:645
 #, c-format
 msgid "Teredo IPv6 prefix          : %s\n"
 msgstr ""
 
-#: src/main.c:607
+#: src/main.c:647
 #, c-format
 msgid "Assumed NAT type            : %s\n"
 msgstr ""
 
-#: src/main.c:609
+#: src/main.c:649
 msgid "none/cone"
 msgstr ""
 
-#: src/main.c:613
+#: src/main.c:653
 #, c-format
 msgid "Server name                 : %s\n"
 msgstr ""

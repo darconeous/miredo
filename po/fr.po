@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: miredo 0.3.1\n"
 "Report-Msgid-Bugs-To: rdenis@simphalempin.com\n"
-"POT-Creation-Date: 2004-12-02 10:31+0100\n"
+"POT-Creation-Date: 2004-12-02 15:10+0100\n"
 "PO-Revision-Date: 2004-12-02 11:33+0100\n"
 "Last-Translator: Rémi Denis-Courmont <rdenis@simphalempin.com>\n"
 "Language-Team: N/A\n"
@@ -63,7 +63,7 @@ msgstr "Qualifié (type de NAT: %s)"
 msgid "cone"
 msgstr "cône"
 
-#: libteredo/relay.cpp:581 src/main.c:610
+#: libteredo/relay.cpp:581 src/main.c:650
 msgid "restricted"
 msgstr "restreint"
 
@@ -307,7 +307,7 @@ msgstr "%s: paramètre en trop\n"
 msgid "Error: missing command line parameter\n"
 msgstr "Erreur: paramètre de la ligne de commande manquant\n"
 
-#: src/main.c:205
+#: src/main.c:229
 msgid ""
 "Chroot directory was probably not set up correctly.\n"
 "NOTE: You can use command line option \"-t /\"\n"
@@ -326,7 +326,7 @@ msgstr ""
 "\n"
 "\n"
 
-#: src/main.c:220
+#: src/main.c:244
 msgid ""
 "That is usually an indication that you are trying to start\n"
 "the program as an user with insufficient system privileges.\n"
@@ -336,11 +336,11 @@ msgstr ""
 "en tant qu'utilisateur avec des privilèges systèmes insuffisants.\n"
 "Normalement, ce programme devrait être démarré par root.\n"
 
-#: src/main.c:282
+#: src/main.c:306
 msgid "User not found"
 msgstr "Utilisateur non trouvé"
 
-#: src/main.c:284
+#: src/main.c:308
 #, c-format
 msgid ""
 "Error: This program was asked to run in the\n"
@@ -360,7 +360,7 @@ msgstr ""
 "programme  dans le contexte de sécurité d'un autre utilisateur. L'exécution\n"
 "en tant que root est VIVEMENT DÉCONSEILLÉE.\n"
 
-#: src/main.c:298
+#: src/main.c:322
 msgid ""
 "Error: This program is not supposed to keep root\n"
 "privileges. That is potentially very dangerous\n"
@@ -378,7 +378,7 @@ msgstr ""
 "user\n"
 "et recompilez le programme.\n"
 
-#: src/main.c:307
+#: src/main.c:331
 msgid ""
 "Warning: This program was configured to retain\n"
 "root privileges while running. That is potentially\n"
@@ -387,12 +387,12 @@ msgstr ""
 "Attention: Ce programme a été configuré pour conserver les privilèges root\n"
 "pendant son exécution. C'est potentielement très dangereux. MÉFIEZ-VOUS.\n"
 
-#: src/main.c:319
+#: src/main.c:343
 #, c-format
 msgid "SetGID to group ID %u: %s\n"
 msgstr "SetGID vers l'ID de groupe %u: %s\n"
 
-#: src/main.c:321
+#: src/main.c:345
 msgid ""
 "Error: This program tried to change its system\n"
 "group(s) security context but it failed.\n"
@@ -400,12 +400,12 @@ msgstr ""
 "Erreur: Ce programme a tenté de changer son contexte de sécurité\n"
 "groupe(s) système(s), mais il a échoué.\n"
 
-#: src/main.c:338
+#: src/main.c:362
 #, c-format
 msgid "Root directory jail in %s: %s\n"
 msgstr "Cloisement dans le répertoire racine (chroot) %s: %s\n"
 
-#: src/main.c:355
+#: src/main.c:379
 #, c-format
 msgid ""
 "Warning: /dev/log not found or invalid: logging will probably not work.\n"
@@ -417,12 +417,12 @@ msgstr ""
 "probablement pas. Essayez d'ajouter «-a %s/dev/log»\n"
 " à la ligne de commande de votre syslogd pour rectifier cela.\n"
 
-#: src/main.c:376
+#: src/main.c:400
 #, c-format
 msgid "SetUID to user ID %u: %s\n"
 msgstr "SetUID vers l'ID d'utilisateur %u: %s\n"
 
-#: src/main.c:378
+#: src/main.c:402
 msgid ""
 "Error: This program tried to change its system\n"
 "user security context but it failed.\n"
@@ -430,15 +430,15 @@ msgstr ""
 "Erreur: Ce programme a tenté de changer son contexte de sécurité\n"
 "utilisateur mais il a échoué.\n"
 
-#: src/main.c:395 src/main.c:402
+#: src/main.c:419 src/main.c:426 src/main.c:440
 msgid "Fatal error"
 msgstr "Erreur fatale"
 
-#: src/main.c:409
+#: src/main.c:448
 msgid "Getting networking privileges"
 msgstr "Obtention des privilèges réseau"
 
-#: src/main.c:411
+#: src/main.c:450
 msgid ""
 "Error: This program tried to obtain system networking administration\n"
 "privileges but it failed.\n"
@@ -446,11 +446,11 @@ msgstr ""
 "Erreur: Ce programme a tenté d'obtenir les privilèges\n"
 "d'administration réseau mais il a échoué.\n"
 
-#: src/main.c:427
+#: src/main.c:466
 msgid "Error (daemon)"
 msgstr "Erreur (daemon)"
 
-#: src/main.c:558
+#: src/main.c:598
 #, c-format
 msgid ""
 "Read unknown option -%c :\n"
@@ -459,7 +459,7 @@ msgstr ""
 "Option lue inconnue -%c :\n"
 "C'est probablement un bogue. Veuillez le signaler.\n"
 
-#: src/main.c:570
+#: src/main.c:610
 msgid ""
 "You have selected conflicting parameters.\n"
 "It is not possible to run a Teredo relay and/or\n"
@@ -470,60 +470,60 @@ msgstr ""
 "d'exécuter un relais Teredo et/ou un serveur Teredo et un client Teredo\n"
 "simultanément. Référez vous au manuel pour plus de détails.\n"
 
-#: src/main.c:587
+#: src/main.c:627
 msgid "Miredo configuration :"
 msgstr "Configuration de Miredo :"
 
-#: src/main.c:589
+#: src/main.c:629
 msgid "Client/relay UDP port       : "
 msgstr "Port UDP du client/relais          : "
 
-#: src/main.c:593
+#: src/main.c:633
 msgid "automatic"
 msgstr "automatique"
 
-#: src/main.c:595
+#: src/main.c:635
 #, c-format
 msgid "Client/relay IPv4 address   : %s\n"
 msgstr "Adresse IPv4 du client/relais      : %s\n"
 
-#: src/main.c:596
+#: src/main.c:636
 msgid "any"
 msgstr "automatique"
 
-#: src/main.c:598
+#: src/main.c:638
 #, c-format
 msgid "Tunnel interface name       : %s\n"
 msgstr "Nom de l'interface tunnel          : %s\n"
 
-#: src/main.c:599 src/main.c:606
+#: src/main.c:639 src/main.c:646
 msgid "default"
 msgstr "par défaut"
 
-#: src/main.c:603
+#: src/main.c:643
 #, c-format
 msgid "Server primary IPv4 address : %s\n"
 msgstr "Adresse IPv4 principale du serveur : %s\n"
 
-#: src/main.c:604
+#: src/main.c:644
 msgid "disabled"
 msgstr "désactivée"
 
-#: src/main.c:605
+#: src/main.c:645
 #, c-format
 msgid "Teredo IPv6 prefix          : %s\n"
 msgstr "Préfixe Teredo IPv6                : %s\n"
 
-#: src/main.c:607
+#: src/main.c:647
 #, c-format
 msgid "Assumed NAT type            : %s\n"
 msgstr "Type de NAT supposé                : %s\n"
 
-#: src/main.c:609
+#: src/main.c:649
 msgid "none/cone"
 msgstr "aucun/cône"
 
-#: src/main.c:613
+#: src/main.c:653
 #, c-format
 msgid "Server name                 : %s\n"
 msgstr "Nom du serveur                     : %s\n"
