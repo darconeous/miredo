@@ -600,8 +600,8 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 	if (IsClient () && (packet.GetClientPort () == htons (IPPORT_TEREDO)))
 	{
 		/*
-		 * Server IP not checked because it might the server's
-		 * secondary IP. We use authentication header instead.
+		 * Server IP not checked because it might be the server's
+		 * secondary IP. We use the authentication header instead.
 		 */
 		const uint8_t *s_nonce = packet.GetAuthNonce ();
 
@@ -626,15 +626,14 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 			}
 
 			/*
-			 * Our server will not send packet with auth header
-			 * except RA (or it is broken and it's best to ignore
-			 * its broken stuff).
+			 * Our server will not send a packet with auth header
+			 * except a Router Advertisement (or it is broken and
+			 * we'd better ignore it).
 			 */
-			return 0; // don't pass RA to kernel!
-			// FIXME: ensure we NEVER EVER otherwise
-			//        pass any RA to the kernel!!
+			return 0;
 		}
 
+		// FIXME check server IP!!!
 		const struct teredo_orig_ind *ind = packet.GetOrigInd ();
 		if (ind != NULL)
 		{
@@ -665,7 +664,8 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 		 * unlikely that our server is a relay too. Hence, we must
 		 * further process packets from it.
 		 * At the moment, we only drop bubble (see above).
-		return 0;
+		 * (NOTE: besides, we don't sufficiently check that the packet
+		 *  comes from the server, we only check the source port)
 		 */
 	}
 #endif /* MIREDO_TEREDO_CLIENT */
@@ -697,7 +697,18 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 	 */
 	if ((ip6.ip6_dst.s6_addr[0] & 0xe0) != 0x20)
 		return 0; // must be discarded, or ICMPv6 error (?)
+#else
+	if ((ip6.ip6_dst.s6_addr[0] & 0xfe) == 0xfe)
+		return 0;
 #endif
+	/*
+	 * Packets with a link-local source address are purposedly dropped to
+	 * prevent the kernel from receiving faked Router Advertisement which
+	 * could break IPv6 routing completely. Router advertisements MUST
+	 * have a link-local source address (RFC 2461).
+	 */
+	if ((ip6.ip6_src.s6_addr16[0] & 0xfec0) == 0xfe80)
+		return 0;
 
 	/* Actual packet reception, either as a relay or a client */
 
