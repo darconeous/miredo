@@ -147,7 +147,7 @@ route add -inet6 -net 3ffe:831f::
 interface's address.
 
 .RB "Routing and IPv6 addressing on " "Darwin" ", " "NetBSD" " and "
-.RB "OpenBSD" " is not implemented. Miredo is untested on these"
+.BR "OpenBSD" " is not implemented. Miredo is untested on these"
 platforms.
 
 .SH SECURITY
@@ -181,11 +181,17 @@ policy. If that is an issue, outgoing UDP packets to port 3544 should
 be blocked at the perimeter firewall.
 
 .SH SIGNALS
-SIGHUP Force a reload of the daemon.
+.BR "SIGHUP" " Force a reload of the daemon."
 
-SIGINT, SIGTERM Shutdown the daemon.
+.BR "SIGINT" ", " "SIGTERM" " Shutdown the daemon."
 
-SIGUSR1, SIGUSR2 Do nothing, might be used in future versions.
+.BR "SIGUSR1" ", " "SIGUSR2" " Do nothing, might be used in future "
+versions.
+
+.SH FILES
+.TP
+.I /var/run/miredo/miredo.pid
+The default process-id file.
 
 .SH "SEE ALSO"
 ng_teredo(4), ipv6(7), route(8), ip(8)
