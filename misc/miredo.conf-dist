@@ -25,6 +25,10 @@ InterfaceName	teredo
 # - restricted,
 # - disabled.
 #
+# "client" will run Miredo as a Teredo client. Use this if you have no
+# IPv6 connectivity and wish to use Miredo to tunnel IPv6 over UDP/IPV4
+# through a NAT device.
+#
 # If there is no NAT behind Miredo and the IPv4 Internet, or if you
 # know you are behind a "cone" NAT (see the Teredo specification for
 # detailled reference), you can use the "cone" type.
