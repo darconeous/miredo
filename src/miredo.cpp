@@ -239,12 +239,6 @@ miredo_run (int mode, const char *ifname,
 	 */
 	IPv6Tunnel tunnel (ifname);
 
-#ifdef MIREDO_CHROOT
-	if (chroot (MIREDO_CHROOT) || chdir ("/"))
-		syslog (LOG_WARNING, "chroot to %s failed: %m",
-			MIREDO_CHROOT);
-#endif
-
 	/*
 	 * Must be root to do that.
 	 * TODO: move SetMTU() to privsep, as it may be overriden by the
@@ -290,6 +284,12 @@ miredo_run (int mode, const char *ifname,
 			goto abort;
 		}
 	}
+
+#ifdef MIREDO_CHROOT
+	if (chroot (MIREDO_CHROOT) || chdir ("/"))
+		syslog (LOG_WARNING, "chroot to %s failed: %m",
+			MIREDO_CHROOT);
+#endif
 
 	// Definitely drops privileges
 	if (setuid (unpriv_uid))
