@@ -15,3 +15,6 @@ Michael H. Warfield
 	Compilation fix on RedHat 7.3,
 	Testing.
 
+Vladimir Kotal
+	Compilation fix on FreeBSD.
+
