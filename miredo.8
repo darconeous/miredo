@@ -13,12 +13,12 @@
 .\" *  along with this program; if not, you can get it from:              *
 .\" *  http://www.gnu.org/copyleft/gpl.html                               *
 .\" ***********************************************************************
-.TH "MIREDO" "8" "$Date: 2004/06/27 10:25:24 $" "miredo" "System Manager's Manual"
+.TH "MIREDO" "8" "$Date: 2004/07/13 09:53:36 $" "miredo" "System Manager's Manual"
 .SH NAME
 miredo \- Teredo IPv6 tunneling for Unix
 .SH SYNOPSIS
 .BR "miredo" " [" "-i ifname" "] [" "-p relay_port" "] ["
-.BR "-P prefix" "] [" "-s server_ip" "]"
+.BR "-P prefix" "] [" "-trootdir" "] [" "-u user" "] [" "-s server_ip" "]"
 
 .SH DESCRIPTON
 .B Miredo
@@ -80,6 +80,17 @@ With this option, Miredo will behave as a Teredo server on IPv4, with
 .RB "server_ip + 1" "."
 
 .TP
+.BR "\-trootdir" " or " "\-\-chroot=rootdir"
+.RI "Run the program in a " "chroot jail" ", for enhanced security."
+.RB "If " "rootdir" " is not specified, the home of the " "setuid user"
+.RB "will be used instead. See option " "-u" "."
+
+.TP
+.BR "\-u username" " or " "\-\-user username"
+Override the user that the program will run as. By default, it runs as
+.BR "miredo" "."
+
+.TP
 .BR "\-V" " or " "\-\-version"
 Display program version and license and exit.
 
@@ -106,11 +117,11 @@ platform, so that manual route setup is required.
 .B Miredo
 requires
 .I root
-privileges to be create its IPv6 tunneling network interface, and to
-set it up properly. Once its initialization is complete, it will drop
-.RI "privileges setuid to " "miredo" " and setgid to " "nogroup" " so"
-as to decrease security exposure (Unix user and group names may differ
-if your vendor has customized those).
+privileges to create its IPv6 tunneling network interface, and to set
+it up properly. Once its initialization is complete, it will drop
+.RB "privileges, setuid (see option " "-u" "), setgid and possibly"
+.RB "chroot (see option " "-t" ") so as to decrease your system"
+to potential security issues.
 
 Miredo is still beta quality code. As such, it should not be deployed
 in production or security-sensitive environment. It is supposedly easy
@@ -133,7 +144,7 @@ ng_teredo(4), ipv6(7), route(8), ip(8)
 .SH AUTHOR
 Remi Denis-Courmont <rdenis at simphalempin.com>
 
-$Id: miredo.8,v 1.4 2004/06/27 10:25:24 rdenisc Exp $
+$Id: miredo.8,v 1.5 2004/07/13 09:53:36 rdenisc Exp $
 
 http://www.simphalempin.com/dev/miredo/
 

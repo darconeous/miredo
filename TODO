@@ -1,12 +1,11 @@
 Incomplete raw ToDo list:
 ==========================
-$Id: TODO,v 1.9 2004/07/11 13:52:21 rdenisc Exp $
+$Id: TODO,v 1.10 2004/07/13 09:53:36 rdenisc Exp $
 
 Features:
 ----------
-- improvements of the overall program structure,
 - some statistics,
-- automatic relay IPv6 address configuration,
+- (incomplete yet) automatic relay IPv6 address configuration,
 - automatic relay IPv6 address re-configuration/update,
 - Teredo client support,
 
@@ -38,7 +37,6 @@ Compatibility:
 Documentation & support:
 -------------------------
 - custom INSTALL file,
-- update manpage,
 - init.d sample script,
 - RPM and Debian packaging.
 

@@ -1,3 +1,9 @@
+2004-07-13  Remi Denis-Courmont
+
+	* src/main.c:
+	- no longer chroot by default, because it will be annoying for
+	new users.
+
 2004-07-12  Remi Denis-Courmont
 
 	* src/teredo-udp.cpp (MiredoCommonUDP::ReceivePacket):

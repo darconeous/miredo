@@ -1,7 +1,7 @@
 /*
  * main.c - Unix Teredo server & relay implementation
  *          command line handling and core functions
- * $Id: main.c,v 1.14 2004/07/12 11:23:38 rdenisc Exp $
+ * $Id: main.c,v 1.15 2004/07/13 09:53:36 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -251,7 +251,8 @@ init_security (const char *username, const char *rootdir, int nodetach)
 		rootdir = pw->pw_dir;
 	if (chroot (rootdir) || chdir ("/"))
 	{
-		perror (_("Root directory jail"));
+		fprintf (stderr, _("Root directory jail in %s: %s\n"),
+				rootdir, strerror (errno));
 		return -1;
 	}
 
@@ -322,7 +323,15 @@ int
 main (int argc, char *argv[])
 {
 	const char *server = NULL, *prefix = NULL, *ifname = NULL,
-			*username = NULL, *rootdir = NULL;
+			*username = NULL, *rootdir = "/";
+	/*
+	 * NOTE:
+	 * Because I thought it would be annoying for new users that the
+	 * program automatically tries to chroot, I made cchroot to "/" the
+	 * default, rather than chroot in the miredo user's home directory.
+	 * To restore that behavior, just make NULL the initial value for
+	 * rootdir.
+	 */
 	uint16_t client_port = 0;
 	int foreground = 0;
 	
@@ -336,7 +345,7 @@ main (int argc, char *argv[])
 		{ "port",	required_argument,	NULL, 'p' },
 		{ "prefix",	required_argument,	NULL, 'P' },
 		{ "server",	required_argument,	NULL, 's' },
-		{ "chroot",	required_argument,	NULL, 't' },
+		{ "chroot",	optional_argument,	NULL, 't' },
 		{ "user",	required_argument,	NULL, 'u' },
 		{ "version",	no_argument,		NULL, 'V' },
 		{ NULL,		no_argument,		NULL, '\0'}
@@ -350,7 +359,7 @@ main (int argc, char *argv[])
 	else \
 		setting = optarg;
 
-	while ((c = getopt_long (argc, argv, "fhi:p:P:r:s:t:u:V", opts, NULL))
+	while ((c = getopt_long (argc, argv, "fhi:p:P:r:s:t::u:V", opts, NULL))
 			!= -1)
 		switch (c)
 		{
@@ -398,7 +407,8 @@ main (int argc, char *argv[])
 				break;
 
 			case 't':
-				ONETIME_SETTING (rootdir);
+				rootdir = optarg;
+				// NULL is legal
 				break;
 
 			case 'u':
