@@ -29,18 +29,13 @@
 #include <stdio.h>
 #include <stdlib.h> /* strtoul(), clearenv() */
 #include <string.h> /* strerrno() */
-#if HAVE_STDINT_H
-# include <stdint.h>
-#elif HAVE_INTTYPES_H
-# include <inttypes.h>
-#endif
 
 #include <locale.h>
 
 #include <sys/types.h>
 #include <sys/time.h> /* for <sys/resource.h> */
 #include <sys/resource.h> /* getrlimit() */
-#include <sys/stat.h> /* fstat() */
+#include <sys/stat.h> /* fstat(), mkdir */
 #include <unistd.h>
 #include <errno.h> /* errno */
 #include <fcntl.h> /* O_RDONLY */
@@ -56,7 +51,6 @@
 #endif
 
 #include "miredo.h"
-#include <libteredo/teredo.h>
 #include <libtun6/ipv6-tunnel.h>
 
 /*#include "host.h"*/
@@ -484,12 +478,33 @@ main (int argc, char *argv[])
 	if (conffile == NULL)
 		conffile = MIREDO_DEFAULT_CONFFILE;
 
+	/* Check if config file and chroot dir are present */
 	if (access (conffile, R_OK))
 	{
 		fprintf (stderr, _("Reading configuration from %s: %s\n"),
 				conffile, strerror (errno));
 		return 1;
 	}
+#ifdef MIREDO_CHROOT_PATH
+	else
+	{
+		struct stat s;
+
+		errno = 0;
+
+		if (stat (MIREDO_CHROOT_PATH, &s) || !S_ISDIR(s.st_mode)
+		 || access (MIREDO_CHROOT_PATH, X_OK))
+		{
+			if (errno == 0)
+				errno = ENOTDIR;
+
+			fprintf (stderr,
+				_("Checking chroot directory %s: %s\n"),
+				MIREDO_CHROOT_PATH, strerror (errno));
+			return 1;
+		}
+	}
+#endif
 
 	if (check_libtun6 () || init_security (username, flags.foreground))
 		return 1;
