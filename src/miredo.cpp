@@ -476,13 +476,13 @@ init_signals (void)
 /*
  * Configuration and respawning stuff
  */
-static const char *const daemon_ident = "miredo";
+static const char *const ident = "miredo";
 
 extern "C" int
 miredo (const char *confpath)
 {
 	int facility = LOG_DAEMON;
-	openlog (daemon_ident, LOG_PID, facility);
+	openlog (ident, LOG_PID, facility);
 
 	int retval = init_signals () ?: 2;
 
@@ -500,7 +500,7 @@ miredo (const char *confpath)
 		}
 
 		/* Default settings */
-		const char *ifname = daemon_ident;
+		char *ifname = NULL;
 		uint16_t bind_port = 0;
 		uint32_t bind_ip = INADDR_ANY, server_ip = 0;
 		bool relay_on = true, relay_cone = false, client = true;
@@ -509,20 +509,13 @@ miredo (const char *confpath)
 		memset (&prefix, 0, sizeof (prefix));
 		prefix.teredo.prefix = htonl (DEFAULT_TEREDO_PREFIX);
 
-		if (!cnf.GetInt16 ("BindPort", &bind_port))
+		/* FIXME: newfacility */
+		// Apply syslog facility change if needed
+		if (newfacility != facility)
 		{
-			syslog (LOG_ALERT,
-				_("Fatal bind UDP port error"));
-			continue;
-		}
-		bind_port = htons (bind_port);
-
-
-		if (!ParseIPv4 (cnf, "BindAddress", &bind_ip))
-		{
-			syslog (LOG_ALERT,
-				_("Fatal bind IPv4 address error"));
-			continue;
+			closelog ();
+			facility = newfacility;
+			openlog (ident, LOG_PID, facility);
 		}
 
 		if (!ParseIPv4 (cnf, "ServerAddress", &server_ip))
@@ -533,32 +526,42 @@ miredo (const char *confpath)
 		if (server_ip == 0)
 		{
 			client = false;
-			if (!ParseIPv4 (cnf, "ServerBindAddress", &server_ip))
-			{
-				syslog (LOG_ALERT,
-					_("Fatal configuration error"));
-				continue;
-			}
-
-			if (!ParseRelayType (cnf, "RelayType",
-						&relay_on, &relay_cone))
+			if (!ParseIPv4 (cnf, "ServerBindAddress", &server_ip)
+			 || !ParseIPv6 (cnf, "Prefix", &prefix.ip6)
+			 || !ParseRelayType (cnf, "RelayType",
+			 			&relay_on, &relay_cone))
 			{
 				syslog (LOG_ALERT,
 					_("Fatal configuration error"));
 				continue;
 			}
 		}
-		/* FIXME: prefix, ifname, newfacility */
+
+		if (client || relay_on)
+		{
+			if (!ParseIPv4 (cnf, "BindAddress", &bind_ip))
+			{
+				syslog (LOG_ALERT,
+					_("Fatal bind IPv4 address error"));
+				continue;
+			}
+
+			if (!cnf.GetInt16 ("BindPort", &bind_port))
+			{
+				syslog (LOG_ALERT,
+					_("Fatal bind UDP port error"));
+				continue;
+			}
+			bind_port = htons (bind_port);
+		}
+
+		if (!cnf.GetString ("InterfaceName", &ifname))
+		{
+			syslog (LOG_ALERT, _("Fatal configuration error"));
+			continue;
+		}
 
 		cnf.~MiredoConf ();
-
-		// Apply syslog facility change if needed
-		if (newfacility != facility)
-		{
-			closelog ();
-			facility = newfacility;
-			openlog (daemon_ident, LOG_PID, facility);
-		}
 
 		// Starts the main miredo process
 		pid_t pid = fork ();
@@ -572,7 +575,10 @@ miredo (const char *confpath)
 			case 0:
 				retval = miredo_run (bind_port, bind_ip,
 							server_ip, client,
-							&prefix, ifname,
+							&prefix,
+							ifname != NULL
+								? ifname
+								: ident,
 							relay_on, relay_cone);
 				closelog ();
 				exit (-retval);
