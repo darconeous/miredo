@@ -1,6 +1,6 @@
 /*
  * teredo.c - Common Teredo helper functions
- * $Id: teredo.c,v 1.2 2004/08/24 18:49:09 rdenisc Exp $
+ * $Id: teredo.c,v 1.3 2004/08/26 13:32:51 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -42,20 +42,21 @@ const struct in6_addr teredo_cone =
 
 
 int
-in6_matches_teredo_client (union teredo_addr *ip6, uint32_t ip, uint16_t port)
+in6_matches_teredo_client (const union teredo_addr *ip6, uint32_t ip,
+				uint16_t port)
 {
 	return (ip == (uint32_t)~ip6->teredo.client_ip)
 		&& (port == (uint16_t)~ip6->teredo.client_port);
 }
 
 int
-in6_matches_teredo_server (union teredo_addr *ip6, uint32_t ip)
+in6_matches_teredo_server (const union teredo_addr *ip6, uint32_t ip)
 {
 	return ip6->teredo.server_ip == ip;
 }
 
 int
-in6_is_teredo_addr_cone (union teredo_addr *ip6)
+in6_is_teredo_addr_cone (const union teredo_addr *ip6)
 {
 	return ip6->teredo.flags & htons (TEREDO_FLAGS_CONE);
 }

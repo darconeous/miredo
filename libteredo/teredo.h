@@ -1,6 +1,6 @@
 /*
  * teredo.h - Common Teredo protocol typedefs
- * $Id: teredo.h,v 1.3 2004/08/24 18:49:09 rdenisc Exp $
+ * $Id: teredo.h,v 1.4 2004/08/26 13:32:51 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -59,33 +59,33 @@ union teredo_addr
 #define ip6_teredo( ip6 ) (((union teredo_addr *)ip6)->teredo)
 
 #define IN6_MATCHES_TEREDO_CLIENT( ip6, ip4, port ) \
-	in6_matches_teredo_client ((union teredo_addr *)ip6, ip4, port)
+	in6_matches_teredo_client ((const union teredo_addr *)ip6, ip4, port)
 
 #define IN6_MATCHES_TEREDO_SERVER( ip6, ip4 ) \
-	in6_matches_teredo_server ((union teredo_addr *)ip6, ip4)
+	in6_matches_teredo_server ((const union teredo_addr *)ip6, ip4)
 
 #define IN6_IS_TEREDO_ADDR_CONE( ip6 ) \
-	in6_is_teredo_addr_cone ((union teredo_addr *)ip6)
+	in6_is_teredo_addr_cone ((const union teredo_addr *)ip6)
 
 #define IN6_TEREDO_PREFIX( ip6 ) \
-	(((union teredo_addr *)ip6)->teredo.prefix)
+	(((const union teredo_addr *)ip6)->teredo.prefix)
 #define IN6_TEREDO_SERVER( ip6 ) \
-	(((union teredo_addr *)ip6)->teredo.server_ip)
+	(((const union teredo_addr *)ip6)->teredo.server_ip)
 #define IN6_TEREDO_IPV4( ip6 ) \
-	(~((union teredo_addr *)ip6)->teredo.client_ip)
+	(~((const union teredo_addr *)ip6)->teredo.client_ip)
 #define IN6_TEREDO_PORT( ip6 ) \
-	(~((union teredo_addr *)ip6)->teredo.client_port)
+	(~((const union teredo_addr *)ip6)->teredo.client_port)
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 	
-int in6_matches_teredo_client (union teredo_addr *ip6,
+int in6_matches_teredo_client (const union teredo_addr *ip6,
 				uint32_t ip4, uint16_t port);
 
-int in6_matches_teredo_server (union teredo_addr *ip6, uint32_t ip4);
+int in6_matches_teredo_server (const union teredo_addr *ip6, uint32_t ip4);
 
-int in6_is_teredo_addr_cone (union teredo_addr *ip6);
+int in6_is_teredo_addr_cone (const union teredo_addr *ip6);
 
 /*
  * Returns true if prefix can be used as a Teredo prefix.
