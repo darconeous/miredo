@@ -395,10 +395,8 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
 		memcpy (p->queue, packet, length);
 		p->queuelen = length;
 	}
-#ifdef DEBUG
 	else
 		syslog (LOG_DEBUG, _("FIXME: packet not queued\n"));
-#endif
 
 	// Sends no more than one bubble every 2 seconds,
 	// and 3 bubbles every 30 secondes
@@ -435,7 +433,7 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
  * Returns 0 on success, -1 on error.
  */
 // seconds to wait before considering that we've lost contact with the server
-#define SERVER_LOSS_DELAY 35
+#define SERVER_LOSS_DELAY 40
 #define SERVER_PING_DELAY 30
 
 unsigned TeredoRelay::QualificationTimeOut = 4; // seconds
@@ -525,8 +523,9 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 				gettext (probe.state == PROBE_CONE
 				? N_("cone") : N_("restricted")));
 			probe.state = QUALIFIED;
-			probe.next.tv_sec += SERVER_PING_DELAY
-						- QualificationTimeOut;
+
+			gettimeofday (&probe.next, NULL);
+			probe.next.tv_sec += SERVER_PING_DELAY;
 
 			// call memcpy before NotifyUp for re-entrancy
 			memcpy (&addr, &newaddr, sizeof (addr));
@@ -536,67 +535,91 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 		return 0;
 	}
 
-	// Checks source IPv6 address
+	/* Maintenance */
+	if (IsClient () && (packet.GetClientPort () == htons (IPPORT_TEREDO)))
+	{
+		/*
+		 * Server IP not checked because it might the server's
+		 * secondary IP. We use authentication header instead.
+		 */
+		const uint8_t *s_nonce = packet.GetAuthNonce ();
+
+		if ((s_nonce != NULL)
+		 && (memcmp (s_nonce, probe.nonce, 8) == 0))
+		{
+			// TODO: refresh interval randomisation
+			gettimeofday (&probe.serv, NULL);
+			probe.serv.tv_sec += SERVER_LOSS_DELAY;
+
+			// Checks if our Teredo address changed:
+			union teredo_addr newaddr;
+			newaddr.teredo.server_ip = GetServerIP ();
+
+			if (ParseRA (packet, &newaddr, IsCone ())
+			 && memcmp (&addr, &newaddr, sizeof (addr)))
+			{
+				memcpy (&addr, &newaddr, sizeof (addr));
+				syslog (LOG_NOTICE,
+					_("Teredo address changed"));
+				NotifyUp (&newaddr.ip6);
+			}
+
+			/*
+			 * Our server will not send packet with auth header
+			 * except RA (or it is broken and it's best to ignore
+			 * its broken stuff).
+			 */
+			return 0; // don't pass RA to kernel!
+			// FIXME: ensure we NEVER EVER otherwise
+			//        pass any RA to the kernel!!
+		}
+
+		const struct teredo_orig_ind *ind = packet.GetOrigInd ();
+		if (ind != NULL)
+			SendBubble (sock, ~ind->orig_addr, ~ind->orig_port,
+					&ip6.ip6_dst, &ip6.ip6_src);
+
+		/*
+		 * Normal reception of packet must only occur if it does not
+		 * come from the server, as specified. However, it is not
+		 * unlikely that our server is a relay too. Hence, we must
+		 * further process packets from it.
+		return 0;
+		 */
+	}
+
 	/*
 	 * TODO:
 	 * The specification says we "should" check that the packet
 	 * destination address is ours, if we are a client. The kernel
-	 * will do this for us if we are a client. In the relay's case, we
-	 * "should" check that the destination is in the "range of IPv6
-	 * adresses served by the relay", which may be a run-time option (?).
+	 * will do this for us if we are a client. Besides, in the case of
+	 * packets from the server, the destination might not be our Teredo
+	 * address.
+	 *
+	 * In the relay's case, we "should" check that the destination is in
+	 * the "range of IPv6 adresses served by the relay", which may be a
+	 * run-time option (?).
 	 *
 	 * NOTE:
 	 * The specification specifies that the relay MUST look up the peer in
 	 * the list and update last reception date even if the destination is
 	 * incorrect.
 	 */
+
 #if 0
 	/*
 	 * Ensures that the packet destination has an IPv6 Internet scope
 	 * (ie 2000::/3)
-	 * That should be done just before calling SendIPv6Packet().
+	 * That should be done just before calling SendIPv6Packet(), but it
+	 * so much easier to do it now.
 	 */
 	if ((ip6.ip6_dst.s6_addr[0] & 0xe0) != 0x20)
 		return 0; // must be discarded, or ICMPv6 error (?)
 #endif
 
-	if (IsClient () && (packet.GetClientIP () == 
-		(IsCone () ? GetServerIP2 () : GetServerIP ()))
-	 && (packet.GetClientPort () == htons (IPPORT_TEREDO)))
-	{
-		// TODO: refresh interval randomisation
-		gettimeofday (&probe.serv, NULL);
-		probe.serv.tv_sec += SERVER_LOSS_DELAY;
-
-		// Make sure our Teredo address did not change:
-		union teredo_addr newaddr;
-		newaddr.teredo.server_ip = GetServerIP ();
-
-		if (ParseRA (packet, &newaddr, IsCone ())
-		 && memcmp (&addr, &newaddr, sizeof (addr)))
-		{
-			memcpy (&addr, &newaddr, sizeof (addr));
-			syslog (LOG_NOTICE, _("Teredo address changed"));
-			NotifyUp (&newaddr.ip6);
-			return 0;
-		}
-
-		const struct teredo_orig_ind *ind = packet.GetOrigInd ();
-		if (ind != NULL)
-			return SendBubble (sock, ~ind->orig_addr,
-						~ind->orig_port,
-						&ip6.ip6_dst, &ip6.ip6_src);
-
-		/*
-		 * Normal reception of packet must only occur if it does not
-		 * come from the server, as specified.
-		 */
-		return 0;
-	}
-
 	/* Actual packet reception, either as a relay or a client */
 
-	// Look up peer in the list:
+	// Checks source IPv6 address / looks up peer in the list:
 	struct __TeredoRelay_peer *p = FindPeer (&ip6.ip6_src);
 
 	if (p != NULL)
@@ -723,6 +746,7 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 	p->flags.flags.nonce = 1;
 
 	// FIXME: queue packet in incoming queue
+	syslog (LOG_DEBUG, "FIXME: incoming paquet should queued!");
 	// FIXME: re-send echo request if no response
 	if (!p->flags.flags.nonce)
 	{
