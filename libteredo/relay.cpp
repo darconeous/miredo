@@ -174,7 +174,7 @@ TeredoRelay::TeredoRelay (uint32_t server_ip, uint16_t port, uint32_t ipv4)
 	: head (NULL)
 {
 	if (!is_ipv4_global_unicast (server_ip))
-		syslog (LOG_CRIT,
+		syslog (LOG_WARNING,
 			_("Server has a non global IPv4 address. "
 			"It will most likely not work."));
 
