@@ -21,7 +21,6 @@ Security:
 
 Conformance:
 -------------
-- queueing of more than one packet toward restricted NATs,
 - implement proper/draft-compliant timeouts,
 - fixed FIXMEs in source code,
 

@@ -18,7 +18,15 @@ changes, run 'miredo -h' to get help. For detailled internal changes, see
 ChangeLog.
 
 =============================================================================
-BETA RELEASE 0.2.3 : Minor feature enhancement
+BETA RELEASE 0.2.3 : Major feature enhancement
+
+# Proper queueing of packets :
+  That should speed up connectivity a bit, and fix various connectivity
+  issues most particularly with, though not limited to, Teredo clients.
+
+# Automatically select an available UDP port for relay and client.
+  You can use the '-p' command line option to specify a particular port
+  number.
 
 # Automatically add a default route through the Teredo tunneling interface
   when running Miredo as a Teredo client.
