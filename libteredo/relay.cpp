@@ -44,7 +44,7 @@
 
 #include <libteredo/teredo.h>
 #include <libteredo/v4global.h> // is_ipv4_global_unicast()
-#include "teredo-udp.h"
+#include <libteredo/relay-udp.h>
 
 #include "packets.h"
 #include "security.h"

@@ -26,8 +26,8 @@ libteredo_a_SOURCES =	teredo.c teredo.h \
 			teredo-udp.cpp teredo-udp.h
 
 if TEREDO_RELAY
-libteredo_a_SOURCES += relay.cpp relay.h packets.cpp packets.h \
-			queue.cpp queue.h
+libteredo_a_SOURCES += relay-udp.cpp relay-udp.h relay.cpp relay.h \
+			packets.cpp packets.h queue.cpp queue.h
 if TEREDO_CLIENT
 libteredo_a_SOURCES += security.cpp security.h
 endif
