@@ -1,6 +1,6 @@
 /*
  * relay.cpp - Teredo relay peers list definition
- * $Id: relay.cpp,v 1.8 2004/06/27 15:27:12 rdenisc Exp $
+ * $Id: relay.cpp,v 1.9 2004/06/27 17:37:21 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -112,8 +112,10 @@ struct MiredoRelay::peer *MiredoRelay::FindPeer (const struct in6_addr *addr)
 
 
 /*
- * Sends a Teredo Bubble to the server specified in <dst>.
+ * Sends a Teredo Bubble to the server specified in Teredo address <dst>.
  * Returns 0 on success, -1 on error.
+ * TODO: ability to send direct bubbles as well as indirect ones
+ * (at the moment we can only send indirect bubbles)
  */
 int MiredoRelay::SendBubble (const union teredo_addr *dst) const
 {
@@ -127,9 +129,9 @@ int MiredoRelay::SendBubble (const union teredo_addr *dst) const
 		hdr.ip6_plen = 0;
 		hdr.ip6_nxt = IPPROTO_NONE;
 		hdr.ip6_hlim = 255;
-		// TODO: use teredo_cone of teredo_restrict
-		// according to some setting
-		memcpy (&hdr.ip6_src, &teredo_cone, sizeof (hdr.ip6_src));
+		memcpy (&hdr.ip6_src, IsCone ()
+				? &teredo_cone
+				: &teredo_restrict, sizeof (hdr.ip6_src));
 		memcpy (&hdr.ip6_dst, &dst->ip6, sizeof (hdr.ip6_dst));
 
 		return sock->SendPacket (&hdr, sizeof (hdr),
@@ -174,8 +176,7 @@ int MiredoRelay::TransmitPacket (void)
 	memcpy (&addr.ip6, &ip6.ip6_dst, sizeof (struct in6_addr));
 
 	/* Initial destination address checks */
-	// FIXME: should use run-time prefix
-	if (addr.teredo.prefix != htonl (TEREDO_PREFIX))
+	if (addr.teredo.prefix != GetPrefix ())
 	{
 		// FIXME: no warning for autoconf packets
 		// automatically sent by the kernel
@@ -183,7 +184,7 @@ int MiredoRelay::TransmitPacket (void)
 			_("Dropped packet with non-Teredo address"
 			" (prefix %08x instead of %08x):\n"
 			" Possible routing table misconfiguration."),
-			ntohl (addr.teredo.prefix), TEREDO_PREFIX);
+			ntohl (addr.teredo.prefix), ntohl (GetPrefix ()));
 		return 0;
 	}
 
@@ -222,8 +223,8 @@ int MiredoRelay::TransmitPacket (void)
 	}
 
 	/* Case 2 */
-	/* TODO: send bubble if behind restricted NAT */
-	if (IN6_IS_ADDR_TEREDO_CONE (&addr.ip6))
+	/* TODO: send bubble if IsCone () is true */
+	if (IN6_IS_TEREDO_ADDR_CONE (&addr.ip6))
 	{
 		syslog (LOG_DEBUG, "DEBUG: xmit to new cone peer\n");
 		p->flags.flags.trusted = 1;
@@ -297,8 +298,7 @@ int MiredoRelay::ReceivePacket (void)
 
 	// Checks source IPv6 address
 	memcpy (&src, &ip6.ip6_src, sizeof (src));
-	// FIXME: shoud use run-time prefix
-	if ((src.teredo.prefix != htonl (TEREDO_PREFIX))
+	if ((src.teredo.prefix != GetPrefix ())
 	 || !IN6_MATCHES_TEREDO_CLIENT (&src, sock->GetClientIP (),
 		 			sock->GetClientPort ()))
 		return 0;

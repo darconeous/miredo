@@ -1,7 +1,7 @@
 /*
  * miredo.cpp - Unix Teredo server & relay implementation
  *              core functions
- * $Id: miredo.cpp,v 1.15 2004/06/27 15:27:12 rdenisc Exp $
+ * $Id: miredo.cpp,v 1.16 2004/06/27 17:37:21 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -67,7 +67,7 @@ static IPv6Tunnel *ipv6_tunnel = NULL;
 static int
 teredo_server_relay (void)
 {
-	MiredoRelay relay;
+	MiredoRelay relay (conf.prefix);
 
 	if (relay_udp != NULL)
 	{
@@ -216,18 +216,19 @@ miredo_run (uint16_t client_port, const char *server_name,
 	if (ifname == NULL)
 		ifname = "teredo";
 	if (prefix_name == NULL)
-		prefix_name = TEREDO_PREFIX_STR":";
+		prefix_name = DEFAULT_TEREDO_PREFIX_STR":";
 
 	openlog ("miredo", LOG_PERROR|LOG_PID, LOG_DAEMON);
 
-	struct in6_addr prefix;
-	if (getipv6byname (prefix_name, &prefix))
+	union teredo_addr prefix;
+	if (getipv6byname (prefix_name, &prefix.ip6))
 	{
 		syslog (LOG_ALERT,
 			_("Teredo IPv6 prefix not properly set."));
 		closelog ();
 		return -1;
 	}
+	conf.prefix = prefix.teredo.prefix;
 
 
 	if (seteuid (0))
@@ -246,7 +247,7 @@ miredo_run (uint16_t client_port, const char *server_name,
 	// FIXME: should set cone flag as appropriate
 		//|| tunnel.AddAddress (&teredo_restrict)
 		|| tunnel.AddAddress (&teredo_cone)
-		|| tunnel.AddRoute (&prefix, 32);
+		|| tunnel.AddRoute (&prefix.ip6, 32);
 
 	// Definitely drops privileges
 	if (setuid (unpriv_uid))

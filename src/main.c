@@ -1,7 +1,7 @@
 /*
  * main.c - Unix Teredo server & relay implementation
  *          command line handling and core functions
- * $Id: main.c,v 1.8 2004/06/22 16:39:53 rdenisc Exp $
+ * $Id: main.c,v 1.9 2004/06/27 17:37:21 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -84,7 +84,8 @@ usage (void)
 "                  and specify primary server IPv4 address\n"
 "  -V, --version  display program version and exit\n"));
 
-	printf (_("Default Teredo prefix: %s\n"), TEREDO_PREFIX_STR);
+	printf (_("Default Teredo prefix: %s:/32\n"),
+		DEFAULT_TEREDO_PREFIX_STR);
 	return 0;
 }
 

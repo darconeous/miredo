@@ -1,6 +1,6 @@
 /*
  * teredo.c - Common Teredo helper functions
- * $Id: teredo.c,v 1.4 2004/06/27 10:25:24 rdenisc Exp $
+ * $Id: teredo.c,v 1.5 2004/06/27 17:37:21 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -32,8 +32,6 @@
 /*
  * Teredo addresses
  */
-const struct in6_addr _in6addr_allrouters =
-	{ { { 0xff, 0x02, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x2 } } };
 const struct in6_addr teredo_restrict =
 	{ { { 0xfe, 0x80, 0, 0, 0, 0, 0, 0,
 		    0, 0, 'T', 'E', 'R', 'E', 'D', 'O' } } };
@@ -45,26 +43,18 @@ const struct in6_addr teredo_cone =
 int
 in6_matches_teredo_client (union teredo_addr *ip6, uint32_t ip, uint16_t port)
 {
-	return in6_is_addr_teredo (ip6)
-		&& (ip6->teredo.client_ip == ~ip)
+	return (ip6->teredo.client_ip == ~ip)
 		&& (ip6->teredo.client_port == ~port);
 }
 
 int
 in6_matches_teredo_server (union teredo_addr *ip6, uint32_t ip)
 {
-	return in6_is_addr_teredo (ip6)
-		&& (ip6->teredo.server_ip == ip);
+	return ip6->teredo.server_ip == ip;
 }
 
 int
-in6_is_addr_teredo (union teredo_addr *ip6)
-{
-	return ip6->teredo.prefix == htonl (TEREDO_PREFIX);
-}
-
-int
-in6_is_addr_teredo_cone (union teredo_addr *ip6)
+in6_is_teredo_addr_cone (union teredo_addr *ip6)
 {
 	return ip6->teredo.flags & htons (TEREDO_FLAGS_CONE);
 }

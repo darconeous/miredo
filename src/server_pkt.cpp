@@ -1,6 +1,6 @@
 /*
  * server_pkt.cpp - Handling of a single Teredo datagram (server-side).
- * $Id: server_pkt.cpp,v 1.6 2004/06/27 15:40:25 rdenisc Exp $
+ * $Id: server_pkt.cpp,v 1.7 2004/06/27 17:37:21 rdenisc Exp $
  */
 
 /***********************************************************************
@@ -146,7 +146,6 @@ teredo_send_ra (const MiredoServerUDP *sock, const struct in6_addr *dest_ip6)
 	src->teredo.prefix = htonl (0xfe800000);
 	src->teredo.server_ip = 0;
 	src->teredo.flags = htons (TEREDO_FLAGS_CONE);
-		// FIXME: use run-time port:
 	src->teredo.client_port = htons (IPPORT_TEREDO);
 	src->teredo.client_ip = ~conf.server_ip;
 
@@ -179,7 +178,7 @@ teredo_send_ra (const MiredoServerUDP *sock, const struct in6_addr *dest_ip6)
 	{
 		union teredo_addr *prefix = (union teredo_addr *)&pref->nd_opt_pi_prefix;
 
-		prefix->teredo.prefix = htonl (TEREDO_PREFIX);
+		prefix->teredo.prefix = conf.prefix;
 		prefix->teredo.server_ip = conf.server_ip;
 		memset (&prefix->ip6.s6_addr[8], 0, 8);
 	}
@@ -189,7 +188,7 @@ teredo_send_ra (const MiredoServerUDP *sock, const struct in6_addr *dest_ip6)
 	ra->nd_ra_cksum = icmp6_checksum (ip6, (struct icmp6_hdr *)ra);
 
 	bool use_secondary_ip = sock->WasSecondaryIP ();
-	if (IN6_IS_ADDR_TEREDO_CONE (dest_ip6))
+	if (IN6_IS_TEREDO_ADDR_CONE (dest_ip6))
 		use_secondary_ip = !use_secondary_ip;
 
 	if (!sock->ReplyPacket (packet, ptr - packet, use_secondary_ip)) 
@@ -199,7 +198,7 @@ teredo_send_ra (const MiredoServerUDP *sock, const struct in6_addr *dest_ip6)
 		inp.s_addr = sock->GetClientIP ();
 		syslog (LOG_DEBUG,
 			_("Router Advertisement sent to %s (%s)\n"),
-			inet_ntoa (inp), IN6_IS_ADDR_TEREDO_CONE(dest_ip6)
+			inet_ntoa (inp), IN6_IS_TEREDO_ADDR_CONE(dest_ip6)
 				? _("cone flag set")
 				: _("cone flag not set"));
 
@@ -260,6 +259,8 @@ ForwardPacket (const MiredoServerUDP *sock)
 					~dst.teredo.client_port);
 }
 
+static const struct in6_addr in6addr_allrouters =
+	{ { { 0xff, 0x02, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x2 } } };
 
 /*
  * Checks and handles an Teredo-encapsulated packet.
@@ -272,7 +273,6 @@ handle_server_packet (const MiredoServerUDP *sock)
 		return 0;
 
 	// Check IPv6 packet (Teredo server check number 1)
-	// TODO: really check header (as per the authoritative RFC)
 	// FIXME: byte alignment
 	size_t ip6len;
 	const struct ip6_hdr *ip6 = sock->GetIPv6Header (ip6len);
@@ -288,30 +288,28 @@ handle_server_packet (const MiredoServerUDP *sock)
 
 	// Teredo server check number 2
 	uint8_t proto = ip6->ip6_nxt;
-	if (((proto != IPPROTO_NONE) || (ip6len > 0))	// neither a bubble...
-	 && (proto != IPPROTO_ICMPV6))	// nor an ICMPv6 message
+	if ((proto != IPPROTO_NONE || ip6len > 0)	// neither a bubble...
+	 && proto != IPPROTO_ICMPV6)	// nor an ICMPv6 message
 		return 0; // packet not allowed through server
 
 	// Teredo server check number 4
 	if (IN6_IS_ADDR_LINKLOCAL(&ip6->ip6_src)
-	 && IN6_ARE_ADDR_EQUAL (&_in6addr_allrouters, &ip6->ip6_dst)
+	 && IN6_ARE_ADDR_EQUAL (&in6addr_allrouters, &ip6->ip6_dst)
 	 && (proto == IPPROTO_ICMPV6)
 	 && (ip6len > sizeof (nd_router_solicit))
 	 && (((struct icmp6_hdr *)buf)->icmp6_type == ND_ROUTER_SOLICIT))
 		// sends a Router Advertisement
 		return teredo_send_ra (sock, &ip6->ip6_src);
 
-	// Teredo server check number 5
+	// Teredo server check number 5 (in the negative)
 	if (!IN6_MATCHES_TEREDO_CLIENT (&ip6->ip6_src, sock->GetClientIP (),
-					sock->GetClientPort ()))
+						sock->GetClientPort ())
+	// Teredo server check number 6 (in the negative)
+	 && (IN6_TEREDO_PREFIX (&ip6->ip6_src) == conf.prefix
+	  || IN6_TEREDO_SERVER (&ip6->ip6_dst) != conf.server_ip))
 	{
-		// Teredo server check number 6
-		if (IN6_IS_ADDR_TEREDO (&ip6->ip6_src)
-		 ||!IN6_MATCHES_TEREDO_SERVER (&ip6->ip6_dst, conf.server_ip))
-		{
-			// Teredo server check number 7
-			return 0; // packet not allowed through server
-		}
+		// Teredo server check number 7
+		return 0; // packet not allowed through server
 	}
 
 	// Ensures that the packet destination has a global scope
@@ -320,7 +318,7 @@ handle_server_packet (const MiredoServerUDP *sock)
 		return 0; // must be discarded
 	
 	// Accepts packet:
-	if (!IN6_IS_ADDR_TEREDO(&ip6->ip6_dst))
+	if (IN6_TEREDO_PREFIX(&ip6->ip6_dst) != conf.prefix)
 		// forwards packet to native IPv6:
 		return ForwardPacket (sock, conf.tunnel);
 

@@ -2,9 +2,12 @@
 
 	* include/teredo.c:
 	- allow unknown Teredo address flags, as specified per new draft 02,
+	* src/server_pkt.cpp:
+	- clean ups,
+	- set IPv6 source correctly in server Router Advertisements,
 	* src/relay.cpp, src/server_pkt.cpp:
 	- check that destination matches 2000:/3 before transmitting,
-	- set IPv6 source correctly in server Router Advertisements,
+	- use user-specified Teredo prefix, rather than hardcoded one,
 	* libtun6/ipv6-tunnel.cpp, libtun6/ipv6-tunnel.h:
 	- sanity checks,
 	- fix byte ordering for sending/receiving packets on FreeBSD,

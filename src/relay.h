@@ -1,6 +1,6 @@
 /*
  * relay.h - Teredo relay peers list declaration
- * $Id: relay.h,v 1.3 2004/06/21 17:48:55 rdenisc Exp $
+ * $Id: relay.h,v 1.4 2004/06/27 17:37:21 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -38,6 +38,9 @@ union teredo_addr;
 class MiredoRelay
 {
 	private:
+		bool is_cone;
+		uint32_t prefix;
+
 		struct peer
 		{
 			struct peer *next;
@@ -65,14 +68,15 @@ class MiredoRelay
 
 		const MiredoRelayUDP *sock;
 		const IPv6Tunnel *tunnel;
-	
+
 		struct peer *AllocatePeer (void);
 		struct peer *FindPeer (const struct in6_addr *addr);
 
 		int SendBubble (const union teredo_addr *dst) const;
 
 	public:
-		MiredoRelay () : head (NULL)
+		MiredoRelay (uint32_t pref)
+			: is_cone (true), prefix (pref), head (NULL)
 		{
 		}
 
@@ -97,6 +101,22 @@ class MiredoRelay
 		 * Receives a packet via Teredo.
 		 */
 		int ReceivePacket (void);
+
+		// Sets and gets cone flag setting
+		void SetCone (bool cone = true)
+		{
+			is_cone = true;
+		}
+
+		bool IsCone (void) const
+		{
+			return is_cone;
+		}
+
+		uint32_t GetPrefix (void) const
+		{
+			return prefix;
+		}
 };
 
 #endif /* ifndef MIREDO_RELAY_H */

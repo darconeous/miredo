@@ -1,6 +1,6 @@
 /*
  * ipv6-tunnel.cpp - IPv6 interface class definition
- * $Id: ipv6-tunnel.cpp,v 1.1 2004/06/27 15:27:12 rdenisc Exp $
+ * $Id: ipv6-tunnel.cpp,v 1.2 2004/06/27 17:37:21 rdenisc Exp $
  */
 
 /***********************************************************************
@@ -93,8 +93,8 @@ socket_udp6 (void)
 inline void
 secure_strncpy (char *tgt, const char *src, size_t len)
 {
-	strncpy (tgt, src, len);
-	tgt[len - 1] = '\0';
+	strncpy (tgt, src, --len);
+	tgt[len] = '\0';
 }
 
 
