@@ -191,7 +191,7 @@ SendRS (const TeredoRelayUDP& sock, uint32_t server_ip,
 		} rs;
 
 		rs.ip6.ip6_flow = htonl (0x60000000);
-		rs.ip6.ip6_plen = htons (sizeof (rs));
+		rs.ip6.ip6_plen = htons (sizeof (rs) - sizeof (rs.ip6));
 		rs.ip6.ip6_nxt = IPPROTO_ICMPV6;
 		rs.ip6.ip6_hlim = 255;
 		memcpy (&rs.ip6.ip6_src, cone
