@@ -1,6 +1,6 @@
 /*
  * ipv6-tunnel.h - IPv6 interface class declaration
- * $Id: ipv6-tunnel.h,v 1.2 2004/06/14 21:52:32 rdenisc Exp $
+ * $Id: ipv6-tunnel.h,v 1.3 2004/06/17 22:52:28 rdenisc Exp $
  */
 
 /***********************************************************************
@@ -51,6 +51,22 @@ class IPv6Tunnel
 		{
 			return fd == -1;
 		}
+
+		int SetState (bool up) const;
+
+		int BringUp (void) const
+		{
+			return SetState (true);
+		}
+
+		int BringDown (void) const
+		{
+			return SetState (false);
+		}
+
+		int SetAddress (const struct in6_addr *addr,
+				int prefix_len = 64) const;
+		int SetMTU (int mtu) const;
 
 		/*
 		 * Registers file descriptors in an fd_set for use with

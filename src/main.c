@@ -1,7 +1,7 @@
 /*
  * main.c - Unix Teredo server & relay implementation
  *          command line handling and core functions
- * $Id: main.c,v 1.2 2004/06/15 16:09:22 rdenisc Exp $
+ * $Id: main.c,v 1.3 2004/06/17 22:52:28 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -34,6 +34,7 @@
 #include <sys/resource.h> /* getrlimit() */
 #include <unistd.h>
 #include <errno.h> /* errno */
+#include <fcntl.h> /* O_RDONLY */
 #ifdef MIREDO_UNPRIV_USER
 # include <pwd.h> /* getpwnam() */
 #endif
@@ -142,6 +143,12 @@ error_missing (void)
 }
 
 
+/*
+ * Initialize daemon security settings.
+ * These will be completed by later calls to
+ *  - setuid() to definitely dop root priviledges,
+ *  - daemon() to redirect file handles 0, 1 and 2 to /dev/null.
+ */
 int init_security (void)
 {
 #ifdef MIREDO_UNPRIV_USER
@@ -151,22 +158,39 @@ int init_security (void)
 	struct group *grp;
 #endif
 	struct rlimit lim;
-	int i;
+	int fd;
 	extern uid_t unpriv_uid;
 
 	/*
-	 * We close all file handles except 0, 1 and 2, which we use
-	 * before calling daemon(), and which daemon will re-open as
-	 * /dev/null later.
+	 * We close all file handles, except 0, 1 and 2.
+	 * Those last 3 handles will be opened as /dev/null
+	 * by later daemon().
 	 */
 	if (getrlimit (RLIMIT_NOFILE, &lim))
 	{
 		perror ("getrlimit(RLIMIT_NOFILE)");
 		return -1;
 	}
-	
-	for (i = 3; i < lim.rlim_cur; i++)
-		close (i);
+
+	for (fd = 3; fd < lim.rlim_cur; fd++)
+		close (fd);
+
+	/*
+	 * Make sure that 0, 1 and 2 are opened.
+	 * If it were not the case, we'd have daemon() close our internal
+	 * handles, which we definitely don't want.
+	 */
+	fd = open ("/dev/null", O_RDONLY);
+	if (fd == -1)
+	{
+		perror ("/dev/null");
+		return -1;
+	}
+	if (fd < 3)
+	{
+		close (fd);
+		return -1;
+	}
 
 #ifdef MIREDO_UNPRIV_GROUP
 	/* Unpriviledged group */
@@ -283,24 +307,26 @@ main (int argc, char *argv[])
 			}
 				break;
 				
-			/*case 'P':*/ /* FIXME: unimplemented */
+			case 'P':
+				ONETIME_SETTING (prefix);
+				break;
 
-		    case 's':
-			ONETIME_SETTING (server);
-			break;
+			case 's':
+				ONETIME_SETTING (server);
+				break;
 
-		    case 'T':
-			ONETIME_SETTING (tundev);
-			break;
+			case 'T':
+				ONETIME_SETTING (tundev);
+				break;
 
-		    case 'V':
-			return version ();
+			case 'V':
+				return version ();
 
-		    default:
-			fprintf (stderr, _(
+			default:
+				fprintf (stderr, _(
 "Returned unknown option -%c :\n"
 "That is probably a bug. Please report it.\n"), c);
-			return 1;
+				return 1;
 		}
 
 	if (optind >= argc) /* no more arguments ! */

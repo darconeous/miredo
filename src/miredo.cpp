@@ -1,7 +1,7 @@
 /*
  * miredo.cpp - Unix Teredo server & relay implementation
  *              core functions
- * $Id: miredo.cpp,v 1.3 2004/06/16 08:38:48 rdenisc Exp $
+ * $Id: miredo.cpp,v 1.4 2004/06/17 22:52:28 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -125,13 +125,12 @@ teredo_server_relay (void)
 
 /*
  * Returns an IPv4 address (network byte order) associated with hostname
- * <name>. Returns 0 on error.
+ * <name>. Returns -1 on error.
  */
-static uint32_t
-getipbyname (const char *name)
+static int
+getipv4byname (const char *name, uint32_t *ipv4)
 {
 	struct addrinfo help, *res;
-	uint32_t ipv4;
 
 	memset (&help, 0, sizeof (help));
 	help.ai_family = AF_INET;
@@ -145,17 +144,17 @@ getipbyname (const char *name)
 		syslog (LOG_ERR, _("Invalid hostname `%s': %s\n"),
 			name, gai_strerror (check));
 		closelog ();
-		return 0;
+		return -1;
 	}
 
-	ipv4 = ((const struct sockaddr_in *)res->ai_addr)->sin_addr.s_addr;
+	*ipv4 = ((const struct sockaddr_in *)res->ai_addr)->sin_addr.s_addr;
 	freeaddrinfo (res);
-	return ipv4;
+	return 0;
 }
 
 
 /*
- * NOTES:
+ * NOTES (TODO/FIXME):
  * It would be much better to find this out automatically, and not to require
  * the user to specify a static, possibly wrong, value.
  *
@@ -164,17 +163,16 @@ getipbyname (const char *name)
  * entirely useless. When running as a relay, this should really be a
  * non-Teredo public IPv6 address that we own (if we don't have one, we should
  * be a client rather than a relay).
- *
- * Additionnaly, it would be good to not require relay IPv4 address manual
- * configuration either.
  */
 static int
-get_relay_ipv6 (const char *name)
+getipv6byname (const char *name, struct in6_addr *ipv6)
 {
 	struct addrinfo help, *res;
 
 	memset (&help, 0, sizeof (help));
-	help.ai_family = AF_INET6;
+	help.ai_family = PF_INET6;
+	help.ai_socktype = SOCK_DGRAM;
+	help.ai_protocol = IPPROTO_UDP;
 
 	int check = getaddrinfo (name, NULL, &help, &res);
 
@@ -186,7 +184,7 @@ get_relay_ipv6 (const char *name)
 		return -1;
 	}
 
-	memcpy (&conf.addr.ip6,
+	memcpy (ipv6,
 		&((const struct sockaddr_in6*)(res->ai_addr))->sin6_addr,
 		sizeof (conf.addr));
 
@@ -207,7 +205,6 @@ miredo_run (const char *ipv6_name, uint16_t client_port,
 		const char *ifname, const char *tundev_name)
 {
 	seteuid (unpriv_uid);
-	int retval = -1;
 
 	/* default values */
 	if (client_port == 0)
@@ -223,39 +220,56 @@ miredo_run (const char *ipv6_name, uint16_t client_port,
 
 	if (ifname == NULL)
 		ifname = "ter%d";
-	if (prefix_name == NULL) // TODO: parse prefix_name
+	if (prefix_name == NULL)
 		prefix_name = TEREDO_PREFIX_STR":";
 
-	openlog ("miredo", LOG_PERROR|LOG_PID|LOG_CONS, LOG_DAEMON);
-	
+	openlog ("miredo", LOG_PERROR|LOG_PID, LOG_DAEMON);
+
+	// FIXME: using conf.addr for temporary storage is a dirty
+	if (getipv6byname (prefix_name, &conf.addr.ip6))
+	{
+		syslog (LOG_ALERT,
+			_("Teredo prefix not properly set.\n"));
+		closelog ();
+		return -1;
+	}
+
 	if (seteuid (0))
 		syslog (LOG_WARNING, _("SetUID to root failed: %m\n"));
 
-	IPv6Tunnel tunnel (ifname, tundev_name); // must be root
+	/* Tunneling interface initialization */
+	// must likely be root:
+	IPv6Tunnel tunnel (ifname, tundev_name);
+	// must be root:
+	int retval = !tunnel
+		|| tunnel.SetMTU (1280)
+		|| tunnel.BringUp ()
+		|| tunnel.SetAddress (&conf.addr.ip6, 32);
 
 	// Definitely drops privileges
 	if (setuid (unpriv_uid))
 	{
 		syslog (LOG_ALERT, _("setuid failed: %m\n"));
-		return -1;
+		goto abort;
+	}
+
+	if (retval)
+	{
+		syslog (LOG_ALERT, _("Teredo tunnel allocation failed."
+					" You should be root to do that."));
+		goto abort;
 	}
 
 	conf.tunnel = &tunnel;
 	conf.server_udp = NULL;
 	conf.relay_udp = NULL;
 
-	if (!tunnel)
-	{
-		syslog (LOG_ALERT, _("Teredo tunnel allocation failed."
-					" You should be root to do that."));
-		goto abort;
-	}
-	
 	// Sets up server sockets
 	if (server_name != NULL)
 	{
-		uint32_t ipv4 = getipbyname (server_name);
-		if (!ipv4)
+		uint32_t ipv4;
+		 
+		if (getipv4byname (server_name, &ipv4))
 		{
 			syslog (LOG_ALERT, _("Fatal configuration error\n"));
 			goto abort;
@@ -314,15 +328,22 @@ miredo_run (const char *ipv6_name, uint16_t client_port,
 	}
 
 	// FIXME: should not be needed, not that manual way
-	if (get_relay_ipv6 (ipv6_name))
+	if (getipv6byname (ipv6_name, &conf.addr.ip6))
 	{
 		syslog (LOG_ALERT,
 			_("Teredo IPv6 relay address not properly set.\n"));
 		goto abort;
 	}
-	
+
+	if (daemon (0, 0))
+	{
+		syslog (LOG_ALERT,
+			_("Background mode error (fork): %m"));
+		return -1;
+	}
+
 	retval = teredo_server_relay ();
-	
+
 abort:
 	if (conf.relay_udp != NULL)
 		delete conf.relay_udp;

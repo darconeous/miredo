@@ -1,6 +1,6 @@
 /*
  * ipv6-tunnel.cpp - IPv6 interface class definition
- * $Id: ipv6-tunnel.cpp,v 1.3 2004/06/15 16:09:22 rdenisc Exp $
+ * $Id: ipv6-tunnel.cpp,v 1.4 2004/06/17 22:52:28 rdenisc Exp $
  */
 
 /***********************************************************************
@@ -54,6 +54,16 @@
 # define L2_PROTO_IPV6 0xdd86
 #endif
 
+static int
+socket_udp6 (void)
+{
+	int fd = socket (PF_INET6, SOCK_DGRAM, 0);
+	if (fd == -1)
+                syslog (LOG_ERR, _("IPv6 stack not available: %m\n"));
+	return fd;
+}
+
+
 inline void
 secure_strncpy (char *tgt, const char *src, size_t len)
 {
@@ -75,59 +85,23 @@ IPv6Tunnel::IPv6Tunnel (const char *req_name, const char *tundev)
 			tundev);
 		return;
 	}
-	
-	int reqfd = socket (PF_INET6, SOCK_DGRAM, 0);
-	if (reqfd == -1)
-	{
-		syslog (LOG_ERR, _("IPv6 stack not available: %m\n"));
-		goto abort;
-	}
-
-	struct ifreq req;
 
 	// Allocates the tunneling virtual network interface
+	struct ifreq req;
 	memset (&req, 0, sizeof (req));
 	if (req_name != NULL)
-		req.ifr_flags = IFF_TUN;
-	secure_strncpy (req.ifr_name, req_name, IFNAMSIZ);
+		secure_strncpy (req.ifr_name, req_name, IFNAMSIZ);
+	req.ifr_flags = IFF_TUN;
 
 	if (ioctl (fd, TUNSETIFF, (void *)&req))
 	{
-		syslog (LOG_ERR, _("Tunneling interface failure: %m\n"));
-		goto abort;
+		syslog (LOG_ERR, _("Tunnel error (TUNSETIFF): %m\n"));
+		close (fd);
+		fd = -1;
 	}
 
 	secure_strncpy (ifname, req.ifr_name, IFNAMSIZ);
-		
-	// Sets up the interface
-	//secure_strncpy (req.ifr_name, ifname, IFNAMSIZ); // already set
-	if (ioctl (reqfd, SIOCGIFFLAGS, &req))
-	{
-		syslog (LOG_ERR, _("Tunnel setup failure: %m\n"));
-		goto abort;
-	}
-
-	secure_strncpy (req.ifr_name, ifname, IFNAMSIZ);
-	// settings we want:
-	req.ifr_flags |= IFF_UP | IFF_POINTOPOINT | IFF_NOARP;
-	// settings we don't want:
-	req.ifr_flags &= ~(IFF_MULTICAST | IFF_BROADCAST);
-	if (ioctl (reqfd, SIOCSIFFLAGS, &req))
-	{
-		syslog (LOG_ERR, _("Tunnel setup failure: %m\n"));
-		goto abort;
-	}
-	
-	close (reqfd);
 	syslog (LOG_INFO, _("Tunneling interface %s created.\n"), ifname);
-
-	return;
-
-abort:
-	close (fd);
-	fd = -1;
-	if (reqfd != -1)
-		close (reqfd);
 }
 
 
@@ -141,25 +115,134 @@ IPv6Tunnel::~IPv6Tunnel ()
 	}
 }
 
-#if 0
+
 int
-IPv6Tunnel::AddPrefix (const struct in6_addr *addr, int prefix_len) const
+IPv6Tunnel::SetState (bool up) const
 {
-	int reqfd = socket (PF_INET6, SOCK_DGRAM, 0);
+	if (fd == -1)
+		return -1;
+
+	int reqfd = socket_udp6 ();
 	if (reqfd == -1)
+		return -1;
+
+	// Sets up the interface
+	struct ifreq req;
+	memset (&req, 0, sizeof (req));	
+	secure_strncpy (req.ifr_name, ifname, IFNAMSIZ);
+	if (ioctl (reqfd, SIOCGIFFLAGS, &req))
 	{
-		syslog (LOG_ERR, _("IPv6 socket failure: %m\n"));
+		syslog (LOG_ERR, _("Tunnel error (SIOCGIFFLAGS): %m\n"));
+		close (reqfd);
 		return -1;
 	}
 
-	// Gets interface flags
+	secure_strncpy (req.ifr_name, ifname, IFNAMSIZ);
+	// settings we want/don't want:
+	req.ifr_flags |= IFF_POINTOPOINT | IFF_NOARP;
+	if (up)
+		req.ifr_flags |= IFF_UP | IFF_RUNNING;
+	else
+		req.ifr_flags &= ~IFF_UP;
+	req.ifr_flags &= ~(IFF_MULTICAST | IFF_BROADCAST);
+
+	if (ioctl (reqfd, SIOCSIFFLAGS, &req))
+	{
+		syslog (LOG_ERR, _("%s tunnel error (SIOCSIFFLAGS): %m\n"),
+			ifname);
+		close (reqfd);
+		return -1;
+	}
+
+	close (reqfd);
+	return 0;
+}
+
+
+int
+IPv6Tunnel::SetAddress (const struct in6_addr *addr, int prefix_len) const
+{
+	if ((fd == -1) || (prefix_len < 0))
+		return -1;
+
+	if (prefix_len > 128)
+	{
+		syslog (LOG_ERR, _("IPv6 prefix length too long: %d\n"),
+			prefix_len);
+		return -1;
+	}
+
+	int reqfd = socket_udp6 ();
+	if (reqfd == -1)
+		return -1;
+
+	// Gets kernel's interface index
 	struct ifreq req;
 	memset (&req, 0, sizeof (req));
-	secure_strncpy (req.ifr_name, ifname);
+	secure_strncpy (req.ifr_name, ifname, IFNAMSIZ);
+	if (ioctl (reqfd, SIOCGIFINDEX, &req) == 0)
+	{
+		struct in6_ifreq req6;
 
-	
+		memset (&req6, 0, sizeof (req6));
+		req6.ifr6_ifindex = req.ifr_ifindex;
+		memcpy (&req6.ifr6_addr, addr, sizeof (struct in6_addr));
+		req6.ifr6_prefixlen = prefix_len;
+
+		if (ioctl (reqfd, SIOCSIFADDR, &req6) == 0)
+		{
+			// FIXME: display address/prefix
+			syslog (LOG_DEBUG, _("%s tunnel address set\n"),
+				ifname);
+			close (reqfd);
+			return 0;
+		}
+	}
+
+	close (reqfd);
+	return -1;
 }
-#endif
+
+
+int
+IPv6Tunnel::SetMTU (int mtu) const
+{
+	if (fd == -1)
+		return -1;
+	if (mtu < 1280)
+	{
+		syslog (LOG_ERR, _("IPv6 MTU too small (<1280): %d\n"), mtu);
+		return -1;
+	}
+	if (mtu > 65535)
+	{
+		syslog (LOG_ERR, _("IPv6 MTU too big (>65535): %d\n"), mtu);
+		return -1;
+	}
+
+	int reqfd = socket_udp6 ();
+	if (reqfd == -1)
+		return -1;
+
+	struct ifreq req;
+	memset (&req, 0, sizeof (req));
+	secure_strncpy (req.ifr_name, ifname, IFNAMSIZ);
+	req.ifr_mtu = mtu;
+
+	if (ioctl (reqfd, SIOCSIFMTU, &req))
+	{
+		syslog (LOG_ERR, _("%s tunnel MTU error (SIOCSIFMTU): %m\n"),
+			ifname);
+		close (reqfd);
+		return -1;
+	}
+
+	syslog (LOG_DEBUG, _("%s tunnel MTU set to %d.\n"), ifname, mtu);
+	return 0;
+}
+
+
+    
 
 int
 IPv6Tunnel::RegisterReadSet (fd_set *readset) const
