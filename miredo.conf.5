@@ -1,5 +1,5 @@
 .\" ***********************************************************************
-.\" *  Copyright (C) 2004-2005 Remi Denis-Courmont.                       *
+.\" *  Copyright (C) 2004 Remi Denis-Courmont.                            *
 .\" *  This program is free software; you can redistribute and/or modify  *
 .\" *  it under the terms of the GNU General Public License as published  *
 .\" *  by the Free Software Foundation; version 2 of the license.         *
@@ -17,8 +17,9 @@
 .SH NAME
 miredo \- Teredo IPv6 tunneling for Unix
 .SH SYNOPSIS
-.BR "miredo" " [" "-c config_file" "] [" "-f" "] [" "-p pidfile" "] ["
-.BR "-t rootdir" "] [" "-u user" "]"
+.BR "miredo" " [" "-b bind_ip" "] [" "-C" "] [" "-i ifname" "] ["
+.BR "-p bind_port" "] [" "-P prefix" "] [" "-t rootdir" "] ["
+.BR "-u user" "] [" "-s server_ip" "] [" "server name" "]"
 
 .SH DESCRIPTON
 .B Miredo
@@ -50,25 +51,50 @@ entirely conformant to that version of the Teredo specification.
 .SH OPTIONS
 
 .TP
-.BR "\-c config_file" " or " "\-\-config config_file"
-Specify an alternate configuration file for Miredo instead of the
-.RI "default, " "/usr/local/etc/miredo.conf" "."
-\" config.status won't replace @sysconfdir@ correctly, it would
-\" write ${prefix}/etc instead of /usr/local/etc
-
-.TP
-.BR "\-f" " or " "\-\-foreground"
-Do not detach from the console. Run the program in the foreground.
-
-.TP
 .BR "\-h" " or " "\-\-help"
 Display some help and exit.
 
 .TP
-.BR "\-p pidfile" " or " "\-\-pidfile pidfile"
-.RI "Override the " "pidfile" " location."
-By default, the PID (Process ID) of the program is written in
-.IR "/var/run/miredo.pid" "."
+.BR "\-b ip_address" " or " "\-\-bind ip_address"
+Bind the Teredo relay or Teredo client to a specific IPv4 address.
+By default, it is not bound to any particular IPv4 address.
+
+Only use this option if you have trouble with the default value, such
+as if you have a multi-homed host with equal-cost IPv4 routing, or if
+you have specific firewalling constraints.
+
+.TP
+.BR "\-C" " or " "\-\-cone"
+.RI "Assume that we are behind a " "cone" " NAT device, or no NAT at"
+all (ie. that we have a public IPv4 address). This is an optimization
+to emit fewer Teredo packets.
+That option must not be used when Miredo serves as a Teredo client.
+
+.TP
+.BR "\-i ifname" ", " "\-\-iface ifname"
+Specify the name of the Teredo tunneling interface which Miredo will
+create ("teredo" by default). On some systems, it is not possible to
+redefine the tunnel name.
+
+.TP
+.BR "\-p port" " or " "\-\-port port"
+Define the UDP (over IPv4) port number to be used by the relay or
+client (automatic by default).
+
+.TP
+.BR "\-P prefix" " or " "\-\-prefix prefix"
+Override the Teredo prefix (3ffe:831f:: at the moment).
+.BR "Do not use that feature" " if you don't know what you are doing, "
+as it is more than likely to break your IPv6 connectivity.
+That option must not be used when Miredo serves as a Teredo client.
+
+.TP
+.BR "\-s server_ip" " or " "\-\-server server_ip"
+.RI "Turn on " "Teredo server mode" "."
+With this option, Miredo will behave as a Teredo server on IPv4, with
+.RB "primary IPv4 address " "server_ip" " and secondary IPv4 address"
+.RB "server_ip + 1" "."
+That option must not be used when Miredo serves as a Teredo client.
 
 .TP
 .BR "\-t rootdir" " or " "\-\-chroot rootdir"
@@ -84,6 +110,17 @@ Override the user that the program will run as. By default, it runs as
 .TP
 .BR "\-V" " or " "\-\-version"
 Display program version and license and exit.
+
+.TP
+.BR "\-v" " or " "\-\-verbose"
+Print program configuration at startup.
+
+.TP
+.BR "server name"
+Server name should be valid a IPv4 host name or IPv4 address. Miredo
+will try to qualify as a Teredo client with this Teredo server.
+This enable Miredo to serve as a Teredo client.
+.RB "It conflicts with options " "-C" "," "-P" " and " "-s" "."
 
 .\".SH DIAGNOSTICS
 .SH BUGS
@@ -151,15 +188,11 @@ versions.
 
 .SH FILES
 .TP
-.I /usr/local/etc/miredo.conf
-The default configuration file.
-
-.TP
 .I /var/run/miredo/miredo.pid
 The default process-id file.
 
 .SH "SEE ALSO"
-miredo.conf(5), ng_teredo(4), ipv6(7), route(8), ip(8)
+ng_teredo(4), ipv6(7), route(8), ip(8)
 
 .SH AUTHOR
 Remi Denis-Courmont <rdenis at simphalempin.com>
