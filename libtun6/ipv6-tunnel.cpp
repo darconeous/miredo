@@ -1,6 +1,6 @@
 /*
  * ipv6-tunnel.cpp - IPv6 interface class definition
- * $Id: ipv6-tunnel.cpp,v 1.9 2004/08/26 19:54:36 rdenisc Exp $
+ * $Id$
  */
 
 /***********************************************************************
@@ -202,13 +202,22 @@ IPv6Tunnel::IPv6Tunnel (const char *req_name) : fd (-1), ifname (NULL)
  */
 IPv6Tunnel::~IPv6Tunnel ()
 {
+	CleanUp ();
+}
+
+
+/*
+ * Removes the tunnel interface from the current process context.
+ * The tunnel will be removed by the kernel once all processes which have
+ * access to it called this function or exited.
+ * NOT thread-safe.
+ */
+void IPv6Tunnel::CleanUp ()
+{
 	if (fd != -1)
 	{
-		// Do not do that because we might no longer be root,
-		// which may cause annoying errors in syslog,
-		// and it is pretty useless:
-		//SetState (false);
 		close (fd);
+		fd = -1;
 	}
 	
 	if (ifname != NULL)
@@ -216,6 +225,7 @@ IPv6Tunnel::~IPv6Tunnel ()
 		syslog (LOG_INFO, _("Tunneling interface %s removed"),
 			ifname);
 		free (ifname);
+		ifname = NULL;
 	}
 }
 

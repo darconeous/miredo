@@ -1,6 +1,6 @@
 /*
  * ipv6-tunnel.h - IPv6 interface class declaration
- * $Id: ipv6-tunnel.h,v 1.5 2004/08/26 17:19:28 rdenisc Exp $
+ * $Id$
  */
 
 /***********************************************************************
@@ -62,12 +62,23 @@ class IPv6Tunnel
 		/*
 		 * Removes a tunnel from the kernel.
 		 * BEWARE: if you fork, child processes must call the
-		 * destructor too.
+		 * destructor too (or CleanUp ()).
 		 *
 		 * The kernel will destroy the tunnel interface once all
 		 * process called the destructor and/or terminated.
 		 */
 		~IPv6Tunnel ();
+
+		/*
+		 * Removes the tunnel from the kernel and releases any other
+		 * allocated resources. The object can no longer be used to
+		 * send, receive packets or to change its interfaces settings
+		 * thereafter.
+		 *
+		 * This is NOT thread-safe. Lock the object exclusively before
+		 * you call this function.
+		 */
+		void CleanUp (void);
 
 		int operator! (void)
 		{
