@@ -1,6 +1,6 @@
 /*
  * relay-packets.cpp - helpers to send Teredo packet from relay/client
- * $Id: relay-packets.cpp,v 1.5 2004/08/29 19:04:50 rdenisc Exp $
+ * $Id$
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -34,11 +34,6 @@
 #include <netinet/ip6.h> // struct ip6_hdr
 #include <netinet/icmp6.h> // router solicication
 #include <syslog.h>
-
-#ifdef USE_OPENSSL // FIXME: move out of this file
-# include <openssl/rand.h>
-# include <openssl/err.h>
-#endif
 
 #include "teredo.h"
 #include <v4global.h> // is_ipv4_global_unicast()
@@ -157,8 +152,8 @@ static const struct in6_addr in6addr_allrouters =
         { { { 0xff, 0x02, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x2 } } };
 
 int
-SendRS (const TeredoRelayUDP& sock, uint32_t server_ip, unsigned char *nonce,
-	bool cone, bool secondary)
+SendRS (const TeredoRelayUDP& sock, uint32_t server_ip,
+	const unsigned char *nonce, bool cone, bool secondary)
 {
 	uint8_t packet[13 + sizeof (struct ip6_hdr)
 			+ sizeof (struct nd_router_solicit)
@@ -174,18 +169,7 @@ SendRS (const TeredoRelayUDP& sock, uint32_t server_ip, unsigned char *nonce,
 		auth->hdr.hdr.zero = 0;
 		auth->hdr.hdr.code = teredo_auth_hdr;
 		auth->hdr.id_len = auth->hdr.au_len = 0;
-#ifdef USE_OPENSSL
-		if (!RAND_pseudo_bytes (auth->nonce, 8))
-		{
-			char buf[120];
-
-			syslog (LOG_WARNING, _("Possibly predictable RS: %s"),
-				ERR_error_string (ERR_get_error (), buf));
-		}
-#else
-		memset (auth->nonce, 0, 8);
-#endif
-		memcpy (nonce, auth->nonce, 8);
+		memcpy (auth->nonce, nonce, 8);
 		auth->confirmation = 0;
 
 		ptr += 13;

@@ -118,6 +118,17 @@ TeredoRelay::TeredoRelay (uint32_t server_ip, uint16_t port)
 	addr.teredo.client_ip = 0;
 	addr.teredo.client_port = 0;
 
+	memset (probe.nonce, 0, 8);
+#ifdef USE_OPENSSL
+	if (!RAND_bytes (probe.nonce, 8))
+	{
+		char buf[120];
+
+		syslog (LOG_ERR, _("Lack of entropy: %s"),
+			ERR_error_string (ERR_get_error (), buf));
+	}
+	else
+#endif
 	if (sock.ListenPort (port) == 0)
 	{
 		probe.state = PROBE_CONE;
@@ -235,7 +246,7 @@ inline bool IsBubble (const struct ip6_hdr *hdr)
 int TeredoRelay::SendPacket (const void *packet, size_t length)
 {
 	/* Makes sure we are qualified properly */
-	if (!IsRunning ())
+	if (!IsRunning () || !sock)
 		return -1; // TODO: send ICMPv6 error?
 
 	struct ip6_hdr ip6;

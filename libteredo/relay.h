@@ -1,6 +1,6 @@
 /*
  * relay.h - Teredo relay peers list declaration
- * $Id: relay.h,v 1.23 2004/08/28 10:36:50 rdenisc Exp $
+ * $Id$
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -171,7 +171,7 @@ class TeredoRelay
 		{
 			return IN6_TEREDO_PORT (&addr);
 		}
-		
+
 		uint32_t GetMappedIP (void) const
 		{
 			return IN6_TEREDO_IPV4 (&addr);
