@@ -60,6 +60,7 @@ bool GenerateNonce (unsigned char *b, bool critical)
 
 		return tot == 8;
 	}
+	syslog (LOG_ERR, _("Error opening %s: %m"), dev);
 
 	return false;
 }
