@@ -269,8 +269,7 @@ miredo_run (int mode, const char *ifname,
 #ifdef MIREDO_TEREDO_CLIENT
 	if (mode == TEREDO_CLIENT)
 	{
-		fd = miredo_privileged_process (tunnel, unpriv_uid,
-						default_route);
+		fd = miredo_privileged_process (tunnel, default_route);
 		if (fd == -1)
 		{
 			syslog (LOG_ALERT,

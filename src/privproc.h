@@ -33,7 +33,6 @@
 struct in6_addr;
 
 int
-miredo_privileged_process (IPv6Tunnel& tunnel, uid_t unpriv,
-				bool default_route);
+miredo_privileged_process (IPv6Tunnel& tunnel, bool default_route);
 
 #endif

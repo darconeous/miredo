@@ -38,15 +38,9 @@
 
 
 int
-miredo_privileged_process (IPv6Tunnel& tunnel, uid_t unpriv,
-				bool default_route)
+miredo_privileged_process (IPv6Tunnel& tunnel, bool default_route)
 {
 	int fd[2];
-#ifdef HAVE_LIBCAP
-	cap_t s;
-	cap_value_t v;
-#endif
-
 	if (pipe (fd))
 		return -1;
 
@@ -66,6 +60,26 @@ miredo_privileged_process (IPv6Tunnel& tunnel, uid_t unpriv,
 			return fd[1];
 	}
 
+#ifdef HAVE_LIBCAP
+	{
+		cap_t s;
+		cap_value_t v = CAP_NET_ADMIN;
+
+		s = cap_init ();
+		if (s == NULL)
+			exit (1);
+
+		if (cap_set_flag (s, CAP_PERMITTED, 1, &v, CAP_SET)
+		 || cap_set_flag (s, CAP_EFFECTIVE, 1, &v, CAP_SET)
+		 || cap_set_proc (s))
+		{
+			cap_free (s);
+			exit (1);
+		}
+		cap_free (s);
+	}
+#endif
+
 	struct in6_addr oldter;
 	const struct in6_addr *p_oldloc = NULL;
 
@@ -83,21 +97,6 @@ miredo_privileged_process (IPv6Tunnel& tunnel, uid_t unpriv,
 
 		p_newloc = IN6_IS_TEREDO_ADDR_CONE (&newter)
 				? &teredo_cone : &teredo_restrict;
-
-		/* gets privileges */
-#ifdef HAVE_LIBCAP
-		s = cap_get_proc ();
-
-		if (s == NULL)
-			goto die;
-		v = CAP_NET_ADMIN;
-		cap_set_flag (s, CAP_EFFECTIVE, 1, &v, CAP_SET);
-
-		cap_set_proc (s);
-		cap_free (s);
-#else
-		seteuid (0);
-#endif
 
 		if (memcmp (&oldter, &in6addr_any, 16))
 		{
@@ -119,45 +118,11 @@ miredo_privileged_process (IPv6Tunnel& tunnel, uid_t unpriv,
 		else
 			tunnel.BringDown ();
 
-		/* leaves privileges */
-#ifdef HAVE_LIBCAP
-		s = cap_get_proc ();
-
-		if (s == NULL)
-			goto die;
-		v = CAP_NET_ADMIN;
-		cap_set_flag (s, CAP_EFFECTIVE, 1, &v, CAP_CLEAR);
-		cap_set_proc (s);
-		cap_free (s);
-#else
-		seteuid (unpriv);
-#endif
-
 		p_oldloc = p_newloc;
 		memcpy (&oldter, &newter, 16);
 	}
 
 die:
-	/* definitely leaves privileges */
-#ifdef HAVE_LIBCAP
-	s = cap_get_proc ();
-
-	if (s != NULL)
-	{
-		v = CAP_NET_ADMIN;
-		cap_set_flag (s, CAP_EFFECTIVE, 1, &v, CAP_CLEAR);
-
-		v = CAP_NET_ADMIN;
-		cap_set_flag (s, CAP_PERMITTED, 1, &v, CAP_CLEAR);
-
-		cap_set_proc (s);
-		cap_free (s);
-	}
-#else
-	seteuid (0);
-	setuid (unpriv);
-#endif
-
 	close (fd[0]);
 	tunnel.CleanUp ();
 	exit (0);
