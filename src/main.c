@@ -80,7 +80,7 @@ static int
 usage (void)
 {
 	puts (_(
-"Usage: miredo [OPTION] [server name]...\n"
+"Usage: miredo [OPTIONS]\n"
 "Creates a Teredo tunneling interface for encapsulation of IPv6 over UDP.\n"
 "\n"
 "  -f, --foreground run in the foreground\n"
@@ -88,8 +88,7 @@ usage (void)
 "  -p, --pidfile    override the pidfile path\n"
 "  -t, --chroot     override the chroot directory\n"
 "  -u, --user       override the user to set UID to\n"
-"  -V, --version    display program version and exit\n"
-"  -v, --verbose    print configuration before starting\n"));
+"  -V, --version    display program version and exit\n"));
 
 	printf (_("Default Teredo prefix: %s:/32\n"),
 		DEFAULT_TEREDO_PREFIX_STR);
@@ -491,6 +490,7 @@ main (int argc, char *argv[])
 
 	const struct option opts[] =
 	{
+		{ "conf",	required_argument,	NULL, 'c' },
 		{ "config",	required_argument,	NULL, 'c' },
 		{ "foreground",	no_argument,		NULL, 'f' },
 		{ "help",	no_argument,		NULL, 'h' },
@@ -522,13 +522,15 @@ main (int argc, char *argv[])
 			case '?':
 				return quick_usage ();
 
+			case 'c':
+				ONETIME_SETTING (conffile);
+				break;
+
 			case 'f':
 				flags.foreground = 1;
 				break;
 
-			case 'c':
-				ONETIME_SETTING (conffile);
-				break;
+			/*TODO: case 'g' as in BIND */
 
 			case 'h':
 				return usage ();
