@@ -169,11 +169,6 @@ DNS resolution of the Teredo server works:
 and your system's DNS resolver library in /lib. If in doubt, don't
 chroot if you intend to run Miredo as a Teredo client.
 
-  You should also create this directory (where miredo tries to put its
-process-ID file). Only miredo should be allowed to write to it:
-
-/var/lib/miredo/var/run/miredo/
-
   Finally, you must tell your syslog daemon to listen to
 /var/lib/miredo/dev/log. That is usually done by adding that option to
 your syslogd upon start: '-a /var/lib/miredo/dev/log'. If you don't do
