@@ -484,19 +484,11 @@ miredo (const char *confpath)
 	int facility = LOG_DAEMON;
 	openlog (daemon_ident, LOG_PID, facility);
 
-	int retval = init_signals () ?: -2;
+	int retval = init_signals () ?: 2;
 
-	while (retval == -2)
+	while (retval == 2)
 	{
-		if (should_reload)
-		{
-			syslog (LOG_NOTICE, _(
-				"Reloading configuration on signal %d (%s)"),
-				should_reload, strsignal (should_reload));
-			should_reload = 0;
-		}
-
-		retval = -1;
+		retval = 1;
 
 		MiredoConf cnf;
 		if (!cnf.ReadFile (confpath))
@@ -517,13 +509,13 @@ miredo (const char *confpath)
 		memset (&prefix, 0, sizeof (prefix));
 		prefix.teredo.prefix = htonl (DEFAULT_TEREDO_PREFIX);
 
-		bind_port = htons (bind_port);
 		if (!cnf.GetInt16 ("BindPort", &bind_port))
 		{
 			syslog (LOG_ALERT,
 				_("Fatal bind UDP port error"));
 			continue;
 		}
+		bind_port = htons (bind_port);
 
 
 		if (!ParseIPv4 (cnf, "BindAddress", &bind_ip))
@@ -575,50 +567,54 @@ miredo (const char *confpath)
 		{
 			case -1:
 				syslog (LOG_ALERT, _("fork failed: %m"));
-				break;
+				continue;
 
 			case 0:
-			{
 				retval = miredo_run (bind_port, bind_ip,
 							server_ip, client,
 							&prefix, ifname,
 							relay_on, relay_cone);
 				closelog ();
 				exit (-retval);
-			}
 		}
 
 		// Waits until the miredo process terminates
-		while (waitpid (pid, &retval, 0) == -1)
+		while (waitpid (pid, &retval, 0) == -1);
+		
+		if (should_exit)
 		{
-			if (should_exit)
-			{
-				syslog (LOG_NOTICE,
-					_("Exiting on signal %d (%s)"),
-					should_exit, strsignal (should_exit));
-				wait (NULL); // child exited
+			syslog (LOG_NOTICE, _("Exiting on signal %d (%s)"),
+				should_exit, strsignal (should_exit));
 
-				// FIXME: cleanup
-				closelog ();
-				return 0;
-			}
+			retval = 0;
 		}
-
-		if (WIFEXITED (retval))
-			retval = -WEXITSTATUS (retval);
 		else
+		if (should_reload)
 		{
-			if (WIFSIGNALED (retval))
-			{
-				retval = WTERMSIG (retval);
-				syslog (LOG_INFO, _(
-					"Child %d killed by signal %d (%s)"),
-					(int)pid, retval, strsignal (retval));
-			}
-			retval = -2;
+			syslog (LOG_NOTICE, _(
+				"Reloading configuration on signal %d (%s)"),
+				should_reload, strsignal (should_reload));
+			retval = 2;
+		}
+		else
+		if (WIFEXITED (retval))
+		{
+			retval = WEXITSTATUS (retval);
+			syslog (LOG_NOTICE, _(
+				"Terminated (exit code: %d)."), retval);
+			retval = retval != 0;
+		}
+		else
+		if (WIFSIGNALED (retval))
+		{
+			retval = WTERMSIG (retval);
+			syslog (LOG_INFO, _(
+				"Child %d killed by signal %d (%s)."),
+				(int)pid, retval, strsignal (retval));
+			retval = 2;
 		}
 	}
 
 	closelog ();
-	return retval;
+	return -retval;
 }
