@@ -513,6 +513,8 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 			addr.teredo.prefix = PREFIX_UNSET;
 			probe.state = PROBE_CONE;
 			probe.count = 0;
+			gettimeofday (&probe.next, NULL);
+			probe.next.tv_sec += RestartDelay;
 			return 0;
 		}
 		else
