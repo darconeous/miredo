@@ -825,7 +825,7 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 	}
 
 	p->inqueue.Queue (buf, length);
-	
+
 	// FIXME: re-send echo request later if no response
 	if (!p->flags.flags.nonce)
 	{
