@@ -50,6 +50,7 @@
 
 #include "miredo.h"
 #include <libteredo/teredo.h>
+#include <libtun6/ipv6-tunnel.h>
 
 /*#include "host.h"*/
 
@@ -196,6 +197,8 @@ void chroot_notice (void)
 	fputs (_("Chroot directory was probably not set up correctly.\n"
 		"NOTE: You can use command line option '-t /'\n"
 		"if you don't want to run the program inside a chroot jail.\n"
+		"\n"
+		"Not using a chroot jail is far easier though less secure.\n"
 		), stderr);
 }
 
@@ -261,8 +264,12 @@ init_security (const char *username, const char *rootdir, int nodetach)
 		fprintf (stderr,
 			_("Error: This program was asked to run in the\n"
 			"security context of system user \"%s\", but it\n"
-			"does not seem to exist on your system.\n"),
-			username);
+			"does not seem to exist on your system.\n"
+			"\n"
+			"Use command line option '-u <username>' to run\n"
+			"this program in the security context of another\n"
+			"user. Running as root is STRONGLY DISCOURAGED.\n"
+			), username);
 		return -1;
 	}
 
@@ -316,6 +323,8 @@ init_security (const char *username, const char *rootdir, int nodetach)
 	errno = 0;
 #if defined(HAVE_LINUX)
 	/* TODO: which other OS does this warning apply to ? */
+	/* TODO: do similar thing for other OS */
+	if (rootdir != NULL)
 	{
 		struct stat s;
 
@@ -330,6 +339,14 @@ init_security (const char *username, const char *rootdir, int nodetach)
 		}
 	}
 #endif
+	{
+		char errbuf[LIBTUN6_ERRBUF_SIZE];
+		if (libtun6_driver_diagnose (errbuf))
+		{
+			fputs (errbuf, stderr);
+			return -1;
+		}
+	}
 
 	/* TODO: use POSIX capabilities */
 	/* Unpriviledged user (step 2) */
@@ -356,7 +373,6 @@ init_security (const char *username, const char *rootdir, int nodetach)
 		return -1;
 	}
 
-	close (fd);
 	return 0;
 }
 
