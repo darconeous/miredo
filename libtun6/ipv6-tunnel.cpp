@@ -1,6 +1,6 @@
 /*
  * ipv6-tunnel.cpp - IPv6 interface class definition
- * $Id: ipv6-tunnel.cpp,v 1.2 2004/06/27 17:37:21 rdenisc Exp $
+ * $Id: ipv6-tunnel.cpp,v 1.3 2004/07/10 16:28:34 rdenisc Exp $
  */
 
 /***********************************************************************
@@ -199,7 +199,10 @@ IPv6Tunnel::~IPv6Tunnel ()
 {
 	if (fd != -1)
 	{
-		SetState (false);
+		// Do not do that because we might no longer be root,
+		// which may cause annoying errors in syslog,
+		// and it is pretty useless:
+		//SetState (false);
 		close (fd);
 	}
 	
