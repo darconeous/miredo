@@ -29,9 +29,6 @@
 #include <inttypes.h>
 #include <string.h> // memset()
 
-#include <v4global.h> // is_ipv4_global_unicast()
-#include "teredo-udp.h"
-
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <unistd.h> // close()
@@ -40,6 +37,8 @@
 
 #include <syslog.h> // syslog()
 
+#include <libteredo/v4global.h> // is_ipv4_global_unicast()
+#include "teredo-udp.h"
 
 /*
  * Opens a Teredo UDP/IPv4 socket.

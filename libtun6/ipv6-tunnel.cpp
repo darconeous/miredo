@@ -25,7 +25,11 @@
 
 #include <string.h>
 #include <stdlib.h> // free()
-#include <inttypes.h>
+#if HAVE_STDINT_H
+# include <stdint.h>
+#elif HAVE_INTTYES_H
+# include <inttypes.h>
+#endif
 
 #include <sys/types.h>
 #include <sys/stat.h>

@@ -27,7 +27,11 @@
 #include <stdio.h>
 #include <stdlib.h> /* strtoul(), clearenv() */
 #include <string.h> /* strerrno() */
-#include <inttypes.h>
+#if HAVE_STDINT_H
+# include <stdint.h>
+#elif HAVE_INTTYPES_H
+# include <inttypes.h>
+#endif
 
 #include <sys/types.h>
 #include <sys/time.h> /* for <sys/resource.h> */

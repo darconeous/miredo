@@ -26,9 +26,6 @@
 #  error C++ only header
 # endif
 
-# include <stddef.h>
-# include <inttypes.h>
-
 # include <sys/types.h>
 # include <sys/select.h>
 

@@ -1,6 +1,6 @@
 /*
  * relay.cpp - Linux Teredo relay implementation
- * $Id: relay.cpp,v 1.20 2004/08/26 09:37:54 rdenisc Exp $
+ * $Id$
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -24,6 +24,12 @@
 
 #if HAVE_CONFIG_H
 # include <config.h>
+#endif
+
+#if HAVE_STDINT_H
+# include <stdint.h>
+#elif HAVE_INTTYPES_H
+# include <inttypes.h>
 #endif
 
 #include <unistd.h> // write()

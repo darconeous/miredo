@@ -28,7 +28,7 @@
 # include <sys/types.h>
 # include <netinet/in.h>
 
-# include "teredo.h"
+# include <libteredo/teredo.h>
 # include "teredo-udp.h"
 
 /*

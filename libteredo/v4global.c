@@ -23,11 +23,15 @@
 # include <config.h>
 #endif
 
-#include "v4global.h"
-
-#include <inttypes.h>
+#if HAVE_STDINT_H
+# include <stdint.h>
+#elif HAVE_INTTYPES_H
+# include <inttypes.h>
+#endif
 #include <sys/types.h>
 #include <netinet/in.h> // ntohl()
+
+#include <libteredo/v4global.h>
 
 /*
  * Checks that ip is a global unicast IPv4 address

@@ -1,6 +1,6 @@
 /*
  * v4global.h - Declarations for v4global.cpp
- * $Id: v4global.h,v 1.1 2004/07/22 17:38:29 rdenisc Exp $
+ * $Id$
  */
 
 /***********************************************************************
@@ -21,8 +21,6 @@
 
 #ifndef MIREDO_V4GLOBAL_H
 # define MIREDO_V4GLOBAL_H
-
-# include <inttypes.h>
 
 #ifdef __cplusplus
 extern "C"

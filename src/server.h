@@ -1,6 +1,6 @@
 /*
  * server.h - Linux Teredo server implementation
- * $Id: server.h,v 1.3 2004/07/31 19:58:44 rdenisc Exp $
+ * $Id$
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -29,7 +29,6 @@
 #  error C++ only header
 # endif
 
-# include <inttypes.h>
 # include <libteredo/server.h>
 
 class IPv6Tunnel;

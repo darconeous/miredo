@@ -27,7 +27,11 @@
 #endif
 
 #include <string.h>
-#include <inttypes.h>
+#if HAVE_STDINT_H
+# include <stdint.h>
+#elif HAVE_INTTYPES_H
+# include <inttypes.h>
+#endif
 
 #include <sys/types.h>
 #include <netinet/in.h>
@@ -35,8 +39,8 @@
 #include <netinet/icmp6.h> // router solicication
 #include <syslog.h>
 
-#include "teredo.h"
-#include <v4global.h> // is_ipv4_global_unicast()
+#include <libteredo/teredo.h>
+#include <libteredo/v4global.h> // is_ipv4_global_unicast()
 #include "teredo-udp.h"
 
 #include "packets.h"

@@ -28,7 +28,11 @@
 
 #include <string.h>
 #include <time.h> // TODO: use gettimeofday
-#include <inttypes.h>
+#if HAVE_STDINT_H
+# include <stdint.h>
+#elif HAVE_INTTYPES_H
+# include <inttypes.h>
+#endif
 
 #include <sys/types.h>
 #include <sys/time.h>
@@ -36,13 +40,13 @@
 #include <netinet/ip6.h> // struct ip6_hdr
 #include <syslog.h>
 
-#include "teredo.h"
-#include <v4global.h> // is_ipv4_global_unicast()
+#include <libteredo/teredo.h>
+#include <libteredo/v4global.h> // is_ipv4_global_unicast()
 #include "teredo-udp.h"
 
 #include "packets.h"
 #include "security.h"
-#include "relay.h"
+#include <libteredo/relay.h>
 
 #define TEREDO_TIMEOUT 30 // seconds
 

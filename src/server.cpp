@@ -1,6 +1,6 @@
 /*
  * server.cpp - Linux Teredo server implementation
- * $Id: server.cpp,v 1.8 2004/07/31 19:58:44 rdenisc Exp $
+ * $Id$
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -26,6 +26,7 @@
 # include <config.h>
 #endif
 
+#include <stddef.h>
 #include <libtun6/ipv6-tunnel.h>
 
 #include "server.h"

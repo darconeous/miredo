@@ -29,7 +29,11 @@
 
 #include <string.h> // memset(), strsignal()
 #include <stdlib.h> // daemon() on FreeBSD
-#include <inttypes.h>
+#if HAVE_STDINT_H
+# include <stdint.h>
+#elif HAVE_INTTYPES_H
+# include <inttypes.h>
+#endif
 #include <signal.h> // sigaction()
 
 #include <sys/types.h>

@@ -1,6 +1,6 @@
 /*
  * server.cpp - Handling of a single Teredo datagram (server-side).
- * $Id: server.cpp,v 1.8 2004/08/27 16:58:57 rdenisc Exp $
+ * $Id$
  */
 
 /***********************************************************************
@@ -25,7 +25,11 @@
 
 #include <stddef.h>
 #include <string.h> /* memcpy(), memset() */
-#include <inttypes.h>
+#if HAVE_STDINT_H
+# include <stdint.h>
+#elif HAVE_INTTYPES_H
+# include <inttypes.h>
+#endif
 
 #include <sys/types.h>
 #include <netinet/in.h> // struct in6_addr
@@ -35,8 +39,8 @@
 #include <arpa/inet.h> // inet_ntoa()
 
 #include "teredo-udp.h"
-#include "server.h"
-#include <v4global.h>
+#include <libteredo/server.h>
+#include <libteredo/v4global.h>
 
 static uint16_t
 sum16 (const uint8_t *data, size_t length, uint32_t sum32 = 0)

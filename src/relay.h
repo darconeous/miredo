@@ -1,6 +1,6 @@
 /*
  * relay.h - Linux Teredo relay implementation
- * $Id: relay.h,v 1.12 2004/08/26 09:37:54 rdenisc Exp $
+ * $Id$
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -29,7 +29,6 @@
 #  error C++ only header
 # endif
 
-# include <inttypes.h>
 # include <libteredo/relay.h>
 
 class IPv6Tunnel;

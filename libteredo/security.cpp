@@ -23,12 +23,12 @@
 # include <config.h>
 #endif
 
-#include "security.h"
-
 #include <sys/types.h>
 #include <fcntl.h> // open()
 #include <unistd.h> // read(), close()
 #include <syslog.h>
+
+#include "security.h"
 
 /*
  * Generates a random nonce value (8 bytes).

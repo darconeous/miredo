@@ -25,7 +25,6 @@
 #ifndef LIBTEREDO_RELAY_H
 # define LIBTEREDO_RELAY_H
 
-# include <inttypes.h>
 # include <sys/time.h> // struct timeval
 
 # include <libteredo/teredo.h>
