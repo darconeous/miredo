@@ -1,3 +1,8 @@
+2004-25-08  Remi Denis-Courmont
+
+	* libterdo/relay.cpp, configure.ac, src/Makefile.am:
+	- use OpenSSL to sets the authentication nonce.
+
 2004-24-08  Remi Denis-Courmont
 
 	* src/main.c:

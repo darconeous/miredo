@@ -42,7 +42,9 @@ AC_PROG_CXX
 AC_PROG_RANLIB
 AM_INIT_AUTOMAKE([dist-bzip2])
 
+
 # Checks for libraries.
+
 
 # Checks for header files.
 AC_CHECK_HEADERS([sys/socket.h linux/if_tun.h])
@@ -54,9 +56,11 @@ AC_CHECK_HEADERS([netinet6/in6_var.h], [], [],
 #include <netinet/in.h>
 ])
 
+
 # Checks for typedefs, structures, and compiler characteristics.
 dnl AC_C_BIGENDIAN
 RDC_STRUCT_SOCKADDR_LEN
+
 
 # Checks for library functions.
 RDC_FUNC_SOCKET
@@ -64,6 +68,13 @@ AC_SEARCH_LIBS(inet_ntoa, [nsl])
 dnl AC_SEARCH_LIBS(inet_aton, [resolv])
 RDC_REPLACE_FUNC_GETOPT_LONG
 AC_CHECK_FUNCS([clearenv])
+
+AC_CHECK_LIB([ssl], RAND_bytes, [openssl=true], [openssl=false])
+AH_TEMPLATE(USE_OPENSSL,
+            [Define to 1 if you wan to use the OpenSSL library.])
+AS_IF([test "${openssl}" = true], AC_DEFINE(USE_OPENSSL)
+	OPENSSL_LIBS="-lssl")
+AC_SUBST(OPENSSL_LIBS)
 
 
 # Checks for optionnal features
@@ -77,6 +88,7 @@ AH_TEMPLATE(MIREDO_DEFAULT_USERNAME,
 AS_IF([test "${enable_miredo_user}" != "no"],
 	AC_DEFINE_UNQUOTED(MIREDO_DEFAULT_USERNAME, "$enable_miredo_user"))
 
+
 # Defines for <config.h>
 AH_BOTTOM([
 #define gettext( str )		(str)
@@ -85,8 +97,14 @@ AH_BOTTOM([
 #define N_( str )		gettext_noop (str)
 ])
 
+
 # END
 AS_MESSAGE(writing results...)
 AC_CONFIG_FILES([Makefile m4/Makefile libtun6/Makefile libteredo/Makefile src/Makefile])
 AC_OUTPUT
 
+AS_IF([test "${openssl}" = false],
+echo "WARNING: OpenSSL v0.9.5 or more recent is highly recommended to use"
+echo "         Miredo as a Teredo client. However, It could not be found on"
+echo "         your system."
+)

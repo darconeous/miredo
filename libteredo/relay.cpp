@@ -1,6 +1,6 @@
 /*
  * relay.cpp - Teredo relay peers list definition
- * $Id: relay.cpp,v 1.17 2004/08/24 19:58:23 rdenisc Exp $
+ * $Id: relay.cpp,v 1.18 2004/08/26 08:02:21 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -35,6 +35,11 @@
 #include <netinet/ip6.h> // struct ip6_hdr
 #include <netinet/icmp6.h> // router solicication
 #include <syslog.h>
+
+#ifdef USE_OPENSSL
+# include <openssl/rand.h>
+# include <openssl/err.h>
+#endif
 
 #include "teredo.h"
 #include <v4global.h> // is_ipv4_global_unicast()
@@ -80,7 +85,8 @@ struct __TeredoRelay_peer
 
 TeredoRelay::TeredoRelay (uint32_t pref, uint16_t port, bool cone)
 	: is_cone (cone), prefix (pref), server_ip (0),
-	server_interaction (0), head (NULL)
+	server_interaction (0), server_names (NULL), server_name (NULL),
+	head (NULL)
 {
 	sock.ListenPort (port);
 }
@@ -88,7 +94,8 @@ TeredoRelay::TeredoRelay (uint32_t pref, uint16_t port, bool cone)
 
 TeredoRelay::TeredoRelay (const char * const* servers, uint16_t port)
 	: is_cone (true), prefix (PREFIX_UNSET), server_ip (0),
-	server_interaction (0), head (NULL)
+	server_interaction (0), server_names (servers), server_name (NULL),
+	head (NULL)
 {
 	sock.ListenPort (port);
 }
@@ -221,12 +228,15 @@ int TeredoRelay::SendBubble (const struct in6_addr *d, bool indirect) const
  * enabled. If secondary is true, the packet will be sent to the server's
  * secondary IPv4 adress instead of the primary one.
  *
+ * FIXME: lacks a way to return the nonce value used.
+ *
  * Returns 0 on success, -1 on error.
  */
 static const struct in6_addr in6addr_allrouters =
         { { { 0xff, 0x02, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x2 } } };
 
-int TeredoRelay::SendRS (bool cone, bool secondary) const
+int TeredoRelay::SendRS (bool cone, bool secondary,
+				unsigned char *nonce) const
 {
 	uint8_t packet[13 + sizeof (struct ip6_hdr)
 			+ sizeof (struct nd_router_solicit)
@@ -242,8 +252,18 @@ int TeredoRelay::SendRS (bool cone, bool secondary) const
 		auth->hdr.hdr.zero = 0;
 		auth->hdr.hdr.code = teredo_auth_hdr;
 		auth->hdr.id_len = auth->hdr.au_len = 0;
-		/* FIXME: put random entropy there */
-		memset (&auth->nonce, 0, 8);
+#ifdef USE_OPENSSL
+		if (RAND_pseudo_bytes (nonce, 8))
+		{
+			char buf[120];
+
+			syslog (LOG_WARNING, _("Possibly predictable RS: %s"),
+				ERR_error_string (ERR_get_error (), buf));
+		}
+#else
+		memset (nonce, 0, 8);
+#endif
+		memcpy (&auth->nonce, nonce, 8);
 		auth->confirmation = 0;
 
 		ptr += 13;
@@ -293,6 +313,7 @@ int TeredoRelay::SendRS (bool cone, bool secondary) const
 				? htonl (ntohl (server_ip) + 1) : server_ip,
 				htons (IPPORT_TEREDO));
 }
+
 
 /*
  * Returs true if the packet whose header is passed as a parameter looks
