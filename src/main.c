@@ -671,6 +671,8 @@ main (int argc, char *argv[])
 	 * => we'll -p once there is support for configuration file
 	 * and --port got obsoleted */
 	if (pidfile != NULL)
+	{
+		seteuid (0);
 		/*
 		 * I puporsedly don't check create_pidfile for error.
 		 * If the sysadmin fails to setup a directory properly for the
@@ -678,6 +680,8 @@ main (int argc, char *argv[])
 		 * fail than deny the service completely.
 		 */
 		create_pidfile (pidfile);
+		seteuid (unpriv_uid);
+	}
 
 	/*
 	 * Run
