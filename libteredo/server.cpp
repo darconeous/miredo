@@ -98,7 +98,7 @@ icmp6_checksum (const struct ip6_hdr *ip6, const struct icmp6_hdr *icmp6)
  */
 static int
 teredo_send_ra (const TeredoServerUDP& sock, const TeredoPacket& p,
-		const struct in6_addr *dest_ip6,
+		const struct in6_addr *dest_ip6, bool use_secondary_ip,
 		uint32_t prefix, uint32_t server_ip)
 {
 	uint8_t packet[13 + 8 + sizeof (struct ip6_hdr)
@@ -203,7 +203,6 @@ teredo_send_ra (const TeredoServerUDP& sock, const TeredoPacket& p,
 		ptr += sizeof (ra);
 	}
 
-	bool use_secondary_ip = sock.WasSecondaryIP ();
 	if (IN6_IS_TEREDO_ADDR_CONE (dest_ip6))
 		use_secondary_ip = !use_secondary_ip;
 
@@ -297,8 +296,9 @@ int
 TeredoServer::ProcessTunnelPacket (const fd_set *readset)
 {
 	TeredoPacket packet;
+	bool secondary;
 
-	if (sock.ReceivePacket (readset, packet))
+	if (sock.ReceivePacket (readset, packet, &secondary))
 		return -1;
 
 	// Teredo server case number 3
@@ -337,7 +337,7 @@ TeredoServer::ProcessTunnelPacket (const fd_set *readset)
 	 && (ip6len > sizeof (nd_router_solicit))
 	 && (((struct icmp6_hdr *)upper)->icmp6_type == ND_ROUTER_SOLICIT))
 		// sends a Router Advertisement
-		return teredo_send_ra (sock, packet, &ip6.ip6_src,
+		return teredo_send_ra (sock, packet, &ip6.ip6_src, secondary,
 					prefix, GetServerIP ());
 
 	// Teredo server case number 5 (in the negative)

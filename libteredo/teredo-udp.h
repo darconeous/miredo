@@ -145,15 +145,14 @@ class TeredoRelayUDP
 };
 
 
+# ifdef MIREDO_TEREDO_SERVER
 class TeredoServerUDP
 {
 	private:
 		int fd_primary, fd_secondary;
-		bool was_secondary;
 
 	public:
-		TeredoServerUDP (void) : fd_primary (-1), fd_secondary (-1),
-				was_secondary (false)
+		TeredoServerUDP (void) : fd_primary (-1), fd_secondary (-1)
 		{
 		}
 
@@ -181,10 +180,10 @@ class TeredoServerUDP
 		 *
 		 * Returns 0 on success, -1 if no packet were to be received
 		 * or they were not valid Terdo-encapsulated-packets.
-		 * FIXME: NOT thread-safe
 		 */
 		int ReceivePacket (const fd_set *readset,
-					TeredoPacket& packet);
+					TeredoPacket& packet,
+					bool *secondary);
 
 		/*
 		 * Sends an UDP packet at <packet>, of length <len>
@@ -199,21 +198,11 @@ class TeredoServerUDP
 				uint32_t dest_ip, uint16_t port,
 				bool use_secondary_ip = false) const;
 
-		/*
-		 * Returns true if the packet was received on the
-		 * secondary server IP address.
-		 * FIXME: not thread-safe by design
-		 */
-		bool WasSecondaryIP (void) const
-		{
-			return was_secondary;
-		}
-
 		int operator! (void) const
 		{
 			return fd_primary == -1 || fd_secondary == -1;
 		}
 };
-
+# endif /* ifdef MIREDO_TEREDO_SERVER */
 #endif /* ifndef MIREDO_TEREDO_UDP_H */
 

@@ -243,7 +243,7 @@ TeredoRelayUDP::SendPacket (const void *packet, size_t len,
 
 
 /*** TeredoServerUDP implementation ***/
-
+#ifdef MIREDO_TEREDO_SERVER
 TeredoServerUDP::~TeredoServerUDP ()
 {
 	if (fd_primary != -1)
@@ -280,7 +280,11 @@ int TeredoServerUDP::ListenIP (uint32_t ip1, uint32_t ip2)
 		close (fd_secondary);
 	fd_secondary = OpenTeredoSocket (ip2, htons (IPPORT_TEREDO));
 	if (fd_secondary == -1)
+	{
+		close (fd_primary);
+		fd_primary = -1;
 		return -1;
+	}
 
 	return 0;
 }
@@ -306,9 +310,9 @@ int TeredoServerUDP::RegisterReadSet (fd_set *readset) const
 }
 
 
-// FIXME: re-entrancy (regarding was_secondary)
 int
-TeredoServerUDP::ReceivePacket (const fd_set *set, TeredoPacket& packet)
+TeredoServerUDP::ReceivePacket (const fd_set *set, TeredoPacket& packet,
+				bool *was_secondary)
 {
 	int fd = -1;
 
@@ -316,13 +320,13 @@ TeredoServerUDP::ReceivePacket (const fd_set *set, TeredoPacket& packet)
 	if ((fd_primary != -1) && FD_ISSET (fd_primary, set))
 	{
 		fd = fd_primary;
-		was_secondary = false;
+		*was_secondary = false;
 	}
 	else
 	if ((fd_secondary != -1) && FD_ISSET (fd_secondary, set))
 	{
 		fd = fd_secondary;
-		was_secondary = true;
+		*was_secondary = true;
 	}
 	
 	return (fd != -1) ? packet.Receive (fd) : -1;
@@ -340,4 +344,4 @@ TeredoServerUDP::SendPacket (const void *packet, size_t len,
 		? SendUDPPacket (fd, packet, len, dest_ip, dest_port)
 		: -1;
 }
-
+#endif /* MIREDO_TEREDO_SERVER */
