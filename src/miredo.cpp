@@ -233,7 +233,7 @@ getipv6byname (const char *name, struct in6_addr *ipv6)
 
 	if (check)
 	{
-		syslog (LOG_ERR, _("Invalid hostname '%s': %s"),
+		syslog (LOG_ERR, _("Invalid hostname `%s': %s"),
 			name, gai_strerror (check));
 		return -1;
 	}
@@ -473,7 +473,7 @@ miredo_run (uint16_t bind_port, const char *bind_ip, const char *server_name,
 	{
 		syslog (LOG_ALERT,
 			_("Teredo service port failure: "
-			"cannot open UDP port %u\n"),
+			"cannot open UDP port %u"),
 			(unsigned int)ntohs (bind_port));
 		syslog (LOG_NOTICE, _("Make sure another instance "
 			"of the program is not already running."));

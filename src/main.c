@@ -304,7 +304,7 @@ init_security (const char *username, const char *rootdir, int nodetach)
 				(unsigned)pw->pw_gid, strerror (errno));
 		fputs (_("Error: This program tried to change its system\n"
 			"group(s) security context but it failed.\n"
-			"This is usually an indication that you are trying\n"
+			"That is usually an indication that you are trying\n"
 			"to start the program as an user with insufficient\n"
 			"system privileges. This program should normally be\n"
 			"started by root.\n"), stderr);
@@ -359,10 +359,11 @@ init_security (const char *username, const char *rootdir, int nodetach)
 	/* Unpriviledged user (step 2) */
 	if (seteuid (unpriv_uid))
 	{
-		perror (_("SetUID to unpriviledged user"));
+		fprintf (stderr, _("SetUID to user ID %u: %s\n"),
+				(unsigned)unpriv_uid, strerror (errno));
 		fputs (_("Error: This program tried to change its system\n"
 			"user security context but it failed.\n"
-			"This is usually an indication that you are trying\n"
+			"That is usually an indication that you are trying\n"
 			"to start the program as an unprivileged user.\n"
 			"This program should normally be started only by\n"
 			"root, the system administrative user.\n"), stderr);
@@ -506,7 +507,7 @@ main (int argc, char *argv[])
 
 			default:
 				fprintf (stderr, _(
-"Returned unknown option -%c :\n"
+"Read unknown option -%c :\n"
 "That is probably a bug. Please report it.\n"), c);
 				return 1;
 		}
