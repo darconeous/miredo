@@ -1,7 +1,7 @@
 /*
  * miredo.cpp - Unix Teredo server & relay implementation
  *              core functions
- * $Id: miredo.cpp,v 1.17 2004/07/10 16:31:56 rdenisc Exp $
+ * $Id: miredo.cpp,v 1.18 2004/07/10 17:52:07 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -61,14 +61,24 @@
 static int should_exit;
 static int should_reload;
 
+/* 
+ * The value of rootpid is defined to the PID of the permanent parent process
+ * that reads the configuration before any signal handler is set.
+ */
+static pid_t rootpid;
+
+
 static void
 exit_handler (int signum)
 {
 	if (should_exit)
-		return;
+		return; // avoid infinite signal loop
 
-	syslog (LOG_NOTICE, _("Exiting on signal %s."),
-		strsignal (signum));
+	if (rootpid == getpid ())
+		/* Signal handler run from the parent that loads configuration
+		 * and respawns miredo */
+		kill (0, signum);
+
 	should_exit = signum;
 }
 
@@ -76,36 +86,15 @@ exit_handler (int signum)
 static void
 reload_handler (int signum)
 {
-	if (should_exit || should_reload)
-		return;
-		
-	syslog (LOG_NOTICE, _("Reloading configuration on signal %s."),
-		strsignal (signum));
+	if (should_reload)
+		return; // avoid infinite signal loop
+
+	if (rootpid == getpid ())
+		/* Signal handler run from the parent that loads configuration
+		 * and respawns miredo */
+		kill (0, signum);
+
 	should_reload = signum;
-}
-
-
-static void
-child_handler (int signum)
-{
-	int val;
-	pid_t pid = wait (&val); // can't fail
-
-	if (WIFEXITED (val))
-	{
-		val = WEXITSTATUS (val);
-		if (val)
-			syslog (LOG_DEBUG,
-				_("Child %d exited with error code %d"),
-				(int)pid, val);
-	}
-	else
-	if (WIFSIGNALED (val))
-	{
-		val = WTERMSIG (val);
-		syslog (LOG_DEBUG, _("Child %d killed by signal %d (%s)"),
-			(int)pid, val, strsignal (val));
-	}
 }
 
 
@@ -183,6 +172,10 @@ teredo_server_relay (void)
 	}
 
 	/* Termination */
+	if (exitcode)
+		return exitcode;
+	if (should_reload)
+		return -2;
 	return 0;
 }
 
@@ -338,36 +331,6 @@ miredo_run (uint16_t client_port, const char *server_name,
 
 	conf.tunnel = (ipv6_tunnel = &tunnel);
 
-	// Defines signal handlers
-	should_exit = 0;
-	should_reload = 0;
-	{
-		struct sigaction sa;
-
-		memset (&sa, 0, sizeof (sa));
-		sigemptyset (&sa.sa_mask); // -- can that really fail ?!?
-		sa.sa_flags = SA_ONESHOT;
-
-		sa.sa_handler = exit_handler;
-		sigaction (SIGINT, &sa, NULL);
-		sigaction (SIGQUIT, &sa, NULL);
-		sigaction (SIGTERM, &sa, NULL);
-
-		sa.sa_handler = reload_handler;
-		sigaction (SIGHUP, &sa, NULL);
-
-		sa.sa_handler = SIG_IGN;
-		// We check for EPIPE in errno instead:
-		sigaction (SIGPIPE, &sa, NULL);
-		// might use these for other purpose in later versions:
-		sigaction (SIGUSR1, &sa, NULL);
-		sigaction (SIGUSR2, &sa, NULL);
-
-		sa.sa_handler = child_handler;
-		sa.sa_flags = 0;
-		sigaction (SIGCHLD, &sa, NULL);
-	}
-
 	// Sets up server sockets
 	if (server_name != NULL)
 	{
@@ -431,11 +394,43 @@ abort:
 	return retval;
 }
 
+
+// Defines signal handlers
+static void
+init_signals (void)
+{
+	struct sigaction sa;
+
+	rootpid = getpid ();
+	should_exit = 0;
+	should_reload = 0;
+
+	memset (&sa, 0, sizeof (sa));
+	sigemptyset (&sa.sa_mask); // -- can that really fail ?!?
+
+	sa.sa_handler = exit_handler;
+	sigaction (SIGINT, &sa, NULL);
+	sigaction (SIGQUIT, &sa, NULL);
+	sigaction (SIGTERM, &sa, NULL);
+
+	sa.sa_handler = SIG_IGN;
+	// We check for EPIPE in errno instead:
+	sigaction (SIGPIPE, &sa, NULL);
+	// might use these for other purpose in later versions:
+	sigaction (SIGUSR1, &sa, NULL);
+	sigaction (SIGUSR2, &sa, NULL);
+	
+	sa.sa_handler = reload_handler;
+	sigaction (SIGHUP, &sa, NULL);
+}
+
+
 /*
- * Configuration stuff
+ * Configuration and respawning stuff
  * TODO: really implement reloading
  */
 static const char *const daemon_ident = "miredo";
+
 
 extern "C" int
 miredo (uint16_t client_port, const char *server_name,
@@ -444,10 +439,20 @@ miredo (uint16_t client_port, const char *server_name,
 	int facility = LOG_DAEMON;
 	openlog (daemon_ident, LOG_PID, facility);
 
-	int retval = -1;
+	int retval;
+
+	init_signals ();
 
 	do
 	{
+		if (should_reload)
+		{
+			syslog (LOG_NOTICE, _(
+				"Reloading configuration on signal %d (%s)"),
+				should_reload, strsignal (should_reload));
+			should_reload = 0;
+		}
+
 		/* TODO: really implement configuration parsing */
 
 		// Apply syslog facility change if needed
@@ -457,7 +462,7 @@ miredo (uint16_t client_port, const char *server_name,
 		{
 			closelog ();
 			facility = newfacility;
-			openlog (daemon_ident, LOG_PID /* DEBUG */ | LOG_PERROR, facility);
+			openlog (daemon_ident, LOG_PID, facility);
 		}
 
 		// Starts the main miredo process
@@ -470,20 +475,44 @@ miredo (uint16_t client_port, const char *server_name,
 				break;
 
 			case 0:
-				exit (-miredo_run (client_port, server_name,
-					prefix_name, ifname));
+			{
+				retval = miredo_run (client_port, server_name,
+							prefix_name, ifname);
+				closelog ();
+				exit (-retval);
+			}
 		}
 
 		// Waits until the miredo process terminates
-		while (waitpid (pid, &retval, 0) == -1);
-		
+		while (waitpid (pid, &retval, 0) == -1)
+		{
+			if (should_exit)
+			{
+				syslog (LOG_NOTICE,
+					_("Exiting on signal %d (%s)"),
+					should_exit, strsignal (should_exit));
+				closelog ();
+				return 0;
+			}
+		}
+
 		if (WIFEXITED (retval))
 			retval = -WEXITSTATUS (retval);
+		else
+		{
+			if (WIFSIGNALED (retval))
+			{
+				retval = WTERMSIG (retval);
+				syslog (LOG_INFO, _(
+					"Child %d killed by signal %d (%s)"),
+					(int)pid, retval, strsignal (retval));
+			}
+			retval = -2;
+		}
 	}
 	while (retval == -2);
 
 	closelog ();
-
 	return retval;
 }
 
