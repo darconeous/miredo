@@ -103,16 +103,10 @@ static int signalfd[2];
 static void
 exit_handler (int signum)
 {
-	if (should_exit)
-		return; // avoid infinite signal loop
+	if (should_exit || signalfd[1] == -1)
+		return;
 
-	if (rootpid == getpid ())
-		/* Signal handler run from the parent that loads configuration
-		 * and respawns miredo */
-		kill (0, signum);
-	else
-		write(signalfd[1], &signum, sizeof (signum));
-
+	write (signalfd[1], &signum, sizeof (signum));
 	should_exit = signum;
 }
 
@@ -120,14 +114,10 @@ exit_handler (int signum)
 static void
 reload_handler (int signum)
 {
-	if (should_reload)
-		return; // avoid infinite signal loop
+	if (should_reload || signalfd[1] == -1)
+		return;
 
-	if (rootpid == getpid ())
-		/* Signal handler run from the parent that loads configuration
-		 * and respawns miredo */
-		kill (0, signum);
-
+	write (signalfd[1], &signum, sizeof (signum));
 	should_reload = signum;
 }
 
@@ -135,12 +125,12 @@ reload_handler (int signum)
 /*
  * Main server function, with UDP datagrams receive loop.
  */
-static int
+static void
 teredo_server_relay (IPv6Tunnel& tunnel, TeredoRelay *relay = NULL,
 			TeredoServer *server = NULL)
 {
 	/* Main loop */
-	while (!should_exit && !should_reload)
+	while (1)
 	{
 		/* Registers file descriptors */
 		fd_set readset;
@@ -181,9 +171,9 @@ teredo_server_relay (IPv6Tunnel& tunnel, TeredoRelay *relay = NULL,
 		/* Wait until one of them is ready for read */
 		maxfd = select (maxfd + 1, &readset, NULL, NULL, &tv);
 		if ((maxfd < 0)
-		 || ((maxfd >= 1) && FD_ISSET(signalfd[0], &readset)))
+		 || ((maxfd >= 1) && FD_ISSET (signalfd[0], &readset)))
 			// interrupted by signal
-			continue;
+			break;
 
 		/* Handle incoming data */
 #ifdef MIREDO_TEREDO_SERVER
@@ -212,11 +202,6 @@ teredo_server_relay (IPv6Tunnel& tunnel, TeredoRelay *relay = NULL,
 		}
 #endif
 	}
-
-	/* Termination */
-	if (should_reload)
-		return -2;
-	return 0;
 }
 
 
@@ -415,7 +400,8 @@ miredo_run (int mode, const char *ifname,
 	}
 #endif /* ifdef MIREDO_TEREDO_RELAY */
 
-	retval = teredo_server_relay (tunnel, relay, server);
+	retval = 0;
+	teredo_server_relay (tunnel, relay, server);
 
 abort:
 	if (fd != -1)
@@ -441,8 +427,8 @@ abort:
 
 
 // Defines signal handlers
-static int
-init_signals (void)
+static bool
+InitSignals (void)
 {
 	struct sigaction sa;
 
@@ -450,7 +436,7 @@ init_signals (void)
 	if (pipe (signalfd))
 	{
 		syslog (LOG_ALERT, _("pipe failed: %m"));
-		return -1;
+		return false;
 	}
 	should_exit = 0;
 	should_reload = 0;
@@ -473,7 +459,29 @@ init_signals (void)
 	sa.sa_handler = reload_handler;
 	sigaction (SIGHUP, &sa, NULL);
 
-	return 0;
+	return true;
+}
+
+
+static void
+asyncsafe_close (int& fd)
+{
+	int buf_fd = fd;
+
+	// Prevents the signal handler from trying to write to a closed pipe
+	fd = -1;
+	(void)close (buf_fd);
+}
+
+
+static void
+DeinitSignals (void)
+{
+	asyncsafe_close (signalfd[1]);
+
+	// Keeps read fd open until now to prevent SIGPIPE if the
+	// child process crashes and we receive a signal.
+	(void)close (signalfd[0]);
 }
 
 
@@ -485,14 +493,15 @@ static const char *const ident = "miredo";
 extern "C" int
 miredo (const char *confpath)
 {
-	int facility = LOG_DAEMON;
+	int facility = LOG_DAEMON, retval;
 	openlog (ident, LOG_PID, facility);
 
-	int retval = init_signals () ?: 2;
-
-	while (retval == 2)
+	do
 	{
 		retval = 1;
+
+		if (!InitSignals ())
+			continue;
 
 		MiredoConf cnf;
 		if (!cnf.ReadFile (confpath))
@@ -598,6 +607,7 @@ miredo (const char *confpath)
 				continue;
 
 			case 0:
+				asyncsafe_close (signalfd[1]);
 				retval = miredo_run (mode, ifname != NULL
 							? ifname : ident,
 							bind_port, bind_ip,
@@ -614,13 +624,13 @@ miredo (const char *confpath)
 
 		// Waits until the miredo process terminates
 		while (waitpid (pid, &retval, 0) == -1);
-		
+
+		DeinitSignals ();
+
 		if (should_exit)
 		{
 			syslog (LOG_NOTICE, _("Exiting on signal %d (%s)"),
 				should_exit, strsignal (should_exit));
-
-			should_exit = 0;
 			retval = 0;
 		}
 		else
@@ -629,8 +639,6 @@ miredo (const char *confpath)
 			syslog (LOG_NOTICE, _(
 				"Reloading configuration on signal %d (%s)"),
 				should_reload, strsignal (should_reload));
-
-			should_reload = 0;
 			retval = 2;
 		}
 		else
@@ -651,6 +659,7 @@ miredo (const char *confpath)
 			retval = 2;
 		}
 	}
+	while (retval == 2);
 
 	closelog ();
 	return -retval;

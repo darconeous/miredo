@@ -144,7 +144,7 @@ teredo_send_ra (const TeredoServerUDP& sock, const TeredoPacket& p,
 			struct nd_router_advert		ra;
 			struct nd_opt_prefix_info	pi;
 		} ra;
-	
+
 		// IPv6 header
 		ra.ip6.ip6_flow = htonl (0x60000000);
 		ra.ip6.ip6_plen = htons (sizeof (struct nd_router_advert)
