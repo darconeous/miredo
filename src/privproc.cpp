@@ -80,8 +80,9 @@ miredo_privileged_process (IPv6Tunnel& tunnel, uid_t unpriv)
 
 		if (memcmp (&oldter, &in6addr_any, 16))
 		{
-			tunnel.DelAddress (p_oldloc, 64);
+			tunnel.DelRoute (&in6addr_any, 0);
 			tunnel.DelAddress (&oldter, 32);
+			tunnel.DelAddress (p_oldloc, 64);
 		}
 		else
 			tunnel.BringUp ();
@@ -90,7 +91,7 @@ miredo_privileged_process (IPv6Tunnel& tunnel, uid_t unpriv)
 		{
 			tunnel.AddAddress (p_newloc, 64);
 			tunnel.AddAddress (&newter, 32);
-			// TODO: create a default route for client?
+			tunnel.AddRoute (&in6addr_any, 0);
 		}
 		else
 			tunnel.BringDown ();
