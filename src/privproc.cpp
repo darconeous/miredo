@@ -66,7 +66,7 @@ miredo_privileged_process (IPv6Tunnel& tunnel, uid_t unpriv)
 	}
 
 	struct in6_addr oldter;
-	const struct in6_addr *p_oldloc;
+	const struct in6_addr *p_oldloc = NULL;
 
 	memcpy (&oldter, &in6addr_any, 16);
 
