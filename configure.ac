@@ -118,6 +118,16 @@ AH_TEMPLATE(MIREDO_DEFAULT_USERNAME,
 AS_IF([test "x${enable_miredo_user}" != "x" && test "${enable_miredo_user}" != "no"],
 	AC_DEFINE_UNQUOTED(MIREDO_DEFAULT_USERNAME, "$enable_miredo_user"))
 
+AC_ARG_ENABLE([pidfile],
+	      AS_HELP_STRING([--enable-pidfile],
+			     [path to the pidfile (enabled by default)]))
+AS_IF([test "x${enable_pidfile}" = "x" || test "${enable_pidfile}" = "yes"],
+	[enable_pidfile="/var/run/miredo/miredo.pid"])
+AH_TEMPLATE(MIREDO_DEFAULT_PIDFILE,
+            [Define to the default pidfile path created by miredo.])
+AS_IF([test "${enable_pidfile}" != "no"],
+	AC_DEFINE_UNQUOTED(MIREDO_DEFAULT_PIDFILE, "$enable_pidfile"))
+
 
 # Defines for <config.h>
 AH_BOTTOM([

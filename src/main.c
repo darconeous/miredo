@@ -450,12 +450,16 @@ init_security (const char *username, const char *rootdir, int nodetach)
 }
 
 
+#ifndef MIREDO_DEFAULT_PIDFILE
+# define MIREDO_DEFAULT_PIDFILE NULL
+#endif
+
 int
 main (int argc, char *argv[])
 {
 	const char *server = NULL, *prefix = NULL, *ifname = NULL,
 			*username = NULL, *rootdir = NULL, *client_ip = NULL,
-			*pidfile = "/var/run/miredo/miredo.pid";
+			*pidfile = MIREDO_DEFAULT_PIDFILE;
 	uint16_t client_port = 0;
 	struct
 	{
@@ -639,8 +643,16 @@ main (int argc, char *argv[])
 	if (init_security (username, rootdir, flags.foreground))
 		return 1;
 
-	/* TODO: ability to change the file path */
+	/* TODO: ability to change the file path
+	 * => we'll -p once there is support for configuration file
+	 * and --port got obsoleted */
 	if (pidfile != NULL)
+		/*
+		 * I puporsedly don't check create_pidfile for error.
+		 * If the sysadmin fails to setup a directory properly for the
+		 * pidfile, it's better to make its initscript's stop function
+		 * than deny the service completely.
+		 */
 		create_pidfile (pidfile);
 
 	/*
