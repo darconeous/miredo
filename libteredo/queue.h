@@ -39,10 +39,10 @@ class PacketsQueue
 
 		pthread_mutex_t mutex;
 
-		virtual int SendPacket (const void *p, size_t len);
+		virtual int SendPacket (const void *p, size_t len) = 0;
 
 	protected:
-		PacketsQueue (size_t totalbytes = 0);
+		PacketsQueue (size_t totalbytes);
 
 	public:
 		/* 
