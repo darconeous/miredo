@@ -136,14 +136,6 @@ packet loss tolerant enough.
 I don't know any client or server implementation that supports it
 either, so it is not a real problem at the moment.
 
-Miredo does not set up a default IPv6 route through its tunneling
-interface automatically yet. You have to do set it up by hand.
-On Linux, it can be done this way :
-
-# ip -6 ro add default dev teredo via 3ffe:831f::1
-
-(if 3ffe:831f::/32 is you Teredo prefix, which is the default).
-
 .RB "The Internet draft specification for " "Teredo" " has not yet"
 been validated. As such it is subject to change and miredo might not
 work correctly with other implementations.
@@ -152,13 +144,17 @@ work correctly with other implementations.
 You have to add a route to the Teredo prefix if you run a Teredo relay.
 This can typically be done this way:
 
-route add -inet6 -net 3ffe:831f:: -prefixlen 32
-fe80::8000:5445:5245:444f%tun0
+route add -inet6 -net 3ffe:831f::
+-prefixlen 32 fe80::8000:5445:5245:444f%tun0
 
 .RI "Where " "tun0" " is the Teredo tunneling interface name,"
 .IR "3ffe:831f::" " is the Teredo IPv6 prefix and "
 .IR "fe80::8000:5445:5245:444f" " is the link-local tunnel"
 interface's address.
+
+.RB "Routing and IPv6 addressing on " "Darwin" ", " "NetBSD" " and "
+.RB "OpenBSD" " is not implemented. Miredo is untested on these"
+platforms.
 
 .SH SECURITY
 .B Miredo

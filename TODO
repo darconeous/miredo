@@ -1,11 +1,12 @@
 Incomplete raw ToDo list:
 ==========================
-$Id: TODO,v 1.13 2004/08/29 19:04:50 rdenisc Exp $
+$Id$
 
 Features:
 ----------
 - some statistics,
 - fixed TODOs in source code,
+- better support for lossy IPv4 connectivity,
 
 Security:
 ----------
@@ -33,7 +34,7 @@ Performance/scalibility:
 Portability:
 -------------
 - big-endianess/byte-alignment compatibility tests,
-- Solaris compilation,
+- Solaris/NetBSD/OpenBSD compilation,
 - FreeBSD tunneling tests,
 - libteredo on Windows (?)
 

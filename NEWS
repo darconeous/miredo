@@ -1,5 +1,5 @@
 RELEASE NOTES for Miredo
-version 0.2.2 (beta version)
+version 0.2.3 (beta version)
 =============================
 $Id$
 
@@ -16,6 +16,22 @@ Thanks for your help.
 informations on this program, see README. For syntax details and
 changes, run 'miredo -h' to get help. For detailled internal changes, see
 ChangeLog.
+
+=============================================================================
+BETA RELEASE 0.2.3 : Minor feature enhancement
+
+# Automatically add a default route through the Teredo tunneling interface
+  when running Miredo as a Teredo client.
+  
+# Fixed a bug that may prevent the client from working correctly.
+
+# Compilation fix for the Darwin kernel (Mac OS X).
+  Miredo needs a separate tunnel device driver to run on Darwin; it can
+  be found there: http://chrisp.de/en/projects/tunnel.html
+
+# Untested support for OpenBSD, NetBSD and Darwin. In any case, routing
+  does not work on Darwin, and the program might not compile on OpenBSD
+  and NetBSD at all (help appreciated).
 
 =============================================================================
 BETA RELEASE 0.2.2 : Minor portability fixes
