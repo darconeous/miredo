@@ -37,16 +37,16 @@ fi
 
 
 LOCK_FILE=/var/lock/subsys/miredo
-#CONF_FILE=/etc/miredo/miredo.xml
+CONF_FILE=/etc/miredo.conf
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
 
-# Check that masqmail.conf exists.
+# Check that miredo.conf exists.
 if [ ! -f $CONF_FILE ]; then
 	gprintf "Service not configured\n"
 	exit 6 # not configured
 fi
 
-# Check that masqmail exists
+# Check that miredo exists
 if [ ! -x /usr/sbin/miredo ]; then
 	gprintf "Service not installed\n"
 	exit 5 # not installed
@@ -56,7 +56,7 @@ RETVAL=0
 
 start() {
 	gprintf "Starting Miredo services: "
-	daemon /usr/sbin/miredo #-bd
+	daemon /usr/sbin/miredo
 	RETVAL=$?
 	echo
 	if [ $RETVAL -eq 0 ]; then
@@ -68,6 +68,7 @@ start() {
 }	
 stop() {
 	gprintf "Shutting down Miredo services: "
+	# FIXME: use PID file
 	killproc /usr/sbin/miredo
 	RETVAL=$?
 	echo
@@ -79,6 +80,7 @@ restart() {
 	start
 }	
 reload() {
+	# FIXME use PID file and send SIGHUP
 	gprintf "Reloading miredo.xml: Not supported\n"
 	#RETVAL=$?
 	RETVAL=3 # unimplemented feature

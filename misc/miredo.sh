@@ -22,8 +22,8 @@ PATH=/sbin:/usr/sbin:/bin:/usr/bin
 DAEMON=/usr/sbin/miredo
 NAME=miredo
 DESC="Teredo IPv6 tunneling daemon"
-DAEMON_ARGS="teredo.ipv6.microsoft.com"
-PIDFILE=/var/run/$NAME/$NAME.pid
+DAEMON_ARGS=""
+PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
 
 # Source configuration.
@@ -48,12 +48,12 @@ case "$1" in
 	start-stop-daemon --stop --quiet --pidfile $PIDFILE --retry 1
 	echo "."
 	;;
-# reload|force-reload)
-#	echo -n "Reloading $DESC: $NAME"
-#	start-stop-daemon --stop --signal 1 --quiet --exec $DAEMON
-#	echo "."
-#	;;
-  restart|force-reload)
+  reload|force-reload)
+	echo -n "Reloading $DESC: $NAME"
+	start-stop-daemon --stop --signal 1 --quiet --exec $DAEMON
+	echo "."
+	;;
+  restart)
 	echo -n "Restarting $DESC: $NAME"
 	start-stop-daemon --stop --quiet --pidfile $PIDFILE --retry 1 --oknodo
 	start-stop-daemon --start --quiet --pidfile $PIDFILE \
@@ -61,7 +61,7 @@ case "$1" in
 	echo "."
 	;;
   *)
-	echo "Usage: $SCRIPTNAME {start|stop|restart|force-reload}" >&2
+	echo "Usage: $SCRIPTNAME {start|stop|restart|reload|force-reload}" >&2
 	exit 1
 	;;
 esac
