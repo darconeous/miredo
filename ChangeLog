@@ -6,7 +6,9 @@
 	  Teredo address),
 	- fix setuid for Teredo client,
 	* libteredo/relay.cpp:
-	- fixed memory leak when recycling peer entry
+	- fixed memory leak when recycling peer entry,
+	- fixed memory leak in Packet transmission,
+	- implemented client packet reception.
 
 2004-08-28  Remi Denis-Courmont
 

@@ -1,6 +1,6 @@
 /*
  * relay.cpp - Teredo relay peers list definition
- * $Id: relay.cpp,v 1.34 2004/08/29 09:10:12 rdenisc Exp $
+ * $Id: relay.cpp,v 1.35 2004/08/29 13:20:07 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -257,7 +257,7 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
 		// TODO: maybe, send a ICMP adminstrative error
 		return 0;
 
-	/* Case 1 (paragraphs 5.2.4 & 5.4.1): trusted peer */
+
 	struct __TeredoRelay_peer *p = FindPeer (&ip6.ip6_dst);
 #ifdef DEBUG
 	{
@@ -270,10 +270,11 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
 
 	if (p != NULL)
 	{
-		/* Already known -valid- peer */
+		/* Case 1 (paragraphs 5.2.4 & 5.4.1): trusted peer */
 		if (p->flags.flags.trusted)
 		{
-			time (&p->last_rx);
+			/* Already known -valid- peer */
+			time (&p->last_xmit);
 			return sock.SendPacket (packet, length,
 						p->mapped_addr,
 						p->mapped_port);
@@ -283,10 +284,13 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
 	/* Unknown, possibly invalid, peer */
 	if (dst->teredo.prefix != GetPrefix ())
 	{
+		/* Unkown or untrusted non-Teredo node */
+
 		/*
 		 * If we are not a qualified client, ie. we have no server
 		 * IPv4 address to contact for direct IPv6 connectivity, we
-		 * cannot route packets toward non-Teredo IPv6 addresses.
+		 * cannot route packets toward non-Teredo IPv6 addresses, and
+		 * we are not allowed to do it by the specification either.
 		 *
 		 * TODO:
 		 * The specification mandates silently ignoring such
@@ -304,29 +308,38 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
 		return 0;
 	}
 
+	/* Unknown or untrusted Teredo client */
+
 	// Ignores Teredo clients with incorrect server IPv4
-	if (!is_ipv4_global_unicast (~dst->teredo.client_ip))
+	if (!is_ipv4_global_unicast (IN6_TEREDO_SERVER (&ip6.ip6_dst))
+	 || (IN6_TEREDO_SERVER (&ip6.ip6_dst) == 0))
 		return 0;
 		
 	/* Client case 3: TODO: implement local discovery */
 
-	// Creates a new entry
-	p = AllocatePeer ();
 	if (p == NULL)
-		return -1; // insufficient memory
-	memcpy (&p->addr, &ip6.ip6_dst, sizeof (struct in6_addr));
-	p->mapped_addr = ~dst->teredo.client_ip;
-	p->mapped_port = ~dst->teredo.client_port;
-	p->flags.all_flags = 0;
-	time (&p->last_xmit);
-	p->queue = NULL;
-	
-	/* Client case 4 & relay case 2: new cone peer */
-	if (IN6_IS_TEREDO_ADDR_CONE (&ip6.ip6_dst))
 	{
-		p->flags.flags.trusted = 1;
-		return sock.SendPacket (packet, length, p->mapped_addr,
-					p->mapped_port);
+		/* Unknown Teredo clients */
+
+		// Creates a new entry
+		p = AllocatePeer ();
+		if (p == NULL)
+			return -1; // insufficient memory
+		memcpy (&p->addr, &ip6.ip6_dst, sizeof (struct in6_addr));
+		p->mapped_addr = ~dst->teredo.client_ip;
+		p->mapped_port = ~dst->teredo.client_port;
+		p->flags.all_flags = 0;
+		time (&p->last_xmit);
+		p->queue = NULL;
+	
+		/* Client case 4 & relay case 2: new cone peer */
+		if (IN6_IS_TEREDO_ADDR_CONE (&ip6.ip6_dst))
+		{
+			p->flags.flags.trusted = 1;
+			return sock.SendPacket (packet, length,
+						p->mapped_addr,
+						p->mapped_port);
+		}
 	}
 
 	/* Client case 5 & relay case 3: untrusted non-cone peer */
@@ -465,12 +478,29 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 		return 0;
 	}
 
+	// Checks source IPv6 address
 	/*
+	 * TODO:
 	 * The specification says we "should" check that the packet
 	 * destination address is ours, if we are a client. The kernel
-	 * will do this for us if we are a client. If we are a relay, we must
-	 * absolutely NOT check that.
+	 * will do this for us if we are a client. In the relay's case, we
+	 * "should" check that the destination is in the "range of IPv6
+	 * adresses served by the relay", which may be a run-time option (?).
+	 *
+	 * NOTE:
+	 * The specification specifies that the relay MUST look up the peer in
+	 * the list and update last reception date even if the destination is
+	 * incorrect.
 	 */
+#if 0
+	/*
+	 * Ensures that the packet destination has an IPv6 Internet scope
+	 * (ie 2000::/3)
+	 * That should be done just before calling SendIPv6Packet().
+	 */
+	if ((ip6.ip6_dst.s6_addr[0] & 0xe0) != 0x20)
+		return 0; // must be discarded, or ICMPv6 error (?)
+#endif
 
 	if (IsClient () && (packet.GetClientIP () == GetServerIP ())
 	 && (packet.GetClientPort () == htons (IPPORT_TEREDO)))
@@ -495,51 +525,124 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 		const struct teredo_orig_ind *ind = packet.GetOrigInd ();
 		if (ind != NULL)
 			/* FIXME: perform direct IPv6 connectivity test */;
+
+		/*
+		 * Normal reception of packet must only occur if it does not
+		 * come from the server, as specified.
+		 */
+		return 0;
 	}
 
-	const union teredo_addr *src =
-		(const union teredo_addr *)&ip6.ip6_src;
+	/* Actual packet reception, either as a relay or a client */
 
-	// Checks source IPv6 address
-	if ((src->teredo.prefix != GetPrefix ())
-	 || !IN6_MATCHES_TEREDO_CLIENT (src, packet.GetClientIP (),
-		 			packet.GetClientPort ()))
-		return 0;
-
-	// Checks peers list
+	// Look up peer in the list:
 	struct __TeredoRelay_peer *p = FindPeer (&ip6.ip6_src);
-	/* 
-	 * We are explicitly allowed to drop packet from unknown peers
-	 * and it is surely much safer.
-	 */
-	if (p == NULL)
-		return 0;
 
-	p->flags.flags.trusted = p->flags.flags.replied = 1;
-	time (&p->last_rx);
-
-	// Dequeues queued packets (TODO: dequeue more than one)
-	if (p->queue != NULL)
+	if (p != NULL)
 	{
-		sock.SendPacket (p->queue, p->queuelen, p->mapped_addr,
-					p->mapped_port);
-		delete p->queue;
-		p->queue = NULL;
+		// Client case 1 (trusted node or (trusted) Teredo client):
+		if (p->flags.flags.trusted
+		 && (packet.GetClientIP () == p->mapped_addr)
+		 && (packet.GetClientPort () == p->mapped_port))
+		{
+			p->flags.flags.replied = 1;
+
+			time (&p->last_rx);
+			return SendIPv6Packet (buf, length);
+		}
+
+		// Client case 2 (untrusted non-Teredo node):
+		// FIXME: or maybe untrusted non-cone Teredo client
+		if ((!p->flags.flags.trusted) /* && FIXME: nonce match? */)
+		{
+			p->flags.flags.trusted = p->flags.flags.replied = 1;
+
+			p->mapped_port = packet.GetClientPort ();
+			p->mapped_addr = packet.GetClientIP ();
+			time (&p->last_rx);
+
+			// FIXME: dequeue incoming and outgoing packets
+			// NOTE/FIXME: this means the kernel will see our Echo
+			// replies
+			return SendIPv6Packet (buf, length);
+		}
 	}
-	
-	if (IsBubble (&ip6))
-		return 0; // do not relay bubbles
 
 	/*
-	 * TODO: check "range of IPv6 adresses served by the relay"
-	 * (that should be a run-time option)
-	 * Ensures that the packet destination has a global scope
-	 * (ie 2000::/3)
-	if ((ip6.ip6_dst.s6_addr[0] & 0xe0) != 0x20)
-		return 0; // must be discarded
+	 * At this point, we have either a trusted mapping mismatch or an
+	 * unlisted peer.
 	 */
 
-	return SendIPv6Packet (buf, length);
+	if (IN6_TEREDO_PREFIX (&ip6.ip6_src) == GetPrefix ())
+	{
+		// Client case 3 (unknown matching Teredo client):
+		if (IN6_MATCHES_TEREDO_CLIENT (&ip6.ip6_src,
+						packet.GetClientIP (),
+						packet.GetClientPort ()))
+		{
+			if (p == NULL)
+			{
+				/*
+				 * Relays We are explicitly allowed to drop
+				 * packets from unknown peers and it is surely
+				 * much better. It prevents routing of packet
+				 * through the wrong relay.
+				 */
+				if (IsRelay ())
+					return 0;
+
+				// TODO: do not duplicate this code
+				p = AllocatePeer ();
+				if (p == NULL)
+					return -1; // insufficient memory
+				memcpy (&p->addr, &ip6.ip6_dst,
+					sizeof (struct in6_addr));
+				
+				p->mapped_port =
+					IN6_TEREDO_PORT (&ip6.ip6_dst);
+				p->mapped_addr =
+					IN6_TEREDO_IPV4 (&ip6.ip6_dst);
+				p->flags.all_flags = 0;
+				p->queue = NULL;
+			}
+			else
+			if (p->queue != NULL)
+			{
+				sock.SendPacket (p->queue, p->queuelen,
+							p->mapped_addr,
+							p->mapped_port);
+				delete p->queue;
+				p->queue = NULL;
+			}
+
+			p->flags.flags.trusted = p->flags.flags.replied = 1;
+			time (&p->last_rx);
+
+			if (IsBubble (&ip6))
+				return 0; // discard Teredo bubble
+			return SendIPv6Packet (buf, length);
+		}
+	}
+
+	// Relays only accept packet from Teredo clients;
+	if (IsRelay ())
+		return 0;
+
+	// TODO: implement client cases 4 & 5 for local Teredo
+
+	/*
+	 * Default: Client case 6:
+	 * (unknown non-Teredo node or Tereco client with incorrect mapping):
+	 * We should be cautious when accepting packets there, all the
+	 * more as we don't know if we are a really client or just a
+	 * qualified relay (ie. whether the host's default route is
+	 * actually the Teredo tunnel).
+	 */
+
+	// FIXME: queue packet in incoming queue
+	//        and perform direct IPv6 connectivity test
+
+	return 0;
 }
 
 
