@@ -177,7 +177,7 @@ create_pidfile (const char *path)
 	if (stream == NULL)
 		return -1;
 
-	if (fprintf (stream, "%u", (unsigned)getpid ()) <= 0)
+	if (fprintf (stream, "%d", (int)getpid ()) <= 0)
 		retval = -1;
 
 	fclose (stream);
