@@ -1,6 +1,6 @@
 /*
  * ipv6-tunnel.h - IPv6 interface class declaration
- * $Id: ipv6-tunnel.h,v 1.1 2004/06/14 14:45:58 rdenisc Exp $
+ * $Id$
  */
 
 /***********************************************************************

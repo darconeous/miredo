@@ -1,7 +1,7 @@
 /*
  * main.cpp - Unix Teredo server & relay implementation
  *            command line handling and core functions
- * $Id: main.cpp,v 1.1 2004/06/14 14:45:58 rdenisc Exp $
+ * $Id$
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information

@@ -1,6 +1,6 @@
 /*
  * server_pkt.cpp - Handling of a single Teredo datagram (server-side).
- * $Id: server_pkt.cpp,v 1.1 2004/06/14 14:45:58 rdenisc Exp $
+ * $Id$
  */
 
 /***********************************************************************
