@@ -1,5 +1,5 @@
 RELEASE NOTES for Miredo
-version 0.2.1 (beta version)
+version 0.2.2 (beta version)
 =============================
 $Id$
 
@@ -16,6 +16,13 @@ Thanks for your help.
 informations on this program, see README. For syntax details and
 changes, run 'miredo -h' to get help. For detailled internal changes, see
 ChangeLog.
+
+=============================================================================
+BETA RELEASE 0.2.2 : Minor portability fixes
+
+# Support for binding the relay/client to a specific IPv4 address
+  with the -b (--bind) command line option.
+# Compilation fix for some old GNU libc.
 
 =============================================================================
 BETA RELEASE 0.2.1 : Major bugfixes

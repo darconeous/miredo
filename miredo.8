@@ -17,9 +17,9 @@
 .SH NAME
 miredo \- Teredo IPv6 tunneling for Unix
 .SH SYNOPSIS
-.BR "miredo" " [" "-C" "] [" "-i ifname" "] [" "-p relay_port" "] ["
-.BR "-P prefix" "] [" "-t rootdir" "] [" "-u user" "] [" "-s server_ip" "]"
-.RB "[" "server name" "]"
+.BR "miredo" " [" "-b bind_ip" "] [" "-C" "] [" "-i ifname" "] ["
+.BR "-p bind_port" "] [" "-P prefix" "] [" "-t rootdir" "] ["
+.BR "-u user" "] [" "-s server_ip" "] [" "server name" "]"
 
 .SH DESCRIPTON
 .B Miredo
@@ -53,6 +53,15 @@ entirely conformant to that version of the Teredo specification.
 .TP
 .BR "\-h" " or " "\-\-help"
 Display some help and exit.
+
+.TP
+.BR "\-b ip_address" " or " "\-\-bind ip_address"
+Bind the Teredo relay or Teredo client to a specific IPv4 address.
+By default, it is not bound to any particular IPv4 address.
+
+Only use this option if you have trouble with the default value, such
+as if you have a multi-homed host with equal-cost IPv4 routing, or if
+you have specific firewalling constraints.
 
 .TP
 .BR "\-C" " or " "\-\-cone"
