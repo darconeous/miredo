@@ -1,6 +1,6 @@
 /*
  * relay.cpp - Teredo relay peers list definition
- * $Id: relay.cpp,v 1.14 2004/08/24 16:00:26 rdenisc Exp $
+ * $Id: relay.cpp,v 1.15 2004/08/24 18:52:49 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -48,6 +48,9 @@
 					? EXPIRED (peer->last_rx, now) \
 					: EXPIRED (peer->last_xmit, now))
 
+// is_valid_teredo_prefix (PREFIX_UNSET) MUST return false
+# define PREFIX_UNSET 0xffffffff
+
 struct __TeredoRelay_peer
 {
 	struct __TeredoRelay_peer *next;
@@ -75,14 +78,16 @@ struct __TeredoRelay_peer
 
 
 TeredoRelay::TeredoRelay (uint32_t pref, uint16_t port, bool cone)
-	: is_cone (cone), prefix (pref), server_ip (0), head (NULL)
+	: is_cone (cone), prefix (pref), server_ip (0),
+	server_interaction (0), head (NULL)
 {
 	sock.ListenPort (port);
 }
 
 
 TeredoRelay::TeredoRelay (const char * const* servers, uint16_t port)
-	: is_cone (true), prefix (0), server_ip (0), head (NULL)
+	: is_cone (true), prefix (PREFIX_UNSET), server_ip (0),
+	server_interaction (0), head (NULL)
 {
 	sock.ListenPort (port);
 }
@@ -172,8 +177,6 @@ struct __TeredoRelay_peer *TeredoRelay::FindPeer (const struct in6_addr *addr)
 /*
  * Sends a Teredo Bubble to the server specified in Teredo address <dst>.
  * Returns 0 on success, -1 on error.
- * TODO: ability to send direct bubbles as well as indirect ones
- * (at the moment we can only send indirect bubbles)
  */
 int TeredoRelay::SendBubble (const struct in6_addr *d, bool indirect) const
 {
@@ -230,6 +233,10 @@ inline bool IsBubble (const struct ip6_hdr *hdr)
  */
 int TeredoRelay::SendPacket (const void *packet, size_t length)
 {
+	/* Makes sure we are qualified properly */
+	if (!is_valid_teredo_prefix (GetPrefix ()))
+		return -1; // TODO: send ICMPv6 error?
+
 	struct ip6_hdr ip6;
 	if ((length < sizeof (ip6)) || (length > 65507))
 		return 0;
@@ -250,8 +257,8 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
 	 && src->teredo.prefix != GetPrefix ())
 		/*
 		 * Routing packets not from a Teredo client,
-		 * neither toward a Teredo client through a Teredo tunnel
-		 * is NOT allowed.
+		 * neither toward a Teredo client is NOT allowed through a
+		 * Teredo tunnel. The Teredo server will reject the packet.
 		 *
 		 * We also drop link-local unicast and multicast packets as
 		 * they can't be routed through Teredo properly.
@@ -286,10 +293,14 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
 	if (dst->teredo.prefix != GetPrefix ())
 	{
 		/*
+		 * If we are not a qualified client, ie. we have no server
+		 * IPv4 address to contact for direct IPv6 connectivity, we
+		 * cannot route packets toward non-Teredo IPv6 addresses.
+		 *
 		 * TODO:
 		 * The specification mandates silently ignoring such
 		 * packets. However, this only happens in case of
-		 * misconfiguration, so I believe it's better to
+		 * misconfiguration, so I believe it could be better to
 		 * notify the user. An alternative might be to send an
 		 * ICMPv6 error back to the kernel.
 		 */
@@ -394,6 +405,25 @@ int TeredoRelay::ReceivePacket (void)
 	 || ((ntohs (ip6.ip6_plen) + sizeof (ip6)) != length))
 		return 0; // malformatted IPv6 packet
 
+	/* FIXME: handle server RA for Qualification */
+
+	/*
+	 * The specification says we "should" check that the packet
+	 * destination address is ours, if we are a client. The kernel
+	 * will do this for us if we are a client. If we are a relay, we must
+	 * absolutely NOT check that.
+	 */
+
+	if (server_ip && (sock.GetClientIP () == server_ip)
+	 && (sock.GetClientPort () == IPPORT_TEREDO))
+	{
+		time (&server_interaction);
+
+		const struct teredo_orig_ind *ind = sock.GetOrigInd ();
+		if (ind != NULL)
+			/* FIXME: perform direct IPv6 connectivity test */;
+	}
+
 	// Checks source IPv6 address
 	memcpy (&src, &ip6.ip6_src, sizeof (src));
 	if ((src.teredo.prefix != GetPrefix ())
@@ -405,7 +435,7 @@ int TeredoRelay::ReceivePacket (void)
 	struct __TeredoRelay_peer *p = FindPeer (&src.ip6);
 	/* 
 	 * We are explicitly allowed to drop packet from unknown peers
-	 * and it surely much safer.
+	 * and it is surely much safer.
 	 */
 	if (p == NULL)
 		return 0;
@@ -425,12 +455,14 @@ int TeredoRelay::ReceivePacket (void)
 	if (IsBubble (&ip6))
 		return 0; // do not relay bubbles
 
-	// TODO: check "range of IPv6 adresses served by the relay"
-	// (that should be a run-time option)
-	// Ensures that the packet destination has a global scope
-	// (ie 2000::/3)
+	/*
+	 * TODO: check "range of IPv6 adresses served by the relay"
+	 * (that should be a run-time option)
+	 * Ensures that the packet destination has a global scope
+	 * (ie 2000::/3)
 	if ((ip6.ip6_dst.s6_addr[0] & 0xe0) != 0x20)
 		return 0; // must be discarded
+	 */
 
 	return SendIPv6Packet (buf, length);
 }
