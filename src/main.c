@@ -1,7 +1,7 @@
 /*
  * main.c - Unix Teredo server & relay implementation
  *          command line handling and core functions
- * $Id: main.c,v 1.20 2004/08/22 16:58:53 rdenisc Exp $
+ * $Id: main.c,v 1.21 2004/08/24 09:49:39 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -74,6 +74,7 @@ usage (void)
 "Usage: miredo [OPTION]...\n"
 "Creates a Teredo tunneling interface for encapsulation of IPv6.\n"
 "\n"
+"  -C, --cone       assume that we are relaying behind a cone NAT\n"
 "  -f, --foreground run in the foreground\n"
 "  -h, --help       display this help and exit\n"
 "  -i, --iface      define the Teredo tunneling interface name\n"
@@ -384,12 +385,13 @@ main (int argc, char *argv[])
 	const char *server = NULL, *prefix = NULL, *ifname = NULL,
 			*username = NULL, *rootdir = NULL;
 	uint16_t client_port = 0;
-	int foreground = 0;
+	int foreground = 0, cone = 0;
 	
 	const struct option opts[] =
 	{
 		/* FIXME: option for non-cone relay */
 		/*{ "config",	required_argument,	NULL, 'c' },*/
+		{ "cone",	no_argument,		NULL, 'C' },
 		{ "foreground",	no_argument,		NULL, 'f' },
 		{ "help",	no_argument,		NULL, 'h' },
 		{ "iface",	required_argument,	NULL, 'i' },
@@ -411,12 +413,16 @@ main (int argc, char *argv[])
 	else \
 		setting = optarg;
 
-	while ((c = getopt_long (argc, argv, "fhi:p:P:r:s:t:u:V", opts, NULL))
+	while ((c = getopt_long (argc, argv, "Cfhi:p:P:s:t:u:V", opts, NULL))
 			!= -1)
 		switch (c)
 		{
 			case '?':
 				return quick_usage ();
+
+			case 'C':
+				cone = 1;
+				break;
 
 			case 'f':
 				foreground = 1;
@@ -482,7 +488,7 @@ main (int argc, char *argv[])
 	if (init_security (username, rootdir, foreground))
 		return 1;
 
-	if (miredo (client_port, server, prefix, ifname))
+	if (miredo (client_port, server, prefix, ifname, cone))
 		return 1;
 	else
 		return 0;

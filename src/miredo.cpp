@@ -1,7 +1,7 @@
 /*
  * miredo.cpp - Unix Teredo server & relay implementation
  *              core functions
- * $Id: miredo.cpp,v 1.29 2004/08/22 15:19:32 rdenisc Exp $
+ * $Id: miredo.cpp,v 1.30 2004/08/24 09:49:39 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -243,7 +243,8 @@ uid_t unpriv_uid = 0;
 // TODO: support for client
 static int
 miredo_run (uint16_t client_port, const char *server_name,
-		const char *prefix_name, const char *ifname)
+		const char *prefix_name, const char *ifname,
+		int cone)
 {
 	seteuid (unpriv_uid);
 
@@ -359,7 +360,7 @@ miredo_run (uint16_t client_port, const char *server_name,
 	// TODO: ability to use the other constructor, for Teredo client
 	try {
 		relay = new MiredoRelay (&tunnel, prefix.teredo.prefix,
-					 htons (client_port));
+					 htons (client_port), cone);
 	}
 	catch (...)
 	{
@@ -440,7 +441,8 @@ static const char *const daemon_ident = "miredo";
 
 extern "C" int
 miredo (uint16_t client_port, const char *server_name,
-		const char *prefix_name, const char *ifname)
+		const char *prefix_name, const char *ifname,
+		int cone)
 {
 	int facility = LOG_DAEMON;
 	openlog (daemon_ident, LOG_PID, facility);
@@ -483,7 +485,8 @@ miredo (uint16_t client_port, const char *server_name,
 			case 0:
 			{
 				retval = miredo_run (client_port, server_name,
-							prefix_name, ifname);
+							prefix_name, ifname,
+							cone);
 				closelog ();
 				exit (-retval);
 			}

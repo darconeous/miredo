@@ -1,6 +1,6 @@
 /*
  * relay.cpp - Linux Teredo relay implementation
- * $Id: relay.cpp,v 1.17 2004/08/17 19:09:51 rdenisc Exp $
+ * $Id: relay.cpp,v 1.18 2004/08/24 09:49:39 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -32,8 +32,8 @@
 #include "relay.h"
 
 MiredoRelay::MiredoRelay (const IPv6Tunnel *tun, uint32_t prefix,
-				uint16_t port)
-	: TeredoRelay (prefix, port), tunnel (tun), priv_fd (-1)
+				uint16_t port, bool cone)
+	: TeredoRelay (prefix, port, cone), tunnel (tun), priv_fd (-1)
 {
 }
 

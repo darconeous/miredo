@@ -13,11 +13,11 @@
 .\" *  along with this program; if not, you can get it from:              *
 .\" *  http://www.gnu.org/copyleft/gpl.html                               *
 .\" ***********************************************************************
-.TH "MIREDO" "8" "$Date: 2004/07/14 13:51:10 $" "miredo" "System Manager's Manual"
+.TH "MIREDO" "8" "$Date: 2004/08/24 09:49:39 $" "miredo" "System Manager's Manual"
 .SH NAME
 miredo \- Teredo IPv6 tunneling for Unix
 .SH SYNOPSIS
-.BR "miredo" " [" "-i ifname" "] [" "-p relay_port" "] ["
+.BR "miredo" " [" "-C" "] [" "-i ifname" "] [" "-p relay_port" "] ["
 .BR "-P prefix" "] [" "-t rootdir" "] [" "-u user" "] [" "-s server_ip" "]"
 
 .SH DESCRIPTON
@@ -52,6 +52,12 @@ entirely conformant to that version of the Teredo specification.
 .TP
 .BR "\-h" " or " "\-\-help"
 Display some help and exit.
+
+.TP
+.BR "\-C" " or " "\-\-cone"
+.RI "Assume that we are behind a " "cone" " NAT device, or no NAT at"
+all (ie. that we have a public IPv4 address). This is an optimization
+to emit fewer Teredo packets.
 
 .TP
 .BR "\-i ifname" ", " "\-\-iface ifname"
@@ -144,7 +150,7 @@ ng_teredo(4), ipv6(7), route(8), ip(8)
 .SH AUTHOR
 Remi Denis-Courmont <rdenis at simphalempin.com>
 
-$Id: miredo.8,v 1.6 2004/07/14 13:51:10 rdenisc Exp $
+$Id: miredo.8,v 1.7 2004/08/24 09:49:39 rdenisc Exp $
 
 http://www.simphalempin.com/dev/miredo/
 

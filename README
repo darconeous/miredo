@@ -1,6 +1,6 @@
 Miredo : Teredo for Linux
 ==========================
-$Id: README,v 1.7 2004/07/14 14:23:56 rdenisc Exp $
+$Id: README,v 1.8 2004/08/24 09:49:39 rdenisc Exp $
 Copyright (C) 2004 Remi Denis-Courmont.
 
   Welcome to Miredo's introduction manual!
@@ -104,10 +104,7 @@ need to start miredo without parameters:
 
   That will created a virtual "teredo" networking interface which will
 accept IPv6 traffic toward Teredo clients. Note that you must NOT be
-behind a "restricted NAT" for this to work properly.
-NOTE: If you are using FreeBSD, you will probably have to create a
-route to the Teredo prefix (3ffe:831f::/32 at the moment) through the
-tunnel by hand.
+behind a "symmetric NAT" for this to work properly.
 
 
 -- 

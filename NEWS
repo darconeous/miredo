@@ -1,7 +1,7 @@
 RELEASE NOTES for Miredo
-version 0.1.1 (beta version)
+version 0.1.2 (beta version)
 =============================
-$Id: NEWS,v 1.3 2004/07/11 13:52:11 rdenisc Exp $
+$Id: NEWS,v 1.4 2004/08/24 09:49:39 rdenisc Exp $
 
   This is an early release of the program. It is not finished and might not
 work properly. It is not suited for use in production environment.
@@ -18,7 +18,16 @@ changes, run 'miredo -h' to get help. For detailled internal changes, see
 ChangeLog.
 
 =============================================================================
-BETA RELEASE 0.1.1 : Major feature enhancement
+ALPHA RELEASE 0.1.2 : Minor feature enhancement
+
+# Ability to run behind a restricted NAT device:
+    Miredo's Teredo relaying functions should now work fine from behind a
+  restricted NAT device (such as most Linux/Netfilter-based NAT). If you are
+  not behind a NAT or if you are behind a cone NAT, you can use command line
+  option "-C" for optimization.
+
+=============================================================================
+ALPHA RELEASE 0.1.1 : Major feature enhancement
 
 # Partial support for FreeBSD:
     Miredo should compile fine on FreeBSD, however it was not yet tested on

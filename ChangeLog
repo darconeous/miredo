@@ -1,3 +1,11 @@
+2004-24-08  Remi Denis-Courmont
+
+	* libteredo/main.c:
+	- option to enable cone relay optimization;
+	Miredo will now assume restricted relay by default.
+	* README, NEWS, miredo.8:
+	- reflect above command line change.
+
 2004-22-08  Remi Denis-Courmont
 
 	* libteredo/relay.*:
