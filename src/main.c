@@ -1,7 +1,7 @@
 /*
  * main.c - Unix Teredo server & relay implementation
  *          command line handling and core functions
- * $Id: main.c,v 1.11 2004/07/10 17:51:20 rdenisc Exp $
+ * $Id: main.c,v 1.12 2004/07/12 08:45:48 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -28,12 +28,14 @@
 #endif
 
 #include <stdio.h>
-#include <stdlib.h> /* strtoul(), clearenv(), daemon() on FreeBSD */
+#include <stdlib.h> /* strtoul(), clearenv() */
+#include <string.h> /* strerrno() */
 #include <inttypes.h>
 
 #include <sys/types.h>
 #include <sys/time.h> /* for <sys/resource.h> */
 #include <sys/resource.h> /* getrlimit() */
+#include <sys/stat.h> /* fstat() */
 #include <unistd.h>
 #include <errno.h> /* errno */
 #include <fcntl.h> /* O_RDONLY */
@@ -152,6 +154,28 @@ error_missing (void)
  *
  * We can't setuid to non-root yet. That's done later.
  */
+static int open_null (void)
+{
+	int fd;
+	
+	fd = open ("/dev/null", O_RDWR);
+	if (fd != -1)
+	{
+		struct stat s;
+
+		/* Cannot check major and minor as they are inconsistent
+		 * across platforms */
+		if (fstat (fd, &s) || !S_ISCHR(s.st_mode))
+		{
+			close (fd);
+			return -1;
+		}
+	}
+
+	return fd;
+}
+
+
 static int
 init_security (const char *username, const char *rootdir, int nodetach)
 {
@@ -178,10 +202,8 @@ init_security (const char *username, const char *rootdir, int nodetach)
 
 	/*
 	 * Make sure that 0, 1 and 2 are opened.
-	 * If it were not the case, we'd have daemon() close our internal
-	 * handles, which we definitely don't want.
 	 */
-	fd = open ("/dev/null", O_RDWR);
+	fd = open_null ();
 	if (fd == -1)
 		return -1;
 	
@@ -199,11 +221,9 @@ init_security (const char *username, const char *rootdir, int nodetach)
 	pw = getpwnam (username);
 	if (pw == NULL)
 	{
-		if (errno)
-			perror ("getpwnam");
-		else
-			fprintf (stderr, _("User not found: %s\n"),
-					username);
+		fprintf (stderr, "User %s: %s\n",
+				username, errno ? strerror (errno)
+					: _("User not found"));
 		return -1;
 	}
 
@@ -211,30 +231,59 @@ init_security (const char *username, const char *rootdir, int nodetach)
 	errno = 0;
 	if (setgid  (pw->pw_gid) || setgroups (0, NULL))
 	{
-		perror (_("SetGID to unpriviledged group"));
+		fprintf (stderr, _("SetGID to group %u: %s\n"),
+				(unsigned)pw->pw_gid, strerror (errno));
 		return -1;
 	}
 
-	/* Changes root directory */
+	/* Changes root directory, then current directory to '/' */
 	if (rootdir == NULL)
 		rootdir = pw->pw_dir;
-	if (chroot (rootdir))
+	if (chroot (rootdir) || chdir ("/"))
 	{
 		perror (_("Root directory jail"));
 		return -1;
 	}
 
+	errno = 0;
+	fd = open_null ();
+	if (fd == -1)
+	{
+		fprintf (stderr, "%s/dev/null: %s\n", rootdir,
+				errno ? strerror (errno) : _("Invalid"));
+		fputs (_("Chroot directory was probably not set up "
+				"correctly.\n"), stderr);
+		return -1;
+	}
+	
 	/* 
 	 * Sets current directory to '/' in the chroot
 	 * and re-open 0, 1 and 2 from the chroot, so fchdir cannot break the
 	 * jail.
 	 */
-	if (!nodetach && daemon (0, 0))
+	if (!nodetach)
 	{
-		perror (_("Switching to background mode"));
+		switch (fork ())
+		{
+			case 0:
+				break;
+
+			case -1:
+				perror (_("Kernel error"));
+				return -1;
+
+			default:
+				exit (0);
+		}
+	}
+
+	if (setsid () == (pid_t)(-1))
+	{
+		perror (_("New session"));
 		return -1;
 	}
 
+	/* TODO: use POSIX capabilities */
 	/* Unpriviledged user (step 2) */
 	if (seteuid (pw->pw_uid))
 	{
@@ -244,6 +293,17 @@ init_security (const char *username, const char *rootdir, int nodetach)
 
 	unpriv_uid = pw->pw_uid;
 
+	/*
+	 * Prevents fchdir from breaking the chroot jail and complete detach
+	 * by re-opening 0, 1 and 2 as /dev/null
+	 */
+	if (dup2 (fd, 0) || dup2 (fd, 1) || dup2 (fd, 2))
+	{
+		perror (_("Kernel error"));
+		return -1;
+	}
+
+	close (fd);
 	return 0;
 }
 
