@@ -1,6 +1,6 @@
 /*
  * relay.cpp - Teredo relay peers list definition
- * $Id: relay.cpp,v 1.20 2004/08/26 10:43:41 rdenisc Exp $
+ * $Id: relay.cpp,v 1.21 2004/08/26 13:33:34 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -27,10 +27,11 @@
 #endif
 
 #include <string.h>
-#include <time.h> // time()
+#include <time.h> // TODO: use gettimeofday
 #include <inttypes.h>
 
 #include <sys/types.h>
+#include <sys/time.h>
 #include <netinet/in.h>
 #include <netinet/ip6.h> // struct ip6_hdr
 #include <netinet/icmp6.h> // router solicication
@@ -83,21 +84,29 @@ struct __TeredoRelay_peer
 };
 
 
+static int DoQualification (TeredoRelayUDP& socket, uint32_t server_ip,
+				struct in6_addr *addr);
+
+
 TeredoRelay::TeredoRelay (uint32_t pref, uint16_t port, bool cone)
-	: is_cone (cone), prefix (pref), server_ip (0),
-	server_interaction (0), head (NULL)
+	: head (NULL)
 {
+	addr.teredo.prefix = pref;
+	addr.teredo.server_ip = 0;
+	addr.teredo.flags = cone ? htons (TEREDO_FLAGS_CONE) : 0;
+	addr.teredo.client_ip = 0;
+	addr.teredo.client_port = 0; 
+
 	sock.ListenPort (port);
 }
 
 
 TeredoRelay::TeredoRelay (uint32_t server_ip, uint16_t port)
-	: is_cone (true), prefix (PREFIX_UNSET), server_ip (server_ip),
-	server_interaction (0), head (NULL)
+	: head (NULL)
 {
 	if (sock.ListenPort (port) == 0)
 	{
-		SendRS (server_nonce);
+		DoQualification (sock, server_ip, &addr.ip6);
 	}
 }
 
@@ -187,7 +196,9 @@ struct __TeredoRelay_peer *TeredoRelay::FindPeer (const struct in6_addr *addr)
  * Sends a Teredo Bubble to the server specified in Teredo address <dst>.
  * Returns 0 on success, -1 on error.
  */
-int TeredoRelay::SendBubble (const struct in6_addr *d, bool indirect) const
+static int 
+SendBubble (const TeredoRelayUDP& sock, const struct in6_addr *d,
+		bool cone, bool indirect = true)
 {
 	uint32_t ip;
 	uint16_t port;
@@ -212,8 +223,7 @@ int TeredoRelay::SendBubble (const struct in6_addr *d, bool indirect) const
 		hdr.ip6_plen = 0;
 		hdr.ip6_nxt = IPPROTO_NONE;
 		hdr.ip6_hlim = 255;
-		memcpy (&hdr.ip6_src, IsCone ()
-				? &teredo_cone : &teredo_restrict,
+		memcpy (&hdr.ip6_src, cone ? &teredo_cone : &teredo_restrict,
 				sizeof (hdr.ip6_src));
 		memcpy (&hdr.ip6_dst, &dst->ip6, sizeof (hdr.ip6_dst));
 
@@ -233,7 +243,9 @@ int TeredoRelay::SendBubble (const struct in6_addr *d, bool indirect) const
 static const struct in6_addr in6addr_allrouters =
         { { { 0xff, 0x02, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x2 } } };
 
-int TeredoRelay::SendRS (unsigned char *nonce, bool secondary) const
+static int 
+SendRS (const TeredoRelayUDP& sock, uint32_t server_ip, unsigned char *nonce,
+	bool cone, bool secondary)
 {
 	uint8_t packet[13 + sizeof (struct ip6_hdr)
 			+ sizeof (struct nd_router_solicit)
@@ -279,7 +291,7 @@ int TeredoRelay::SendRS (unsigned char *nonce, bool secondary) const
 		rs.ip6.ip6_plen = htons (sizeof (rs));
 		rs.ip6.ip6_nxt = IPPROTO_ICMPV6;
 		rs.ip6.ip6_hlim = 255;
-		memcpy (&rs.ip6.ip6_src, IsCone ()
+		memcpy (&rs.ip6.ip6_src, cone
 			? &teredo_cone : &teredo_restrict,
 			sizeof (rs.ip6.ip6_src));
 		memcpy (&rs.ip6.ip6_dst, &in6addr_allrouters,
@@ -288,7 +300,7 @@ int TeredoRelay::SendRS (unsigned char *nonce, bool secondary) const
 		rs.rs.nd_rs_type = ND_ROUTER_SOLICIT;
 		rs.rs.nd_rs_code = 0;
 		// Checksums are pre-computed
-		rs.rs.nd_rs_cksum = htons (IsCone () ? 0x114b : 0x914b);
+		rs.rs.nd_rs_cksum = htons (cone ? 0x114b : 0x914b);
 
 		/*
 		 * Microsoft Windows XP sends a 14 byte nul
@@ -306,10 +318,25 @@ int TeredoRelay::SendRS (unsigned char *nonce, bool secondary) const
 		memcpy (ptr, &rs, sizeof (rs));
 	}
 
-	return sock.SendPacket (packet, sizeof (packet), secondary
-				? htonl (ntohl (server_ip) + 1) : server_ip,
+	if (secondary)
+		server_ip = htonl (ntohl (server_ip) + 1);
+
+	return sock.SendPacket (packet, sizeof (packet), server_ip,
 				htons (IPPORT_TEREDO));
 }
+
+
+static int
+DoQualification (TeredoRelayUDP& sock, uint32_t server_ip,
+			struct in6_addr *addr)
+{
+	unsigned char nonce[8];
+
+	SendRS (sock, server_ip, nonce, true, false);
+	return 0;
+}
+
+
 
 
 /*
@@ -466,10 +493,11 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
 			 * Open the return path if we are behind a
 			 * restricted NAT.
 			 */
-			if (!IsCone () && SendBubble (&ip6.ip6_dst, false))
+			if (!IsCone ()
+			 && SendBubble (sock, &ip6.ip6_dst, IsCone (), false))
 				return -1;
 
-			return SendBubble (&ip6.ip6_dst, true);
+			return SendBubble (sock, &ip6.ip6_dst, IsCone ());
 		}
 	}
 
@@ -491,7 +519,6 @@ int TeredoRelay::ReceivePacket (void)
 	size_t length;
 	const struct ip6_hdr *buf = sock.GetIPv6Header (length);
 	struct ip6_hdr ip6;
-	const union teredo_addr *src;
 
 	// Checks packet
 	if ((length < sizeof (ip6)) || (length > 65507))
@@ -511,17 +538,22 @@ int TeredoRelay::ReceivePacket (void)
 	 * absolutely NOT check that.
 	 */
 
-	if (IsClient () && (sock.GetClientIP () == server_ip)
+	if (IsClient () && (sock.GetClientIP () == GetServerIP ())
 	 && (sock.GetClientPort () == htons (IPPORT_TEREDO)))
 	{
-		time (&server_interaction);
+		gettimeofday (&server_interaction, NULL);
 
 		const struct teredo_orig_ind *ind = sock.GetOrigInd ();
 		if (ind != NULL)
 			/* FIXME: perform direct IPv6 connectivity test */;
 	}
 
-	src = (const union teredo_addr *)&ip6.ip6_src;
+	// Only the server is allowed to send packet when not qualified
+	if (!IsRunning ())
+		return 0;
+
+	const union teredo_addr *src =
+		(const union teredo_addr *)&ip6.ip6_src;
 
 	// Checks source IPv6 address
 	if ((src->teredo.prefix != GetPrefix ())

@@ -1,6 +1,6 @@
 /*
  * relay.h - Teredo relay peers list declaration
- * $Id: relay.h,v 1.17 2004/08/26 10:43:42 rdenisc Exp $
+ * $Id: relay.h,v 1.18 2004/08/26 13:33:34 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -26,8 +26,9 @@
 # define LIBTEREDO_RELAY_H
 
 # include <inttypes.h>
-# include <time.h> // time_t
+# include <sys/time.h> // struct timeval
 
+# include <libteredo/teredo.h>
 # include <libteredo/teredo-udp.h>
 
 struct ip6_hdr;
@@ -43,10 +44,8 @@ class TeredoRelay
 {
 	private:
 		/*** Internal stuff ***/
-		bool is_cone;
-		uint32_t prefix, server_ip;
-		time_t server_interaction;
-		unsigned char server_nonce[8];
+		union teredo_addr addr;
+		struct timeval server_interaction;
 
 		struct __TeredoRelay_peer *head;
 
@@ -54,11 +53,6 @@ class TeredoRelay
 
 		struct __TeredoRelay_peer *AllocatePeer (void);
 		struct __TeredoRelay_peer *FindPeer (const struct in6_addr *addr);
-
-		int SendBubble (const struct in6_addr *dst,
-				bool indirect) const;
-		int SendRS (unsigned char *nonce, bool secondary = false)
-				const;
 
 		/*** Callbacks ***/
 		/*
@@ -141,30 +135,46 @@ class TeredoRelay
 		 * The result is not meaningful if the client is not fully
 		 * qualified.
 		 */
+		uint32_t GetPrefix (void) const
+		{
+			return IN6_TEREDO_PREFIX (&addr);
+		}
+
+		uint32_t GetServerIP (void) const
+		{
+			return IN6_TEREDO_SERVER (&addr);
+		}
+
 		bool IsCone (void) const
 		{
-			return is_cone;
+			return IN6_IS_TEREDO_ADDR_CONE (&addr);
+		}
+
+		uint16_t GetMappedPort (void) const
+		{
+			return IN6_TEREDO_PORT (&addr);
+		}
+		
+		uint32_t GetMappedIP (void) const
+		{
+			return IN6_TEREDO_IPV4 (&addr);
 		}
 
 		bool IsClient (void) const
 		{
-			return server_ip != 0;
+			return GetServerIP () != 0;
 		}
 
 		bool IsRelay (void) const
 		{
-			return server_ip == 0;
+			return GetServerIP () == 0;
 		}
 
 		bool IsRunning (void) const
 		{
-			return is_valid_teredo_prefix (prefix);
+			return is_valid_teredo_prefix (GetPrefix ());
 		}
 
-		uint32_t GetPrefix (void) const
-		{
-			return prefix;
-		}
 
 		int RegisterReadSet (fd_set *rs) const
 		{
