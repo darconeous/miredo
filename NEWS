@@ -44,6 +44,10 @@ BETA RELEASE 0.4.0 : Major feature enhancement
   Miredo will no longer perform any memcpy on forwarded IPv6 packets
   payload, so as to improve processing speed a little bit.
 
+# Automatic and easy-to-setup chroot environment :
+  Miredo only needs an empty directory to chroot. It is created by
+  make install and automatically used.
+
 # PID file moved: it is now located in /var/run/miredo.pid by default.
 
 # Support for server only mode (no longer have to run a relay as well).

@@ -112,9 +112,9 @@ concious, paranoid, or if you are building a package, you are advised
 to perform the following steps to restrict the impact of a possible
 compromise of the Miredo daemon.
 
-  They are various steps to secure Miredo installation, because they
-are non trivial and non portable they cannot be done automatically.
-That is why miredo defaults to using "nobody" user account which is
+  They are some steps to secure Miredo installation, because they are
+non trivial and non portable, they cannot be done automatically. That
+is why miredo defaults to using "nobody" user account which is
 available on any POSIX-like operating system.
 
 
@@ -132,7 +132,7 @@ available on any POSIX-like operating system.
 - You can use the '-u' option when starting Miredo. That saves the
   cost of recompiling Miredo. For example:
 
-  # /usr/local/sbin/miredo -u miredo -t /
+  # /usr/local/sbin/miredo -u miredo
 
 NOTE: If you are running Miredo as a Teredo client, Miredo will spawn a
 separate privileged process whose only job will be the Teredo interface
@@ -143,55 +143,9 @@ not be able to compromise the whole system.
 
 2) Chroot jail:
 ----------------
-  Unless you started miredo with command line option '-t /', or used
-the already mentioned configure option '--disable-miredo-user', miredo
-will try to chroot itself. By default, it will chroot in the miredo
-user's home directory, but that can be overriden with the '-t' command
-line option.
-  Indeed, to mitigate risks and reduce your system's exposure, it is
-recommended to run miredo inside a chroot jail. However, that makes
-installation of the program more complex, so that is not mandatory.
-
-  For the chroot jail to work properly, you should put these device
-files (assuming the home directory is /var/lib/miredo):
-
-/var/lib/miredo/dev/null
-/var/lib/miredo/dev/net/tun		(Linux only)
-/var/lib/miredo/dev/tun0, ...tun15	(FreeBSD only)
-/var/lib/miredo/dev/random		(Teredo client only)
-/var/lib/miredo/dev/urandom		(Teredo client only)
-
-  root requires read/write access to these files. The miredo
-unprivileged user must be able to read "random" and "urandom".
-
-  You should also create a /var/run directory owned by root, as Miredo
-will try to create a PID file named /var/run/miredo.pid when it runs.
-
-  If you wish to use Miredo as a Teredo client, you should additionnaly
-put a copy of these files from /etc into /var/lib/miredo/etc so that
-DNS resolution of the Teredo server works:
-
-/etc/resolv.conf
-/etc/hosts
-/etc/host.conf
-and your system's DNS resolver library in /lib. If in doubt, don't
-chroot if you intend to run Miredo as a Teredo client.
-
-  You must then tell your syslog daemon to listen to
-/var/lib/miredo/dev/log. That is usually done by adding that option to
-your syslogd upon start: '-a /var/lib/miredo/dev/log'. If you don't do
-so, you won't get any logging information from Miredo (nor if it hasn't
-read-write access to dev/log, but it should no problem). How to do that
-depends on what operating system and which distribution thereof you
-use.
-
-  Finally, you must put Miredo's configuration in the chroot. Do not
-forget to specify right path (from inside the chroot) when running
-Miredo, e.g.:
-
-# miredo -u miredo -t /var/lib/miredo -c /etc/miredo.conf
-
-if the configuration is [/var/lib/miredo]/etc/miredo.conf
+  Chroot jail setup does no longer require manual setup. It is always
+and automatically enabled (unless you used the --disable-chroot
+./configure option).
 
 
 3) POSIX capabilities:
