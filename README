@@ -71,18 +71,18 @@ installation of the program more complex, so that is not mandatory.
 By the way, miredo will try to chroot to its user's home by default.
 
   For the chroot jail to work properly, you should put these device
-files (assuming the home directory is /var/run/miredo):
+files (assuming the home directory is /var/lib/miredo):
 
-/var/run/miredo/dev/null
-/var/run/miredo/dev/net/tun		(Linux only)
-/var/run/miredo/dev/tun0, ...tun15	(FreeBSD only)
-/var/run/miredo/dev/urandom		(Teredo client only)
+/var/lib/miredo/dev/null
+/var/lib/miredo/dev/net/tun		(Linux only)
+/var/lib/miredo/dev/tun0, ...tun15	(FreeBSD only)
+/var/lib/miredo/dev/urandom		(Teredo client only)
 
   root requires read/write access to these files. The miredo
 unprivileged user doesn't.
 
   If you wish to use Miredo as a Teredo client, you should additionnaly
-put a copy of these files from /etc into /var/run/miredo/etc so that
+put a copy of these files from /etc into /var/lib/miredo/etc so that
 DNS resolution of the Teredo server works:
 
 /etc/resolv.conf
@@ -92,8 +92,8 @@ and your system's DNS resolver library. If in doubt, don't chroot if
 you intend to run Miredo as a Teredo client.
 
   Finally, you must tell your syslog daemon to listen to
-/var/run/miredo/dev/log. That is usually done by adding that option to
-your syslogd upon start: '-a /var/run/miredo/dev/log'. If you don't do
+/var/lib/miredo/dev/log. That is usually done by adding that option to
+your syslogd upon start: '-a /var/lib/miredo/dev/log'. If you don't do
 so, you won't get any logging information from Miredo (nor if it hasn't
 read-write access to dev/log, but it should no problem).
 

@@ -1,4 +1,11 @@
 ------------------------------------------------------------------------
+r192 | remi | 2004-10-27 23:18:01 +0200 (Wed, 27 Oct 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+
+Do not detect connectivity loss until it is fixed
+
+------------------------------------------------------------------------
 r191 | remi | 2004-10-27 23:09:37 +0200 (Wed, 27 Oct 2004) | 2 lines
 Changed paths:
    M /trunk/TODO
