@@ -1,6 +1,6 @@
 /*
  * privproc.h - Privileged process for Miredo
- * $Id: privproc.h,v 1.4 2004/08/29 07:56:11 rdenisc Exp $
+ * $Id$
  */
 
 /***********************************************************************

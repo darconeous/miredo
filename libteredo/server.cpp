@@ -1,6 +1,6 @@
 /*
  * server.cpp - Handling of a single Teredo datagram (server-side).
- * $Id: server.cpp,v 1.8 2004/08/27 16:58:57 rdenisc Exp $
+ * $Id$
  */
 
 /***********************************************************************
