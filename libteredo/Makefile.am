@@ -1,5 +1,5 @@
 # Makefile.am - libteredo/ directory Makefile for miredo
-# $Id: Makefile.am,v 1.2 2004/08/28 13:49:53 rdenisc Exp $
+# $Id$
 
 # ***********************************************************************
 # *  Copyright (C) 2004 Remi Denis-Courmont.                            *
@@ -25,6 +25,5 @@ libteredo_a_SOURCES =	teredo.c teredo.h \
 			v4global.c v4global.h \
 			teredo-udp.cpp teredo-udp.h \
 			relay.cpp relay.h \
-			relay-packets.cpp relay-packets.h \
-			server.cpp server.h
-
+			server.cpp server.h \
+			packets.cpp packets.h

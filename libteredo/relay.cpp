@@ -45,7 +45,7 @@
 #include <v4global.h> // is_ipv4_global_unicast()
 #include "teredo-udp.h"
 
-#include "relay-packets.h"
+#include "packets.h"
 #include "relay.h"
 
 #define TEREDO_TIMEOUT 30 // seconds

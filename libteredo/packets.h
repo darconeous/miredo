@@ -1,5 +1,5 @@
 /*
- * relay-packets.h - helpers to send Teredo packet from relay/client
+ * packets.h - helpers to send Teredo packet
  * $Id$
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"

@@ -1,5 +1,5 @@
 /*
- * relay-packets.cpp - helpers to send Teredo packet from relay/client
+ * packets.cpp - helpers to send Teredo packet from relay/client
  * $Id$
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
@@ -39,6 +39,8 @@
 #include <v4global.h> // is_ipv4_global_unicast()
 #include "teredo-udp.h"
 
+#include "packets.h"
+
 /*
  * Sends a Teredo Bubble to the specified IPv4/port tuple.
  * Returns 0 on success, -1 on error.
@@ -73,7 +75,7 @@ SendBubble (const TeredoRelayUDP& sock, uint32_t ip, uint16_t port,
  */
 int
 SendBubble (const TeredoRelayUDP& sock, const struct in6_addr *dst,
-		bool cone, bool indirect = true)
+		bool cone, bool indirect)
 {
 	uint32_t ip;
 	uint16_t port;
