@@ -1,7 +1,8 @@
 # Miredo french translation.
 # Copyright (C) 2004 Remi Denis-Courmont
-# This file is distributed under the same license as the PACKAGE package.
+# This file is distributed under the same license as the miredo package.
 # Remi Denis-Courmont <rdenis@simphalempin.com>, 2004.
+# $Id$
 #
 msgid ""
 msgstr ""
