@@ -112,7 +112,7 @@ MiredoConf::ReadFile (FILE *stream)
 				if (feof (stream) || ferror (stream))
 					break;
 			syslog (LOG_WARNING,
-				_("Skipped overly long line %u..."), line);
+				_("Skipped overly long line %u"), line);
 		}
 
 		lbuf[len] = '\0';
@@ -309,7 +309,7 @@ ParseTeredoPrefix (MiredoConf& conf, const char *name, uint32_t *value)
 		if (!is_valid_teredo_prefix (addr.teredo.prefix))
 		{
 			syslog (LOG_ALERT,
-				_("Invalid Teredo IPv6 prefix: %x::/32."),
+				_("Invalid Teredo IPv6 prefix: %x::/32"),
 				addr.teredo.prefix);
 			return false;
 		}

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: rdenis@simphalempin.com\n"
-"POT-Creation-Date: 2004-12-30 16:57+0100\n"
+"POT-Creation-Date: 2005-01-01 01:26+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -57,7 +57,7 @@ msgstr ""
 msgid "cone"
 msgstr ""
 
-#: libteredo/relay.cpp:585 src/main.c:632
+#: libteredo/relay.cpp:585 src/main.c:656
 msgid "restricted"
 msgstr ""
 
@@ -269,7 +269,7 @@ msgstr ""
 msgid "Error: missing command line parameter\n"
 msgstr ""
 
-#: src/main.c:229
+#: src/main.c:253
 msgid ""
 "Chroot directory was probably not set up correctly.\n"
 "NOTE: You can use command line option \"-t /\"\n"
@@ -280,18 +280,18 @@ msgid ""
 "\n"
 msgstr ""
 
-#: src/main.c:244
+#: src/main.c:268
 msgid ""
 "That is usually an indication that you are trying to start\n"
 "the program as an user with insufficient system privileges.\n"
 "This program should normally be started by root.\n"
 msgstr ""
 
-#: src/main.c:306
+#: src/main.c:330
 msgid "User not found"
 msgstr ""
 
-#: src/main.c:308
+#: src/main.c:332
 #, c-format
 msgid ""
 "Error: This program was asked to run in the\n"
@@ -303,7 +303,7 @@ msgid ""
 "user. Running as root is STRONGLY DISCOURAGED.\n"
 msgstr ""
 
-#: src/main.c:321
+#: src/main.c:345
 msgid ""
 "Error: This program is not supposed to keep root\n"
 "privileges. That is potentially very dangerous\n"
@@ -313,23 +313,23 @@ msgid ""
 "privileges are kept.\n"
 msgstr ""
 
-#: src/main.c:336
+#: src/main.c:360
 #, c-format
 msgid "SetGID to group ID %u: %s\n"
 msgstr ""
 
-#: src/main.c:338
+#: src/main.c:362
 msgid ""
 "Error: This program tried to change its system\n"
 "group(s) security context but it failed.\n"
 msgstr ""
 
-#: src/main.c:355
+#: src/main.c:379
 #, c-format
 msgid "Root directory jail in %s: %s\n"
 msgstr ""
 
-#: src/main.c:372
+#: src/main.c:396
 #, c-format
 msgid ""
 "Warning: /dev/log not found or invalid: logging will probably not work.\n"
@@ -337,43 +337,43 @@ msgid ""
 " to your syslogd command line to fix that.\n"
 msgstr ""
 
-#: src/main.c:393
+#: src/main.c:417
 #, c-format
 msgid "SetUID to user ID %u: %s\n"
 msgstr ""
 
-#: src/main.c:395
+#: src/main.c:419
 msgid ""
 "Error: This program tried to change its system\n"
 "user security context but it failed.\n"
 msgstr ""
 
-#: src/main.c:412 src/main.c:419
+#: src/main.c:436 src/main.c:443
 msgid "Fatal error"
 msgstr ""
 
-#: src/main.c:426
+#: src/main.c:450
 msgid "Getting networking privileges"
 msgstr ""
 
-#: src/main.c:428
+#: src/main.c:452
 msgid ""
 "Error: This program tried to obtain system networking administration\n"
 "privileges but it failed.\n"
 msgstr ""
 
-#: src/main.c:444
+#: src/main.c:468
 msgid "Error (daemon)"
 msgstr ""
 
-#: src/main.c:580
+#: src/main.c:604
 #, c-format
 msgid ""
 "Read unknown option -%c :\n"
 "That is probably a bug. Please report it.\n"
 msgstr ""
 
-#: src/main.c:592
+#: src/main.c:616
 msgid ""
 "You have selected conflicting parameters.\n"
 "It is not possible to run a Teredo relay and/or\n"
@@ -381,169 +381,210 @@ msgid ""
 "Refer to the manual page for more details.\n"
 msgstr ""
 
-#: src/main.c:609
+#: src/main.c:633
 msgid "Miredo configuration :"
 msgstr ""
 
-#: src/main.c:611
+#: src/main.c:635
 msgid "Client/relay UDP port       : "
 msgstr ""
 
-#: src/main.c:615
+#: src/main.c:639
 msgid "automatic"
 msgstr ""
 
-#: src/main.c:617
+#: src/main.c:641
 #, c-format
 msgid "Client/relay IPv4 address   : %s\n"
 msgstr ""
 
-#: src/main.c:618
+#: src/main.c:642
 msgid "any"
 msgstr ""
 
-#: src/main.c:620
+#: src/main.c:644
 #, c-format
 msgid "Tunnel interface name       : %s\n"
 msgstr ""
 
-#: src/main.c:621 src/main.c:628
+#: src/main.c:645 src/main.c:652
 msgid "default"
 msgstr ""
 
-#: src/main.c:625
+#: src/main.c:649
 #, c-format
 msgid "Server primary IPv4 address : %s\n"
 msgstr ""
 
-#: src/main.c:626
+#: src/main.c:650
 msgid "disabled"
 msgstr ""
 
-#: src/main.c:627
+#: src/main.c:651
 #, c-format
 msgid "Teredo IPv6 prefix          : %s\n"
 msgstr ""
 
-#: src/main.c:629
+#: src/main.c:653
 #, c-format
 msgid "Assumed NAT type            : %s\n"
 msgstr ""
 
-#: src/main.c:631
+#: src/main.c:655
 msgid "none/cone"
 msgstr ""
 
-#: src/main.c:635
+#: src/main.c:659
 #, c-format
 msgid "Server name                 : %s\n"
 msgstr ""
 
-#: src/miredo.cpp:237 src/miredo.cpp:262
-#, c-format
-msgid "Invalid hostname \"%s\": %s"
-msgstr ""
-
-#: src/miredo.cpp:321
-msgid "Teredo IPv6 prefix not properly set."
-msgstr ""
-
-#: src/miredo.cpp:328
-#, c-format
-msgid "Invalid Teredo IPv6 prefix: %s."
-msgstr ""
-
-#: src/miredo.cpp:346
+#: src/miredo.cpp:262
 #, c-format
 msgid "SetUID to root failed: %m"
 msgstr ""
 
-#: src/miredo.cpp:370
+#: src/miredo.cpp:286
 #, c-format
 msgid ""
 "Teredo tunnel setup failed:\n"
 " %s"
 msgstr ""
 
-#: src/miredo.cpp:371 src/miredo.cpp:397
+#: src/miredo.cpp:287 src/miredo.cpp:310
 msgid "You should be root to do that."
 msgstr ""
 
-#: src/miredo.cpp:384
+#: src/miredo.cpp:298
 #, c-format
 msgid "Privileged process setup failed: %m"
 msgstr ""
 
-#: src/miredo.cpp:396
+#: src/miredo.cpp:309
 #, c-format
 msgid ""
 "Teredo routing failed:\n"
 " %s"
 msgstr ""
 
-#: src/miredo.cpp:406
+#: src/miredo.cpp:319
 #, c-format
 msgid "Setting UID failed: %m"
 msgstr ""
 
-#: src/miredo.cpp:418
-msgid "Fatal configuration error"
-msgstr ""
-
-#: src/miredo.cpp:430
+#: src/miredo.cpp:335
 msgid "Teredo server failure"
 msgstr ""
 
-#: src/miredo.cpp:443
+#: src/miredo.cpp:348
 msgid "Teredo UDP port failure"
 msgstr ""
 
-#: src/miredo.cpp:444 src/miredo.cpp:523
+#: src/miredo.cpp:349 src/miredo.cpp:413
 msgid "Make sure another instance of the program is not already running."
 msgstr ""
 
-#: src/miredo.cpp:460
-msgid "Fatal bind IPv4 address error"
-msgstr ""
-
-#: src/miredo.cpp:474
-msgid "Fatal server IPv4 address error"
-msgstr ""
-
-#: src/miredo.cpp:507
+#: src/miredo.cpp:397
 msgid "Teredo service failure"
 msgstr ""
 
-#: src/miredo.cpp:515
+#: src/miredo.cpp:405
 #, c-format
 msgid "Teredo service port failure: cannot open UDP port %u"
 msgstr ""
 
-#: src/miredo.cpp:520
+#: src/miredo.cpp:410
 msgid "Teredo service port failure: cannot open an UDP port"
 msgstr ""
 
-#: src/miredo.cpp:558
+#: src/miredo.cpp:448
 #, c-format
 msgid "pipe failed: %m"
 msgstr ""
 
-#: src/miredo.cpp:607
+#: src/miredo.cpp:497
 #, c-format
-msgid "Reloading configuration on signal %d (%s)"
+msgid "Loading configuration from %s failed"
 msgstr ""
 
-#: src/miredo.cpp:630
+#: src/miredo.cpp:515
+msgid "Fatal bind UDP port error"
+msgstr ""
+
+#: src/miredo.cpp:524
+msgid "Fatal bind IPv4 address error"
+msgstr ""
+
+#: src/miredo.cpp:530 src/miredo.cpp:539 src/miredo.cpp:547
+msgid "Fatal configuration error"
+msgstr ""
+
+#: src/miredo.cpp:569
 #, c-format
 msgid "fork failed: %m"
 msgstr ""
 
-#: src/miredo.cpp:650
+#: src/miredo.cpp:586
 #, c-format
 msgid "Exiting on signal %d (%s)"
 msgstr ""
 
-#: src/miredo.cpp:667
+#: src/miredo.cpp:595
+#, c-format
+msgid "Reloading configuration on signal %d (%s)"
+msgstr ""
+
+#: src/miredo.cpp:604
+#, c-format
+msgid "Terminated (exit code: %d)"
+msgstr ""
+
+#: src/miredo.cpp:612
 #, c-format
 msgid "Child %d killed by signal %d (%s)"
+msgstr ""
+
+#: src/conf.cpp:93
+#, c-format
+msgid "Memory problem: %m"
+msgstr ""
+
+#: src/conf.cpp:115
+#, c-format
+msgid "Skipped overly long line %u"
+msgstr ""
+
+#: src/conf.cpp:132
+#, c-format
+msgid "Ignoring line %u: %s"
+msgstr ""
+
+#: src/conf.cpp:140
+#, c-format
+msgid "Error reading configuration file: %m"
+msgstr ""
+
+#: src/conf.cpp:157
+#, c-format
+msgid "Error opening configuration file %s: %m"
+msgstr ""
+
+#: src/conf.cpp:223
+#, c-format
+msgid "Invalid integer value \"%s\" for %s: %m"
+msgstr ""
+
+#: src/conf.cpp:257 src/conf.cpp:288
+#, c-format
+msgid "Invalid hostname \"%s\" at line %u: %s"
+msgstr ""
+
+#: src/conf.cpp:312
+#, c-format
+msgid "Invalid Teredo IPv6 prefix: %x::/32"
+msgstr ""
+
+#: src/conf.cpp:344
+#, c-format
+msgid "Invalid relay type \"%s\" at line %u"
 msgstr ""
