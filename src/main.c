@@ -315,15 +315,6 @@ init_security (const char *username, int nodetach)
 	 * This fails if the user is not root. */
 	setgroups (0, NULL);
 
-	{
-		char errbuf[LIBTUN6_ERRBUF_SIZE];
-		if (libtun6_driver_diagnose (errbuf))
-		{
-			fputs (errbuf, stderr);
-			return -1;
-		}
-	}
-
 	/* Unpriviledged user (step 2) */
 	if (setreuid (unpriv_uid, -1) || seteuid (unpriv_uid))
 	{
@@ -340,7 +331,12 @@ init_security (const char *username, int nodetach)
 #ifdef HAVE_LIBCAP
 	{
 		cap_t s;
-		cap_value_t v[] = { CAP_SYS_CHROOT, CAP_NET_ADMIN };
+		cap_value_t v[] =
+		{
+			CAP_SYS_CHROOT,
+			CAP_SETUID,
+			CAP_NET_ADMIN
+		};
 
 		s = cap_init ();
 		if (s == NULL)
@@ -350,7 +346,7 @@ init_security (const char *username, int nodetach)
 			return -1;
 		}
 
-		if (cap_set_flag (s, CAP_PERMITTED, 2, v, CAP_SET))
+		if (cap_set_flag (s, CAP_PERMITTED, 3, v, CAP_SET))
 		{
 			/* Unlikely */
 			perror (_("Fatal error"));
@@ -360,10 +356,10 @@ init_security (const char *username, int nodetach)
 
 		if (cap_set_proc (s))
 		{
-			perror (_("Getting networking privileges"));
+			perror (_("Getting required capabilities"));
 			cap_free (s);
 			fputs (_("Error: This program tried to obtain "
-				"system networking administration\n"
+				"required system administration\n"
 				"privileges but it failed.\n"), stderr);
 			setuid_notice ();
 			return -1;
@@ -384,6 +380,21 @@ init_security (const char *username, int nodetach)
 
 	return 0;
 }
+
+
+static int
+check_libtun6 (void)
+{
+	char errbuf[LIBTUN6_ERRBUF_SIZE];
+	if (libtun6_driver_diagnose (errbuf))
+	{
+		fputs (errbuf, stderr);
+		return -1;
+	}
+
+	return 0;
+}
+
 
 
 #ifndef MIREDO_DEFAULT_CONFFILE
@@ -473,10 +484,17 @@ main (int argc, char *argv[])
 	if (username == NULL)
 		username = MIREDO_DEFAULT_USERNAME;
 
-	/*
-	 * Initialize POSIX context
-	 */
-	if (init_security (username, flags.foreground))
+	if (conffile == NULL)
+		conffile = MIREDO_DEFAULT_CONFFILE;
+
+	if (access (conffile, R_OK))
+	{
+		fprintf (stderr, _("Reading configuration from %s: %s\n"),
+				conffile, strerror (errno));
+		return 1;
+	}
+
+	if (check_libtun6 () || init_security (username, flags.foreground))
 		return 1;
 
 #ifdef MIREDO_DEFAULT_PIDFILE
@@ -496,9 +514,6 @@ main (int argc, char *argv[])
 		create_pidfile (pidfile);
 		seteuid (unpriv_uid);
 	}
-
-	if (conffile == NULL)
-		conffile = MIREDO_DEFAULT_CONFFILE;
 
 	/*
 	 * Run
