@@ -1,6 +1,6 @@
 /*
  * privproc.cpp - Privileged process for Miredo
- * $Id: privproc.cpp,v 1.1 2004/07/31 20:15:07 rdenisc Exp $
+ * $Id: privproc.cpp,v 1.2 2004/08/17 19:09:12 rdenisc Exp $
  */
 
 /***********************************************************************
@@ -33,36 +33,44 @@
 #include <libteredo/teredo.h>
 
 void
-miredo_privileged_process (int fd, IPv6Tunnel& tunnel, uid_t unpriv)
+miredo_privileged_process (int fd, IPv6Tunnel *tunnel, uid_t unpriv)
 {
 	union teredo_addr ter_addr, loc_addr;
+
+	seteuid (unpriv);
 
 	while (1)
 	{
 		union teredo_addr newaddr;
 
-		seteuid (unpriv);
 		if (read (fd, &newaddr, sizeof (newaddr)) != sizeof (newaddr))
 			break;
 
 		if (!memcmp (&ter_addr, &newaddr, sizeof (ter_addr)))
-			continue;
+			continue; // short cut
 
 		seteuid (0);
-		tunnel.DelAddress (&ter_addr.ip6);
-		tunnel.DelAddress (&loc_addr.ip6);
+		tunnel->DelAddress (&ter_addr.ip6);
+		tunnel->DelAddress (&loc_addr.ip6);
+		seteuid (unpriv);
 
 		memcpy (&ter_addr, &newaddr, sizeof (ter_addr));
 		memcpy (&loc_addr,
 			in6_is_teredo_addr_cone (&newaddr)
 			? &teredo_cone : &teredo_restrict, sizeof (loc_addr));
 
-		tunnel.AddAddress (&loc_addr.ip6);
+		seteuid (0);
+		tunnel->AddAddress (&loc_addr.ip6);
 		if (newaddr.teredo.prefix)
-			tunnel.AddAddress (&ter_addr.ip6);
+			tunnel->AddAddress (&ter_addr.ip6);
+		seteuid (unpriv);
 	}
 
+	seteuid (0);
+	setuid (unpriv);
+
 	close (fd);
+	delete tunnel;
 	exit (0);
 }
 

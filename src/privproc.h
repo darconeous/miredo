@@ -1,6 +1,6 @@
 /*
  * privproc.h - Privileged process for Miredo
- * $Id: privproc.h,v 1.1 2004/07/31 20:15:07 rdenisc Exp $
+ * $Id: privproc.h,v 1.2 2004/08/17 19:09:12 rdenisc Exp $
  */
 
 /***********************************************************************
@@ -26,6 +26,6 @@
 # include <libtun6/ipv6-tunnel.h>
 
 void
-miredo_privileged_process (int fd, IPv6Tunnel& tunnel, uid_t unpriv);
+miredo_privileged_process (int fd, IPv6Tunnel *tunnel, uid_t unpriv);
 
 #endif
