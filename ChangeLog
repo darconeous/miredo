@@ -3,7 +3,10 @@
 	* libterdo/relay.cpp, configure.ac, src/Makefile.am:
 	- use OpenSSL to sets the authentication nonce,
 	* libteredo/relay.*, src/relay.*, src/main.cpp, src/miredo.*:
-	- only specify one server name for client, much less confusing.
+	- only specify one server name for client, much less confusing,
+	* libtun6/ipv6-tunnel.cpp:
+	- use writev()/readv() to avoid using memcpy(),
+	- fixes SendPacket's return value.
 
 2004-24-08  Remi Denis-Courmont
 

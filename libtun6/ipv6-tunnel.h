@@ -1,6 +1,6 @@
 /*
  * ipv6-tunnel.h - IPv6 interface class declaration
- * $Id: ipv6-tunnel.h,v 1.4 2004/08/18 09:33:24 rdenisc Exp $
+ * $Id: ipv6-tunnel.h,v 1.5 2004/08/26 17:19:28 rdenisc Exp $
  */
 
 /***********************************************************************
@@ -120,6 +120,8 @@ class IPv6Tunnel
 
 		/*
 		 * Sends an IPv6 packet at <packet>, of length <len>.
+		 * Returns the number of bytes succesfully transmitted on
+		 * success, -1 on error.
 		 */
 		int SendPacket (const void *packet, size_t len) const;
 };

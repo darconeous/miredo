@@ -1,6 +1,6 @@
 /*
  * ipv6-tunnel.cpp - IPv6 interface class definition
- * $Id: ipv6-tunnel.cpp,v 1.7 2004/08/24 18:58:32 rdenisc Exp $
+ * $Id: ipv6-tunnel.cpp,v 1.8 2004/08/26 17:19:28 rdenisc Exp $
  */
 
 /***********************************************************************
@@ -33,6 +33,9 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 #include <syslog.h>
+#if HAVE_SYS_UIO_H
+# include <sys/uio.h> // readv() & writev()
+#endif
 
 #include <sys/socket.h> // socket(PF_INET6, SOCK_DGRAM, 0)
 #include <netinet/in.h> // htons()
@@ -693,29 +696,34 @@ IPv6Tunnel::ReceivePacket (const fd_set *readset, void *buffer, size_t maxlen)
 	if ((fd == -1) || !FD_ISSET (fd, readset))
 		return -1;
 
-	uint8_t pbuf[65535 + 4];
-	int len = read (fd, pbuf, sizeof (pbuf));
-	if (len == -1)
+	struct iovec vect[2];
+	union
+	{
+		uint32_t dword;
+		uint16_t word[2];
+	} head;
+
+	vect[0].iov_base = &head;
+	vect[0].iov_len = 4;
+	vect[1].iov_base = buffer;
+	vect[1].iov_len = maxlen;
+	
+	int len = readv (fd, vect, 2);
+	if (len < 4)
 		return -1;
 
 #if defined (TUNSETIFF)
 	/* TUNTAP driver */
-	uint16_t flags, proto;
-	memcpy (&flags, pbuf, 2);
-	memcpy (&proto, pbuf + 2, 2);
-	if (proto != htons (ETH_P_IPV6))
+	if (head.word[1] != htons (ETH_P_IPV6))
 		return -1; // only accept IPv6 packets
 
 #elif defined (TUNSIFHEAD)
 	/* FreeBSD driver */
-	uint32_t af;
-	memcpy (&af, pbuf, 4);
-	if (af != htonl (AF_INET6))
+	if (head.dword != htonl (AF_INET6))
 		return -1;
-	
+
 #endif
 
-	memcpy (buffer, pbuf + 4, len - 4);
 	return len - 4;
 }
 
@@ -735,36 +743,40 @@ IPv6Tunnel::SendPacket (const void *packet, size_t len) const
 	if (fd == -1)
 		return -1;
 
-	uint8_t buf[65535 + 4];
+	struct iovec vect[2];
+	union
+	{
+		uint32_t dword;
+		uint16_t word[2];
+	} head;
+
+	vect[0].iov_base = &head;
+	vect[0].iov_len = 4;
+	vect[1].iov_base = (void *)packet; // necessary cast to non-const
+	vect[1].iov_len = len;
 
 #if defined (TUNSETIFF)
 	/* TUNTAP driver */
-	uint16_t word;
-
-	word = 0;
-	memcpy (buf, &word, 2);
-
-	word = htons (ETH_P_IPV6);
-	memcpy (buf + 2, &word, 2);
+	head.word[0] = 0;
+	head.word[1] = htons (ETH_P_IPV6);
 
 #elif defined (TUNSIFHEAD)
 	/* FreeBSD tunnel driver */
-	uint32_t af = htonl (AF_INET6);
-
-	memcpy (buf, &af, 4);
+	head.dword = htonl (AF_INET6);
 
 #endif
 
-	memcpy (buf + 4, packet, len);
-	len += 4;
-
-	if (write (fd, buf, len) == (int)len)
-		return 0;
-	if ((int)len == -1)
+	int val = writev (fd, vect, 2);
+	
+	if (val < 0)
+	{
 		syslog (LOG_ERR, _("Cannot send packet to tunnel: %m"));
+		return -1;
+	}
 	else
-		syslog (LOG_ERR, _("Packet truncated to %u byte(s)"), len);
+	if (((size_t)val) < len)
+		syslog (LOG_ERR, _("Packet truncated to %d byte(s)"), val);
 
-	return len - 4;
+	return val - 4;
 }
 
