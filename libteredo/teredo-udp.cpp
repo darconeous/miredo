@@ -81,6 +81,10 @@ OpenTeredoSocket (uint32_t bind_ip, uint16_t port)
 	t = IP_PMTUDISC_DONT;
 	setsockopt (fd, SOL_IP, IP_MTU_DISCOVER, &t, sizeof (t));
 #endif
+	/*
+	 * Teredo multicast packets always have a TTL of 1.
+	 */
+	setsockopt (fd, SOL_IP, IP_MULTICAST_TTL, &t, sizeof (t));
 	return fd;
 }
 
