@@ -1,7 +1,7 @@
 /*
  * miredo.cpp - Unix Teredo server & relay implementation
  *              core functions
- * $Id: miredo.cpp,v 1.16 2004/06/27 17:37:21 rdenisc Exp $
+ * $Id: miredo.cpp,v 1.17 2004/07/10 16:31:56 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -27,9 +27,10 @@
 # include <config.h>
 #endif
 
-#include <string.h> // memset()
+#include <string.h> // memset(), strsignal()
 #include <stdlib.h> // daemon() on FreeBSD
 #include <inttypes.h>
+#include <signal.h> // sigaction()
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -38,6 +39,7 @@
 #include <netinet/in.h> // struct sockaddr_in
 #include <syslog.h>
 #include <unistd.h> // uid_t
+#include <sys/wait.h> // wait()
 
 #ifndef LOG_PERROR
 # define LOG_PERROR 0
@@ -51,12 +53,61 @@
 #include "common_pkt.h" // is_ipv4_global_unicast() -- FIXME: code clean up
 #include "relay.h"
 
+/*
+ * Signal handlers
+ *
+ * We block all signals when one those we catch is being handled.
+ */
+static int should_exit;
+static int should_reload;
 
-struct miredo_setup conf;
+static void
+exit_handler (int signum)
+{
+	if (should_exit)
+		return;
 
-static MiredoRelayUDP *relay_udp = NULL;
-static MiredoServerUDP *server_udp = NULL;
-static IPv6Tunnel *ipv6_tunnel = NULL;
+	syslog (LOG_NOTICE, _("Exiting on signal %s."),
+		strsignal (signum));
+	should_exit = signum;
+}
+
+
+static void
+reload_handler (int signum)
+{
+	if (should_exit || should_reload)
+		return;
+		
+	syslog (LOG_NOTICE, _("Reloading configuration on signal %s."),
+		strsignal (signum));
+	should_reload = signum;
+}
+
+
+static void
+child_handler (int signum)
+{
+	int val;
+	pid_t pid = wait (&val); // can't fail
+
+	if (WIFEXITED (val))
+	{
+		val = WEXITSTATUS (val);
+		if (val)
+			syslog (LOG_DEBUG,
+				_("Child %d exited with error code %d"),
+				(int)pid, val);
+	}
+	else
+	if (WIFSIGNALED (val))
+	{
+		val = WTERMSIG (val);
+		syslog (LOG_DEBUG, _("Child %d killed by signal %d (%s)"),
+			(int)pid, val, strsignal (val));
+	}
+}
+
 
 /*
  * Main server function, with UDP datagrams receive loop.
@@ -64,10 +115,16 @@ static IPv6Tunnel *ipv6_tunnel = NULL;
  * * should be able to be relay-only
  * * use an application class instead
  */
+struct miredo_setup conf;
+
+static MiredoRelayUDP *relay_udp = NULL;
+static MiredoServerUDP *server_udp = NULL;
+static IPv6Tunnel *ipv6_tunnel = NULL;
+
 static int
 teredo_server_relay (void)
 {
-	MiredoRelay relay (conf.prefix);
+	MiredoRelay relay (conf.prefix); // TODO; probably setup earlier
 
 	if (relay_udp != NULL)
 	{
@@ -77,7 +134,8 @@ teredo_server_relay (void)
 
 	/* Main loop */
 	int exitcode = 0;
-	while (exitcode == 0)
+
+	while (exitcode == 0 && !should_exit && !should_reload)
 	{
 		/* Registers file descriptors */
 		fd_set readset;
@@ -105,7 +163,7 @@ teredo_server_relay (void)
 
 		/* Wait until one of them is ready for read */
 		maxfd = select (maxfd + 1, &readset, NULL, NULL, NULL);
-		if (maxfd <= 0)
+		if (maxfd <= 0) // interrupted by signal
 			continue;
 
 		/* Handle incoming data */
@@ -150,7 +208,6 @@ getipv4byname (const char *name, uint32_t *ipv4)
 	{
 		syslog (LOG_ERR, _("Invalid hostname `%s': %s"),
 			name, gai_strerror (check));
-		closelog ();
 		return -1;
 	}
 
@@ -176,7 +233,6 @@ getipv6byname (const char *name, struct in6_addr *ipv6)
 	{
 		syslog (LOG_ERR, _("Invalid hostname '%s': %s"),
 			name, gai_strerror (check));
-		closelog ();
 		return -1;
 	}
 
@@ -195,7 +251,7 @@ getipv6byname (const char *name, struct in6_addr *ipv6)
  */
 uid_t unpriv_uid = 0;
  
-extern "C" int
+static int
 miredo_run (uint16_t client_port, const char *server_name,
 		const char *prefix_name, const char *ifname)
 {
@@ -218,14 +274,12 @@ miredo_run (uint16_t client_port, const char *server_name,
 	if (prefix_name == NULL)
 		prefix_name = DEFAULT_TEREDO_PREFIX_STR":";
 
-	openlog ("miredo", LOG_PERROR|LOG_PID, LOG_DAEMON);
 
 	union teredo_addr prefix;
 	if (getipv6byname (prefix_name, &prefix.ip6))
 	{
 		syslog (LOG_ALERT,
 			_("Teredo IPv6 prefix not properly set."));
-		closelog ();
 		return -1;
 	}
 	conf.prefix = prefix.teredo.prefix;
@@ -234,13 +288,19 @@ miredo_run (uint16_t client_port, const char *server_name,
 	if (seteuid (0))
 		syslog (LOG_WARNING, _("SetUID to root failed: %m"));
 
-	/* Tunneling interface initialization */
+	/* 
+	 * Tunneling interface initialization
+	 *
+	 * NOTE: The Linux kernel does not allow setting up an address
+	 * before the interface is up, and it tends to complain about its
+	 * inability to set a link-scope address for the interface, as it
+	 * lacks an hardware layer address.
+	 */
 	// must likely be root:
 	IPv6Tunnel tunnel (ifname);
 	// must be root:
 	int retval = !tunnel
-		|| tunnel.SetMTU (1280)
-		|| tunnel.BringUp ()
+		|| tunnel.SetMTU (1280) || tunnel.BringUp ()
 	// FIXME: should be done later (not OK if we are a client)
 	// FIXME: should be done by TeredoRelay
 	// FIXME: but we need root, and later we are not root
@@ -248,6 +308,19 @@ miredo_run (uint16_t client_port, const char *server_name,
 		//|| tunnel.AddAddress (&teredo_restrict)
 		|| tunnel.AddAddress (&teredo_cone)
 		|| tunnel.AddRoute (&prefix.ip6, 32);
+
+#if 0
+	pipe ();
+	switch (fork ())
+	{
+		case -1:
+			syslog (LOG_ALERT, _("fork failed: %m"));
+			goto abort;
+
+		case 0: // TODO: implement secure root child
+			exit (0);
+	}
+#endif
 
 	// Definitely drops privileges
 	if (setuid (unpriv_uid))
@@ -264,6 +337,36 @@ miredo_run (uint16_t client_port, const char *server_name,
 	}
 
 	conf.tunnel = (ipv6_tunnel = &tunnel);
+
+	// Defines signal handlers
+	should_exit = 0;
+	should_reload = 0;
+	{
+		struct sigaction sa;
+
+		memset (&sa, 0, sizeof (sa));
+		sigemptyset (&sa.sa_mask); // -- can that really fail ?!?
+		sa.sa_flags = SA_ONESHOT;
+
+		sa.sa_handler = exit_handler;
+		sigaction (SIGINT, &sa, NULL);
+		sigaction (SIGQUIT, &sa, NULL);
+		sigaction (SIGTERM, &sa, NULL);
+
+		sa.sa_handler = reload_handler;
+		sigaction (SIGHUP, &sa, NULL);
+
+		sa.sa_handler = SIG_IGN;
+		// We check for EPIPE in errno instead:
+		sigaction (SIGPIPE, &sa, NULL);
+		// might use these for other purpose in later versions:
+		sigaction (SIGUSR1, &sa, NULL);
+		sigaction (SIGUSR2, &sa, NULL);
+
+		sa.sa_handler = child_handler;
+		sa.sa_flags = 0;
+		sigaction (SIGCHLD, &sa, NULL);
+	}
 
 	// Sets up server sockets
 	if (server_name != NULL)
@@ -317,13 +420,6 @@ miredo_run (uint16_t client_port, const char *server_name,
 		goto abort;
 	}
 
-	if (daemon (0, 0))
-	{
-		syslog (LOG_ALERT,
-			_("Background mode error (fork): %m"));
-		return -1;
-	}
-
 	retval = teredo_server_relay ();
 
 abort:
@@ -332,6 +428,62 @@ abort:
 	if (server_udp != NULL)
 		delete server_udp;
 
-	closelog ();
 	return retval;
 }
+
+/*
+ * Configuration stuff
+ * TODO: really implement reloading
+ */
+static const char *const daemon_ident = "miredo";
+
+extern "C" int
+miredo (uint16_t client_port, const char *server_name,
+		const char *prefix_name, const char *ifname)
+{
+	int facility = LOG_DAEMON;
+	openlog (daemon_ident, LOG_PID, facility);
+
+	int retval = -1;
+
+	do
+	{
+		/* TODO: really implement configuration parsing */
+
+		// Apply syslog facility change if needed
+		int newfacility = LOG_DAEMON;
+
+		if (newfacility != facility)
+		{
+			closelog ();
+			facility = newfacility;
+			openlog (daemon_ident, LOG_PID /* DEBUG */ | LOG_PERROR, facility);
+		}
+
+		// Starts the main miredo process
+		pid_t pid = fork ();
+
+		switch (pid)
+		{
+			case -1:
+				syslog (LOG_ALERT, _("fork failed: %m"));
+				break;
+
+			case 0:
+				exit (-miredo_run (client_port, server_name,
+					prefix_name, ifname));
+		}
+
+		// Waits until the miredo process terminates
+		while (waitpid (pid, &retval, 0) == -1);
+		
+		if (WIFEXITED (retval))
+			retval = -WEXITSTATUS (retval);
+	}
+	while (retval == -2);
+
+	closelog ();
+
+	return retval;
+}
+

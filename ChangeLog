@@ -1,3 +1,19 @@
+2004-07-10  Remi Denis-Courmont
+
+	* libtun6.ipv6-tunnel.c:
+	- no longer (try to) bring iface down in ~IPv6Tunnel(),
+	* configure.ac:
+	- removed --enable-miredo-user and --enable-miredo-group,
+	* src/main.c:
+	- support for chroot(),
+	- ability to override setuid user from the command line,
+	* src/relay.cpp:
+	- do not print routing warning when receiving multicast packet,
+	* src/miredo.cpp:
+	- daemonize before setuid,
+	- ability to reload (not yet existing) the configuration file,
+	- initial signal handling.
+
 2004-06-27  Remi Denis-Courmont
 
 	* include/teredo.c:

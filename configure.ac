@@ -65,42 +65,6 @@ dnl AC_SEARCH_LIBS(inet_aton, [resolv])
 RDC_REPLACE_FUNC_GETOPT_LONG
 
 
-# Checks for optionnal features
-AH_TEMPLATE(MIREDO_UNPRIV_USER,
-	    [Define to the system user name to be used by miredo.])
-AC_ARG_ENABLE([miredo-user],
-	      AS_HELP_STRING([--enable-miredo-user],
-			     [make miredo setuid to a non-root user (default 'miredo')]),
-	      [case "${enableval}" in
-		  yes) ac_cv_miredo_user="miredo" ;;
-		  *) ac_cv_miredo_user="${enableval}" ;;
-	       esac],
-	      [ac_cv_miredo_user="miredo"])
-AC_CACHE_CHECK([whether to use a non-root system user],
-	       [ac_cv_miredo_user],
-	       [ac_cv_miredo_user="miredo"])
-if test x$ac_cv_miredo_user != xno; then
-    AC_DEFINE_UNQUOTED(MIREDO_UNPRIV_USER, "$ac_cv_miredo_user")
-fi
-
-AH_TEMPLATE(MIREDO_UNPRIV_GROUP,
-	    [Define to the system group name to be used by miredo.])
-AC_ARG_ENABLE([miredo-group],
-	      AS_HELP_STRING([--enable-miredo-group],
-			     [make miredo setgid to that group (default 'nogroup')]),
-	      [case "${enableval}" in
-		  yes) ac_cv_miredo_group="nogroup" ;;
-		  *) ac_cv_miredo_group="${enableval}" ;;
-	       esac],
-	      [ac_cv_miredo_group="nogroup"])
-AC_CACHE_CHECK([whether to use a non-root system group],
-	       [ac_cv_miredo_group],
-	       [ac_cv_miredo_group="nogroup"])
-if test x$ac_cv_miredo_group != xno; then
-    AC_DEFINE_UNQUOTED(MIREDO_UNPRIV_GROUP, "$ac_cv_miredo_group")
-fi
-
-
 # Defines for <config.h>
 AH_BOTTOM([
 #define gettext( str )		(str)
