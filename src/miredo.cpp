@@ -127,9 +127,7 @@ teredo_server_relay (IPv6Tunnel& tunnel, TeredoRelay *relay = NULL,
 			TeredoServer *server = NULL)
 {
 	/* Main loop */
-	int exitcode = 0;
-
-	while (exitcode == 0 && !should_exit && !should_reload)
+	while (!should_exit && !should_reload)
 	{
 		/* Registers file descriptors */
 		fd_set readset;
@@ -199,8 +197,6 @@ teredo_server_relay (IPv6Tunnel& tunnel, TeredoRelay *relay = NULL,
 	}
 
 	/* Termination */
-	if (exitcode)
-		return exitcode;
 	if (should_reload)
 		return -2;
 	return 0;
