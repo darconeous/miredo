@@ -13,12 +13,12 @@
 .\" *  along with this program; if not, you can get it from:              *
 .\" *  http://www.gnu.org/copyleft/gpl.html                               *
 .\" ***********************************************************************
-.TH "MIREDO" "8" "$Date: 2004/07/13 09:53:36 $" "miredo" "System Manager's Manual"
+.TH "MIREDO" "8" "$Date: 2004/07/14 13:51:10 $" "miredo" "System Manager's Manual"
 .SH NAME
 miredo \- Teredo IPv6 tunneling for Unix
 .SH SYNOPSIS
 .BR "miredo" " [" "-i ifname" "] [" "-p relay_port" "] ["
-.BR "-P prefix" "] [" "-trootdir" "] [" "-u user" "] [" "-s server_ip" "]"
+.BR "-P prefix" "] [" "-t rootdir" "] [" "-u user" "] [" "-s server_ip" "]"
 
 .SH DESCRIPTON
 .B Miredo
@@ -80,7 +80,7 @@ With this option, Miredo will behave as a Teredo server on IPv4, with
 .RB "server_ip + 1" "."
 
 .TP
-.BR "\-trootdir" " or " "\-\-chroot=rootdir"
+.BR "\-t rootdir" " or " "\-\-chroot rootdir"
 .RI "Run the program in a " "chroot jail" ", for enhanced security."
 .RB "If " "rootdir" " is not specified, the home of the " "setuid user"
 .RB "will be used instead. See option " "-u" "."
@@ -144,7 +144,7 @@ ng_teredo(4), ipv6(7), route(8), ip(8)
 .SH AUTHOR
 Remi Denis-Courmont <rdenis at simphalempin.com>
 
-$Id: miredo.8,v 1.5 2004/07/13 09:53:36 rdenisc Exp $
+$Id: miredo.8,v 1.6 2004/07/14 13:51:10 rdenisc Exp $
 
 http://www.simphalempin.com/dev/miredo/
 

@@ -1,8 +1,8 @@
-2004-07-13  Remi Denis-Courmont
+2004-07-14  Remi Denis-Courmont
 
-	* src/main.c:
-	- no longer chroot by default, because it will be annoying for
-	new users.
+	* src/main.c (init-security):
+	- do not setsid if nodetach mode is enabled,
+	- do not chroot if running as root.
 
 2004-07-12  Remi Denis-Courmont
 
@@ -25,7 +25,7 @@
 	* libtun6.ipv6-tunnel.c:
 	- no longer (try to) bring iface down in ~IPv6Tunnel(),
 	* configure.ac:
-	- removed --enable-miredo-user and --enable-miredo-group,
+	- removed --enable-miredo-group, use user's group instead,
 	* src/main.c:
 	- support for chroot(),
 	- ability to override setuid user from the command line,

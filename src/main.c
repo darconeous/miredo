@@ -1,7 +1,7 @@
 /*
  * main.c - Unix Teredo server & relay implementation
  *          command line handling and core functions
- * $Id: main.c,v 1.15 2004/07/13 09:53:36 rdenisc Exp $
+ * $Id: main.c,v 1.16 2004/07/14 13:51:10 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -186,6 +186,16 @@ int clearenv (void)
 }
 #endif
 
+
+void chroot_notice (void)
+{
+	fputs (_("Chroot directory was probably not set up correctly.\n"
+		"NOTE: You can use command line option '-t /'\n"
+		"if you don't want to run the program inside a chroot jail.\n"
+		), stderr);
+}
+
+
 static int
 init_security (const char *username, const char *rootdir, int nodetach)
 {
@@ -194,7 +204,15 @@ init_security (const char *username, const char *rootdir, int nodetach)
 	int fd;
 
 	if (username == NULL)
-		username = "miredo"; // default user name
+	{
+#ifdef MIREDO_DEFAULT_USERNAME
+		username = MIREDO_DEFAULT_USERNAME; // default user name
+#else
+		username = "root";
+		if (rootdir == NULL) // do not chroot to "/root"
+			rootdir = "/";
+#endif	
+	}
 
 	/* Clears environment */
 	clearenv ();
@@ -237,11 +255,27 @@ init_security (const char *username, const char *rootdir, int nodetach)
 		return -1;
 	}
 
+#ifdef MIREDO_DEFAULT_USERNAME
+	if (pw->pw_uid == 0)
+	{
+		fputs (_("Error: This program is not supposed to keep root\n"
+			"privileges. That is potentially very dangerous\n"
+			"(all the more as it is beta quality code that has\n"
+			"never been audited for security vulnerabilities).\n"
+			"If you really want to run it as root, run the\n"
+			"source configure script with --disable-miredo-user\n"
+			"and recompile the program.\n"), stderr);
+		return -1;
+	}
+#endif
+
+	unpriv_uid = pw->pw_uid;
+
 	/* Unpriviledged group */
 	errno = 0;
 	if (setgid  (pw->pw_gid) || setgroups (0, NULL))
 	{
-		fprintf (stderr, _("SetGID to group %u: %s\n"),
+		fprintf (stderr, _("SetGID to group ID %u: %s\n"),
 				(unsigned)pw->pw_gid, strerror (errno));
 		return -1;
 	}
@@ -253,6 +287,7 @@ init_security (const char *username, const char *rootdir, int nodetach)
 	{
 		fprintf (stderr, _("Root directory jail in %s: %s\n"),
 				rootdir, strerror (errno));
+		chroot_notice ();
 		return -1;
 	}
 
@@ -260,23 +295,33 @@ init_security (const char *username, const char *rootdir, int nodetach)
 	fd = open_null ();
 	if (fd == -1)
 	{
-		fprintf (stderr, "%s/dev/null: %s\n", rootdir,
+		fprintf (stderr, "/dev/null: %s\n",
 				errno ? strerror (errno) : _("Invalid"));
-		fputs (_("Chroot directory was probably not set up "
-				"correctly.\n"), stderr);
+		chroot_notice ();
 		return -1;
 	}
-	
+	else
+	{
+		struct stat s;
+
+		if (stat ("/dev/log", &s) || !S_ISSOCK (s.st_mode))
+		{
+			fputs (_("Warning: /dev/log not found or invalid:\n"
+				"Logging will probably not work.\n"), stderr);
+			chroot_notice ();
+		}
+	}
+
 	/* 
-	 * Sets current directory to '/' in the chroot
-	 * and re-open 0, 1 and 2 from the chroot, so fchdir cannot break the
-	 * jail.
+	 * Detaches. This is not really a security thing, but it is simpler to
+	 * do it now.
 	 */
 	if (!nodetach)
 	{
 		switch (fork ())
 		{
 			case 0:
+				setsid (); // can't fail
 				break;
 
 			case -1:
@@ -288,21 +333,13 @@ init_security (const char *username, const char *rootdir, int nodetach)
 		}
 	}
 
-	if (setsid () == (pid_t)(-1))
-	{
-		perror (_("New session"));
-		return -1;
-	}
-
 	/* TODO: use POSIX capabilities */
 	/* Unpriviledged user (step 2) */
-	if (seteuid (pw->pw_uid))
+	if (seteuid (unpriv_uid))
 	{
 		perror (_("SetUID to unpriviledged user"));
 		return -1;
 	}
-
-	unpriv_uid = pw->pw_uid;
 
 	/*
 	 * Prevents fchdir from breaking the chroot jail and complete detach
@@ -323,15 +360,7 @@ int
 main (int argc, char *argv[])
 {
 	const char *server = NULL, *prefix = NULL, *ifname = NULL,
-			*username = NULL, *rootdir = "/";
-	/*
-	 * NOTE:
-	 * Because I thought it would be annoying for new users that the
-	 * program automatically tries to chroot, I made cchroot to "/" the
-	 * default, rather than chroot in the miredo user's home directory.
-	 * To restore that behavior, just make NULL the initial value for
-	 * rootdir.
-	 */
+			*username = NULL, *rootdir = NULL;
 	uint16_t client_port = 0;
 	int foreground = 0;
 	
@@ -345,7 +374,7 @@ main (int argc, char *argv[])
 		{ "port",	required_argument,	NULL, 'p' },
 		{ "prefix",	required_argument,	NULL, 'P' },
 		{ "server",	required_argument,	NULL, 's' },
-		{ "chroot",	optional_argument,	NULL, 't' },
+		{ "chroot",	required_argument,	NULL, 't' },
 		{ "user",	required_argument,	NULL, 'u' },
 		{ "version",	no_argument,		NULL, 'V' },
 		{ NULL,		no_argument,		NULL, '\0'}
@@ -359,7 +388,7 @@ main (int argc, char *argv[])
 	else \
 		setting = optarg;
 
-	while ((c = getopt_long (argc, argv, "fhi:p:P:r:s:t::u:V", opts, NULL))
+	while ((c = getopt_long (argc, argv, "fhi:p:P:r:s:t:u:V", opts, NULL))
 			!= -1)
 		switch (c)
 		{
@@ -407,8 +436,7 @@ main (int argc, char *argv[])
 				break;
 
 			case 't':
-				rootdir = optarg;
-				// NULL is legal
+				ONETIME_SETTING (rootdir);
 				break;
 
 			case 'u':

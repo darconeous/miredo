@@ -66,6 +66,17 @@ RDC_REPLACE_FUNC_GETOPT_LONG
 AC_CHECK_FUNCS([clearenv])
 
 
+# Checks for optionnal features
+AC_ARG_ENABLE([miredo-user],
+	      AS_HELP_STRING([--enable-miredo-user],
+			     [user to run as (default 'miredo')]))
+AS_IF([test "x${enable_miredo_user}" = "x" || test "${enable_miredo_user}" = "yes"],
+	[enable_miredo_user="miredo"])
+AH_TEMPLATE(MIREDO_DEFAULT_USERNAME,
+            [Define to the system user name to be used by miredo.])
+AS_IF([test "${enable_miredo_user}" != "no"],
+	AC_DEFINE_UNQUOTED(MIREDO_DEFAULT_USERNAME, "$enable_miredo_user"))
+
 # Defines for <config.h>
 AH_BOTTOM([
 #define gettext( str )		(str)
