@@ -1,7 +1,7 @@
 /*
  * miredo.cpp - Unix Teredo server & relay implementation
  *              core functions
- * $Id: miredo.cpp,v 1.12 2004/06/26 14:54:35 rdenisc Exp $
+ * $Id: miredo.cpp,v 1.13 2004/06/26 15:24:26 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -48,6 +48,7 @@
 #include "teredo-udp.h"
 #include "ipv6-tunnel.h"
 #include "server_pkt.h"
+#include "common_pkt.h" // is_ipv4_global_unicast() -- FIXME: code clean up
 #include "relay.h"
 
 
@@ -147,7 +148,7 @@ getipv4byname (const char *name, uint32_t *ipv4)
 
 	if (check)
 	{
-		syslog (LOG_ERR, _("Invalid hostname `%s': %s\n"),
+		syslog (LOG_ERR, _("Invalid hostname `%s': %s"),
 			name, gai_strerror (check));
 		closelog ();
 		return -1;
@@ -173,7 +174,7 @@ getipv6byname (const char *name, struct in6_addr *ipv6)
 
 	if (check)
 	{
-		syslog (LOG_ERR, _("Invalid hostname '%s': %s\n"),
+		syslog (LOG_ERR, _("Invalid hostname '%s': %s"),
 			name, gai_strerror (check));
 		closelog ();
 		return -1;
@@ -181,7 +182,7 @@ getipv6byname (const char *name, struct in6_addr *ipv6)
 
 	memcpy (ipv6,
 		&((const struct sockaddr_in6*)(res->ai_addr))->sin6_addr,
-		sizeof (ipv6));
+		sizeof (struct in6_addr));
 
 	freeaddrinfo (res);
 	return 0;
@@ -223,14 +224,14 @@ miredo_run (uint16_t client_port, const char *server_name,
 	if (getipv6byname (prefix_name, &prefix))
 	{
 		syslog (LOG_ALERT,
-			_("Teredo IPv6 prefix not properly set.\n"));
+			_("Teredo IPv6 prefix not properly set."));
 		closelog ();
 		return -1;
 	}
 
 
 	if (seteuid (0))
-		syslog (LOG_WARNING, _("SetUID to root failed: %m\n"));
+		syslog (LOG_WARNING, _("SetUID to root failed: %m"));
 
 	/* Tunneling interface initialization */
 	// must likely be root:
@@ -249,7 +250,7 @@ miredo_run (uint16_t client_port, const char *server_name,
 	// Definitely drops privileges
 	if (setuid (unpriv_uid))
 	{
-		syslog (LOG_ALERT, _("setuid failed: %m\n"));
+		syslog (LOG_ALERT, _("setuid failed: %m"));
 		goto abort;
 	}
 
@@ -269,10 +270,18 @@ miredo_run (uint16_t client_port, const char *server_name,
 		 
 		if (getipv4byname (server_name, &ipv4))
 		{
-			syslog (LOG_ALERT, _("Fatal configuration error\n"));
+			syslog (LOG_ALERT, _("Fatal configuration error"));
 			goto abort;
 		}
-		
+
+		if ((ipv4 == 0) || !is_ipv4_global_unicast (ipv4))
+		{
+			syslog (LOG_ALERT,
+				_("Server IPv4 must be global unicast. "
+								"Exiting."));
+			goto abort;
+		}
+
 		server_udp = new MiredoServerUDP;
 		conf.server_ip = ipv4;
 		/*
@@ -286,9 +295,9 @@ miredo_run (uint16_t client_port, const char *server_name,
 
 		if (server_udp->ListenIP (ipv4, conf.server_ip2))
 		{
-			syslog (LOG_ALERT, _("Teredo UDP port failure\n"));
+			syslog (LOG_ALERT, _("Teredo UDP port failure"));
 			syslog (LOG_NOTICE, _("Make sure another instance "
-				"of the program is not already running.\n"));
+				"of the program is not already running."));
 			goto abort;
 		}
 	}
@@ -302,7 +311,7 @@ miredo_run (uint16_t client_port, const char *server_name,
 			_("Teredo service port failure: "
 			"cannot open UDP port %u\n"), (unsigned)client_port);
 		syslog (LOG_NOTICE, _("Make sure another instance "
-			"of the program is not already running.\n"));
+			"of the program is not already running."));
 		goto abort;
 	}
 

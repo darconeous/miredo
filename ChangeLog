@@ -2,7 +2,8 @@
 
 	* src/miredo.cpp, src/relay.cpp:
 	- removed useless memory checks (the program will be killed if we run
-	  out of memory anyway).
+	  out of memory anyway),
+	- check that server primary IPv4 address is a global unicast one.
 
 2004-06-25  Remi Denis-Courmont
 
