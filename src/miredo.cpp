@@ -406,6 +406,7 @@ miredo_run (uint16_t client_port, const char *server_name,
 		}
 
 		server->SetPrefix (prefix.teredo.prefix);
+		server->SetTunnel (&tunnel);
 	}
 
 	// Sets up relay or client

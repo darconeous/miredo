@@ -42,7 +42,7 @@ class MiredoServer : public TeredoServer
 
 	public:
 		MiredoServer (uint32_t ip1, uint32_t ip2)
-			: TeredoServer (ip1, ip2)
+			: TeredoServer (ip1, ip2), tunnel (NULL)
 		{
 		}
 		

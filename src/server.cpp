@@ -34,5 +34,7 @@
 int MiredoServer::SendIPv6Packet (const void *packet,
 						size_t length)
 {
-	return tunnel->SendPacket (packet, length);
+	return (tunnel != NULL) ?
+		tunnel->SendPacket (packet, length)
+		: -1;
 }
