@@ -1,4 +1,148 @@
 ------------------------------------------------------------------------
+r210 | remi | 2004-10-30 22:23:12 +0200 (Sat, 30 Oct 2004) | 2 lines
+Changed paths:
+   M /trunk/NEWS
+   M /trunk/configure.ac
+
+Changed version number to 0.3.0
+
+------------------------------------------------------------------------
+r209 | remi | 2004-10-30 22:21:28 +0200 (Sat, 30 Oct 2004) | 2 lines
+Changed paths:
+   M /trunk/libtun6/ipv6-tunnel.cpp
+
+Forgot one Darwin warning
+
+------------------------------------------------------------------------
+r208 | remi | 2004-10-30 22:15:28 +0200 (Sat, 30 Oct 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+   M /trunk/src/main.c
+   M /trunk/src/miredo.cpp
+
+Warning fixes
+
+------------------------------------------------------------------------
+r207 | remi | 2004-10-30 22:10:17 +0200 (Sat, 30 Oct 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/teredo-udp.h
+
+Removed useless const qualifier
+
+------------------------------------------------------------------------
+r206 | remi | 2004-10-30 22:05:40 +0200 (Sat, 30 Oct 2004) | 2 lines
+Changed paths:
+   M /trunk/libtun6/ipv6-tunnel.cpp
+
+Fix error message about tunnel device file
+
+------------------------------------------------------------------------
+r205 | remi | 2004-10-30 22:03:47 +0200 (Sat, 30 Oct 2004) | 2 lines
+Changed paths:
+   M /trunk/src/main.c
+
+Better wrapping of the chroot warning
+
+------------------------------------------------------------------------
+r204 | remi | 2004-10-30 22:01:17 +0200 (Sat, 30 Oct 2004) | 2 lines
+Changed paths:
+   M /trunk/src/main.c
+
+Improved error messages again
+
+------------------------------------------------------------------------
+r203 | remi | 2004-10-30 22:00:56 +0200 (Sat, 30 Oct 2004) | 2 lines
+Changed paths:
+   M /trunk/libtun6/ipv6-tunnel.cpp
+   M /trunk/libtun6/ipv6-tunnel.h
+
+Driver diagnostic (mainly for Linux and Darwin)
+
+------------------------------------------------------------------------
+r202 | remi | 2004-10-30 21:35:04 +0200 (Sat, 30 Oct 2004) | 2 lines
+Changed paths:
+   M /trunk/NEWS
+   M /trunk/TODO
+   M /trunk/miredo.8
+
+Updated doc to reflect latest changes
+
+------------------------------------------------------------------------
+r201 | remi | 2004-10-30 20:48:08 +0200 (Sat, 30 Oct 2004) | 3 lines
+Changed paths:
+   M /trunk/src/miredo.cpp
+
+Let the kernel choose a service port automatically instead of
+hard-coding non standard port 3545.
+
+------------------------------------------------------------------------
+r200 | remi | 2004-10-30 20:41:53 +0200 (Sat, 30 Oct 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+
+Removed debug messages
+
+------------------------------------------------------------------------
+r199 | remi | 2004-10-30 20:39:55 +0200 (Sat, 30 Oct 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/queue.cpp
+
+Removed debug messages
+
+------------------------------------------------------------------------
+r198 | remi | 2004-10-30 20:39:09 +0200 (Sat, 30 Oct 2004) | 6 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/relay.h
+
+Implemented full queueing of IPv6 packets :
+- both way,
+- more than one packet,
+- with proper dequeuing.
+
+
+------------------------------------------------------------------------
+r197 | remi | 2004-10-30 20:31:22 +0200 (Sat, 30 Oct 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/queue.cpp
+   M /trunk/libteredo/queue.h
+
+Fixes
+
+------------------------------------------------------------------------
+r196 | remi | 2004-10-30 18:52:26 +0200 (Sat, 30 Oct 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/queue.h
+
+PacketsQueue made a virtual class
+
+------------------------------------------------------------------------
+r195 | remi | 2004-10-30 18:51:50 +0200 (Sat, 30 Oct 2004) | 2 lines
+Changed paths:
+   M /trunk/libteredo/Makefile.am
+   A /trunk/libteredo/queue.cpp
+   A /trunk/libteredo/queue.h
+
+Common support for real packets queue (with several packets)
+
+------------------------------------------------------------------------
+r194 | remi | 2004-10-28 22:20:02 +0200 (Thu, 28 Oct 2004) | 3 lines
+Changed paths:
+   M /trunk/ChangeLog
+   M /trunk/README
+
+Use /var/lib/miredo instead of /var/run/miredo as a better sample
+chroot directory
+
+------------------------------------------------------------------------
+r193 | remi | 2004-10-27 23:18:39 +0200 (Wed, 27 Oct 2004) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog
+   M /trunk/TODO
+
+Update for release 0.2.3
+
+------------------------------------------------------------------------
 r192 | remi | 2004-10-27 23:18:01 +0200 (Wed, 27 Oct 2004) | 2 lines
 Changed paths:
    M /trunk/libteredo/relay.cpp
