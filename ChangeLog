@@ -1,7 +1,14 @@
+2004-06-26  Remi Denis-Courmont
+
+	* src/miredo.cpp, src/relay.cpp:
+	- removed useless memory checks (the program will be killed if we run
+	  out of memory anyway).
+
 2004-06-25  Remi Denis-Courmont
 
 	* src/ipv6-tunnnel.cpp:
-	- compile fix for broken pre-08-2003 Kame implementations.
+	- compile fix for broken pre-08-2003 Kame implementations,
+	- fixed support for adding/deleting tunnel addresses on FreeBSD.
 
 2004-05-24  Remi Denis-Courmont
 

@@ -1,6 +1,6 @@
 /*
  * relay.cpp - Teredo relay peers list definition
- * $Id: relay.cpp,v 1.4 2004/06/21 17:48:55 rdenisc Exp $
+ * $Id: relay.cpp,v 1.5 2004/06/26 08:51:32 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -69,6 +69,8 @@ MiredoRelay::~MiredoRelay (void)
 /* 
  * Allocates a peer entry. It is up to the caller to fill informations
  * correctly.
+ *
+ * FIXME: number of entry should be bound
  */
 struct MiredoRelay::peer *MiredoRelay::AllocatePeer (void)
 {
@@ -81,15 +83,7 @@ struct MiredoRelay::peer *MiredoRelay::AllocatePeer (void)
 			return p;
 
 	/* Otherwise allocates a new peer entry */
-	struct peer *p;
-	try
-	{
-		p = new struct peer;
-	}
-	catch (...)
-	{
-		return NULL;
-	}
+	struct peer *p = new struct peer;
 
 	/* Puts new entry at the head of the list */
 	p->next = head;
@@ -215,11 +209,6 @@ int MiredoRelay::TransmitPacket (void)
 	{
 		// Creates an entry
 		p = AllocatePeer ();
-		if (p == NULL)
-		{
-			syslog (LOG_ERR, _("Dropped packet: %m\n"));
-			return -1;
-		}
 		syslog (LOG_DEBUG, "DEBUG: allocated new peer\n");
 		memcpy (&p->addr, &addr.ip6, sizeof (addr.ip6));
 		p->mapped_addr = ~addr.teredo.client_ip;
@@ -245,24 +234,11 @@ int MiredoRelay::TransmitPacket (void)
 	syslog (LOG_DEBUG, "DEBUG: xmit bubble to untrusted non-cone peer's server\n");
 	if (p->queue == NULL)
 	{
-		try
-		{
-			p->queue = new uint8_t[length];
-		}
-		catch (...)
-		{
-			p->queue = NULL;
-		}
+		p->queue = new uint8_t[length];
 
-		if (p->queue != NULL)
-		{
-			syslog (LOG_DEBUG, "DEBUG: Packet queued for later delivery\n");
-			memcpy (p->queue, buf, length);
-			p->queuelen = length;
-		}
-		else
-			syslog (LOG_WARNING,
-				_("Packet queueing problem: %m\n"));
+		syslog (LOG_DEBUG, "DEBUG: Packet queued for later delivery\n");
+		memcpy (p->queue, buf, length);
+		p->queuelen = length;
 	}
 	else
 		syslog (LOG_DEBUG, _("FIXME: packet not queued\n"));

@@ -1,6 +1,6 @@
 /*
  * ipv6-tunnel.cpp - IPv6 interface class definition
- * $Id: ipv6-tunnel.cpp,v 1.11 2004/06/25 15:00:42 rdenisc Exp $
+ * $Id: ipv6-tunnel.cpp,v 1.12 2004/06/26 08:51:32 rdenisc Exp $
  */
 
 /***********************************************************************
@@ -103,7 +103,7 @@ IPv6Tunnel::IPv6Tunnel (const char *req_name) : fd (-1)
 	/*
 	 * TUNTAP (Linux) tunnel driver initialization
 	 */
-	const char *tundev = "/dev/net/tun";
+	const char *const tundev = "/dev/net/tun";
 
 	fd = open (tundev, O_RDWR);
 	if (fd == -1)
@@ -128,28 +128,40 @@ IPv6Tunnel::IPv6Tunnel (const char *req_name) : fd (-1)
 	}
 
 	ifname = strdup (req.ifr_name);
-	if (ifname == NULL)
-	{
-		syslog (LOG_ERR, _("Tunnel error: %m"));
-		close (fd);
-		fd = -1;
-	}
 #elif defined (TUNSIFHEAD)
 	/*
 	 * FreeBSD tunnel driver initialization
 	 */
 	char tundev[12];
+	int reqfd = socket_udp6 ();
 
-	for (unsigned i = 0; (i < 256) && (fd == -1); i++)
+	if (reqfd != -1)
 	{
-		snprintf (tundev, sizeof (tundev), "/dev/tun%u", i);
-		tundev[sizeof (tundev) - 1] = '\0';
-
-		fd = open (tundev, O_RDWR);
-		if (fd != -1)
+		for (unsigned i = 0; (i < 256) && (fd == -1); i++)
 		{
-			const int dummy = 1;
+			snprintf (tundev, sizeof (tundev), "/dev/tun%u", i);
+			tundev[sizeof (tundev) - 1] = '\0';
 
+			fd = open (tundev, O_RDWR);
+			if (fd == -1)
+				continue;
+
+			// Overrides the interface name
+			struct ifreq req;
+			memset (&req, 0, sizeof (req));
+			ifname = strdup (req_name);
+			req.ifr_data = ifname;
+
+			if (ioctl (reqfd, SIOCSIFNAME, &req))
+			{
+				syslog (LOG_ERR,
+					_("Tunnel error (SIOCSIFNAME): %m"));
+				close (fd);
+				fd = -1;
+			}
+
+			// Enables TUNSIFHEAD
+			const int dummy = 1;
 			if (ioctl (fd, TUNSIFHEAD, &dummy))
 			{
 				syslog (LOG_ERR,
@@ -157,15 +169,9 @@ IPv6Tunnel::IPv6Tunnel (const char *req_name) : fd (-1)
 				close (fd);
 				fd = -1;
 			}
-			else
-			if (asprintf (&ifname, "tun%u", i) == -1)
-			{
-				syslog (LOG_ERR,
-					_("Tunnel error: %m"));
-				close (fd);
-				fd = -1;
-			}	
 		}
+
+		close (reqfd);
 	}
 #endif
 
@@ -299,7 +305,7 @@ _iface_addr (const char *ifname, bool add,
 		// Sets interface address
 		memset (&req6, 0, sizeof (req6));
 		req6.ifr6_ifindex = req.ifr_ifindex;
-		memcpy (&req6.ifr6_addr, addr, sizeof (struct in6_addr));
+		memcpy (&req6.ifr6_addr, addr, sizeof (req6.ifr6_addr));
 		req6.ifr6_prefixlen = prefix_len;
 
 		cmd = add ? SIOCSIFADDR : SIOCDIFADDR;
@@ -317,7 +323,14 @@ _iface_addr (const char *ifname, bool add,
 	{
 		memset (&addreq6, 0, sizeof (addreq6));
 		secure_strncpy (addreq6.ifra_name, ifname, IFNAMSIZ);
-		memcpy (&addreq6.ifra_addr, addr, sizeof (struct in6_addr));
+		addreq6.ifra_addr.sin6_family = AF_INET6;
+		addreq6.ifra_addr.sin6_len = sizeof (addreq6.ifra_addr);
+		memcpy (&addreq6.ifra_addr.sin6_addr, addr,
+			sizeof (addreq6.ifra_addr.sin6_addr));
+
+		addreq6.ifra_prefixmask.sin6_family = AF_INET6;
+		addreq6.ifra_prefixmask.sin6_len =
+					sizeof (addreq6.ifra_prefixmask);
 		plen_to_mask (prefix_len, &addreq6.ifra_prefixmask.sin6_addr);
 
 		addreq6.ifra_lifetime.ia6t_vltime = ND6_INFINITE_LIFETIME;
@@ -330,7 +343,10 @@ _iface_addr (const char *ifname, bool add,
 	{
 		memset (&delreq6, 0, sizeof (delreq6));
 		secure_strncpy (delreq6.ifr_name, ifname, IFNAMSIZ);
-		memcpy (&delreq6.ifr_addr, addr, sizeof (struct in6_addr));
+		delreq6.ifr_addr.sin6_family = AF_INET6;
+		delreq6.ifr_addr.sin6_len = sizeof (delreq6.ifr_addr);
+		memcpy (&delreq6.ifr_addr.sin6_addr, addr,
+			sizeof (delreq6.ifr_addr.sin6_addr));
 
 		cmd = SIOCDIFADDR_IN6;
 		parm = &delreq6;

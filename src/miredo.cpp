@@ -1,7 +1,7 @@
 /*
  * miredo.cpp - Unix Teredo server & relay implementation
  *              core functions
- * $Id: miredo.cpp,v 1.10 2004/06/24 19:16:14 rdenisc Exp $
+ * $Id: miredo.cpp,v 1.11 2004/06/26 08:51:32 rdenisc Exp $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
@@ -213,7 +213,7 @@ miredo_run (uint16_t client_port, const char *server_name,
 		client_port = IPPORT_TEREDO + 1;
 
 	if (ifname == NULL)
-		ifname = "ter%d";
+		ifname = "teredo%d";
 	if (prefix_name == NULL)
 		prefix_name = TEREDO_PREFIX_STR":";
 
@@ -273,16 +273,7 @@ miredo_run (uint16_t client_port, const char *server_name,
 			goto abort;
 		}
 		
-		try
-		{
-			server_udp = new MiredoServerUDP;
-		}
-		catch (...)
-		{
-			server_udp = NULL;
-			goto abort;
-		}
-		
+		server_udp = new MiredoServerUDP;
 		conf.server_ip = ipv4;
 		/*
 		 * NOTE:
@@ -303,16 +294,7 @@ miredo_run (uint16_t client_port, const char *server_name,
 	}
 
 	// Sets up relay socket
-	try
-	{
-		relay_udp = new MiredoRelayUDP;
-	}
-	catch (...)
-	{
-		relay_udp = NULL;
-		goto abort;
-	}
-		
+	relay_udp = new MiredoRelayUDP;
 
 	if (relay_udp->ListenPort (htons (client_port)))
 	{
