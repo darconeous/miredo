@@ -180,6 +180,13 @@ global public IPv6 connectivity, even if that breaks some corporate
 policy. If that is an issue, outgoing UDP packets to port 3544 should
 be blocked at the perimeter firewall.
 
+.SH SIGNALS
+SIGHUP Force a reload of the daemon.
+
+SIGINT, SIGTERM Shutdown the daemon.
+
+SIGUSR1, SIGUSR2 Do nothing, might be used in future versions.
+
 .SH "SEE ALSO"
 ng_teredo(4), ipv6(7), route(8), ip(8)
 
