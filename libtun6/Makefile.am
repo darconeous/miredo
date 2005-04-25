@@ -1,5 +1,5 @@
 # Makefile.am - libtun6/ directory Makefile for miredo
-# $Id: Makefile.am,v 1.1 2004/06/27 15:27:12 rdenisc Exp $
+# $Id$
 
 # ***********************************************************************
 # *  Copyright (C) 2004 Remi Denis-Courmont.                            *
