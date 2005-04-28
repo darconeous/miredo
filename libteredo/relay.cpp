@@ -533,8 +533,6 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
  * (as specified per paragraph 5.4.2). That's called "Packet reception".
  * Returns 0 on success, -1 on error.
  */
-// seconds to wait before considering that we've lost contact with the server
-#define SERVER_LOSS_DELAY 40
 #define SERVER_PING_DELAY 30
 
 unsigned TeredoRelay::QualificationTimeOut = 4; // seconds
@@ -579,9 +577,7 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 			if (memcmp (s_nonce, probe.nonce, 8))
 				return 0; // server authentication failure
 
-			// TODO: refresh interval randomisation
-			gettimeofday (&probe.serv, NULL);
-			probe.serv.tv_sec += SERVER_LOSS_DELAY;
+			probe.count = 0; // resets failed probes count
 
 			// Checks if our Teredo address changed:
 			union teredo_addr newaddr;
@@ -863,17 +859,16 @@ int TeredoRelay::ProcessQualificationPacket (const TeredoPacket *packet)
 	if (!ParseRA (*packet, &newaddr, probe.state == PROBE_CONE))
 		return 0;
 
-	/* Correct router advertisement! */
-	gettimeofday (&probe.serv, NULL);
-	probe.serv.tv_sec += SERVER_LOSS_DELAY;
+	/* Valid router advertisement! */
+	gettimeofday (&probe.next, NULL);
+	unsigned delay;
 
 	if (probe.state == PROBE_RESTRICT)
 	{
 		probe.state = PROBE_SYMMETRIC;
 		SendRS (sock, GetServerIP (), probe.nonce, false, false);
 
-		gettimeofday (&probe.next, NULL);
-		probe.next.tv_sec += QualificationTimeOut;
+		delay = QualificationTimeOut;
 		memcpy (&addr, &newaddr, sizeof (addr));
 	}
 	else
@@ -887,8 +882,7 @@ int TeredoRelay::ProcessQualificationPacket (const TeredoPacket *packet)
 		addr.teredo.prefix = PREFIX_UNSET;
 		probe.state = PROBE_CONE;
 		probe.count = 0;
-		gettimeofday (&probe.next, NULL);
-		probe.next.tv_sec += RestartDelay;
+		delay = RestartDelay;
 	}
 	else
 	{
@@ -896,14 +890,15 @@ int TeredoRelay::ProcessQualificationPacket (const TeredoPacket *packet)
 		        gettext (probe.state == PROBE_CONE
 		        ? N_("cone") : N_("restricted")));
 		probe.state = QUALIFIED;
-
-		gettimeofday (&probe.next, NULL);
-		probe.next.tv_sec += SERVER_PING_DELAY;
+		probe.count = 0;
+		delay = SERVER_PING_DELAY;
 
 		// call memcpy before NotifyUp for re-entrancy
 		memcpy (&addr, &newaddr, sizeof (addr));
 		NotifyUp (&newaddr.ip6);
 	}
+
+	probe.next.tv_sec += delay;
 
 	return 0;
 }
@@ -924,69 +919,72 @@ int TeredoRelay::Process (void)
 	/* Qualification or server refresh (only for client) */
 	if (((signed)(now.tv_sec - probe.next.tv_sec) > 0)
 	 || ((now.tv_sec == probe.next.tv_sec)
-	  && ((signed)(now.tv_usec - probe.next.tv_usec) > 0)))
+	  && (now.tv_usec > probe.next.tv_usec)))
 	{
-		unsigned delay;
+		unsigned delay = QualificationTimeOut;
 		bool down = false;
 
 		if (probe.state == QUALIFIED)
 		{
 			// TODO: randomize refresh interval
-			delay = SERVER_PING_DELAY;
-#if 0
-			if (((signed)(now.tv_sec - probe.serv.tv_sec) > 0)
-			 || ((now.tv_sec == probe.serv.tv_sec)
-			  && ((signed)(now.tv_usec - probe.serv.tv_usec) > 0)))
+			if (probe.count == 0)
+				delay = SERVER_PING_DELAY;
+
+			/*
+			 * FIXME: send a refresh every ~ 30 sec
+			 * but wait for them only [QualificationTimeOut] sec.
+			 * Much easier in a dedicated thread.
+			 */
+
+			// connectivity with server lost
+			if (probe.count >= QualificationRetries)
 			{
-				// connectivity with server lost
+				probe.state = IsCone () ? PROBE_CONE : PROBE_RESTRICT;
 				probe.count = 1;
-				probe.state = IsCone () ? PROBE_CONE
-							: PROBE_RESTRICT;
 				down = true;
 			}
-#endif
+		}
+		else
+		if (probe.state == PROBE_CONE)
+		{
+			if (probe.count >= QualificationRetries)
+			{
+				// Cone qualification failed
+				probe.state = PROBE_RESTRICT;
+				probe.count = 0;
+			}
 		}
 		else
 		{
-			delay = QualificationTimeOut;
+			if (probe.state == PROBE_SYMMETRIC)
+				/*
+				 * Second half of restricted
+				 * qualification failed: re-trying
+				 * restricted qualifcation
+				 */
+				probe.state = PROBE_RESTRICT;
 
-			if (probe.state == PROBE_CONE)
+			switch (QualificationRetries - probe.count)
 			{
-				if (probe.count >= QualificationRetries)
-				{
-					// Cone qualification failed
-					probe.state = PROBE_RESTRICT;
-					probe.count = 0;
-				}
-			}
-			else
-			{
-				if (probe.state == PROBE_SYMMETRIC)
-					/*
-					 * Second half of restricted
-					 * qualification failed: re-trying
-					 * restricted qualifcation
-					 */
-					probe.state = PROBE_RESTRICT;
-
-				if (probe.count >= QualificationRetries)
-					/*
-					 * Restricted qualification failed.
-					 * Restarting from zero.
-					 */
-					probe.state = PROBE_CONE;
-				else
-				if ((probe.count + 1) == QualificationRetries)
+				case 1:
 					/*
 					 * Last restricted qualification
 					 * attempt before declaring failure.
 					 * Defer new attempts for 300 seconds.
 					 */
 					delay = RestartDelay;
-			}
+					break;
 
-			probe.count ++;
+				case 0:
+					/*
+					 * Restricted qualification failed.
+					 * Restarting from zero.
+					 */
+					probe.state = PROBE_CONE;
+			}
 		}
+
+		probe.count ++;
 
 		SendRS (sock, GetServerIP (), probe.nonce,
 			probe.state == PROBE_CONE /* cone */,

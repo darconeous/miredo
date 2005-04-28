@@ -50,7 +50,7 @@ class TeredoRelay
 		union teredo_addr addr;
 		struct
 		{
-			struct timeval next, serv;
+			struct timeval next;
 			uint8_t nonce[8];
 			unsigned state:2;
 			unsigned count:3;
