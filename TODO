@@ -5,11 +5,15 @@ $Id$
 Features:
 ----------
 - fix connectivity loss detection,
+- fix bubble retransmit / timing,
 - support for specifying server from the command line,
 - support for specifying multiples servers for redumdancy,
+- option to specify secondary server IPv4,
+- option to ignore cone bit,
+- take failure to send UDP packets into account,
+- external control program for scripting,
 - some statistics,
 - fixed TODOs in source code,
-- better support for lossy IPv4 connectivity,
 - local Teredo discovery,
 - "automatic sunset" / "exit strategy" -- quite complicated,
 
