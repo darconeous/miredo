@@ -108,7 +108,8 @@ maintain their IPv6 over UDP/IPv4 tunnel across a NAT device.
 
 .RB "This directive " "MUST" " be specified when Miredo is in"
 .IR "client" " mode. " "hostname" " must resolve to a valid IPv4"
-address.
+address. If it is not present, and no server hostname is specified on
+the command line when starting miredo either, the program will fail.
 
 .TP
 .BR "DefaultRoute " "on/off"
