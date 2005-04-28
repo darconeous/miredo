@@ -644,9 +644,11 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 		 */
 		const uint8_t *s_nonce = packet.GetAuthNonce ();
 
-		if ((s_nonce != NULL)
-		 && (memcmp (s_nonce, probe.nonce, 8) == 0))
+		if (s_nonce != NULL)
 		{
+			if (memcmp (s_nonce, probe.nonce, 8))
+				return 0; // server authentication failure
+
 			// TODO: refresh interval randomisation
 			gettimeofday (&probe.serv, NULL);
 			probe.serv.tv_sec += SERVER_LOSS_DELAY;
