@@ -29,7 +29,8 @@
 #include <gettext.h>
 
 #include <string.h>
-#include <time.h> // TODO: use gettimeofday
+#include <time.h>
+
 #if HAVE_STDINT_H
 # include <stdint.h>
 #elif HAVE_INTTYPES_H
@@ -109,61 +110,77 @@ class TeredoRelay::InQueue : public PacketsQueue
 
 
 
-struct TeredoRelay::peer
+class TeredoRelay::peer
 {
-	struct timeval expiry;
+	private:
+		struct timeval expiry;
 
-	OutQueue outqueue;
-	InQueue inqueue;
+	public:
+		OutQueue outqueue;
+		InQueue inqueue;
 
-	peer (TeredoRelayUDP *sock, TeredoRelay *r)
-		: outqueue (sock), inqueue (r)
-	{
-	}
-		
-	struct peer *next;
-
-	struct in6_addr addr;
-	uint32_t mapped_addr;
-	uint16_t mapped_port;
-	union
-	{
-		struct
+		peer (TeredoRelayUDP *sock, TeredoRelay *r)
+			: outqueue (sock), inqueue (r)
 		{
-			unsigned trusted:1;
-			unsigned replied:1;
-			unsigned bubbles:2;
-			unsigned nonce:1; // mapped_* unset, nonce set
+		}
+		
+		peer *next;
+
+		struct in6_addr addr;
+		uint32_t mapped_addr;
+		uint16_t mapped_port;
+		union
+		{
+			struct
+			{
+				unsigned trusted:1;
+				unsigned replied:1;
+				unsigned bubbles:2;
+				unsigned nonce:1; // mapped_* unset, nonce set
+			} flags;
+			uint16_t all_flags;
 		} flags;
-		uint16_t all_flags;
-	} flags;
-	// TODO: nonce and mapped_* could be union-ed
-	uint8_t nonce[8]; /* only for client toward non-client */
+		// TODO: nonce and mapped_* could be union-ed
+		uint8_t nonce[8]; /* only for client toward non-client */
 
-	void Touch (void)
-	{
-		gettimeofday (&expiry, NULL);
-		expiry.tv_sec += TEREDO_TIMEOUT;
-	}
+	private:
+		void Touch (void)
+		{
+			gettimeofday (&expiry, NULL);
+			expiry.tv_sec += TEREDO_TIMEOUT;
+		}
 
-	void TouchReceive (void)
-	{
-		flags.flags.replied = 1;
-		Touch ();
-	}
+	public:
+		void SetMapping (uint32_t ip, uint16_t port)
+		{
+			mapped_addr = ip;
+			mapped_port = port;
+			outqueue.SetMapping (ip, port);
+		}
 
-	void TouchTransmit (void)
-	{
-		if (flags.flags.replied == 0)
+		void SetMappingFromPacket (const TeredoPacket& p)
+		{
+			SetMapping (p.GetClientIP (), p.GetClientPort ());
+		}
+
+		void TouchReceive (void)
+		{
+			flags.flags.replied = 1;
 			Touch ();
-	}
+		}
 
-	bool IsExpired (const struct timeval *now) const
-	{
-		return (now->tv_sec > expiry.tv_sec)
-		     || ((now->tv_sec == expiry.tv_sec)
-		      && (now->tv_usec >= expiry.tv_usec));
-	}
+		void TouchTransmit (void)
+		{
+			if (flags.flags.replied == 0)
+				Touch ();
+		}
+
+		bool IsExpired (const struct timeval& now) const
+		{
+			return (now.tv_sec > expiry.tv_sec)
+			     || ((now.tv_sec == expiry.tv_sec)
+			      && (now.tv_usec >= expiry.tv_usec));
+		}
 };
 
 
@@ -220,11 +237,11 @@ TeredoRelay::TeredoRelay (uint32_t server_ip, uint16_t port, uint32_t ipv4)
 /* Releases peers list entries */
 TeredoRelay::~TeredoRelay (void)
 {
-	struct peer *p = head;
+	peer *p = head;
 
 	while (p != NULL)
 	{
-		struct peer *buf = p->next;
+		peer *buf = p->next;
 		delete p;
 		p = buf;
 	}
@@ -250,14 +267,14 @@ int TeredoRelay::NotifyDown (void)
  * FIXME: number of entry should be bound
  * FIXME: move to another file
  */
-struct TeredoRelay::peer *TeredoRelay::AllocatePeer (void)
+TeredoRelay::peer *TeredoRelay::AllocatePeer (void)
 {
 	struct timeval now;
 	gettimeofday (&now, NULL);
 
 	/* Tries to recycle a timed-out peer entry */
-	for (struct peer *p = head; p != NULL; p = p->next)
-		if (p->IsExpired (&now))
+	for (peer *p = head; p != NULL; p = p->next)
+		if (p->IsExpired (now))
 		{
 			p->outqueue.Trash ();
 			p->inqueue.Trash ();
@@ -265,10 +282,10 @@ struct TeredoRelay::peer *TeredoRelay::AllocatePeer (void)
 		}
 
 	/* Otherwise allocates a new peer entry */
-	struct peer *p;
+	peer *p;
 	try
 	{
-		p = new struct peer (&sock, this);
+		p = new peer (&sock, this);
 	}
 	catch (...)
 	{
@@ -286,15 +303,15 @@ struct TeredoRelay::peer *TeredoRelay::AllocatePeer (void)
  * Returns a pointer to the first peer entry matching <addr>,
  * or NULL if none were found.
  */
-struct TeredoRelay::peer *TeredoRelay::FindPeer (const struct in6_addr *addr)
+TeredoRelay::peer *TeredoRelay::FindPeer (const struct in6_addr *addr)
 {
 	struct timeval now;
 
 	gettimeofday(&now, NULL);
 
-	for (struct peer *p = head; p != NULL; p = p->next)
+	for (peer *p = head; p != NULL; p = p->next)
 		if (memcmp (&p->addr, addr, sizeof (struct in6_addr)) == 0)
-			if (!p->IsExpired (&now))
+			if (!p->IsExpired (now))
 				return p; // found!
 
 	return NULL;
@@ -375,7 +392,7 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
 		return SendUnreach (1, packet, length);
 
 
-	struct peer *p = FindPeer (&ip6.ip6_dst);
+	peer *p = FindPeer (&ip6.ip6_dst);
 
 	if (p != NULL)
 	{
@@ -459,9 +476,7 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
 		if (p == NULL)
 			return -1; // insufficient memory
 		memcpy (&p->addr, &ip6.ip6_dst, sizeof (struct in6_addr));
-		p->mapped_port = IN6_TEREDO_PORT (dst);
-		p->mapped_addr = IN6_TEREDO_IPV4 (dst);
-		p->outqueue.SetMapping (p->mapped_addr, p->mapped_port);
+		p->SetMapping (IN6_TEREDO_IPV4 (dst), IN6_TEREDO_PORT (dst));
 		p->flags.all_flags = 0;
 
 		// NOTE: we call TouchTransmit() but if the peer is non-cone, and
@@ -732,7 +747,7 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 	/* Actual packet reception, either as a relay or a client */
 
 	// Checks source IPv6 address / looks up peer in the list:
-	struct peer *p = FindPeer (&ip6.ip6_src);
+	peer *p = FindPeer (&ip6.ip6_src);
 
 	if (p != NULL)
 	{
@@ -753,10 +768,7 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 			p->flags.flags.trusted = 1;
 			p->flags.flags.nonce = 0;
 
-			p->mapped_port = packet.GetClientPort ();
-			p->mapped_addr = packet.GetClientIP ();
-			p->outqueue.SetMapping (p->mapped_addr,
-						p->mapped_port);
+			p->SetMappingFromPacket (packet);
 			p->TouchReceive ();
 
 			p->outqueue.Flush ();

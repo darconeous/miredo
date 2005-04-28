@@ -40,7 +40,7 @@ union teredo_addr;
 class TeredoRelay
 {
 	private:
-		struct peer;
+		class peer;
 		class OutQueue;
 		friend class OutQueue;
 		class InQueue;
@@ -57,12 +57,12 @@ class TeredoRelay
 		} probe;
 		uint32_t server_ip2;
 
-		struct peer *head;
+		class peer *head;
 
 		TeredoRelayUDP sock;
 
-		struct peer *AllocatePeer (void);
-		struct peer *FindPeer (const struct in6_addr *addr);
+		peer *AllocatePeer (void);
+		peer *FindPeer (const struct in6_addr *addr);
 
 		int SendUnreach (int code, const void *in, size_t inlen);
 
