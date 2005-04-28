@@ -181,7 +181,9 @@ teredo_server_relay (IPv6Tunnel& tunnel, TeredoRelay *relay = NULL,
 			char pbuf[65535];
 			int len;
 
+#ifdef MIREDO_TEREDO_CLIENT
 			relay->Process ();
+#endif
 
 			/* Forwards IPv6 packet to Teredo
 			 * (Packet transmission) */
