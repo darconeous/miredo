@@ -177,7 +177,7 @@ class TeredoRelay::peer
 
 		bool IsExpired (const struct timeval& now) const
 		{
-			return (now.tv_sec > expiry.tv_sec)
+			return ((signed)(now.tv_sec - expiry.tv_sec) > 0)
 			     || ((now.tv_sec == expiry.tv_sec)
 			      && (now.tv_usec >= expiry.tv_usec));
 		}
