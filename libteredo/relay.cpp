@@ -53,12 +53,6 @@
 
 #define TEREDO_TIMEOUT 30 // seconds
 
-
-#define EXPIRED( date, now ) ((((unsigned)now) - (unsigned)date) > 30)
-#define ENTRY_EXPIRED( peer, now ) (peer->flags.flags.replied \
-					? EXPIRED (peer->last_rx, now) \
-					: EXPIRED (peer->last_xmit, now))
-
 // is_valid_teredo_prefix (PREFIX_UNSET) MUST return false
 #define PREFIX_UNSET 0xffffffff
 
@@ -117,6 +111,11 @@ class TeredoRelay::InQueue : public PacketsQueue
 
 struct TeredoRelay::peer
 {
+	struct timeval expiry;
+
+	OutQueue outqueue;
+	InQueue inqueue;
+
 	peer (TeredoRelayUDP *sock, TeredoRelay *r)
 		: outqueue (sock), inqueue (r)
 	{
@@ -140,12 +139,33 @@ struct TeredoRelay::peer
 	} flags;
 	// TODO: nonce and mapped_* could be union-ed
 	uint8_t nonce[8]; /* only for client toward non-client */
-	time_t last_rx;
-	time_t last_xmit;
 
-	OutQueue outqueue;
-	InQueue inqueue;
+	void Touch (void)
+	{
+		gettimeofday (&expiry, NULL);
+		expiry.tv_sec += TEREDO_TIMEOUT;
+	}
+
+	void TouchReceive (void)
+	{
+		flags.flags.replied = 1;
+		Touch ();
+	}
+
+	void TouchTransmit (void)
+	{
+		if (flags.flags.replied == 0)
+			Touch ();
+	}
+
+	bool IsExpired (const struct timeval *now) const
+	{
+		return (now->tv_sec > expiry.tv_sec)
+		     || ((now->tv_sec == expiry.tv_sec)
+		      && (now->tv_usec >= expiry.tv_usec));
+	}
 };
+
 
 #define PROBE_CONE	1
 #define PROBE_RESTRICT	2
@@ -232,12 +252,12 @@ int TeredoRelay::NotifyDown (void)
  */
 struct TeredoRelay::peer *TeredoRelay::AllocatePeer (void)
 {
-	time_t now;
-	time (&now);
+	struct timeval now;
+	gettimeofday (&now, NULL);
 
 	/* Tries to recycle a timed-out peer entry */
 	for (struct peer *p = head; p != NULL; p = p->next)
-		if (ENTRY_EXPIRED (p, now))
+		if (p->IsExpired (&now))
 		{
 			p->outqueue.Trash ();
 			p->inqueue.Trash ();
@@ -268,13 +288,13 @@ struct TeredoRelay::peer *TeredoRelay::AllocatePeer (void)
  */
 struct TeredoRelay::peer *TeredoRelay::FindPeer (const struct in6_addr *addr)
 {
-	time_t now;
+	struct timeval now;
 
-	time(&now);
+	gettimeofday(&now, NULL);
 
 	for (struct peer *p = head; p != NULL; p = p->next)
 		if (memcmp (&p->addr, addr, sizeof (struct in6_addr)) == 0)
-			if (!ENTRY_EXPIRED (p, now))
+			if (!p->IsExpired (&now))
 				return p; // found!
 
 	return NULL;
@@ -363,7 +383,7 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
 		if (p->flags.flags.trusted)
 		{
 			/* Already known -valid- peer */
-			time (&p->last_xmit);
+			p->TouchTransmit ();
 			return sock.SendPacket (packet, length,
 						p->mapped_addr,
 						p->mapped_port);
@@ -403,7 +423,7 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
 			p->mapped_port = 0;
 			p->mapped_addr = 0;
 			p->flags.all_flags = 0;
-			time (&p->last_xmit);
+			p->TouchTransmit ();
 		}
 
 		// FIXME: re-send echo request later if no response
@@ -443,7 +463,10 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
 		p->mapped_addr = IN6_TEREDO_IPV4 (dst);
 		p->outqueue.SetMapping (p->mapped_addr, p->mapped_port);
 		p->flags.all_flags = 0;
-		time (&p->last_xmit);
+
+		// NOTE: we call TouchTransmit() but if the peer is non-cone, and
+		// we are cone, we don't actually send a packet
+		p->TouchTransmit ();
 
 		/* Client case 4 & relay case 2: new cone peer */
 		if (IN6_IS_TEREDO_ADDR_CONE (&ip6.ip6_dst))
@@ -458,28 +481,26 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
 	/* Client case 5 & relay case 3: untrusted non-cone peer */
 	p->outqueue.Queue (packet, length);
 
+	// FIXME FIXME FIXME:
+	// - sending of bubbles should be done in a separate thread
+	// - we do no longer check for the 2 seconds delay between bubbles
+	//   which really sucks
+
 	// Sends no more than one bubble every 2 seconds,
 	// and 3 bubbles every 30 secondes
 	if (p->flags.flags.bubbles < 3)
 	{
-		time_t now;
-		time (&now);
+		//if (!p->flags.flags.bubbles || ((now - p->last_xmit) >= 2))
+		p->flags.flags.bubbles ++;
 
-		if (!p->flags.flags.bubbles || ((now - p->last_xmit) >= 2))
-		{
-			p->flags.flags.bubbles ++;
-			memcpy (&p->last_xmit, &now, sizeof (p->last_xmit));
+		/*
+		 * Open the return path if we are behind a
+		 * restricted NAT.
+		 */
+		if (!IsCone () && SendBubble (sock, &ip6.ip6_dst, false, false))
+			return -1;
 
-			/*
-			 * Open the return path if we are behind a
-			 * restricted NAT.
-			 */
-			if (!IsCone ()
-			 && SendBubble (sock, &ip6.ip6_dst, false, false))
-				return -1;
-
-			return SendBubble (sock, &ip6.ip6_dst, IsCone ());
-		}
+		return SendBubble (sock, &ip6.ip6_dst, IsCone ());
 	}
 
 	// Too many bubbles already sent
@@ -537,8 +558,7 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 			return 0;
 		if (packet.GetConfByte ())
 		{
-			syslog (LOG_ERR,
-				_("Authentication refused by server."));
+			syslog (LOG_ERR, _("Authentication refused by server."));
 			return 0;
 		}
 
@@ -567,8 +587,7 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 		 && ((addr.teredo.client_port != newaddr.teredo.client_port)
 		  || (addr.teredo.client_ip != newaddr.teredo.client_ip)))
 		{
-			syslog (LOG_ERR,
-				_("Unsupported symmetric NAT detected."));
+			syslog (LOG_ERR, _("Unsupported symmetric NAT detected."));
 
 			/* Resets state, will retry in 5 minutes */
 			addr.teredo.prefix = PREFIX_UNSET;
@@ -620,8 +639,7 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 			 && memcmp (&addr, &newaddr, sizeof (addr)))
 			{
 				memcpy (&addr, &newaddr, sizeof (addr));
-				syslog (LOG_NOTICE,
-					_("Teredo address changed"));
+				syslog (LOG_NOTICE, _("Teredo address changed"));
 				NotifyUp (&newaddr.ip6);
 			}
 
@@ -637,8 +655,8 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 		const struct teredo_orig_ind *ind = packet.GetOrigInd ();
 		if (ind != NULL)
 		{
-			SendBubble (sock, ~ind->orig_addr, ~ind->orig_port,
-					&ip6.ip6_dst, &ip6.ip6_src);
+			SendBubble (sock, ~ind->orig_addr, ~ind->orig_port, &ip6.ip6_dst,
+			            &ip6.ip6_src);
 			if (IsBubble (&ip6))
 				return 0; // don't pass bubble to kernel
 		}
@@ -651,10 +669,9 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 			 * we can guess the mapping. Otherwise, we're stuck.
 			 */
 		 	if (IN6_TEREDO_PREFIX (&ip6.ip6_src) == GetPrefix ())
-				SendBubble (sock,
-					IN6_TEREDO_IPV4 (&ip6.ip6_src),
-					IN6_TEREDO_PORT (&ip6.ip6_src),
-					&ip6.ip6_dst, &ip6.ip6_src);
+				SendBubble (sock, IN6_TEREDO_IPV4 (&ip6.ip6_src),
+				            IN6_TEREDO_PORT (&ip6.ip6_src), &ip6.ip6_dst,
+				            &ip6.ip6_src);
 			return 0; // don't pass bubble to kernel
 		}
 
@@ -724,9 +741,7 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 		 && (packet.GetClientIP () == p->mapped_addr)
 		 && (packet.GetClientPort () == p->mapped_port))
 		{
-			p->flags.flags.replied = 1;
-
-			time (&p->last_rx);
+			p->TouchReceive ();
 			return SendIPv6Packet (buf, length);
 		}
 
@@ -735,14 +750,14 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 		if ((!p->flags.flags.trusted) && p->flags.flags.nonce
 		 && CheckPing (packet, p->nonce))
 		{
-			p->flags.flags.trusted = p->flags.flags.replied = 1;
+			p->flags.flags.trusted = 1;
 			p->flags.flags.nonce = 0;
 
 			p->mapped_port = packet.GetClientPort ();
 			p->mapped_addr = packet.GetClientIP ();
 			p->outqueue.SetMapping (p->mapped_addr,
 						p->mapped_port);
-			time (&p->last_rx);
+			p->TouchReceive ();
 
 			p->outqueue.Flush ();
 			p->inqueue.Flush ();
@@ -806,8 +821,8 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 				/* p->inqueue.Flush (); -- always empty */
 			}
 
-			p->flags.flags.trusted = p->flags.flags.replied = 1;
-			time (&p->last_rx);
+			p->flags.flags.trusted = 1;
+			p->TouchReceive ();
 
 			if (IsBubble (&ip6))
 				return 0; // discard Teredo bubble
@@ -844,7 +859,6 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 		p->mapped_port = 0;
 		p->mapped_addr = 0;
 		p->flags.all_flags = 0;
-		time (&p->last_rx);
 	}
 
 	p->inqueue.Queue (buf, length);
@@ -857,8 +871,8 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 		p->flags.flags.nonce = 1;
 	}
 
-	p->flags.flags.replied = 1;
-	time (&p->last_xmit);
+	p->TouchReceive ();
+	/*p->TouchTransmit() -- useless */
 	return SendPing (sock, &addr, &ip6.ip6_src, p->nonce);
 #else /* ifdef MIREDO_TEREDO_CLIENT */
 	return 0;
