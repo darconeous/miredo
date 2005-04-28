@@ -4,7 +4,7 @@ dnl based on earlier configure.ac from tcpreen by the same author
 dnl Process this file with GNU Autoconf to produce a configure script
 
 dnl ***********************************************************************
-dnl *  Copyright (C) 2002-2004 Remi Denis-Courmont.                       *
+dnl *  Copyright (C) 2002-2005 Remi Denis-Courmont.                       *
 dnl *  This program is free software; you can redistribute and/or modify  *
 dnl *  it under the terms of the GNU General Public License as published  *
 dnl *  by the Free Software Foundation; version 2 of the license.         *
@@ -19,8 +19,8 @@ dnl *  along with this program; if not, you can get it from:              *
 dnl *  http://www.gnu.org/copyleft/gpl.html                               *
 dnl ***********************************************************************
 
-AC_COPYRIGHT([Copyright (C) 2004 Remi Denis-Courmont])
-AC_INIT(miredo, 0.4.1, rdenis@simphalempin.com)
+AC_COPYRIGHT([Copyright (C) 2004-2005 Remi Denis-Courmont])
+AC_INIT(miredo, 0.4.2, rdenis@simphalempin.com)
 AC_PREREQ(2.59)
 INVOCATION="$0 $*"
 
