@@ -563,80 +563,10 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 
 #ifdef MIREDO_TEREDO_CLIENT
 	if (!IsRunning ())
-	{
-		/* Handle router advertisement for qualification */
-		/*
-		 * We don't accept router advertisement without nonce.
-		 * It is far too easy to spoof such packets.
-		 *
-		 * We don't check the source address (which may be the
-		 * server's secondary address, nor the source port)
-		 * TODO: Maybe we should check that too
-		 */
-		const uint8_t *s_nonce = packet.GetAuthNonce ();
-		if ((s_nonce == NULL) || memcmp (s_nonce, probe.nonce, 8))
-			return 0;
-		if (packet.GetConfByte ())
-		{
-			syslog (LOG_ERR, _("Authentication refused by server."));
-			return 0;
-		}
-
-		union teredo_addr newaddr;
-
-		newaddr.teredo.server_ip = GetServerIP ();
-		if (!ParseRA (packet, &newaddr, probe.state == PROBE_CONE))
-			return 0;
-
-		/* Correct router advertisement! */
-		gettimeofday (&probe.serv, NULL);
-		probe.serv.tv_sec += SERVER_LOSS_DELAY;
-
-		if (probe.state == PROBE_RESTRICT)
-		{
-			probe.state = PROBE_SYMMETRIC;
-			SendRS (sock, GetServerIP (), probe.nonce,
-				false, false);
-
-			gettimeofday (&probe.next, NULL);
-			probe.next.tv_sec += QualificationTimeOut;
-			memcpy (&addr, &newaddr, sizeof (addr));
-		}
-		else
-		if ((probe.state == PROBE_SYMMETRIC)
-		 && ((addr.teredo.client_port != newaddr.teredo.client_port)
-		  || (addr.teredo.client_ip != newaddr.teredo.client_ip)))
-		{
-			syslog (LOG_ERR, _("Unsupported symmetric NAT detected."));
-
-			/* Resets state, will retry in 5 minutes */
-			addr.teredo.prefix = PREFIX_UNSET;
-			probe.state = PROBE_CONE;
-			probe.count = 0;
-			gettimeofday (&probe.next, NULL);
-			probe.next.tv_sec += RestartDelay;
-			return 0;
-		}
-		else
-		{
-			syslog (LOG_INFO, _("Qualified (NAT type: %s)"),
-				gettext (probe.state == PROBE_CONE
-				? N_("cone") : N_("restricted")));
-			probe.state = QUALIFIED;
-
-			gettimeofday (&probe.next, NULL);
-			probe.next.tv_sec += SERVER_PING_DELAY;
-
-			// call memcpy before NotifyUp for re-entrancy
-			memcpy (&addr, &newaddr, sizeof (addr));
-			NotifyUp (&newaddr.ip6);
-		}
-
-		return 0;
-	}
+		return ProcessQualificationPacket (&packet);
 
 	/* Maintenance */
-	if (IsClient () && (packet.GetClientPort () == htons (IPPORT_TEREDO)))
+	if (IsClient () && IsServerPacket (&packet))
 	{
 		/*
 		 * Server IP not checked because it might be the server's
@@ -897,6 +827,88 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 }
 
 
+#ifdef MIREDO_TEREDO_CLIENT
+bool TeredoRelay::IsServerPacket (const TeredoPacket *packet) const
+{
+	uint32_t ip = packet->GetClientIP ();
+
+	return (packet->GetClientPort () == htons (IPPORT_TEREDO))
+	 && ((ip == GetServerIP ()) || (ip == GetServerIP2 ()));
+}
+
+
+/* Handle router advertisement for qualification */
+int TeredoRelay::ProcessQualificationPacket (const TeredoPacket *packet)
+{
+	if (!IsServerPacket (packet))
+		return 0;
+
+	/*
+	 * We don't accept router advertisement without nonce.
+	 * It is far too easy to spoof such packets.
+	 */
+	const uint8_t *s_nonce = packet->GetAuthNonce ();
+	if ((s_nonce == NULL) || memcmp (s_nonce, probe.nonce, 8))
+		return 0;
+
+	if (packet->GetConfByte ())
+	{
+		syslog (LOG_ERR, _("Authentication refused by server."));
+		return 0;
+	}
+
+	union teredo_addr newaddr;
+
+	newaddr.teredo.server_ip = GetServerIP ();
+	if (!ParseRA (*packet, &newaddr, probe.state == PROBE_CONE))
+		return 0;
+
+	/* Correct router advertisement! */
+	gettimeofday (&probe.serv, NULL);
+	probe.serv.tv_sec += SERVER_LOSS_DELAY;
+
+	if (probe.state == PROBE_RESTRICT)
+	{
+		probe.state = PROBE_SYMMETRIC;
+		SendRS (sock, GetServerIP (), probe.nonce, false, false);
+
+		gettimeofday (&probe.next, NULL);
+		probe.next.tv_sec += QualificationTimeOut;
+		memcpy (&addr, &newaddr, sizeof (addr));
+	}
+	else
+	if ((probe.state == PROBE_SYMMETRIC)
+	 && ((addr.teredo.client_port != newaddr.teredo.client_port)
+	  || (addr.teredo.client_ip != newaddr.teredo.client_ip)))
+	{
+		syslog (LOG_ERR, _("Unsupported symmetric NAT detected."));
+
+		/* Resets state, will retry in 5 minutes */
+		addr.teredo.prefix = PREFIX_UNSET;
+		probe.state = PROBE_CONE;
+		probe.count = 0;
+		gettimeofday (&probe.next, NULL);
+		probe.next.tv_sec += RestartDelay;
+	}
+	else
+	{
+		syslog (LOG_INFO, _("Qualified (NAT type: %s)"),
+		        gettext (probe.state == PROBE_CONE
+		        ? N_("cone") : N_("restricted")));
+		probe.state = QUALIFIED;
+
+		gettimeofday (&probe.next, NULL);
+		probe.next.tv_sec += SERVER_PING_DELAY;
+
+		// call memcpy before NotifyUp for re-entrancy
+		memcpy (&addr, &newaddr, sizeof (addr));
+		NotifyUp (&newaddr.ip6);
+	}
+
+	return 0;
+}
+
+
 int TeredoRelay::Process (void)
 {
 	if (!sock)
@@ -909,7 +921,6 @@ int TeredoRelay::Process (void)
 	if (IsRelay ())
 		return 0;
 
-#ifdef MIREDO_TEREDO_CLIENT
 	/* Qualification or server refresh (only for client) */
 	if (((signed)(now.tv_sec - probe.next.tv_sec) > 0)
 	 || ((now.tv_sec == probe.next.tv_sec)
@@ -991,7 +1002,7 @@ int TeredoRelay::Process (void)
 			NotifyDown ();
 		}
 	}
-#endif /* ifdef MIREDO_TEREDO_CLIENT */
 
 	return 0;
 }
+#endif /* ifdef MIREDO_TEREDO_CLIENT */

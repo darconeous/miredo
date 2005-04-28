@@ -32,7 +32,7 @@
 struct ip6_hdr;
 struct in6_addr;
 union teredo_addr;
-
+class TeredoPacket;
 
 
 // big TODO: make all functions re-entrant safe
@@ -65,6 +65,10 @@ class TeredoRelay
 		peer *FindPeer (const struct in6_addr *addr);
 
 		int SendUnreach (int code, const void *in, size_t inlen);
+#ifdef MIREDO_TEREDO_CLIENT
+		bool IsServerPacket (const TeredoPacket *packet) const;
+		int ProcessQualificationPacket (const TeredoPacket *p);
+#endif
 
 		/*** Callbacks ***/
 		/*
@@ -142,6 +146,7 @@ class TeredoRelay
 		 */
 		int ReceivePacket (const fd_set *reaset);
 
+#ifdef MIREDO_TEREDO_CLIENT
 		/*
 		 * Sends pending queued UDP packets (Teredo bubbles,
 		 * Teredo pings, Teredo router solicitation) if any.
@@ -150,6 +155,7 @@ class TeredoRelay
 		 * Not thread-safe yet.
 		 */
 		int Process (void);
+#endif
 
 		/*
 		 * Returns true if the relay/client is behind a cone NAT.
