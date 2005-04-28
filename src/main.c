@@ -413,7 +413,7 @@ check_libtun6 (void)
 int
 main (int argc, char *argv[])
 {
-	const char *username = NULL, *conffile = NULL;
+	const char *username = NULL, *conffile = NULL, *servername = NULL;
 	struct
 	{
 		unsigned foreground:1; /* Run in the foreground */
@@ -459,8 +459,6 @@ main (int argc, char *argv[])
 				flags.foreground = 1;
 				break;
 
-			/*TODO: case 'g' as in BIND */
-
 			case 'h':
 				return usage ();
 
@@ -477,6 +475,9 @@ main (int argc, char *argv[])
 "That is probably a bug. Please report it.\n"), c);
 				return 1;
 		}
+
+	if (optind < argc)
+		servername = argv[optind++];
 
 	if (optind < argc)
 		return error_extra (argv[optind]);
@@ -530,7 +531,7 @@ main (int argc, char *argv[])
 	/*
 	 * Run
 	 */
-	c = miredo (conffile);
+	c = miredo (conffile, servername);
 
 	(void)remove_pidfile ();
 

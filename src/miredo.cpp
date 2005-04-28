@@ -201,7 +201,6 @@ teredo_server_relay (IPv6Tunnel& tunnel, TeredoRelay *relay = NULL,
 }
 
 
-
 /*
  * Initialization stuff
  * (bind_port is in host byte order)
@@ -213,7 +212,7 @@ struct miredo_conf
 	char *ifname;
 	union teredo_addr prefix;
 	int mode;
-	uint32_t server_ip; /* FIXME: pass list of names */
+	uint32_t server_ip, server_ip2;
 	uint32_t bind_ip;
 	uint16_t bind_port;
 	bool default_route;
@@ -305,21 +304,11 @@ miredo_run (const struct miredo_conf *conf)
 
 #ifdef MIREDO_TEREDO_SERVER
 	// Sets up server sockets
-	if ((conf->mode != TEREDO_CLIENT) && conf->server_ip)
+	if ((conf->mode != TEREDO_CLIENT) && (conf->server_ip != INADDR_ANY))
 	{
-		/*
-		 * NOTE:
-		 * While it is not specified in the draft Teredo
-		 * specification, it really seems that the secondary
-		 * server IPv4 address has to be the one just after
-		 * the primary server IPv4 address.
-		 */
-		uint32_t server_ip2 = htonl (ntohl (conf->server_ip) + 1);
-
 		try
 		{
-			server = new MiredoServer (conf->server_ip,
-							server_ip2);
+			server = new MiredoServer (conf->server_ip, conf->server_ip2);
 		}
 		catch (...)
 		{
@@ -352,8 +341,7 @@ miredo_run (const struct miredo_conf *conf)
 		try
 		{
 			relay = new MiredoRelay (fd, &tunnel, conf->server_ip,
-						 conf->bind_port,
-						 conf->bind_ip);
+			                         conf->bind_port, conf->bind_ip);
 		}
 		catch (...)
 		{
@@ -368,11 +356,9 @@ miredo_run (const struct miredo_conf *conf)
 		try
 		{
 			// FIXME: read union teredo_addr instead of prefix ?
-			relay = new MiredoRelay (&tunnel,
-						 conf->prefix.teredo.prefix,
-						 conf->bind_port,
-						 conf->bind_ip,
-						 conf->mode == TEREDO_CONE);
+			relay = new MiredoRelay (&tunnel, conf->prefix.teredo.prefix,
+			                         conf->bind_port, conf->bind_ip,
+			                         conf->mode == TEREDO_CONE);
 		}
 		catch (...)
 		{
@@ -491,8 +477,11 @@ DeinitSignals (void)
 }
 
 
+
+
 static bool
-ParseConf (const char *path, int *newfac, struct miredo_conf *conf)
+ParseConf (const char *path, int *newfac, struct miredo_conf *conf,
+           const char *server_name)
 {
 	MiredoConf cnf;
 	if (!cnf.ReadFile (path))
@@ -513,18 +502,49 @@ ParseConf (const char *path, int *newfac, struct miredo_conf *conf)
 
 	if (conf->mode == TEREDO_CLIENT)
 	{
-		if (!ParseIPv4 (cnf, "ServerAddress", &conf->server_ip)
-		 || !cnf.GetBoolean ("DefaultRoute", &conf->default_route))
+		if (!cnf.GetBoolean ("DefaultRoute", &conf->default_route))
 		{
 			syslog (LOG_ALERT, _("Fatal configuration error"));
 			return false;
 		}
 
-		if (conf->server_ip == INADDR_ANY)
+		char *dummy = cnf.GetRawValue ("ServerAddress");
+
+		if (server_name == NULL)
+			server_name = dummy;
+
+		if (server_name == NULL)
 		{
 			syslog (LOG_ALERT, _("Server address not specified"));
 			return false;
 		}
+
+		/*
+		 * We must resolve the server host name before chroot is called.
+		 */
+		struct addrinfo help, *res;
+
+		memset (&help, 0, sizeof (help));
+		help.ai_family = AF_INET;
+		help.ai_socktype = SOCK_DGRAM;
+		help.ai_protocol = IPPROTO_UDP;
+
+		int check = getaddrinfo (server_name, NULL, &help, &res);
+
+		if (check)
+		{
+			syslog (LOG_ALERT, _("Invalid server hostname \"%s\": %s"),
+			        server_name, gai_strerror (check));
+			if (dummy != NULL)
+				free (dummy);
+			return false;
+		}
+
+		conf->server_ip =
+			((const struct sockaddr_in *)res->ai_addr)->sin_addr.s_addr;
+		freeaddrinfo (res);
+		if (dummy != NULL)
+			free (dummy);
 	}
 	else
 	{
@@ -534,6 +554,18 @@ ParseConf (const char *path, int *newfac, struct miredo_conf *conf)
 			syslog (LOG_ALERT, _("Fatal configuration error"));
 			return false;
 		}
+
+		/*
+		 * NOTE:
+		 * While it is not specified in the draft Teredo
+		 * specification, it really seems that the secondary
+		 * server IPv4 address has to be the one just after
+		 * the primary server IPv4 address.
+		 *
+		 * TODO: support for using another 2nd IP
+		 */
+		if (conf->server_ip != INADDR_ANY)
+			conf->server_ip2 = htonl (ntohl (conf->server_ip) + 1);
 	}
 
 	if (conf->mode != TEREDO_DISABLED)
@@ -566,7 +598,7 @@ ParseConf (const char *path, int *newfac, struct miredo_conf *conf)
 static const char *const ident = "miredo";
 
 extern "C" int
-miredo (const char *confpath)
+miredo (const char *confpath, const char *server_name)
 {
 	int facility = LOG_DAEMON, retval;
 	openlog (ident, LOG_PID | LOG_PERROR, facility);
@@ -585,7 +617,7 @@ miredo (const char *confpath)
 			NULL,		// ifname
 			{ 0 },		// prefix
 			TEREDO_CLIENT,	// mode
-			0,		// server_ip
+			INADDR_ANY, INADDR_ANY, // server_ip{,2}
 			INADDR_ANY,	// bind_ip
 #if 0
 		/*
@@ -604,7 +636,7 @@ miredo (const char *confpath)
 		};
 		conf.prefix.teredo.prefix = htonl (DEFAULT_TEREDO_PREFIX);
 
-		if (!ParseConf (confpath, &newfac, &conf))
+		if (!ParseConf (confpath, &newfac, &conf, server_name))
 			continue;
 
 		// Apply syslog facility change if needed
@@ -622,25 +654,32 @@ miredo (const char *confpath)
 		{
 			case -1:
 				syslog (LOG_ALERT, _("fork failed: %m"));
-				continue;
+				break;
 
 			case 0:
 				asyncsafe_close (signalfd[1]);
 				retval = miredo_run (&conf);
-				if (conf.ifname != NULL)
-					free (conf.ifname);
-				closelog ();
-				exit (-retval);
 		}
 
 		if (conf.ifname != NULL)
 			free (conf.ifname);
 
+		if (pid == 0)
+		{
+			closelog ();
+			exit (-retval);
+		}
+
 		// Waits until the miredo process terminates
-		while (waitpid (pid, &retval, 0) == -1);
+		if (pid != -1)
+			while (waitpid (pid, &retval, 0) == -1);
 
 		DeinitSignals ();
 
+		if (pid == -1)
+		{
+		}
+		else
 		if (should_exit)
 		{
 			syslog (LOG_NOTICE, _("Exiting on signal %d (%s)"),

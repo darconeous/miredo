@@ -32,7 +32,7 @@ extern "C"
 
 # include <sys/types.h> // uid_t
 
-int miredo (const char *conffile);
+int miredo (const char *conffile, const char *server_name);
 
 # ifdef __cplusplus
 }
