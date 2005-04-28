@@ -74,7 +74,7 @@ static int
 usage (void)
 {
 	puts (_(
-"Usage: miredo [OPTIONS]\n"
+"Usage: miredo [OPTIONS] [SERVER_NAME]\n"
 "Creates a Teredo tunneling interface for encapsulation of IPv6 over UDP.\n"
 "\n"
 "  -c, --config     specify an configuration file\n"

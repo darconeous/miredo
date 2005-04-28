@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: rdenis@simphalempin.com\n"
-"POT-Creation-Date: 2005-03-17 20:12+0100\n"
+"POT-Creation-Date: 2005-04-28 20:41+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -36,36 +36,36 @@ msgid ""
 "Teredo server UDP socket error: Server IPv4 addresses must not be wildcard."
 msgstr ""
 
-#: libteredo/relay.cpp:178
+#: libteredo/relay.cpp:215
 msgid "Server has a non global IPv4 address. It will most likely not work."
 msgstr ""
 
-#: libteredo/relay.cpp:541
+#: libteredo/relay.cpp:590
+msgid "Teredo address changed"
+msgstr ""
+
+#: libteredo/relay.cpp:852
 msgid "Authentication refused by server."
 msgstr ""
 
-#: libteredo/relay.cpp:571
+#: libteredo/relay.cpp:879
 msgid "Unsupported symmetric NAT detected."
 msgstr ""
 
-#: libteredo/relay.cpp:583
+#: libteredo/relay.cpp:889
 #, c-format
 msgid "Qualified (NAT type: %s)"
 msgstr ""
 
-#: libteredo/relay.cpp:585
+#: libteredo/relay.cpp:891
 msgid "cone"
 msgstr ""
 
-#: libteredo/relay.cpp:585
+#: libteredo/relay.cpp:891
 msgid "restricted"
 msgstr ""
 
-#: libteredo/relay.cpp:624
-msgid "Teredo address changed"
-msgstr ""
-
-#: libteredo/relay.cpp:958
+#: libteredo/relay.cpp:998
 msgid "Lost Teredo connectivity"
 msgstr ""
 
@@ -211,7 +211,7 @@ msgstr ""
 
 #: src/main.c:77
 msgid ""
-"Usage: miredo [OPTIONS]\n"
+"Usage: miredo [OPTIONS] [SERVER_NAME]\n"
 "Creates a Teredo tunneling interface for encapsulation of IPv6 over UDP.\n"
 "\n"
 "  -c, --config     specify an configuration file\n"
@@ -323,132 +323,137 @@ msgstr ""
 msgid "Error (daemon)"
 msgstr ""
 
-#: src/main.c:476
+#: src/main.c:474
 #, c-format
 msgid ""
 "Read unknown option -%c :\n"
 "That is probably a bug. Please report it.\n"
 msgstr ""
 
-#: src/main.c:493
+#: src/main.c:494
 #, c-format
 msgid "Reading configuration from %s: %s\n"
 msgstr ""
 
-#: src/main.c:512
+#: src/main.c:513
 #, c-format
 msgid "Chroot directory %s: %s\n"
 msgstr ""
 
-#: src/miredo.cpp:251
+#: src/miredo.cpp:252
 #, c-format
 msgid ""
 "Teredo tunnel setup failed:\n"
 " %s"
 msgstr ""
 
-#: src/miredo.cpp:252 src/miredo.cpp:286
+#: src/miredo.cpp:253 src/miredo.cpp:287
 msgid "You should be root to do that."
 msgstr ""
 
-#: src/miredo.cpp:272
+#: src/miredo.cpp:273
 #, c-format
 msgid "Privileged process setup failed: %m"
 msgstr ""
 
-#: src/miredo.cpp:285
+#: src/miredo.cpp:286
 #, c-format
 msgid ""
 "Teredo routing failed:\n"
 " %s"
 msgstr ""
 
-#: src/miredo.cpp:300
+#: src/miredo.cpp:301
 #, c-format
 msgid "Setting UID failed: %m"
 msgstr ""
 
-#: src/miredo.cpp:325
+#: src/miredo.cpp:316
 msgid "Teredo server failure"
 msgstr ""
 
-#: src/miredo.cpp:331
+#: src/miredo.cpp:322
 msgid "Teredo UDP port failure"
 msgstr ""
 
-#: src/miredo.cpp:332 src/miredo.cpp:401
+#: src/miredo.cpp:323 src/miredo.cpp:389
 msgid "Make sure another instance of the program is not already running."
 msgstr ""
 
-#: src/miredo.cpp:385
+#: src/miredo.cpp:373
 msgid "Teredo service failure"
 msgstr ""
 
-#: src/miredo.cpp:393
+#: src/miredo.cpp:381
 #, c-format
 msgid "Teredo service port failure: cannot open UDP port %u"
 msgstr ""
 
-#: src/miredo.cpp:398
+#: src/miredo.cpp:386
 msgid "Teredo service port failure: cannot open an UDP port"
 msgstr ""
 
-#: src/miredo.cpp:442
+#: src/miredo.cpp:430
 #, c-format
 msgid "pipe failed: %m"
 msgstr ""
 
-#: src/miredo.cpp:498
+#: src/miredo.cpp:489
 #, c-format
 msgid "Loading configuration from %s failed"
 msgstr ""
 
-#: src/miredo.cpp:508 src/miredo.cpp:517 src/miredo.cpp:532
+#: src/miredo.cpp:499 src/miredo.cpp:507 src/miredo.cpp:554
 msgid "Fatal configuration error"
 msgstr ""
 
-#: src/miredo.cpp:523
+#: src/miredo.cpp:518
 msgid "Server address not specified"
 msgstr ""
 
-#: src/miredo.cpp:541
+#: src/miredo.cpp:536
+#, c-format
+msgid "Invalid server hostname \"%s\": %s"
+msgstr ""
+
+#: src/miredo.cpp:575
 msgid "Fatal bind IPv4 address error"
 msgstr ""
 
-#: src/miredo.cpp:548
+#: src/miredo.cpp:582
 msgid "Fatal bind UDP port error"
 msgstr ""
 
-#: src/miredo.cpp:622
+#: src/miredo.cpp:656
 #, c-format
 msgid "fork failed: %m"
 msgstr ""
 
-#: src/miredo.cpp:644
+#: src/miredo.cpp:685
 #, c-format
 msgid "Exiting on signal %d (%s)"
 msgstr ""
 
-#: src/miredo.cpp:652
+#: src/miredo.cpp:693
 #, c-format
 msgid "Reloading configuration on signal %d (%s)"
 msgstr ""
 
-#: src/miredo.cpp:661
+#: src/miredo.cpp:702
 #, c-format
 msgid "Terminated (exit code: %d)"
 msgstr ""
 
-#: src/miredo.cpp:669
+#: src/miredo.cpp:710
 #, c-format
 msgid "Child %d killed by signal %d (%s)"
 msgstr ""
 
-#: src/miredo.cpp:677
+#: src/miredo.cpp:718
 msgid "Terminated with error(s)."
 msgstr ""
 
-#: src/miredo.cpp:679
+#: src/miredo.cpp:720
 msgid "Terminated with no error."
 msgstr ""
 
