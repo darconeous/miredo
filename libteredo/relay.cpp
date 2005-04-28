@@ -7,7 +7,7 @@
  */
 
 /***********************************************************************
- *  Copyright (C) 2004 Remi Denis-Courmont.                            *
+ *  Copyright (C) 2004-2005 Remi Denis-Courmont.                       *
  *  This program is free software; you can redistribute and/or modify  *
  *  it under the terms of the GNU General Public License as published  *
  *  by the Free Software Foundation; version 2 of the license.         *
@@ -267,34 +267,39 @@ int TeredoRelay::NotifyDown (void)
  * FIXME: number of entry should be bound
  * FIXME: move to another file
  */
-TeredoRelay::peer *TeredoRelay::AllocatePeer (void)
+TeredoRelay::peer *TeredoRelay::AllocatePeer (const struct in6_addr *addr)
 {
 	struct timeval now;
 	gettimeofday (&now, NULL);
+	peer *p;
 
 	/* Tries to recycle a timed-out peer entry */
-	for (peer *p = head; p != NULL; p = p->next)
+	for (p = head; p != NULL; p = p->next)
 		if (p->IsExpired (now))
 		{
 			p->outqueue.Trash ();
 			p->inqueue.Trash ();
-			return p;
+			break;
 		}
 
 	/* Otherwise allocates a new peer entry */
-	peer *p;
-	try
+	if (p == NULL)
 	{
-		p = new peer (&sock, this);
-	}
-	catch (...)
-	{
-		return NULL;
+		try
+		{
+			p = new peer (&sock, this);
+		}
+		catch (...)
+		{
+			return NULL;
+		}
+
+		/* Puts new entry at the head of the list */
+		p->next = head;
+		head = p;
 	}
 
-	/* Puts new entry at the head of the list */
-	p->next = head;
-	head = p;
+	memcpy (&p->addr, addr, sizeof (struct in6_addr));
 	return p;
 }
 
@@ -433,10 +438,10 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
 		// TODO: avoid code duplication
 		if (p == NULL)
 		{
-			p = AllocatePeer ();
+			p = AllocatePeer (&ip6.ip6_dst);
 			if (p == NULL)
 				return -1; // memory error
-			memcpy (&p->addr, &ip6.ip6_dst, sizeof (struct in6_addr));
+
 			p->mapped_port = 0;
 			p->mapped_addr = 0;
 			p->flags.all_flags = 0;
@@ -472,10 +477,10 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
 		/* Unknown Teredo clients */
 
 		// Creates a new entry
-		p = AllocatePeer ();
+		p = AllocatePeer (&ip6.ip6_dst);
 		if (p == NULL)
 			return -1; // insufficient memory
-		memcpy (&p->addr, &ip6.ip6_dst, sizeof (struct in6_addr));
+
 		p->SetMapping (IN6_TEREDO_IPV4 (dst), IN6_TEREDO_PORT (dst));
 		p->flags.all_flags = 0;
 
@@ -812,12 +817,10 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 
 #ifdef MIREDO_TEREDO_CLIENT
 				// TODO: do not duplicate this code
-				p = AllocatePeer ();
+				p = AllocatePeer (&ip6.ip6_dst);
 				if (p == NULL)
 					return -1; // insufficient memory
-				memcpy (&p->addr, &ip6.ip6_dst,
-					sizeof (struct in6_addr));
-				
+
 				p->mapped_port =
 					IN6_TEREDO_PORT (&ip6.ip6_dst);
 				p->mapped_addr =
@@ -864,10 +867,10 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 	// TODO: avoid code duplication (direct IPv6 connectivity test)
 	if (p == NULL)
 	{
-		p = AllocatePeer ();
+		p = AllocatePeer (&ip6.ip6_src);
 		if (p == NULL)
 			return -1; // memory error
-		memcpy (&p->addr, &ip6.ip6_src, sizeof (struct in6_addr));
+
 		p->mapped_port = 0;
 		p->mapped_addr = 0;
 		p->flags.all_flags = 0;
