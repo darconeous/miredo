@@ -11,7 +11,6 @@ Features:
 - fixed TODOs in source code,
 - better support for lossy IPv4 connectivity,
 - local Teredo discovery,
-- ability to run a non-relay Teredo server
 - "automatic sunset" / "exit strategy" -- quite complicated,
 
 Security:
