@@ -1,0 +1,67 @@
+# default.apspsec.in - autopackage spec file for miredo
+# $Id$
+
+# ***********************************************************************
+# *  Copyright (C) 2005 Remi Denis-Courmont.                            *
+# *  This program is free software; you can redistribute and/or modify  *
+# *  it under the terms of the GNU General Public License as published  *
+# *  by the Free Software Foundation; version 2 of the license.         *
+# *                                                                     *
+# *  This program is distributed in the hope that it will be useful,    *
+# *  but WITHOUT ANY WARRANTY; without even the implied warranty of     *
+# *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.               *
+# *  See the GNU General Public License for more details.               *
+# *                                                                     *
+# *  You should have received a copy of the GNU General Public License  *
+# *  along with this program; if not, you can get it from:              *
+# *  http://www.gnu.org/copyleft/gpl.html                               *
+# ***********************************************************************
+
+[Meta]
+RootName: @simphalempin.com/miredo:$SOFTWAREVERSION
+DisplayName: Miredo - Teredo IPv6 tunneling
+ShortName: miredo
+Maintainer: Rémi Denis-Courmont <rdenis@simphalempin.com>
+Packager: Rémi Denis-Courmont <rdenis@simphalempin.com>
+Summary: Teredo IPv6 tunneling daemon.
+URL: http://www.simphalempin.com/dev/miredo/
+License: GNU General Public License, Version 2
+SoftwareVersion: @VERSION@
+AutopackageTarget: 1.0
+DisplayName[fr]: Miredo - tunneling IPv6 Teredo
+Summary[fr]: Démon de tunneling IPv6 Teredo.
+
+[Description]
+Miredo is an Unix daemon program which implements the "Teredo: Tunneling IPv6
+over UDP through NATs" Internet draft specification. It can provide either
+Teredo client, relay and server functionnality. Miredo can be used to provide
+IPv6 connectivity to users behind NAT which do not support IPv6, and not even
+proto-41 forwarding (6to4).
+
+[Description:fr]
+Miredo est un programme démon Unix program qui fournit une implémentation de
+draft Internet "Teredo: Tunneling IPv6 over UDP through NATs". Il peut servir
+de client Teredo, de relais et/ou de serveur. Miredo peut être utilisé pour
+fournir une connectivité IPv6 aux utilisateurs derrière un NAT, lequel ne
+supporte pas IPv6, ni même le proto-41 forwarding (6to4).
+
+[BuildPrepare]
+prepareBuild --localstatedir=/var
+
+[BuildUnprepare]
+unprepareBuild
+
+[Imports]
+echo '*' | import
+
+[Prepare]
+
+[Install]
+installExe sbin/*
+installMan 5 man/man5/miredo.conf.5
+installMan 8 man/man8/miredo.8
+installLocale share/locale
+installConfig etc/*
+
+[Uninstall]
+uninstallFromLog
