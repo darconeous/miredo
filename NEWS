@@ -1,11 +1,12 @@
 RELEASE NOTES for Miredo
-version 0.4.1 (beta version)
+version 0.4.2 (beta version)
 =============================
 $Id$
 
   This is an early release of the program. It is not finished and might not
 work properly. It is not suited for use in production environment.
-Users of previous releases are encouraged to upgrade.
+Users of previous releases are encouraged to upgrade, as some issues were
+addressed in this new release.
 
 IMPORTANT NOTE for old users:
 ------------------------------
@@ -22,6 +23,17 @@ Thanks for your help.
 informations on this program, see README. For syntax details and
 changes, run 'miredo -h' to get help. For detailled internal changes, see
 ChangeLog.
+
+=============================================================================
+BETA RELEASE 0.4.2 : Major bugfixes, minor feature enhancement
+
+# Fixed connectivity issue with restricted Teredo clients/relays.
+# Re-implemented connectivity loss detection. The older version was removed
+  because it would not tolerate any packet loss.
+# Support for overriding the server specified in miredo.conf from the
+  command line.
+# Fixed handling by client of unauthenticated server responses.
+# Some clean up.
 
 =============================================================================
 BETA RELEASE 0.4.1 : Minor bugfixes
