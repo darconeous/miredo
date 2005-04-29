@@ -23,8 +23,8 @@ top_srcdir = @top_srcdir@
 
 # _GNU_SOURCE is needed for old glibc on Linux
 AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir) \
-		-D_GNU_SOURCE -DLOCALEDIR=\"$(localedir)\" \
-		-DSYSCONFDIR=\"$(sysconfdir)\"
+		-D_GNU_SOURCE -DBR_PTHREADS=0
+
 if MIREDO_CHROOT
 AM_CPPFLAGS += -DMIREDO_CHROOT=\"$(miredo_chroot)\"
 endif
@@ -47,7 +47,8 @@ sbin_PROGRAMS = miredo
 #.PHONY: svnversion.c
 
 # miredo
-miredo_SOURCES = main.c miredo.cpp miredo.h conf.cpp conf.h
+miredo_SOURCES = main.c miredo.cpp miredo.h conf.cpp conf.h \
+                 prefix.c prefix.h
 
 if TEREDO_RELAY
 miredo_SOURCES += relay.cpp relay.h privproc.cpp privproc.h
@@ -59,6 +60,8 @@ endif
 
 miredo_LDADD = @LIBINTL@ ../libtun6/libtun6.a ../libteredo/libteredo.a
 
+# Automake does not support checking for MIREDO_CHROOT || MIREDO_PIDFILE
+# so we always create the directory
 install-exec-local:
 	test -z $(DESTDIR)$(localstatedir)/run/miredo || \
 	$(mkdir_p) $(DESTDIR)$(localstatedir)/run/miredo

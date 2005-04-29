@@ -25,6 +25,7 @@
 #endif
 
 #include <gettext.h>
+#include "prefix.h"
 
 #include <stdio.h>
 #include <stdlib.h> /* strtoul(), clearenv() */
@@ -401,7 +402,7 @@ check_libtun6 (void)
 
 
 #ifndef MIREDO_DEFAULT_CONFFILE
-# define MIREDO_DEFAULT_CONFFILE SYSCONFDIR "/miredo.conf"
+# define MIREDO_DEFAULT_CONFFILE BR_SYSCONFDIR ("/miredo.conf")
 #endif
 #ifndef MIREDO_DEFAULT_USERNAME
 # define MIREDO_DEFAULT_USERNAME "nobody"
