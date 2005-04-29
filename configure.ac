@@ -40,7 +40,7 @@ AS_MESSAGE(checking required programs...)
 AC_PROG_CC
 AC_PROG_CXX
 AC_PROG_RANLIB
-AM_INIT_AUTOMAKE([dist-bzip2])
+AM_INIT_AUTOMAKE([check-news dist-bzip2 std-options])
 
 
 # Checks for libraries.
