@@ -174,7 +174,7 @@ AS_IF([test "x${enable_miredo_user}" != "x" && test "${enable_miredo_user}" != "
 # pidfile path
 AC_ARG_ENABLE(pidfile,
 	      [AS_HELP_STRING([--enable-pidfile],
-			      [path to the pidfile (${enabled by default)])])
+			      [path to the pidfile (enabled by default)])])
 AS_IF([test "x${enable_pidfile}" = "x" || test "${enable_pidfile}" = "yes"],
 	[enable_pidfile='${localstatedir}/run/miredo.pid'])
 AS_IF([test "${enable_pidfile}" != "no"],
