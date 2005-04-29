@@ -79,6 +79,11 @@ case $host_os in
 	;;
 esac
 
+AC_DEFINE_UNQUOTED(PACKAGE_BUILD, "$build",
+                   [Define to the canonical build-system name])
+AC_DEFINE_UNQUOTED(PACKAGE_HOST, "$host",
+                   [Define to the canonical host-system name])
+
 # Checks for header files.
 AC_CHECK_HEADERS(sys/capability.h)
 

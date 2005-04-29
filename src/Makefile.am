@@ -20,7 +20,6 @@
 datadir = @datadir@
 localedir = $(datadir)/locale
 top_srcdir = @top_srcdir@
-top_builddir = @top_builddir@
 
 # _GNU_SOURCE is needed for old glibc on Linux
 AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir) \
@@ -35,15 +34,9 @@ endif
 
 sbin_PROGRAMS = miredo
 
-BUILT_SOURCES = host.h
-CLEANFILES = $(BUILT_SOURCES)
-
-host.h: $(top_builddir)/Makefile
-	{ \
-		echo '#define PACKAGE_HOST "$(host)"' ; \
-		echo '#define PACKAGE_BUILD "$(build)"' ; \
-	} > $@
-
+#BUILT_SOURCES = svnversion.c
+#CLEANFILES = $(BUILT_SOURCES)
+#
 #svnversion.c:
 #	{ \
 #		echo -n 'const char *const svn_version = "' ; \
