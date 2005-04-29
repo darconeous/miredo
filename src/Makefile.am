@@ -60,8 +60,10 @@ endif
 miredo_LDADD = @LIBINTL@ ../libtun6/libtun6.a ../libteredo/libteredo.a
 
 install-exec-local:
+	test -z $(DESTDIR)$(localstatedir)/run/miredo || \
 	$(mkdir_p) $(DESTDIR)$(localstatedir)/run/miredo
 
 uninstall-local:
 	-rmdir $(DESTDIR)$(localstatedir)/run/miredo
-
+	-rmdir $(DESTDIR)$(localstatedir)/run
+	-rmdir $(DESTDIR)$(localstatedir)
