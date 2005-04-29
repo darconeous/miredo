@@ -1,4 +1,167 @@
 ------------------------------------------------------------------------
+r434 | remi | 2005-04-29 11:49:06 +0200 (ven, 29 avr 2005) | 3 lines
+Changed paths:
+   M /trunk/NEWS
+   M /trunk/po/fr.po
+   M /trunk/po/miredo.pot
+
+- News for release 0.4.2
+- Resync pot files
+
+------------------------------------------------------------------------
+r433 | remi | 2005-04-29 11:48:40 +0200 (ven, 29 avr 2005) | 2 lines
+Changed paths:
+   M /trunk/configure.ac
+
+More strict release checks
+
+------------------------------------------------------------------------
+r432 | remi | 2005-04-29 11:28:16 +0200 (ven, 29 avr 2005) | 4 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+
+Remove hard-coded access-list that prevented reply bubbles from restricted
+clients from being processed by the relay/client, effectively denying
+connectivity toward restricted clients.
+
+------------------------------------------------------------------------
+r431 | remi | 2005-04-28 20:42:02 +0200 (jeu, 28 avr 2005) | 2 lines
+Changed paths:
+   M /trunk/po/fr.po
+   M /trunk/po/miredo.pot
+   M /trunk/src/main.c
+
+Translations updates
+
+------------------------------------------------------------------------
+r430 | remi | 2005-04-28 20:37:08 +0200 (jeu, 28 avr 2005) | 2 lines
+Changed paths:
+   M /trunk/configure.ac
+
+Bump version number
+
+------------------------------------------------------------------------
+r429 | remi | 2005-04-28 20:35:49 +0200 (jeu, 28 avr 2005) | 2 lines
+Changed paths:
+   M /trunk/miredo.8
+   M /trunk/miredo.conf.5
+
+command line syntax changed => update doc
+
+------------------------------------------------------------------------
+r428 | remi | 2005-04-28 20:32:32 +0200 (jeu, 28 avr 2005) | 3 lines
+Changed paths:
+   M /trunk/TODO
+   M /trunk/src/main.c
+   M /trunk/src/miredo.cpp
+   M /trunk/src/miredo.h
+
+Support for overriding the configuration file's ServerAddress from the
+command line
+
+------------------------------------------------------------------------
+r427 | remi | 2005-04-28 17:57:12 +0200 (jeu, 28 avr 2005) | 2 lines
+Changed paths:
+   M /trunk/TODO
+
+More ToDos
+
+------------------------------------------------------------------------
+r426 | remi | 2005-04-28 16:55:51 +0200 (jeu, 28 avr 2005) | 5 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/relay.h
+
+- Bring back connectivity loss detection with a much better algorithm
+(no longer fail on the very first unreplied server solicitation);
+could still be improved a bit
+- some clean up
+
+------------------------------------------------------------------------
+r425 | remi | 2005-04-28 15:55:47 +0200 (jeu, 28 avr 2005) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+
+Fix possible signedness problem with TeredoRelay::peer::IsExpired
+
+------------------------------------------------------------------------
+r424 | remi | 2005-04-28 15:43:08 +0200 (jeu, 28 avr 2005) | 2 lines
+Changed paths:
+   M /trunk/src/miredo.cpp
+
+Don't call TeredoRelay::Process when client support is not compiled-in
+
+------------------------------------------------------------------------
+r423 | remi | 2005-04-28 15:40:51 +0200 (jeu, 28 avr 2005) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/relay.h
+
+Fix server address check
+
+------------------------------------------------------------------------
+r422 | remi | 2005-04-28 15:40:35 +0200 (jeu, 28 avr 2005) | 2 lines
+Changed paths:
+   M /trunk/TODO
+
+Remove done TODO from list
+
+------------------------------------------------------------------------
+r421 | remi | 2005-04-28 15:19:38 +0200 (jeu, 28 avr 2005) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+
+Completely ignore server packets that fails authentication check
+
+------------------------------------------------------------------------
+r420 | remi | 2005-04-28 14:36:45 +0200 (jeu, 28 avr 2005) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/relay.h
+
+Clean up / avoid some code duplication
+
+------------------------------------------------------------------------
+r419 | remi | 2005-04-28 14:30:07 +0200 (jeu, 28 avr 2005) | 3 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/relay.h
+
+Further clean up...
+made TeredoRelay::peer a class
+
+------------------------------------------------------------------------
+r418 | remi | 2005-04-28 13:47:33 +0200 (jeu, 28 avr 2005) | 4 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+
+- use struct timeval instead of time_t to determine peer expiry
+- break one bubble per 2 seconds limit
+- clean up use of last_rx and last_xmit
+
+------------------------------------------------------------------------
+r417 | remi | 2005-04-25 18:33:25 +0200 (lun, 25 avr 2005) | 2 lines
+Changed paths:
+   M /trunk/m4
+
+Update for newer autotools
+
+------------------------------------------------------------------------
+r413 | remi | 2005-03-20 16:37:25 +0100 (dim, 20 mar 2005) | 2 lines
+Changed paths:
+   M /trunk
+   A /trunk/COPYING
+
+Include license in SVN trunk
+
+------------------------------------------------------------------------
+r411 | remi | 2005-03-17 20:16:20 +0100 (jeu, 17 mar 2005) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog
+
+ChangeLog 0.4.1 update
+
+------------------------------------------------------------------------
 r410 | remi | 2005-03-17 20:14:31 +0100 (jeu, 17 mar 2005) | 2 lines
 
 Update French translation
