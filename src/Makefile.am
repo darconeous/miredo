@@ -2,7 +2,7 @@
 # $Id$
 
 # ***********************************************************************
-# *  Copyright (C) 2004 Remi Denis-Courmont.                            *
+# *  Copyright (C) 2005-2004 Remi Denis-Courmont.                       *
 # *  This program is free software; you can redistribute and/or modify  *
 # *  it under the terms of the GNU General Public License as published  *
 # *  by the Free Software Foundation; version 2 of the license.         *
@@ -19,9 +19,11 @@
 
 datadir = @datadir@
 localedir = $(datadir)/locale
+top_srcdir = @top_srcdir@
+top_builddir = @top_builddir@
 
 # _GNU_SOURCE is needed for old glibc on Linux
-AM_CPPFLAGS = -I@top_srcdir@/include -I@top_srcdir@ \
+AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir) \
 		-D_GNU_SOURCE -DLOCALEDIR=\"$(localedir)\" \
 		-DSYSCONFDIR=\"$(sysconfdir)\"
 if MIREDO_CHROOT
@@ -33,15 +35,23 @@ endif
 
 sbin_PROGRAMS = miredo
 
-#FIXME: don't rebuild every time
-#BUILT_SOURCES = host.h
-#CLEANFILES = $(BUILT_SOURCES)
+BUILT_SOURCES = host.h
+CLEANFILES = $(BUILT_SOURCES)
 
-#host.h: Makefile
+host.h: $(top_builddir)/Makefile
+	{ \
+		echo '#define PACKAGE_HOST "$(host)"' ; \
+		echo '#define PACKAGE_BUILD "$(build)"' ; \
+	} > $@
+
+#svnversion.c:
 #	{ \
-#		echo '#define PACKAGE_HOST "$(host)"' ; \
-#		echo '#define PACKAGE_BUILD "$(build)"' ; \
+#		echo -n 'const char *const svn_version = "' ; \
+#		svnversion -n $(top_srcdir) 2>/dev/null; \
+#		echo '";' ; \
 #	} > $@
+#
+#.PHONY: svnversion.c
 
 # miredo
 miredo_SOURCES = main.c miredo.cpp miredo.h conf.cpp conf.h

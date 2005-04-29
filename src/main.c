@@ -53,7 +53,7 @@
 #include "miredo.h"
 #include <libtun6/ipv6-tunnel.h>
 
-/*#include "host.h"*/
+#include "host.h"
 
 /*
  * RETURN VALUES:
@@ -93,9 +93,9 @@ version (void)
 # define VERSION "unknown version"
 #endif
  	puts (
-"Miredo : Teredo IPv6 tunneling software "VERSION/*" ("PACKAGE_HOST")"*/"\n"
-" built "__DATE__" on "PACKAGE_BUILD_HOSTNAME/*" ("PACKAGE_BUILD")"*/"\n"
-"Copyright (C) 2004 Remi Denis-Courmont");
+"Miredo : Teredo IPv6 tunneling software "VERSION" ("PACKAGE_HOST") $Rev$\n"
+" built "__DATE__" on "PACKAGE_BUILD_HOSTNAME" ("PACKAGE_BUILD")\n"
+"Copyright (C) 2004-2005 Remi Denis-Courmont");
 	puts (_(
 "This is free software; see the source for copying conditions.\n"
 "There is NO warranty; not even for MERCHANTABILITY or\n"
