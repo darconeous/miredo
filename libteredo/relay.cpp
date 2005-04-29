@@ -599,7 +599,6 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 			return 0;
 		}
 
-		// FIXME check server IP!!!
 		const struct teredo_orig_ind *ind = packet.GetOrigInd ();
 		if (ind != NULL)
 		{
@@ -636,33 +635,37 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 #endif /* MIREDO_TEREDO_CLIENT */
 
 	/*
-	 * TODO:
-	 * The specification says we "should" check that the packet
-	 * destination address is ours, if we are a client. The kernel
-	 * will do this for us if we are a client. Besides, in the case of
-	 * packets from the server, the destination might not be our Teredo
-	 * address.
+	 * NOTE/TODO:
+	 * In the client case, the spec says we should check that the
+	 * destination is our Teredo IPv6 address. However, this library makes
+	 * no difference between relay, host-specific relay and client
+	 * (it very much sounds like market segmentation to me).
+	 * We purposedly leave it up to the kernel to determine whether he
+	 * should accept, route, or drop the packet, according to its
+	 * configuration. That should be done now if we wanted to.
 	 *
-	 * In the relay's case, we "should" check that the destination is in
-	 * the "range of IPv6 adresses served by the relay", which may be a
-	 * run-time option (?).
+	 * In the relay case, it says we should accept packet toward the range
+	 * of hosts for which we serve as a Teredo relay, and should otherwise
+	 * drop it. That should be done just before sending the packet. That
+	 * might be a run-time option.
 	 *
-	 * NOTE:
-	 * The specification specifies that the relay MUST look up the peer in
-	 * the list and update last reception date even if the destination is
-	 * incorrect.
+	 * It should be noted that dropping packets with link-local
+	 * destination here, before further processing, breaks connectivity
+	 * with restricted Teredo clients : we send them Teredo bubbles with
+	 * a link-local source, to which they reply with Teredo bubbles with
+	 * a link-local destination. Indeed, the specification specifies that
+	 * the relay MUST look up the peer in the list and update last
+	 * reception date even if the destination is incorrect.
 	 */
-
 #if 0
 	/*
 	 * Ensures that the packet destination has an IPv6 Internet scope
-	 * (ie 2000::/3)
-	 * That should be done just before calling SendIPv6Packet(), but it
-	 * so much easier to do it now.
+	 * (ie 2000::/3). That should be done just before calling
+	 * SendIPv6Packet(), but it so much easier to do it now.
 	 */
 	if ((ip6.ip6_dst.s6_addr[0] & 0xe0) != 0x20)
 		return 0; // must be discarded, or ICMPv6 error (?)
-#else
+
 	if ((ip6.ip6_dst.s6_addr[0] & 0xfe) == 0xfe)
 		return 0;
 #endif
@@ -673,6 +676,14 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 	 * have a link-local source address (RFC 2461).
 	 *
 	 * Note: only Linux defines convenient s6_addr16, so we don't use it.
+	 *
+	 * In no case are relays and clients supposed to receive and process
+	 * such a packet *except* from their server (that processing is done
+	 * in the "Maintenance" case above), or bubbles from other restricted
+	 * clients/relays, which can safely be ignored (so long as the other
+	 * bubble sent through the server is not ignored).
+	 *
+	 * This check is not part of the Teredo specification.
 	 */
 	if ((((uint16_t *)ip6.ip6_src.s6_addr)[0] & 0xfec0) == 0xfe80)
 		return 0;
@@ -724,7 +735,6 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 	 * At this point, we have either a trusted mapping mismatch,
 	 * an unlisted peer, or an un-trusted client peer.
 	 */
-
 	if (IN6_TEREDO_PREFIX (&ip6.ip6_src) == GetPrefix ())
 	{
 		// Client case 3 (unknown or untrusted matching Teredo client):
@@ -777,7 +787,7 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 	}
 
 #ifdef MIREDO_TEREDO_CLIENT
-	// Relays only accept packet from Teredo clients;
+	// Relays only accept packets from Teredo clients;
 	if (IsRelay ())
 		return 0;
 
