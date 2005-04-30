@@ -43,7 +43,7 @@
 #
 # Name of the networking interface
 # (ignored on non-Linux systems)
-# Defaults: InterfaceName miredo
+# Defaults: interface name given by the OS kernel
 # Example:  InterfaceName teredo
 #
 InterfaceName	teredo
