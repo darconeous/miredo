@@ -1,4 +1,5 @@
 #!/bin/sh
+# $Id$
 #
 # Miredo start/stop script for Mandrake GNU/Linux
 # Author: Remi Denis-Courmont <rdenis (at) simphalempin (dot) com>
