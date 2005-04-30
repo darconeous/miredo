@@ -2,7 +2,7 @@
 # $Id$
 
 # ***********************************************************************
-# *  Copyright (C) 2004-2005 Remi Denis-Courmont.                       *
+# *  Copyright (C) 2004 Remi Denis-Courmont.                            *
 # *  This program is free software; you can redistribute and/or modify  *
 # *  it under the terms of the GNU General Public License as published  *
 # *  by the Free Software Foundation; version 2 of the license.         *
@@ -17,7 +17,7 @@
 # *  http://www.gnu.org/copyleft/gpl.html                               *
 # ***********************************************************************
 
-SUBDIRS = m4 po include libtun6 libteredo src misc autopackage
+SUBDIRS = m4 po include libtun6 libteredo src misc
 man5_MANS = miredo.conf.5
 man8_MANS = miredo.8
 EXTRA_DIST = admin/config.rpath admin/mkinstalldirs  $(man5_MANS) $(man8_MANS)
