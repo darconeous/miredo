@@ -95,6 +95,8 @@ RDC_STRUCT_SOCKADDR_LEN
 
 
 # Checks for library functions.
+RDC_REPLACE_FUNC_GETOPT_LONG
+AC_CHECK_FUNCS(clearenv)
 
 # Socket stuff
 RDC_FUNC_SOCKET
@@ -111,9 +113,6 @@ AH_BOTTOM([
 # undef HAVE_LIBCAP
 #endif
 ])
-
-RDC_REPLACE_FUNC_GETOPT_LONG
-AC_CHECK_FUNCS(clearenv)
 
 
 # Checks for optionnal features
