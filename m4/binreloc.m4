@@ -19,7 +19,7 @@ AC_DEFUN([AM_BINRELOC],
 			       [br_cv_valid_prefixes], [
 				if test "$bindir" = '${exec_prefix}/bin' -a "$sbindir" = '${exec_prefix}/sbin' -a \
 					"$datadir" = '${prefix}/share' -a "$libdir" = '${exec_prefix}/lib' -a \
-					"$libexecdir" = '${exec_prefix}/libexec' -a "$sysconfdir" = '${prefix}/etc'
+					"$libexecdir" = '${exec_prefix}/libexec'
 				then
 					br_cv_valid_prefixes=yes
 				else

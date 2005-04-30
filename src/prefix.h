@@ -55,7 +55,6 @@ extern "C" {
 	#undef LIBDIR
 	#undef LIBEXECDIR
 	#undef ETCDIR
-	#undef SYSCONFDIR
 	#undef CONFDIR
 	#undef LOCALEDIR
 
@@ -68,7 +67,6 @@ extern "C" {
 	#define LIBDIR		(br_thread_local_store (br_prepend_prefix ((void *) "", "/lib")))
 	#define LIBEXECDIR	(br_thread_local_store (br_prepend_prefix ((void *) "", "/libexec")))
 	#define ETCDIR		(br_thread_local_store (br_prepend_prefix ((void *) "", "/etc")))
-	#define SYSCONFDIR	(br_thread_local_store (br_prepend_prefix ((void *) "", "/etc")))
 	#define CONFDIR		(br_thread_local_store (br_prepend_prefix ((void *) "", "/etc")))
 	#define LOCALEDIR	(br_thread_local_store (br_prepend_prefix ((void *) "", "/share/locale")))
 #endif /* BR_NO_MACROS */
@@ -106,7 +104,6 @@ const char *br_thread_local_store (char *str);
 	#define BR_LIBDIR(suffix)	LIBDIR suffix
 	#define BR_LIBEXECDIR(suffix)	LIBEXECDIR suffix
 	#define BR_ETCDIR(suffix)	ETCDIR suffix
-	#define BR_SYSCONFDIR(suffix)	SYSCONFDIR suffix
 	#define BR_CONFDIR(suffix)	CONFDIR suffix
 	#define BR_LOCALEDIR(suffix)	LOCALEDIR suffix
   #else

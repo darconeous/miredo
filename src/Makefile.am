@@ -20,10 +20,12 @@
 datadir = @datadir@
 localedir = $(datadir)/locale
 top_srcdir = @top_srcdir@
+sysconfdir = @sysconfdir@
 
 # _GNU_SOURCE is needed for old glibc on Linux
-AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir) \
-		-D_GNU_SOURCE -DBR_PTHREADS=0
+AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir) -D_GNU_SOURCE \
+	-DLOCALEDIR=\"$(localedir)\" -DSYSCONFDIR=\"$(sysconfdir)\" \
+	-DBR_PTHREADS=0
 
 if MIREDO_CHROOT
 AM_CPPFLAGS += -DMIREDO_CHROOT=\"$(miredo_chroot)\"

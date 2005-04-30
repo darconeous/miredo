@@ -402,7 +402,7 @@ check_libtun6 (void)
 
 
 #ifndef MIREDO_DEFAULT_CONFFILE
-# define MIREDO_DEFAULT_CONFFILE BR_SYSCONFDIR ("/miredo.conf")
+# define MIREDO_DEFAULT_CONFFILE SYSCONFDIR"/miredo.conf"
 #endif
 #ifndef MIREDO_DEFAULT_USERNAME
 # define MIREDO_DEFAULT_USERNAME "nobody"
