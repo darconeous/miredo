@@ -46,7 +46,10 @@ fournir une connectivité IPv6 aux utilisateurs derrière un NAT, lequel ne
 supporte pas IPv6, ni même le proto-41 forwarding (6to4).
 
 [BuildPrepare]
-prepareBuild --localstatedir=/var
+export APBUILD_STATIC="cap"
+prepareBuild --localstatedir=/var --sysconfdir=/etc
+mkdir -p -- "${build_root}/etc"
+cp -v misc/miredo.conf-dist "${build_root}/etc/miredo.conf"
 
 [BuildUnprepare]
 unprepareBuild
@@ -55,6 +58,7 @@ unprepareBuild
 echo '*' | import
 
 [Prepare]
+require @gnu.org/libstdc++ 3
 
 [Install]
 installExe sbin/*
@@ -62,6 +66,12 @@ installMan 5 man/man5/miredo.conf.5
 installMan 8 man/man8/miredo.8
 installLocale share/locale
 installConfig etc/*
+mkdirs /var/run/miredo
 
 [Uninstall]
+# Stops Miredo if it is running
+\[ -s "/var/run/miredo.pid" \] && \
+kill -TERM $(cat /var/run/miredo.pid)
+
+# Uninstall
 uninstallFromLog
