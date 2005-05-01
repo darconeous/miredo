@@ -703,6 +703,8 @@ IPv6Tunnel::SetMTU (unsigned mtu) const
 
 	if (ioctl (reqfd, SIOCSIFMTU, &req))
 	{
+		syslog (LOG_ERR, _("%s tunnel MTU (%u bytes) change failed: %m"),
+		        ifname, mtu);
 		close (reqfd);
 		return -1;
 	}
