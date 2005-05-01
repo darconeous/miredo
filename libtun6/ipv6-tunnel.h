@@ -32,6 +32,7 @@ int libtun6_driver_diagnose (char *errbuf);
 
 # ifdef __cplusplus
 
+#  include <stddef.h> // we need a definition for NULL
 #  include <sys/types.h>
 #  include <sys/select.h>
 
