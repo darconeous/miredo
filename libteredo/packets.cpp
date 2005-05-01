@@ -7,7 +7,7 @@
  */
 
 /***********************************************************************
- *  Copyright (C) 2004 Remi Denis-Courmont.                            *
+ *  Copyright (C) 2004-2005 Remi Denis-Courmont.                       *
  *  This program is free software; you can redistribute and/or modify  *
  *  it under the terms of the GNU General Public License as published  *
  *  by the Free Software Foundation; version 2 of the license.         *
@@ -152,9 +152,8 @@ icmp6_checksum (const struct ip6_hdr *ip6, const struct icmp6_hdr *icmp6)
 
 #ifdef MIREDO_TEREDO_CLIENT
 /*
- * Sends a router solication with an Authentication header to the server.
- * If secondary is true, the packet will be sent to the server's secondary
- * IPv4 adress instead of the primary one.
+ * Sends a router solication with an Authentication header to the server
+ * at specified address.
  *
  * Returns 0 on success, -1 on error.
  */
@@ -163,7 +162,7 @@ static const struct in6_addr in6addr_allrouters =
 
 int
 SendRS (const TeredoRelayUDP& sock, uint32_t server_ip,
-	const unsigned char *nonce, bool cone, bool secondary)
+        const unsigned char *nonce, bool cone)
 {
 	uint8_t packet[13 + sizeof (struct ip6_hdr)
 			+ sizeof (struct nd_router_solicit)
@@ -226,11 +225,8 @@ SendRS (const TeredoRelayUDP& sock, uint32_t server_ip,
 		memcpy (ptr, &rs, sizeof (rs));
 	}
 
-	if (secondary)
-		server_ip = htonl (ntohl (server_ip) + 1);
-
 	return sock.SendPacket (packet, sizeof (packet), server_ip,
-				htons (IPPORT_TEREDO));
+	                        htons (IPPORT_TEREDO));
 }
 
 

@@ -7,7 +7,7 @@
  */
 
 /***********************************************************************
- *  Copyright (C) 2004 Remi Denis-Courmont.                            *
+ *  Copyright (C) 2004-2005 Remi Denis-Courmont.                       *
  *  This program is free software; you can redistribute and/or modify  *
  *  it under the terms of the GNU General Public License as published  *
  *  by the Free Software Foundation; version 2 of the license.         *
@@ -35,7 +35,7 @@
  */
 int
 SendBubble (const TeredoRelayUDP& sock, const struct in6_addr *d,
-		bool cone, bool indirect = true);
+            bool cone, bool indirect = true);
 
 /*
  * Sends a Teredo Bubble to the specified IPv4/port tuple.
@@ -43,18 +43,16 @@ SendBubble (const TeredoRelayUDP& sock, const struct in6_addr *d,
  */
 int
 SendBubble (const TeredoRelayUDP& sock, uint32_t ip, uint16_t port,
-		const struct in6_addr *src, const struct in6_addr *dst);
+            const struct in6_addr *src, const struct in6_addr *dst);
 
 /*
  * Sends a router solication with an Authentication header to the server.
- * If secondary is true, the packet will be sent to the server's secondary
- * IPv4 adress instead of the primary one.
  *
  * Returns 0 on success, -1 on error.
  */
 int
-SendRS (const TeredoRelayUDP& sock, uint32_t server_ip,
-	const unsigned char *nonce, bool cone, bool secondary);
+SendRS (const TeredoRelayUDP& sock, uint32_t server_ip, 
+        const unsigned char *nonce, bool cone);
 
 
 /*
@@ -73,7 +71,7 @@ ParseRA (const TeredoPacket& packet, union teredo_addr *newaddr, bool cone);
 
 int
 SendPing (const TeredoRelayUDP& sock, const union teredo_addr *src,
-		const struct in6_addr *dst, const uint8_t *nonce);
+          const struct in6_addr *dst, const uint8_t *nonce);
 
 bool
 CheckPing (const TeredoPacket& packet, const uint8_t *nonce);
@@ -81,8 +79,8 @@ CheckPing (const TeredoPacket& packet, const uint8_t *nonce);
 
 int
 BuildICMPv6Error (struct ip6_hdr *out, const struct in6_addr *src,
-			uint8_t type, uint8_t code,
-			const void *in, uint16_t inlen);
+                  uint8_t type, uint8_t code,
+                  const void *in, uint16_t inlen);
 
 
 #endif

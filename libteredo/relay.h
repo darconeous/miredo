@@ -109,7 +109,7 @@ class TeredoRelay
 		 * behind a fascist firewall, as the port might be blocked.
 		 */
 		TeredoRelay (uint32_t pref, uint16_t port /*= 0*/,
-				uint32_t ipv4 /* = 0 */, bool cone /*= true*/);
+		             uint32_t ipv4 /* = 0 */, bool cone /*= true*/);
 
 		/*
 		 * Creates a Teredo client/relay automatically. The client
@@ -118,8 +118,8 @@ class TeredoRelay
 		 *
 		 * TODO: support for secure qualification
 		 */
-		TeredoRelay (uint32_t server_ip, uint16_t port = 0,
-				uint32_t ipv4 = 0);
+		TeredoRelay (uint32_t server_ip, uint32_t server_ip2,
+		             uint16_t port = 0, uint32_t ipv4 = 0);
 
 	public:
 		virtual ~TeredoRelay ();

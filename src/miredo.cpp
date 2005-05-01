@@ -338,7 +338,8 @@ miredo_run (const struct miredo_conf *conf)
 		// Sets up client
 		try
 		{
-			relay = new MiredoRelay (fd, &tunnel, conf->server_ip,
+			relay = new MiredoRelay (fd, &tunnel,
+			                         conf->server_ip, conf->server_ip2,
 			                         conf->bind_port, conf->bind_ip);
 		}
 		catch (...)

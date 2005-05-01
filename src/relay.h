@@ -7,7 +7,7 @@
  */
 
 /***********************************************************************
- *  Copyright (C) 2004 Remi Denis-Courmont.                            *
+ *  Copyright (C) 2004-2005 Remi Denis-Courmont.                       *
  *  This program is free software; you can redistribute and/or modify  *
  *  it under the terms of the GNU General Public License as published  *
  *  by the Free Software Foundation; version 2 of the license.         *
@@ -39,8 +39,7 @@ class MiredoRelay : public TeredoRelay
 		const IPv6Tunnel *tunnel;
 		int priv_fd;
 
-		virtual int SendIPv6Packet (const void *packet,
-						size_t length);
+		virtual int SendIPv6Packet (const void *packet, size_t length);
 #ifdef MIREDO_TEREDO_CLIENT
 		virtual int NotifyUp (const struct in6_addr *addr);
 		virtual int NotifyDown (void);
@@ -48,12 +47,12 @@ class MiredoRelay : public TeredoRelay
 
 	public:
 		MiredoRelay (const IPv6Tunnel *tun, uint32_t prefix,
-				uint16_t port = 0, uint32_t ipv4 = 0,
-				bool cone = true);
+		             uint16_t port = 0, uint32_t ipv4 = 0,
+		             bool cone = true);
 #ifdef MIREDO_TEREDO_CLIENT
 		MiredoRelay (int fd, const IPv6Tunnel *tun,
-				uint32_t server_ip, uint16_t port = 0,
-				uint32_t ipv4 = 0);
+		             uint32_t server_ip, uint32_t server_ip2,
+		             uint16_t port = 0, uint32_t ipv4 = 0);
 #endif
 		//virtual void ~MiredoRelay (void);
 };

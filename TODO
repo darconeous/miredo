@@ -12,8 +12,6 @@ $Id$
 Features:
 ----------
 (*) fix bubble retransmit / timing,
-(!) secondary server IPv4 address manual configuration
-      for both server and client
 (!) option to ignore cone bit,
 (!) server option to override MTU,
 (!) client support for MTU router advert option,

@@ -192,7 +192,7 @@ class TeredoRelay::peer
 
 
 TeredoRelay::TeredoRelay (uint32_t pref, uint16_t port, uint32_t ipv4,
-				bool cone)
+                          bool cone)
 	: server_ip2 (0), head (NULL)
 {
 	addr.teredo.prefix = pref;
@@ -207,21 +207,21 @@ TeredoRelay::TeredoRelay (uint32_t pref, uint16_t port, uint32_t ipv4,
 
 
 #ifdef MIREDO_TEREDO_CLIENT
-TeredoRelay::TeredoRelay (uint32_t server_ip, uint16_t port, uint32_t ipv4)
+TeredoRelay::TeredoRelay (uint32_t ip, uint32_t ip2,
+                          uint16_t port, uint32_t ipv4)
 	: head (NULL)
 {
-	if (!is_ipv4_global_unicast (server_ip))
-		syslog (LOG_WARNING,
-			_("Server has a non global IPv4 address. "
-			"It will most likely not work."));
+	if (!is_ipv4_global_unicast (ip) || !is_ipv4_global_unicast (ip2))
+		syslog (LOG_WARNING, _("Server has a non global IPv4 address. "
+		                       "It will most likely not work."));
 
 	addr.teredo.prefix = PREFIX_UNSET;
-	addr.teredo.server_ip = server_ip;
+	addr.teredo.server_ip = ip;
 	addr.teredo.flags = htons (TEREDO_FLAG_CONE);
 	addr.teredo.client_ip = 0;
 	addr.teredo.client_port = 0;
 
-	server_ip2 = htonl (ntohl (server_ip) + 1);
+	server_ip2 = ip2;
 
 	if (GenerateNonce (probe.nonce, true)
 	 && (sock.ListenPort (port, ipv4) == 0))
@@ -876,7 +876,7 @@ int TeredoRelay::ProcessQualificationPacket (const TeredoPacket *packet)
 	if (probe.state == PROBE_RESTRICT)
 	{
 		probe.state = PROBE_SYMMETRIC;
-		SendRS (sock, GetServerIP (), probe.nonce, false, false);
+		SendRS (sock, GetServerIP (), probe.nonce, false);
 
 		delay = QualificationTimeOut;
 		memcpy (&addr, &newaddr, sizeof (addr));
@@ -996,9 +996,9 @@ int TeredoRelay::Process (void)
 
 		probe.count ++;
 
-		SendRS (sock, GetServerIP (), probe.nonce,
-			probe.state == PROBE_CONE /* cone */,
-			probe.state == PROBE_RESTRICT /* secondary */);
+		SendRS (sock, probe.state == PROBE_RESTRICT /* secondary */
+		               ? GetServerIP2 () : GetServerIP (),
+		        probe.nonce, probe.state == PROBE_CONE /* cone */);
 
 		gettimeofday (&probe.next, NULL);
 		probe.next.tv_sec += delay;
