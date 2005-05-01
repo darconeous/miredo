@@ -78,8 +78,7 @@ InterfaceName	teredo
 #
 # (Client-only)
 # Server primary IPv4 address (possibly an hostname)
-# If not set, Miredo will work as a Teredo relay rather than a
-# Teredo client.
+# This setting is *REQUIRED* if Miredo is in client mode (RelayType).
 #
 # Public Teredo servers:
 #  - teredo.ipv6.microsoft.com (defaults on Microsoft Windows)
@@ -90,6 +89,15 @@ InterfaceName	teredo
 # Example:  ServerAddress teredo.ipv6.microsoft.com
 #
 ServerAddress teredo.via.ecp.fr
+
+#
+# (Client-only)
+# Server secondary IPv4 address (possibly an hostname)
+#
+# Defaults: automatically use the server primary address + 1
+# Example:  ServerAddress miredo.via.ecp.fr
+#
+#ServerAddress2 miredo.via.ecp.fr
 
 #
 # (Client-only)
@@ -156,12 +164,8 @@ ServerAddress teredo.via.ecp.fr
 # maintain UDP bindings on their NAT devices, and to forward ICMPv6
 # Echo requests over IPv6 toward hosts they want to contact.
 #
-# To run Miredo as a Teredo server, you need two subsequent public IPv4
-# addresses. In fact, Microsoft Windows Teredo client implementation
-# assumes that the secondary address is the primary address plus one
-# (for the sake of interoperability, Miredo client currently shows the
-# same behavior).
-#
+# To run Miredo as a Teredo server, you need two public IPv4 addresses
+# (see ServerBindAddress2 below).
 # Miredo will open UDP port 3544 on both addresses. If the specified
 # address is not assigned to the system, or if the next address is not
 # assigned to the system, Miredo will fail to start.
@@ -171,4 +175,23 @@ ServerAddress teredo.via.ecp.fr
 #
 #ServerBindAddress 138.195.157.221
 
+#
+# (Server-only)
+# Server secondary IPv4 address
+#
+# In fact, Microsoft Windows Teredo client implementation assumes that
+# the secondary address is the primary address plus one (for the sake
+# of ease-of-use, Miredo's Teredo client has a similar behavior by
+# default). Hence, it is believed that if you use a secondary server
+# address that is different from the primary address plus one
+# (as in 138.195.157.221 + 1 = 138.195.157.222) that Teredo clients
+# running on Windows XP (at least those from behind restricted NAT)
+# won't be able to qualify with your server. Those running Miredo will
+# need to set the ServerAddress2 option properly. It is only available
+# in Miredo version 0.4.3 and bigger.
+#
+# Defaults: automatically use ServerBindAddress + 1
+# Example:  ServerBindAddress2 138.195.157.222
+#
+#ServerBindAddress2 138.195.157.222
 

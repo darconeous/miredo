@@ -543,6 +543,12 @@ ParseConf (const char *path, int *newfac, struct miredo_conf *conf,
 		freeaddrinfo (res);
 		if (dummy != NULL)
 			free (dummy);
+
+		if (!ParseIPv4 (cnf, "ServerAddress2", &conf->server_ip2))
+		{
+			syslog (LOG_ALERT, _("Fatal configuration error"));
+			return false;
+		}
 	}
 	else
 	{
@@ -553,18 +559,25 @@ ParseConf (const char *path, int *newfac, struct miredo_conf *conf,
 			return false;
 		}
 
-		/*
-		 * NOTE:
-		 * While it is not specified in the draft Teredo
-		 * specification, it really seems that the secondary
-		 * server IPv4 address has to be the one just after
-		 * the primary server IPv4 address.
-		 *
-		 * TODO: support for using another 2nd IP
-		 */
 		if (conf->server_ip != INADDR_ANY)
-			conf->server_ip2 = htonl (ntohl (conf->server_ip) + 1);
+		{
+			if (!ParseIPv4 (cnf, "ServerBindAddress2", &conf->server_ip2))
+			{
+				syslog (LOG_ALERT, _("Fatal configuration error"));
+				return false;
+			}
+		}
 	}
+
+	/*
+	 * NOTE:
+	 * While it is not specified in the draft Teredo
+	 * specification, it really seems that the secondary
+	 * server IPv4 address has to be the one just after
+	 * the primary server IPv4 address.
+	 */
+	if ((conf->server_ip != INADDR_ANY) && (conf->server_ip2 == INADDR_ANY))
+		conf->server_ip2 = htonl (ntohl (conf->server_ip) + 1);
 
 	if (conf->mode != TEREDO_DISABLED)
 	{
