@@ -2,10 +2,11 @@ Incomplete raw ToDo list:
 ==========================
 $Id$
 
+(*) must be done before stable release
+
 Features:
 ----------
-- fix connectivity loss detection,
-- fix bubble retransmit / timing,
+- (*) fix bubble retransmit / timing,
 - option to specify secondary server IPv4,
 - option to ignore cone bit,
 - take failure to send UDP packets into account,
@@ -19,11 +20,11 @@ Security:
 ----------
 - secure qualification support,
 - access control,
-- peer list size limit,
+- (*) peers list size limit,
 
 Conformance:
 -------------
-- implement proper/draft-compliant timeouts,
+- (*) implement proper/draft-compliant timeouts,
 - fixed FIXMEs in source code,
 
 Testing:
