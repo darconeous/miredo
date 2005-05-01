@@ -1,62 +1,76 @@
-Incomplete raw ToDo list:
-==========================
+ToDo list:
+===========
 $Id$
 
-(*) must be done before stable release
+(!) before next release (0.4.3)
+(*) before stable release (1.0.0)
+( ) unscheduled
+(H) help needed
+(F) in the distant future
+(?) not to be done yet (or ever)
 
 Features:
 ----------
-- (*) fix bubble retransmit / timing,
-- option to specify secondary server IPv4,
-- option to ignore cone bit,
-- take failure to send UDP packets into account,
-- external control program for scripting,
-- some statistics,
-- fixed TODOs in source code,
-- local Teredo discovery,
-- "automatic sunset" / "exit strategy" -- quite complicated,
+(*) fix bubble retransmit / timing,
+(!) secondary server IPv4 address manual configuration
+      for both server and client
+(!) option to ignore cone bit,
+(!) server option to override MTU,
+(!) client support for MTU router advert option,
+( ) take failure to send UDP packets into account,
+(!) external control program for scripting,
+(*) some statistics,
+( ) fixed TODOs and FIXMEs in source code,
+( ) local Teredo discovery,
+(?) "automatic sunset" / "exit strategy",
+( ) use raw sockets rather than tunnel for server
+ OR check that IPv6 routing is enabled at startup
 
 Security:
 ----------
-- secure qualification support,
-- access control,
-- (*) peers list size limit,
+(?) full secure qualification support with user ID,
+(*) relay IPv6 access control lists,
+(*) relay/server IPv4 *modifiable* access control lists
+    (currently hard-coded to reject private IPv4 space),
+(*) peers list size limit,
+( ) separate server processing from relay/client
+    (different processes)
 
 Conformance:
 -------------
-- (*) implement proper/draft-compliant timeouts,
-- fixed FIXMEs in source code,
+(*) implement proper/draft-compliant timeouts,
 
 Testing:
 ---------
-[ Never ending ]
-- tests for possible regressions in upcoming release,
-- tests for new features,
+(!) tests for possible regressions in upcoming release,
+(!) tests for new features,
 
 Performance/scalibility:
 -------------------------
-- faster peer lists lookups/updates,
+( ) faster peer lists lookups/updates,
+( ) multi-threading in relay/client (will help other things a lot)
 
 Portability:
 -------------
-- big-endianess/byte-alignment compatibility tests,
-- Darwin/Solaris/NetBSD/OpenBSD compilation,
-- FreeBSD routing tests,
-- libteredo on Windows (?)
+(H) big-endianess/byte-alignment compatibility tests,
+(H) Darwin/Solaris/NetBSD/OpenBSD compilation,
+(H) FreeBSD routing tests,
+(?) libteredo on Windows
 
 Compatibility:
 ---------------
-- investigate deeper into relay possible incompatibility with
-  ng_teredo's server,
+( ) investigate deeper into relay possible incompatibility with
+    ng_teredo's server,
+(H) investigate Linux kernel panic/freeze,
 
 Documentation & support:
 -------------------------
-- custom INSTALL file,
-- RPM and Debian packaging,
+( ) custom INSTALL file,
+( ) RPM and Debian packaging,
 
 Re-usability:
 --------------
-- libteredo API stabilization,
-- thread-safety in libteredo,
-- libteredo C bindings.
+(F) libteredo API stabilization,
+(?) thread-safety in libteredo,
+(F) libteredo C bindings.
 
