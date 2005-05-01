@@ -57,42 +57,81 @@ Networking pack" for Windows XP SP1.
 Microsoft IPv6 : Teredo overview.
 
 
+
 Quick usage
 ============
 
+
+Easy installation:
+-------------------
+
   First, compile and install Miredo. Refer to INSTALL for detailled
-instructions. Usually, it can be done the usual way:
+instructions. Usually, it can be done the common way:
 
 # ./configure
 # make
 # su
 # make install
 
-  You must then create a configuration file, otherwise Miredo will not
-work. A sample miredo.conf-dist is installed automatically :
+  Miredo has no particular depencies (besides gcc, g++, make and the
+standard C/C++ headers), so there should be no problem so far.
 
-# cd /usr/local/etc
-# mv miredo.conf-dist miredo.conf
+  A sample configuration file is automatically installed at
+/usr/local/etc/miredo.conf - unless the file already existed (which
+means you are probably reinstalling or upgrading Miredo). This sample
+will cause Miredo to run as a Teredo client, with "teredo.via.ecp.fr"
+(Miredo official testing Teredo server) as its Teredo server. You can
+find more extensive explanations in the configuration file.
 
-  Before you start, please note that Miredo must be started by root and
-detach and run in the background. You must hence read your system logs
-to see what happens if there is something wrong.
 
-  If you want to use Miredo as a Teredo client, so as to access the
-IPv6 Internet from behind a NAT, you must tell Miredo which Teredo
-server it should use. You can edit miredo.conf if you wish to use a
-server different from that defined in the sample miredo.conf, e.g.
-Microsoft Corp.'s official Teredo server:
+Starting the program:
+----------------------
 
-ServerAddress teredo.ipv6.microsoft.com
+  Before you start, please note that Miredo must be started by root,
+and that it will detach and run in the background. If something goes
+wrong, there are two ways two know what :
+- read your system logs (typically /var/log/syslog),
+- force Miredo to run in the background (that's meant for debugging),
+  by starting it with the "--foreground" command line parameter, and
+  wait for about 20 seconds.
 
-  You can then run miredo (as root!):
+  You can now run miredo (as root!):
 # /usr/local/sbin/miredo
 
-  Miredo should try to qualify with the Teredo server (use Ethereal if
-you wish to monitor). After 15 seconds, you should have a teredo
-networking interface with a public Teredo IPv6 address, through which
-you can route IPv6 packets to the IPv6 Internet.
+  It will need some time to initialize, particularly if you are behind
+a restricted NAT, which is frequent. After about 20 seconds, you should
+have access to the IPv6 Internet through Teredo, with a public Teredo
+IPv6 address on the "teredo" networking interface :
+
+# ifconfig teredo
+teredo    Link encap:UNSPEC  HWaddr 00-00-00-00-00-00-00-00-00-00-00...
+          inet6 addr: 3ffe:831f:8ac3:9ddd:0:7ffa:ad80:3464/32 Scope:...
+          inet6 addr: fe80::5445:5245:444f/64 Scope:Link
+          UP POINTOPOINT RUNNING NOARP  MTU:1280  Metric:1
+          RX packets:5 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:7 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:500
+          RX bytes:468 (468.0 b)  TX bytes:560 (560.0 b)
+
+# ping6 -c 4 www.kame.net
+PING www.kame.net(orange.kame.net) 56 data bytes
+64 bytes from orange.kame.net: icmp_seq=1 ttl=50 time=558 ms
+64 bytes from orange.kame.net: icmp_seq=2 ttl=50 time=585 ms
+64 bytes from orange.kame.net: icmp_seq=3 ttl=50 time=562 ms
+64 bytes from orange.kame.net: icmp_seq=4 ttl=50 time=552 ms
+
+--- www.kame.net ping statistics ---
+4 packets transmitted, 4 received, 0% packet loss, time 3003ms
+rtt min/avg/max/mdev = 552.830/564.865/585.031/12.218 ms
+
+
+Monitoring:
+------------
+
+  If you wish to monitor the Teredo tunnel, I suggest you use famous
+network analyzer Ethereal which has had a built-in Teredo dissector for
+some time.
+
 
 Teredo relay and/or server:
 ----------------------------
@@ -103,6 +142,7 @@ miredo(8) and miredo.conf(5)
 
 # man 8 miredo
 # man 5 miredo.conf
+
 
 
 Securing you Miredo installation
@@ -161,8 +201,10 @@ automatic.
 POSIX capabilities library development files, before building Miredo.
 
 
+
 Feedback:
 ==========
+
   If you have further questions, you can contact me via email at :
 
     rdenis (at) simphalempin (dot) com
