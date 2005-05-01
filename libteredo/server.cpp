@@ -140,15 +140,15 @@ teredo_send_ra (const TeredoServerUDP& sock, const TeredoPacket& p,
 	{
 		struct
 		{
-			struct ip6_hdr			ip6;
-			struct nd_router_advert		ra;
-			struct nd_opt_prefix_info	pi;
+			struct ip6_hdr            ip6;
+			struct nd_router_advert   ra;
+			struct nd_opt_prefix_info pi;
+			struct nd_opt_mtu         mtu;
 		} ra;
 
 		// IPv6 header
 		ra.ip6.ip6_flow = htonl (0x60000000);
-		ra.ip6.ip6_plen = htons (sizeof (struct nd_router_advert)
-					+ sizeof (struct nd_opt_prefix_info));
+		ra.ip6.ip6_plen = htons (sizeof (ra) - sizeof (ra.ip6));
 		ra.ip6.ip6_nxt = IPPROTO_ICMPV6;
 		ra.ip6.ip6_hlim = 255;
 
@@ -193,6 +193,12 @@ teredo_send_ra (const TeredoServerUDP& sock, const TeredoPacket& p,
 			memcpy (&ra.pi.nd_opt_pi_prefix, &pref.ip6,
 				sizeof (ra.pi.nd_opt_pi_prefix));
 		}
+
+		// ICMPv6 option : MTU
+		ra.mtu.nd_opt_mtu_type = ND_OPT_MTU;
+		ra.mtu.nd_opt_mtu_len = sizeof (ra.mtu) >> 3;
+		ra.mtu.nd_opt_mtu_reserved = 0;
+		ra.mtu.nd_opt_mtu_mtu = htonl (1280);
 
 		// ICMPv6 checksum computation
 		ra.ra.nd_ra_cksum = icmp6_checksum (&ra.ip6,
