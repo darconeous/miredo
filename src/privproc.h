@@ -26,13 +26,14 @@
 #  error C++ header
 # endif
 
-# include <sys/types.h>
-# include <libtun6/ipv6-tunnel.h>
-
-
 struct in6_addr;
+
+# include <libtun6/ipv6-tunnel.h>
 
 int
 miredo_privileged_process (IPv6Tunnel& tunnel, bool default_route);
+
+int
+miredo_configure_tunnel (int fd, const struct in6_addr *addr, unsigned mtu);
 
 #endif
