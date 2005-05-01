@@ -4,7 +4,7 @@
  */
 
 /***********************************************************************
- *  Copyright (C) 2004 Remi Denis-Courmont.                            *
+ *  Copyright (C) 2004-2005 Remi Denis-Courmont.                       *
  *  This program is free software; you can redistribute and/or modify  *
  *  it under the terms of the GNU General Public License as published  *
  *  by the Free Software Foundation; version 2 of the license.         *
@@ -195,6 +195,7 @@ teredo_send_ra (const TeredoServerUDP& sock, const TeredoPacket& p,
 		}
 
 		// ICMPv6 option : MTU
+		// FIXME: allow bigger customized values for MTU
 		ra.mtu.nd_opt_mtu_type = ND_OPT_MTU;
 		ra.mtu.nd_opt_mtu_len = sizeof (ra.mtu) >> 3;
 		ra.mtu.nd_opt_mtu_reserved = 0;
