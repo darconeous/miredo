@@ -96,8 +96,8 @@ icmp6_checksum (const struct ip6_hdr *ip6, const struct icmp6_hdr *icmp6)
  */
 static int
 teredo_send_ra (const TeredoServerUDP& sock, const TeredoPacket& p,
-		const struct in6_addr *dest_ip6, bool use_secondary_ip,
-		uint32_t prefix, uint32_t server_ip)
+                const struct in6_addr *dest_ip6, bool use_secondary_ip,
+                uint32_t prefix, uint32_t server_ip, uint32_t mtu)
 {
 	uint8_t packet[13 + 8 + sizeof (struct ip6_hdr)
 			+ sizeof (struct nd_router_advert)
@@ -195,11 +195,10 @@ teredo_send_ra (const TeredoServerUDP& sock, const TeredoPacket& p,
 		}
 
 		// ICMPv6 option : MTU
-		// FIXME: allow bigger customized values for MTU
 		ra.mtu.nd_opt_mtu_type = ND_OPT_MTU;
 		ra.mtu.nd_opt_mtu_len = sizeof (ra.mtu) >> 3;
 		ra.mtu.nd_opt_mtu_reserved = 0;
-		ra.mtu.nd_opt_mtu_mtu = htonl (1280);
+		ra.mtu.nd_opt_mtu_mtu = mtu;
 
 		// ICMPv6 checksum computation
 		ra.ra.nd_ra_cksum = icmp6_checksum (&ra.ip6,
@@ -211,23 +210,8 @@ teredo_send_ra (const TeredoServerUDP& sock, const TeredoPacket& p,
 	if (IN6_IS_TEREDO_ADDR_CONE (dest_ip6))
 		use_secondary_ip = !use_secondary_ip;
 
-	if (!sock.SendPacket (packet, ptr - packet, p.GetClientIP (),
-				p.GetClientPort (), use_secondary_ip))
-	{
-#if 0
-		struct in_addr inp;
-
-		inp.s_addr = sock->GetClientIP ();
-		syslog (LOG_DEBUG,
-			"Router Advertisement sent to %s (%s)",
-			inet_ntoa (inp), IN6_IS_TEREDO_ADDR_CONE(dest_ip6)
-				? "cone flag set"
-				: "cone flag not set");
-#endif
-		return 0;
-	}
-
-	return -1;
+	return sock.SendPacket (packet, ptr - packet, p.GetClientIP (),
+	                        p.GetClientPort (), use_secondary_ip);
 }
 
 /*
@@ -235,7 +219,7 @@ teredo_send_ra (const TeredoServerUDP& sock, const TeredoPacket& p,
  */
 static int
 ForwardUDPPacket (const TeredoServerUDP& sock, const TeredoPacket& packet,
-			bool insert_orig = true)
+                  bool insert_orig = true)
 {
 	size_t length;
 	const struct ip6_hdr *p =
@@ -248,16 +232,6 @@ ForwardUDPPacket (const TeredoServerUDP& sock, const TeredoPacket& packet,
 	union teredo_addr dst;
 	memcpy (&dst, &p->ip6_dst, sizeof (dst));
 	uint32_t dest_ip = ~dst.teredo.client_ip;
-
-#if 0
-	{
-		struct in_addr addr;
-
-		addr.s_addr = dest_ip;
-		syslog (LOG_DEBUG, "DEBUG: Forwarding packet to %s:%u",
-			inet_ntoa (addr), ntohs (~dst.teredo.client_port));
-	}
-#endif
 
 	if (!is_ipv4_global_unicast (dest_ip))
 		return 0; // ignore invalid client IP
@@ -283,8 +257,6 @@ ForwardUDPPacket (const TeredoServerUDP& sock, const TeredoPacket& packet,
 	else
 		offset = 0;
 
-	// TODO: could be gotten rid of through writev()
-	// but it's very dirty from an API perspective
 	memcpy (buf + offset, p, length);
 	return sock.SendPacket (buf, length + offset, dest_ip,
 					~dst.teredo.client_port);
@@ -295,7 +267,8 @@ static const struct in6_addr in6addr_allrouters =
 
 /*
  * Checks and handles an Teredo-encapsulated packet.
- * Thread-safety note: prefix might be changed by another thread
+ * Thread-safety note: Prefix and AdvLinkMTU might be changed by another
+ * thread
  */
 int
 TeredoServer::ProcessPacket (TeredoPacket& packet, bool secondary)
@@ -327,7 +300,7 @@ TeredoServer::ProcessPacket (TeredoPacket& packet, bool secondary)
 	 && proto != IPPROTO_ICMPV6) // nor an ICMPv6 message
 		return 0; // packet not allowed through server
 
-	uint32_t prefix = GetPrefix ();
+	uint32_t myprefix = prefix;
 
 	// Teredo server case number 4
 	if (IN6_IS_ADDR_LINKLOCAL(&ip6.ip6_src)
@@ -337,9 +310,9 @@ TeredoServer::ProcessPacket (TeredoPacket& packet, bool secondary)
 	 && (((struct icmp6_hdr *)upper)->icmp6_type == ND_ROUTER_SOLICIT))
 		// sends a Router Advertisement
 		return teredo_send_ra (sock, packet, &ip6.ip6_src, secondary,
-					prefix, GetServerIP ());
+		                       myprefix, GetServerIP (), advLinkMTU);
 
-	if (IN6_TEREDO_PREFIX (&ip6.ip6_src) == prefix)
+	if (IN6_TEREDO_PREFIX (&ip6.ip6_src) == myprefix)
 	{
 		// Source address is Teredo
 
@@ -360,7 +333,7 @@ TeredoServer::ProcessPacket (TeredoPacket& packet, bool secondary)
 		if ((ip6.ip6_dst.s6_addr[0] & 0xe0) != 0x20)
 			return 0; // must be discarded
 
-		if (IN6_TEREDO_PREFIX(&ip6.ip6_dst) != prefix)
+		if (IN6_TEREDO_PREFIX(&ip6.ip6_dst) != myprefix)
 			return SendIPv6Packet (buf, ip6len + 40);
 
 		/*
@@ -371,7 +344,7 @@ TeredoServer::ProcessPacket (TeredoPacket& packet, bool secondary)
 	else
 	{
 		// Source address is not Teredo
-		if (IN6_TEREDO_PREFIX (&ip6.ip6_dst) != prefix
+		if (IN6_TEREDO_PREFIX (&ip6.ip6_dst) != myprefix
 		  || IN6_TEREDO_SERVER (&ip6.ip6_dst) != GetServerIP ())
 			return 0; // case 7
 
@@ -399,7 +372,8 @@ TeredoServer::ProcessPacket (const fd_set *readset)
 
 
 TeredoServer::TeredoServer (uint32_t ip1, uint32_t ip2)
-	: server_ip (ip1)
+	: server_ip (ip1), prefix (htonl (DEFAULT_TEREDO_PREFIX)),
+	  advLinkMTU (htonl (1280))
 {
 	sock.ListenIP (ip1, ip2);
 }

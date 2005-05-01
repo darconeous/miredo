@@ -323,8 +323,8 @@ miredo_run (const struct miredo_conf *conf)
 			goto abort;
 		}
 
-		// FIXME: read union teredo_addr instead of prefix ?
-		server->SetPrefix (conf->prefix.teredo.prefix);
+		server->SetPrefix (&conf->prefix);
+		/*TODO: server->SetAdvLinkMTU (...);*/
 		server->SetTunnel (&tunnel);
 	}
 #endif

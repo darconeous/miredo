@@ -7,7 +7,7 @@
  */
 
 /***********************************************************************
- *  Copyright (C) 2004 Remi Denis-Courmont.                            *
+ *  Copyright (C) 2004-2005 Remi Denis-Courmont.                       *
  *  This program is free software; you can redistribute and/or modify  *
  *  it under the terms of the GNU General Public License as published  *
  *  by the Free Software Foundation; version 2 of the license.         *
@@ -38,8 +38,8 @@
 class TeredoServer
 {
 	private:
-		uint32_t prefix;
-		uint32_t server_ip;
+		/* These are all in network byte order (including MTU!!) */
+		uint32_t server_ip, prefix, advLinkMTU;
 		TeredoServerUDP sock;
 
 		int ProcessPacket (TeredoPacket& packet, bool secondary);
@@ -52,25 +52,31 @@ class TeredoServer
 		 *
 		 * Returns 0 on success, -1 on error.
 		 */
-		virtual int SendIPv6Packet (const void *packet,
-						size_t length) = 0;
+		virtual int SendIPv6Packet (const void *packet, size_t length) = 0;
 
 	public:
 		virtual ~TeredoServer (void)
 		{
 		}
 
+		/* Prefix can be changed asynchronously */
 		void SetPrefix (uint32_t pref)
 		{
 			prefix = pref;
 		}
 
-		void ProcessPacket (const fd_set *readset);
-
-		uint32_t GetPrefix (void) const
+		void SetPrefix (const union teredo_addr *pref)
 		{
-			return prefix;
+			SetPrefix (pref->teredo.prefix);
 		}
+
+		/* AdvLinkMTU can be changed asynchronously */
+		void SetAdvLinkMTU (uint16_t mtu = 1280)
+		{
+			advLinkMTU = htonl (mtu);
+		}
+
+		void ProcessPacket (const fd_set *readset);
 
 		uint32_t GetServerIP (void) const
 		{
