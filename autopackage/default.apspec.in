@@ -46,6 +46,9 @@ fournir une connectivité IPv6 aux utilisateurs derrière un NAT, lequel ne
 supporte pas IPv6, ni même le proto-41 forwarding (6to4).
 
 [BuildPrepare]
+# libcap has a dual new-style BSD/GPL license
+# so there's no issue in linking to it statically
+# (ie no need to give out source code on my own)
 export APBUILD_STATIC="cap"
 prepareBuild --localstatedir=/var --sysconfdir=/etc
 mkdir -p -- "${build_root}/etc"
