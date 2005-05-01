@@ -43,6 +43,8 @@ class TeredoServer
 		TeredoServerUDP sock;
 
 		int ProcessPacket (TeredoPacket& packet, bool secondary);
+		int SendRA (const TeredoPacket& p, const struct in6_addr *dest_ip6,
+		            bool use_secondary_ip) const;
 
 	protected:
 		TeredoServer (uint32_t ip1, uint32_t ip2);

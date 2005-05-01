@@ -94,15 +94,14 @@ icmp6_checksum (const struct ip6_hdr *ip6, const struct icmp6_hdr *icmp6)
  * Sends a Teredo-encapsulated Router Advertisement.
  * Returns -1 on error, 0 on success.
  */
-static int
-teredo_send_ra (const TeredoServerUDP& sock, const TeredoPacket& p,
-                const struct in6_addr *dest_ip6, bool use_secondary_ip,
-                uint32_t prefix, uint32_t server_ip, uint32_t mtu)
+int
+TeredoServer::SendRA (const TeredoPacket& p, const struct in6_addr *dest_ip6,
+                      bool use_secondary_ip) const
 {
 	uint8_t packet[13 + 8 + sizeof (struct ip6_hdr)
-			+ sizeof (struct nd_router_advert)
-			+ sizeof (struct nd_opt_prefix_info)],
-		*ptr = packet;
+	                  + sizeof (struct nd_router_advert)
+	                  + sizeof (struct nd_opt_prefix_info)];
+	uint8_t *ptr = packet;
 
 	// Authentification header
 	// TODO: support for secure qualification
@@ -158,7 +157,7 @@ teredo_send_ra (const TeredoServerUDP& sock, const TeredoPacket& p,
 			src.teredo.server_ip = 0;
 			src.teredo.flags = htons (TEREDO_FLAG_CONE);
 			src.teredo.client_port = htons (IPPORT_TEREDO);
-			src.teredo.client_ip = ~server_ip;
+			src.teredo.client_ip = ~GetServerIP ();
 
 			memcpy (&ra.ip6.ip6_src, &src,
 				sizeof (ra.ip6.ip6_src));
@@ -188,7 +187,7 @@ teredo_send_ra (const TeredoServerUDP& sock, const TeredoPacket& p,
 			union teredo_addr pref;
 
 			pref.teredo.prefix = prefix;
-			pref.teredo.server_ip = server_ip;
+			pref.teredo.server_ip = GetServerIP ();
 			memset (pref.ip6.s6_addr + 8, 0, 8);
 			memcpy (&ra.pi.nd_opt_pi_prefix, &pref.ip6,
 				sizeof (ra.pi.nd_opt_pi_prefix));
@@ -198,7 +197,7 @@ teredo_send_ra (const TeredoServerUDP& sock, const TeredoPacket& p,
 		ra.mtu.nd_opt_mtu_type = ND_OPT_MTU;
 		ra.mtu.nd_opt_mtu_len = sizeof (ra.mtu) >> 3;
 		ra.mtu.nd_opt_mtu_reserved = 0;
-		ra.mtu.nd_opt_mtu_mtu = mtu;
+		ra.mtu.nd_opt_mtu_mtu = advLinkMTU;
 
 		// ICMPv6 checksum computation
 		ra.ra.nd_ra_cksum = icmp6_checksum (&ra.ip6,
@@ -300,8 +299,6 @@ TeredoServer::ProcessPacket (TeredoPacket& packet, bool secondary)
 	 && proto != IPPROTO_ICMPV6) // nor an ICMPv6 message
 		return 0; // packet not allowed through server
 
-	uint32_t myprefix = prefix;
-
 	// Teredo server case number 4
 	if (IN6_IS_ADDR_LINKLOCAL(&ip6.ip6_src)
 	 && IN6_ARE_ADDR_EQUAL (&in6addr_allrouters, &ip6.ip6_dst)
@@ -309,8 +306,9 @@ TeredoServer::ProcessPacket (TeredoPacket& packet, bool secondary)
 	 && (ip6len > sizeof (nd_router_solicit))
 	 && (((struct icmp6_hdr *)upper)->icmp6_type == ND_ROUTER_SOLICIT))
 		// sends a Router Advertisement
-		return teredo_send_ra (sock, packet, &ip6.ip6_src, secondary,
-		                       myprefix, GetServerIP (), advLinkMTU);
+		return SendRA (packet, &ip6.ip6_src, secondary);
+
+	uint32_t myprefix = prefix;
 
 	if (IN6_TEREDO_PREFIX (&ip6.ip6_src) == myprefix)
 	{
