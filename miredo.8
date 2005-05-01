@@ -104,12 +104,13 @@ requires
 privileges to create its IPv6 tunneling network interface, and to set
 it up properly. Once its initialization is complete, it will
 .IR "setgid" ", " "chroot" " into an empty directory and ultimately"
-.IR "setuid" " (see option " "-u" "), so as to decrease your system"
-to potential security issues. If Miredo runs as a Teredo client, it
-needs root privileges when running, in order to change the tunneling
-network interface settings automatically. To prevent possible root
-.RI "compromise, Miredo implements " "priveleges separation" "."
-The process that handles input from the outside has is not privileged.
+.IR "setuid" " (see option " "-u" "), so as to decrease the system's"
+exposure to potential security issues. However, if Miredo runs as a
+Teredo client, it needs root privileges when running, in order to
+change the tunneling network interface settings automatically. To
+.RI "prevent possible root compromise, Miredo implements " "priveleges"
+.IR "separation" ". The process that handles data from the network is"
+not privileged.
 
 Miredo is still beta quality code. As such, it should not be deployed
 in production or security-sensitive environment. It is supposedly easy
@@ -122,9 +123,9 @@ improve as time goes.
 
 While that is not specific to nor dependant on Miredo, it should be
 noted that Teredo connectivity allows anyone behind a NAT to obtain
-global public IPv6 connectivity, even if that breaks some corporate
-policy. If that is an issue, outgoing UDP packets to port 3544 should
-be blocked at the perimeter firewall.
+global public IPv6 connectivity. It might break some corporate policy.
+If that is an issue, outgoing UDP packets with destination port 3544
+should be blocked at the perimeter firewall.
 
 .SH SIGNALS
 .BR "SIGHUP" " Force a reload of the daemon."
