@@ -106,7 +106,7 @@ miredo_privileged_process (IPv6Tunnel& tunnel, bool default_route)
 				goto die;
 		while (memcmp (&newcfg, &oldcfg, sizeof (newcfg)) == 0);
 
-		/* Unapply old settings */
+		/* Unapplies old settings */
 		if (memcmp (&oldcfg.addr, &in6addr_any, 16))
 		{
 			if (default_route)
@@ -114,12 +114,14 @@ miredo_privileged_process (IPv6Tunnel& tunnel, bool default_route)
 			tunnel.DelAddress (&oldcfg.addr, 32);
 		}
 
-		/* Apply new settings */
-		if (oldcfg.mtu != newcfg.mtu)
-			tunnel.SetMTU (newcfg.mtu);
-
+		/* Applies new settings */
 		if (memcmp (&newcfg.addr, &in6addr_any, 16))
 		{
+			/* Updates MTU if needed */
+			if (oldcfg.mtu != newcfg.mtu)
+				tunnel.SetMTU (oldcfg.mtu = newcfg.mtu);
+
+			/* Adds new addresses */
 			p_newloc = IN6_IS_TEREDO_ADDR_CONE (&newcfg.addr)
 					? &teredo_cone : &teredo_restrict;
 
@@ -134,10 +136,10 @@ miredo_privileged_process (IPv6Tunnel& tunnel, bool default_route)
 			tunnel.AddAddress (&newcfg.addr, 32);
 			if (default_route)
 				tunnel.AddRoute (&in6addr_any, 0);
-		}
 
-		/* Save settings */
-		memcpy (&oldcfg, &newcfg, sizeof (oldcfg));
+			/* Saves address */
+			memcpy (&oldcfg.addr, &newcfg.addr, sizeof (oldcfg.addr));
+		}
 	}
 
 die:

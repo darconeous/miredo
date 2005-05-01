@@ -242,12 +242,7 @@ miredo_run (const struct miredo_conf *conf)
 	 */
 	IPv6Tunnel tunnel (conf->ifname);
 
-	/*
-	 * Must be root to do that.
-	 * TODO: move SetMTU() to privsep, as it may be overriden by the
-	 * server if we're a client
-	 */
-	if (!tunnel || tunnel.SetMTU (1280))
+	if (!tunnel)
 	{
 		syslog (LOG_ALERT, _("Teredo tunnel setup failed:\n %s"),
 				_("You should be root to do that."));
@@ -263,6 +258,9 @@ miredo_run (const struct miredo_conf *conf)
 	int fd = -1, retval = -1;
 
 
+	/*
+	 * Must be root to do that.
+	 */
 #ifdef MIREDO_TEREDO_CLIENT
 	if (conf->mode == TEREDO_CLIENT)
 	{
@@ -277,7 +275,7 @@ miredo_run (const struct miredo_conf *conf)
 	else
 #endif
 	{
-		if (tunnel.BringUp ()
+		if (tunnel.SetMTU (1280) || tunnel.BringUp ()
 		 || tunnel.AddAddress (conf->mode == TEREDO_RESTRICT
 		 			? &teredo_restrict : &teredo_cone)
 		 || (conf->mode != TEREDO_DISABLED
