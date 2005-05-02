@@ -411,19 +411,50 @@ CheckPing (const TeredoPacket& packet, const uint8_t *nonce)
 
 	// Only read bytes, so no need to align
 	if ((ip6->ip6_nxt != IPPROTO_ICMPV6)
-	 || (length != sizeof (struct ip6_hdr) + sizeof (struct icmp6_hdr)+4))
+	 || (length < (sizeof (*ip6) + sizeof (struct icmp6_hdr) + 4)))
 		return false;
 
-	const struct icmp6_hdr *icmp6 = (const struct icmp6_hdr *)
-		(((uint8_t *)ip6) + sizeof (struct ip6_hdr));
+	const struct icmp6_hdr *icmp6 = (const struct icmp6_hdr *)(ip6 + 1);
 
+	if (icmp6->icmp6_type == ICMP6_DST_UNREACH)
+	{
+		/*
+		 * NOTE:
+		 * Some brain-dead IPv6 nodes/firewalls don't reply to pings (which is
+		 * as explicit breakage of the IPv6/ICMPv6 specifications, btw). Some
+		 * of these brain-dead hosts reply with ICMPv6 unreachable messages.
+		 * We can authenticate them by looking at the payload of the message
+		 * and see if it is an ICMPv6 Echo request with the matching nonce in
+		 * it. (Yes, it is a nasty kludge)
+		 *
+		 * NOTE 2:
+		 * We don't check source and destination addresses there...
+		 */
+		length -= sizeof (*ip6) + sizeof (*icmp6);
+		ip6 = (const struct ip6_hdr *)(icmp6 + 1);
+
+		if ((length < (sizeof (*ip6) + sizeof (*icmp6) + 4))
+		 || (ip6->ip6_nxt != IPPROTO_ICMPV6))
+			return false;
+
+		uint16_t plen;
+		memcpy (&plen, &ip6->ip6_plen, sizeof (plen));
+		if (ntohs (plen) != (sizeof (*icmp6) + 4))
+			return false; // not a ping from us
+
+		icmp6 = (const struct icmp6_hdr *)(ip6 + 1);
+
+		if ((icmp6->icmp6_type != ICMP6_ECHO_REQUEST)
+		 || (icmp6->icmp6_code != 0))
+			return false;
+	}
+	else
 	if ((icmp6->icmp6_type != ICMP6_ECHO_REPLY)
-	 || (icmp6->icmp6_code != 0)
-	/* TODO: check the sum(?) */
-	 || memcmp (&icmp6->icmp6_id, nonce, 8))
+	 || (icmp6->icmp6_code != 0))
 		return false;
-
-	return true;
+	
+	/* TODO: check the sum(?) */
+	return !memcmp (&icmp6->icmp6_id, nonce, 8);
 }
 #endif
 
