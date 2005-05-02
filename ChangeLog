@@ -1,4 +1,12 @@
 ------------------------------------------------------------------------
+r481 | remi | 2005-05-02 11:09:01 +0200 (lun, 02 mai 2005) | 2 lines
+Changed paths:
+   M /branches/0.4.3/Makefile.am
+   M /branches/0.4.3/misc/Makefile.am
+
+Merge useful make install update from trunk (r462 and r467)
+
+------------------------------------------------------------------------
 r479 | remi | 2005-05-02 11:00:05 +0200 (lun, 02 mai 2005) | 3 lines
 Changed paths:
    M /branches/0.4.3/configure.ac
