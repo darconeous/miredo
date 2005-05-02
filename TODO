@@ -13,8 +13,7 @@ Features:
 ----------
 (*) fix bubble retransmit / timing,
 (!) option to ignore cone bit,
-(!) server option to override MTU,
-(!) client support for MTU router advert option,
+(!) server/relay option to override MTU,
 ( ) take failure to send UDP packets into account,
 (!) external control program for scripting,
 (*) some statistics,
