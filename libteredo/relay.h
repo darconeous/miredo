@@ -71,16 +71,6 @@ class TeredoRelay
 
 		bool IsServerPacket (const TeredoPacket *packet) const;
 		int ProcessQualificationPacket (const TeredoPacket *p);
-#endif
-
-		/*** Callbacks ***/
-		/*
-		 * Sends an IPv6 packet from Teredo toward the IPv6 Internet.
-		 *
-		 * Returns 0 on success, -1 on error.
-		 */
-		virtual int SendIPv6Packet (const void *packet,
-						size_t length) = 0;
 
 		/*
 		 * Tries to define the Teredo client IPv6 address. This is an
@@ -101,6 +91,16 @@ class TeredoRelay
 		 * ignored.
 		 */
 		virtual int NotifyDown (void);
+#endif
+
+		/*** Callbacks ***/
+		/*
+		 * Sends an IPv6 packet from Teredo toward the IPv6 Internet.
+		 *
+		 * Returns 0 on success, -1 on error.
+		 */
+		virtual int SendIPv6Packet (const void *packet,
+						size_t length) = 0;
 
 	protected:
 		/*
@@ -196,14 +196,18 @@ class TeredoRelay
 			return IN6_TEREDO_IPV4 (&addr);
 		}
 
-		bool IsClient (void) const
-		{
-			return GetServerIP () != 0;
-		}
-
 		bool IsRelay (void) const
 		{
+#ifdef MIREDO_TEREDO_CLIENT
 			return GetServerIP () == 0;
+#else
+			return true;
+#endif
+		}
+
+		bool IsClient (void) const
+		{
+			return !IsRelay ();
 		}
 
 		bool IsRunning (void) const
