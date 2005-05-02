@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: miredo 0.4.2\n"
 "Report-Msgid-Bugs-To: rdenis@simphalempin.com\n"
-"POT-Creation-Date: 2005-04-29 11:36+0200\n"
+"POT-Creation-Date: 2005-05-02 10:59+0200\n"
 "PO-Revision-Date: 2005-04-28 20:41+0200\n"
 "Last-Translator: Rémi Denis-Courmont <rdenis (at) simphalempin (dot) com>\n"
 "Language-Team: N/A\n"
@@ -85,7 +85,7 @@ msgstr "Erreur d'ouverture de %s: %m"
 msgid "Error reading random data: %m"
 msgstr "Erreur de lecture de données aléatoires: %m"
 
-#: libteredo/packets.cpp:315
+#: libteredo/packets.cpp:318
 msgid "Invalid Teredo prefix received"
 msgstr "Préfixe Teredo reçu invalide"
 
