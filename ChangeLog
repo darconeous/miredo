@@ -1,4 +1,44 @@
 ------------------------------------------------------------------------
+r479 | remi | 2005-05-02 11:00:05 +0200 (lun, 02 mai 2005) | 3 lines
+Changed paths:
+   M /branches/0.4.3/configure.ac
+   M /branches/0.4.3/po/fr.po
+   M /branches/0.4.3/po/miredo.pot
+
+- Bump version number to 0.4.3
+- Resync po files
+
+------------------------------------------------------------------------
+r478 | remi | 2005-05-02 10:58:24 +0200 (lun, 02 mai 2005) | 3 lines
+Changed paths:
+   M /branches/0.4.3/NEWS
+   M /branches/0.4.3/libteredo/packets.cpp
+
+Fix denial of service issue in ParseRA
+(found while adding MTU option support in development trunk)
+
+------------------------------------------------------------------------
+r477 | remi | 2005-05-02 10:36:46 +0200 (lun, 02 mai 2005) | 2 lines
+Changed paths:
+   A /branches/0.4.3 (from /tags/0.4.2:476)
+
+Branch 0.4.3 from 0.4.2 in preparation for quick bugfix release
+
+------------------------------------------------------------------------
+r436 | remi | 2005-04-29 11:52:16 +0200 (ven, 29 avr 2005) | 2 lines
+Changed paths:
+   A /tags/0.4.2 (from /trunk:435)
+
+Tagged release 0.4.2
+
+------------------------------------------------------------------------
+r435 | remi | 2005-04-29 11:51:06 +0200 (ven, 29 avr 2005) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog
+
+ChangeLog update for release 0.4.2
+
+------------------------------------------------------------------------
 r434 | remi | 2005-04-29 11:49:06 +0200 (ven, 29 avr 2005) | 3 lines
 Changed paths:
    M /trunk/NEWS
