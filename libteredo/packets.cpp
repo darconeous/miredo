@@ -7,7 +7,7 @@
  */
 
 /***********************************************************************
- *  Copyright (C) 2004 Remi Denis-Courmont.                            *
+ *  Copyright (C) 2004-2005 Remi Denis-Courmont.                       *
  *  This program is free software; you can redistribute and/or modify  *
  *  it under the terms of the GNU General Public License as published  *
  *  by the Free Software Foundation; version 2 of the license.         *
@@ -259,6 +259,8 @@ ParseRA (const TeredoPacket& packet, union teredo_addr *newaddr, bool cone)
 	const struct ip6_hdr *ip6 =
 		(const struct ip6_hdr *)packet.GetIPv6Packet (length);
 
+	length -= sizeof (*ip6);
+
 	if (memcmp (&ip6->ip6_dst, cone ? &teredo_cone : &teredo_restrict,
 			sizeof (ip6->ip6_dst))
 	 || (ip6->ip6_nxt != IPPROTO_ICMPV6)
@@ -287,11 +289,11 @@ ParseRA (const TeredoPacket& packet, union teredo_addr *newaddr, bool cone)
 
 	while (pi->nd_opt_pi_type != ND_OPT_PREFIX_INFORMATION)
 	{
-		if (length < (size_t)(pi->nd_opt_pi_len << 3))
-			return 0; // too short
+		if ((length < 8) /* too short */
+		 || (pi->nd_opt_pi_len == 0) /* invalid */
+		 || (length < (size_t)(pi->nd_opt_pi_len << 3)) /* too short */)
+			return false;
 		length -= pi->nd_opt_pi_len << 3;
-		if (length < sizeof (struct nd_opt_prefix_info))
-			return 0; // too short
 
 		pi = (const struct nd_opt_prefix_info *)
 			(((uint8_t *)pi) + (pi->nd_opt_pi_len << 3));
@@ -300,7 +302,8 @@ ParseRA (const TeredoPacket& packet, union teredo_addr *newaddr, bool cone)
 	// TODO: check that there is only one prefix
 	// TODO: extract MTU option as well(?)
 
-	if ((pi->nd_opt_pi_len != (sizeof (struct nd_opt_prefix_info) >> 3))
+	if ((length < sizeof (*pi))
+	 || ((pi->nd_opt_pi_len << 3) != sizeof (*pi))
 	 || (pi->nd_opt_pi_prefix_len != 64))
 		return false;
 

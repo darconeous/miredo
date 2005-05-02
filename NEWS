@@ -1,12 +1,12 @@
 RELEASE NOTES for Miredo
-version 0.4.2 (beta version)
+version 0.4.3 (beta version)
 =============================
 $Id$
 
   This is an early release of the program. It is not finished and might not
 work properly. It is not suited for use in production environment.
-Users of previous releases are encouraged to upgrade, as some issues were
-addressed in this new release.
+Users of previous releases are STRONGLY encouraged to upgrade, as a security
+bug was found and addressed in this new release.
 
 IMPORTANT NOTE for old users:
 ------------------------------
@@ -23,6 +23,14 @@ Thanks for your help.
 informations on this program, see README. For syntax details and
 changes, run 'miredo -h' to get help. For detailled internal changes, see
 ChangeLog.
+
+=============================================================================
+BETA RELEASE 0.4.3 : Minor security fixes
+
+# Fixed insufficient checking in parsing of Router Advertisement.
+  It could be used by a malicious Teredo server to cause the Teredo client
+  to read undefined memory and/or enter an infinite loop, effectively
+  triggering a denial of service against the Teredo client.
 
 =============================================================================
 BETA RELEASE 0.4.2 : Major bugfixes, minor feature enhancement
