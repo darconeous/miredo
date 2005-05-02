@@ -82,8 +82,8 @@ InterfaceName	teredo
 #
 # Public Teredo servers:
 #  - teredo.ipv6.microsoft.com (defaults on Microsoft Windows)
-#  - teredo.ipv6.6wind.com (6wind ng_teredo testing server)
-#  - teredo.via.ecp.fr (Miredo testing server)
+#  - teredo.autotrans.consulintel.com (another Windows-based server)
+#  - teredo.via.ecp.fr (Linux-based Miredo testing server)
 #
 # Defaults: unset - will fail unless RelayType is not "client".
 # Example:  ServerAddress teredo.ipv6.microsoft.com

@@ -56,8 +56,6 @@ Portability:
 
 Compatibility:
 ---------------
-( ) investigate deeper into relay possible incompatibility with
-    ng_teredo's server,
 (H) investigate Linux kernel panic/freeze,
 
 Documentation & support:
