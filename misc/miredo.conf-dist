@@ -84,6 +84,7 @@ InterfaceName	teredo
 #  - teredo.ipv6.microsoft.com (defaults on Microsoft Windows)
 #  - teredo.autotrans.consulintel.com (another Windows-based server)
 #  - teredo.via.ecp.fr (Linux-based Miredo testing server)
+#  - 203.233.154.10 (unknown buggy server)
 #
 # Defaults: unset - will fail unless RelayType is not "client".
 # Example:  ServerAddress teredo.ipv6.microsoft.com
