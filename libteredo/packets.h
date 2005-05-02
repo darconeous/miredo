@@ -67,7 +67,8 @@ SendRS (const TeredoRelayUDP& sock, uint32_t server_ip,
  * - IPv6 header is valid (ie. version 6, plen matches packet's length).
  */
 bool
-ParseRA (const TeredoPacket& packet, union teredo_addr *newaddr, bool cone);
+ParseRA (const TeredoPacket& packet, union teredo_addr *newaddr, bool cone,
+         uint16_t *mtu);
 
 int
 SendPing (const TeredoRelayUDP& sock, const union teredo_addr *src,

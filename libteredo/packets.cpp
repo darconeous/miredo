@@ -234,6 +234,9 @@ SendRS (const TeredoRelayUDP& sock, uint32_t server_ip,
  * Validates a router advertisement from the Teredo server.
  * The RA must be of type cone if and only if cone is true.
  * Prefix, flags, mapped port and IP are returned through newaddr.
+ * If there is a MTU option in the packet, the specified MTU value will
+ * be returned at mtu. If not, the value pointed to by mtu will not be
+ * modified.
  *
  * Assumptions:
  * - newaddr must be 4-bytes aligned.
@@ -243,7 +246,8 @@ SendRS (const TeredoRelayUDP& sock, uint32_t server_ip,
  *   the full packet is at least 40 bytes long).
  */
 bool
-ParseRA (const TeredoPacket& packet, union teredo_addr *newaddr, bool cone)
+ParseRA (const TeredoPacket& packet, union teredo_addr *newaddr, bool cone,
+         uint16_t *mtu)
 {
 	const struct teredo_orig_ind *ind = packet.GetOrigInd ();
 
@@ -276,34 +280,63 @@ ParseRA (const TeredoPacket& packet, union teredo_addr *newaddr, bool cone)
 	 */
 		return false;
 
+	uint32_t prefix, ip = INADDR_ANY, net_mtu = 0;
+
 	// Looks for a prefix information option
-	const struct nd_opt_prefix_info *pi =
-		(const struct nd_opt_prefix_info *)(((uint8_t *)ra)
-			+ sizeof (struct nd_router_advert));
-
-	while (pi->nd_opt_pi_type != ND_OPT_PREFIX_INFORMATION)
+	for (const struct nd_opt_hdr *hdr = (const struct nd_opt_hdr *)(ra + 1);
+	     length >= 8;
+	     hdr = (const struct nd_opt_hdr *)
+				((const uint8_t *)hdr) + (hdr->nd_opt_len << 3))
 	{
-		if (length < (size_t)(pi->nd_opt_pi_len << 3))
-			return 0; // too short
-		length -= pi->nd_opt_pi_len << 3;
-		if (length < sizeof (struct nd_opt_prefix_info))
-			return 0; // too short
+		if (length < (size_t)(hdr->nd_opt_len << 3))
+			return false; // too short
 
-		pi = (const struct nd_opt_prefix_info *)
-			(((uint8_t *)pi) + (pi->nd_opt_pi_len << 3));
+		switch (hdr->nd_opt_type)
+		{
+		/* Prefix information option */
+		 case ND_OPT_PREFIX_INFORMATION:
+		 {
+			if (ip != INADDR_ANY)
+			{
+				/* The Teredo specification excludes multiple prefixes */
+				syslog (LOG_ERR, _("Multiple Teredo prefixes received"));
+				return false;
+			}
+
+			const struct nd_opt_prefix_info *pi = 
+				(const struct nd_opt_prefix_info *)hdr;
+
+			if (length < sizeof (*pi))
+				return false; // too short
+
+			if (pi->nd_opt_pi_prefix_len != 64)
+				return false;
+
+			memcpy (&prefix, &pi->nd_opt_pi_prefix, sizeof (prefix));
+			memcpy (&ip, ((uint8_t *)&pi->nd_opt_pi_prefix) + 4, sizeof (ip));
+			break;
+		 }
+
+		/* MTU option */
+		 case ND_OPT_MTU:
+		 {
+			const struct nd_opt_mtu *mo = (const struct nd_opt_mtu *)hdr;
+
+			if (length < sizeof (*mo))
+				return false;
+
+			memcpy (&net_mtu, &mo->nd_opt_mtu_mtu, sizeof (net_mtu));
+			net_mtu = ntohl (net_mtu);
+
+			if ((net_mtu < 1280) || (net_mtu > 65535))
+				return false; // invalid IPv6 MTU
+
+			break;
+		 }
+		}
+
+		length -= hdr->nd_opt_len << 3;
 	}
-
-	// TODO: check that there is only one prefix
-	// TODO: extract MTU option as well(?)
-
-	if ((pi->nd_opt_pi_len != (sizeof (struct nd_opt_prefix_info) >> 3))
-	 || (pi->nd_opt_pi_prefix_len != 64))
-		return false;
-
-	uint32_t prefix, ip;
-
-	memcpy (&prefix, &pi->nd_opt_pi_prefix, sizeof (prefix));
-	memcpy (&ip, ((uint8_t *)&pi->nd_opt_pi_prefix) + 4, sizeof (ip));
 
 	if (!is_valid_teredo_prefix (prefix)
 	 || (ip != newaddr->teredo.server_ip))
@@ -318,6 +351,10 @@ ParseRA (const TeredoPacket& packet, union teredo_addr *newaddr, bool cone)
 	// ip and port obscured on both sides:
 	newaddr->teredo.client_port = ind->orig_port;
 	newaddr->teredo.client_ip = ind->orig_addr;
+
+	if (net_mtu != 0)
+		*mtu = (uint16_t)net_mtu;
+
 	return true;
 }
 

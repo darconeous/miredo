@@ -193,7 +193,7 @@ class TeredoRelay::peer
 
 TeredoRelay::TeredoRelay (uint32_t pref, uint16_t port, uint32_t ipv4,
                           bool cone)
-	: server_ip2 (0), head (NULL)
+	:  head (NULL)
 {
 	addr.teredo.prefix = pref;
 	addr.teredo.server_ip = 0;
@@ -209,7 +209,7 @@ TeredoRelay::TeredoRelay (uint32_t pref, uint16_t port, uint32_t ipv4,
 #ifdef MIREDO_TEREDO_CLIENT
 TeredoRelay::TeredoRelay (uint32_t ip, uint32_t ip2,
                           uint16_t port, uint32_t ipv4)
-	: head (NULL)
+	: head (NULL), mtu (1280)
 {
 	if (!is_ipv4_global_unicast (ip) || !is_ipv4_global_unicast (ip2))
 		syslog (LOG_WARNING, _("Server has a non global IPv4 address. "
@@ -232,7 +232,18 @@ TeredoRelay::TeredoRelay (uint32_t ip, uint32_t ip2,
 		Process ();
 	}
 }
-#endif
+
+int TeredoRelay::NotifyUp (const struct in6_addr *, uint16_t mtu)
+{
+	return 0;
+}
+
+
+int TeredoRelay::NotifyDown (void)
+{
+	return 0;
+}
+#endif /* ifdef MIREDO_TEREDO_CLIENT */
 
 /* Releases peers list entries */
 TeredoRelay::~TeredoRelay (void)
@@ -245,18 +256,6 @@ TeredoRelay::~TeredoRelay (void)
 		delete p;
 		p = buf;
 	}
-}
-
-
-int TeredoRelay::NotifyUp (const struct in6_addr *)
-{
-	return 0;
-}
-
-
-int TeredoRelay::NotifyDown (void)
-{
-	return 0;
 }
 
 
@@ -583,12 +582,15 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 			union teredo_addr newaddr;
 			newaddr.teredo.server_ip = GetServerIP ();
 
-			if (ParseRA (packet, &newaddr, IsCone ())
-			 && memcmp (&addr, &newaddr, sizeof (addr)))
+			uint16_t new_mtu = mtu;
+
+			if (ParseRA (packet, &newaddr, IsCone (), &new_mtu)
+			 && (memcmp (&addr, &newaddr, sizeof (addr)) || (mtu != new_mtu)))
 			{
 				memcpy (&addr, &newaddr, sizeof (addr));
-				syslog (LOG_NOTICE, _("Teredo address changed"));
-				NotifyUp (&newaddr.ip6);
+				mtu = new_mtu;
+				syslog (LOG_NOTICE, _("Teredo address/MTU changed"));
+				NotifyUp (&newaddr.ip6, new_mtu);
 			}
 
 			/*
@@ -866,7 +868,7 @@ int TeredoRelay::ProcessQualificationPacket (const TeredoPacket *packet)
 	union teredo_addr newaddr;
 
 	newaddr.teredo.server_ip = GetServerIP ();
-	if (!ParseRA (*packet, &newaddr, probe.state == PROBE_CONE))
+	if (!ParseRA (*packet, &newaddr, probe.state == PROBE_CONE, &mtu))
 		return 0;
 
 	/* Valid router advertisement! */
@@ -905,7 +907,7 @@ int TeredoRelay::ProcessQualificationPacket (const TeredoPacket *packet)
 
 		// call memcpy before NotifyUp for re-entrancy
 		memcpy (&addr, &newaddr, sizeof (addr));
-		NotifyUp (&newaddr.ip6);
+		NotifyUp (&newaddr.ip6, mtu);
 	}
 
 	probe.next.tv_sec += delay;

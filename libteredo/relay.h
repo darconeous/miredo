@@ -55,7 +55,6 @@ class TeredoRelay
 			unsigned state:2;
 			unsigned count:3;
 		} probe;
-		uint32_t server_ip2;
 
 		class peer *head;
 
@@ -65,7 +64,11 @@ class TeredoRelay
 		peer *FindPeer (const struct in6_addr *addr);
 
 		int SendUnreach (int code, const void *in, size_t inlen);
+
 #ifdef MIREDO_TEREDO_CLIENT
+		uint32_t server_ip2;
+		uint16_t mtu;
+
 		bool IsServerPacket (const TeredoPacket *packet) const;
 		int ProcessQualificationPacket (const TeredoPacket *p);
 #endif
@@ -88,7 +91,8 @@ class TeredoRelay
 		 * Returns 0 on success, -1 on error.
 		 * TODO: handle error in calling function.
 		 */
-		virtual int NotifyUp (const struct in6_addr *addr);
+		virtual int NotifyUp (const struct in6_addr *addr,
+		                      uint16_t mtu = 1280);
 
 		/*
 		 * Indicates that the Teredo tunneling interface is no longer
@@ -155,6 +159,16 @@ class TeredoRelay
 		 * Not thread-safe yet.
 		 */
 		int Process (void);
+
+		uint32_t GetServerIP (void) const
+		{
+			return IN6_TEREDO_SERVER (&addr);
+		}
+
+		uint32_t GetServerIP2 (void) const
+		{
+			return server_ip2;
+		}
 #endif
 
 		/*
@@ -165,16 +179,6 @@ class TeredoRelay
 		uint32_t GetPrefix (void) const
 		{
 			return IN6_TEREDO_PREFIX (&addr);
-		}
-
-		uint32_t GetServerIP (void) const
-		{
-			return IN6_TEREDO_SERVER (&addr);
-		}
-
-		uint32_t GetServerIP2 (void) const
-		{
-			return server_ip2;
 		}
 
 		bool IsCone (void) const
