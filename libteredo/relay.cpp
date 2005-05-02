@@ -450,6 +450,7 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
 		}
 
 		// FIXME: re-send echo request later if no response
+		// FIXME: avoid code duplication with the end of ReceivePacket
 
 		p->outqueue.Queue (packet, length);
 
@@ -460,7 +461,13 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
 
 			p->flags.flags.nonce = 1;
 		}
-		return SendPing (sock, &addr, &dst->ip6, p->nonce);
+
+		if (p->flags.flags.pings < 3)
+		{
+			p->flags.flags.pings++;
+			return SendPing (sock, &addr, &dst->ip6, p->nonce);
+		}
+		return 0;
 #endif
 	}
 
