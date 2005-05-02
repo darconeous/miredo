@@ -259,6 +259,8 @@ ParseRA (const TeredoPacket& packet, union teredo_addr *newaddr, bool cone,
 	const struct ip6_hdr *ip6 =
 		(const struct ip6_hdr *)packet.GetIPv6Packet (length);
 
+	length -= sizeof (*ip6);
+
 	if (memcmp (&ip6->ip6_dst, cone ? &teredo_cone : &teredo_restrict,
 			sizeof (ip6->ip6_dst))
 	 || (ip6->ip6_nxt != IPPROTO_ICMPV6)
@@ -286,10 +288,11 @@ ParseRA (const TeredoPacket& packet, union teredo_addr *newaddr, bool cone,
 	for (const struct nd_opt_hdr *hdr = (const struct nd_opt_hdr *)(ra + 1);
 	     length >= 8;
 	     hdr = (const struct nd_opt_hdr *)
-				((const uint8_t *)hdr) + (hdr->nd_opt_len << 3))
+				(((const uint8_t *)hdr) + (hdr->nd_opt_len << 3)))
 	{
-		if (length < (size_t)(hdr->nd_opt_len << 3))
-			return false; // too short
+		if ((length < (size_t)(hdr->nd_opt_len << 3)) /* too short */
+		 || (hdr->nd_opt_len == 0) /* invalid */)
+			return false;
 
 		switch (hdr->nd_opt_type)
 		{
