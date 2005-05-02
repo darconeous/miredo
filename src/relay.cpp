@@ -58,9 +58,9 @@ MiredoRelay::MiredoRelay (int fd, const IPv6Tunnel *tun, uint32_t server_ip,
 }
 
 
-int MiredoRelay::NotifyUp (const struct in6_addr *addr)
+int MiredoRelay::NotifyUp (const struct in6_addr *addr, uint16_t mtu)
 {
-	return miredo_configure_tunnel (priv_fd, addr, 1280);
+	return miredo_configure_tunnel (priv_fd, addr, mtu);
 }
 
 

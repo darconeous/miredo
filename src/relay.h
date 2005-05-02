@@ -41,7 +41,8 @@ class MiredoRelay : public TeredoRelay
 
 		virtual int SendIPv6Packet (const void *packet, size_t length);
 #ifdef MIREDO_TEREDO_CLIENT
-		virtual int NotifyUp (const struct in6_addr *addr);
+		virtual int NotifyUp (const struct in6_addr *addr,
+		                      uint16_t mtu = 1280);
 		virtual int NotifyDown (void);
 #endif
 
