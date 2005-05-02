@@ -136,7 +136,9 @@ class TeredoRelay::peer
 				unsigned trusted:1;
 				unsigned replied:1;
 				unsigned bubbles:2;
+				unsigned pings:2;
 				unsigned nonce:1; // mapped_* unset, nonce set
+				unsigned dummy:9;
 			} flags;
 			uint16_t all_flags;
 		} flags;
@@ -621,6 +623,11 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 				SendBubble (sock, IN6_TEREDO_IPV4 (&ip6.ip6_src),
 				            IN6_TEREDO_PORT (&ip6.ip6_src), &ip6.ip6_dst,
 				            &ip6.ip6_src);
+			else
+			{
+				syslog (LOG_WARNING, _("Ignoring invalid bubble : "
+				        "your Teredo server is probably buggy."));
+			}
 			return 0; // don't pass bubble to kernel
 		}
 
@@ -826,12 +833,19 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 		p->flags.flags.nonce = 1;
 	}
 
+	// FIXME FIXME FIXME:
+	// - sending of pings should be done in a separate thread
+	// - we don't check for the 2 seconds delay between pings
+
 	p->TouchReceive ();
-	/*p->TouchTransmit() -- useless */
-	return SendPing (sock, &addr, &ip6.ip6_src, p->nonce);
-#else /* ifdef MIREDO_TEREDO_CLIENT */
+	if (p->flags.flags.pings < 3)
+	{
+		p->flags.flags.pings++;
+		/*p->TouchTransmit() -- useless */
+		return SendPing (sock, &addr, &ip6.ip6_src, p->nonce);
+	}
+#endif /* ifdef MIREDO_TEREDO_CLIENT */
 	return 0;
-#endif
 }
 
 
