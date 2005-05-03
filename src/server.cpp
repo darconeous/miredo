@@ -53,14 +53,13 @@
  * Main server function, with UDP datagrams receive loop.
  */
 static void
-teredo_server (TeredoServer *server = NULL)
+teredo_server (TeredoServer *server)
 {
 	/* Main loop */
 	while (1)
 	{
 		/* Registers file descriptors */
 		fd_set readset;
-		struct timeval tv;
 		FD_ZERO (&readset);
 
 		int maxfd = signalfd[0];
@@ -70,14 +69,8 @@ teredo_server (TeredoServer *server = NULL)
 		if (val > maxfd)
 			maxfd = val;
 
-		/*
-		 * Short time-out to call relay->Proces () quite often.
-		 */
-		tv.tv_sec = 0;
-		tv.tv_usec = 250000;
-
 		/* Wait until one of them is ready for read */
-		maxfd = select (maxfd + 1, &readset, NULL, NULL, &tv);
+		maxfd = select (maxfd + 1, &readset, NULL, NULL, NULL);
 		if ((maxfd < 0)
 		 || ((maxfd >= 1) && FD_ISSET (signalfd[0], &readset)))
 			// interrupted by signal

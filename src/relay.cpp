@@ -171,9 +171,8 @@ miredo_run (const struct miredo_conf *conf)
 		return -1;
 	}
 
-	MiredoRelay *relay = NULL;
+	MiredoRelay *relay;
 	int fd = -1, retval = -1;
-
 
 	/*
 	 * Must be root to do that.

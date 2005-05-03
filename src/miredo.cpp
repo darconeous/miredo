@@ -121,6 +121,8 @@ drop_privileges (void)
 		syslog (LOG_ALERT, _("Setting UID failed: %m"));
 		return -1;
 	}
+
+	return 0;
 }
 
 
