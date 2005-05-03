@@ -253,6 +253,16 @@ miredo_run (MiredoConf& conf, const char *server_name)
 			syslog (LOG_ALERT, _("Fatal configuration error"));
 			return -2;
 		}
+
+		/*
+		 * NOTE:
+		 * While it is not specified in the draft Teredo
+		 * specification, it really seems that the secondary
+		 * server IPv4 address has to be the one just after
+		 * the primary server IPv4 address.
+		 */
+		if (server_ip2 == INADDR_ANY)
+			server_ip2 = htonl (ntohl (server_ip) + 1);
 #else
 		syslog (LOG_ALERT, _("Unsupported Teredo client mode"));
 		return -2;
@@ -269,16 +279,6 @@ miredo_run (MiredoConf& conf, const char *server_name)
 			return -2;
 		}
 	}
-
-	/*
-	 * NOTE:
-	 * While it is not specified in the draft Teredo
-	 * specification, it really seems that the secondary
-	 * server IPv4 address has to be the one just after
-	 * the primary server IPv4 address.
-	 */
-	if ((server_ip != INADDR_ANY) && (server_ip2 == INADDR_ANY))
-		server_ip2 = htonl (ntohl (server_ip) + 1);
 
 	if (!ParseIPv4 (conf, "BindAddress", &bind_ip))
 	{
