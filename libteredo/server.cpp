@@ -264,12 +264,13 @@ ForwardUDPPacket (const TeredoServerUDP& sock, const TeredoPacket& packet,
 }
 
 
+#include <syslog.h>
 /*
  * Sends an IPv6 packet of *payload* length <plen> with a raw IPv6 socket.
  * Returns 0 on success, -1 on error.
  */
 static int
-SendIPv6Packet (int fd, const struct ip6_hdr *p, size_t plen)
+SendIPv6Packet (int fd, const void *p, size_t plen)
 {
 	struct sockaddr_in6 dst;
 
@@ -278,8 +279,9 @@ SendIPv6Packet (int fd, const struct ip6_hdr *p, size_t plen)
 #ifdef HAVE_SA_LEN
 	dst.sin6_len = sizeof (dst);
 #endif
-	memcpy (&dst.sin6_addr, &p->ip6_dst, sizeof (dst.sin6_addr));
-	plen += sizeof (*p);
+	memcpy (&dst.sin6_addr, &((const struct ip6_hdr *)p)->ip6_dst,
+	        sizeof (dst.sin6_addr));
+	plen += sizeof (struct ip6_hdr);
 
 	return (sendto (fd, p, plen, 0, (struct sockaddr *)&dst, sizeof (dst))
 			== (int)plen) ? 0 : -1;
@@ -357,7 +359,7 @@ TeredoServer::ProcessPacket (TeredoPacket& packet, bool secondary)
 			return 0; // must be discarded
 
 		if (IN6_TEREDO_PREFIX(&ip6.ip6_dst) != myprefix)
-			return SendIPv6Packet (fd, &ip6, ip6len);
+			return SendIPv6Packet (fd, buf, ip6len);
 
 		/*
 		 * If the IPv6 destination is a Teredo address, the packet
