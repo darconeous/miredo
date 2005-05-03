@@ -21,6 +21,7 @@ datadir = @datadir@
 localedir = $(datadir)/locale
 top_srcdir = @top_srcdir@
 sysconfdir = @sysconfdir@
+LIBINTL = @LIBINTL@
 
 # _GNU_SOURCE is needed for old glibc on Linux
 AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir) -D_GNU_SOURCE \
@@ -34,7 +35,8 @@ if MIREDO_PIDFILE
 AM_CPPFLAGS += -DMIREDO_PIDFILE=\"$(miredo_pidfile)\"
 endif
 
-sbin_PROGRAMS = miredo
+sbin_PROGRAMS = miredo miredo-server
+noinst_LIBRARIES = libmiredo.a
 
 #BUILT_SOURCES = svnversion.c
 #CLEANFILES = $(BUILT_SOURCES)
@@ -48,16 +50,21 @@ sbin_PROGRAMS = miredo
 #
 #.PHONY: svnversion.c
 
+libmiredo_a_SOURCES = main.c miredo.cpp miredo.h \
+			conf.cpp conf.h prefix.c prefix.h
+
 # miredo
-miredo_SOURCES = main.c miredo.cpp miredo.h conf.cpp conf.h \
-                 prefix.c prefix.h
-miredo_LDADD = @LIBINTL@ ../libteredo/libteredo.a
-
-if TEREDO_RELAY
-miredo_SOURCES += relay.cpp relay.h privproc.cpp privproc.h
-miredo_LDADD += ../libtun6/libtun6.a
+miredo_SOURCES = relay.cpp relay.h
+if TEREDO_CLIENT
+miredo_SOURCES += privproc.cpp privproc.h
 endif
+miredo_LDADD = $(LIBINTL) libmiredo.a \
+		../libtun6/libtun6.a ../libteredo/libteredo.a
 
+# miredo-server
+miredo_server_SOURCES = server.cpp
+miredo_server_LDADD = $(LIBINTL) libmiredo.a ../libteredo/libteredo-server.a \
+			../libtun6/libtun6.a # FIXME: WRONG !!!
 
 # Automake does not support checking for MIREDO_CHROOT || MIREDO_PIDFILE
 # so we always create the directory

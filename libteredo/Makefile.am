@@ -18,22 +18,22 @@
 # ***********************************************************************
 
 AM_CPPFLAGS = -I@top_srcdir@/include -I@top_srcdir@
-noinst_LIBRARIES = libteredo.a
+noinst_LIBRARIES = libteredo.a libteredo-server.a
 
-# libteredo.a
-libteredo_a_SOURCES =	teredo.c teredo.h \
+common_SOURCES =	teredo.c teredo.h \
 			v4global.c v4global.h \
 			teredo-udp.cpp teredo-udp.h
 
-if TEREDO_RELAY
-libteredo_a_SOURCES += relay-udp.cpp relay-udp.h relay.cpp relay.h \
+# libteredo.a
+libteredo_a_SOURCES =	$(common_SOURCES) \
+			relay-udp.cpp relay-udp.h relay.cpp relay.h \
 			packets.cpp packets.h queue.cpp queue.h
 if TEREDO_CLIENT
 libteredo_a_SOURCES += security.cpp security.h
 endif
-endif
 
-if TEREDO_SERVER
-libteredo_a_SOURCES += server-udp.cpp server-udp.h server.cpp server.h
-endif
+# libteredo-server.a
+libteredo_server_a_SOURCES =	$(common_SOURCES) \
+				server-udp.cpp server-udp.h \
+				server.cpp server.h
 

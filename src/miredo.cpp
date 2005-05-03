@@ -40,40 +40,22 @@
 
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <sys/select.h>
 #include <netdb.h>
 #include <netinet/in.h> // struct sockaddr_in
 #include <syslog.h>
 #include <unistd.h> // uid_t
-#include <sys/wait.h> // wait()
+#include <sys/wait.h> // waitpid()
 
 #ifndef LOG_PERROR
 # define LOG_PERROR 0
 #endif
 
-#include "miredo.h"
-
 #include <libtun6/ipv6-tunnel.h>
 
 #include <libteredo/teredo.h>
 
+#include "miredo.h"
 #include "conf.h"
-
-#ifdef MIREDO_TEREDO_SERVER
-# include <libteredo/server.h>
-#else
-# define teredo_server_relay( t, r, s ) teredo_relay( t, r )
-#endif
-
-#ifdef MIREDO_TEREDO_RELAY
-# include "relay.h"
-# ifdef MIREDO_TEREDO_CLIENT
-#  include <privproc.h>
-#  include <libteredo/security.h> // FIXME: dirty
-# endif
-#else
-# define teredo_server_relay(t, r, s ) teredo_server( s )
-#endif
 
 /* FIXME: this file needs a lot of cleanup */
 
@@ -92,7 +74,7 @@ static int should_reload;
  * Pipe file descriptors (the right way to interrupt select() on Linux
  * from a signal handler, as pselect() is not supported).
  */
-static int signalfd[2];
+int signalfd[2]; /* FIXME: extern ?? */
 
 static void
 exit_handler (int signum)
@@ -116,220 +98,12 @@ reload_handler (int signum)
 }
 
 
-/*
- * Main server function, with UDP datagrams receive loop.
- */
-static void
-teredo_server_relay (IPv6Tunnel& tunnel, TeredoRelay *relay = NULL,
-                     TeredoServer *server = NULL)
-{
-	/* Main loop */
-	while (1)
-	{
-		/* Registers file descriptors */
-		fd_set readset;
-		struct timeval tv;
-		FD_ZERO (&readset);
-
-		int maxfd = signalfd[0];
-		FD_SET(signalfd[0], &readset);
-
-#ifdef MIREDO_TEREDO_SERVER
-		if (server != NULL)
-		{
-			int val = server->RegisterReadSet (&readset);
-			if (val > maxfd)
-				maxfd = val;
-		}
-#endif
-
-#ifdef MIREDO_TEREDO_RELAY
-		if (relay != NULL)
-		{
-			int val = tunnel.RegisterReadSet (&readset);
-			if (val > maxfd)
-				maxfd = val;
-
-			val = relay->RegisterReadSet (&readset);
-			if (val > maxfd)
-				maxfd = val;
-		}
-#endif
-
-		/*
-		 * Short time-out to call relay->Proces () quite often.
-		 */
-		tv.tv_sec = 0;
-		tv.tv_usec = 250000;
-
-		/* Wait until one of them is ready for read */
-		maxfd = select (maxfd + 1, &readset, NULL, NULL, &tv);
-		if ((maxfd < 0)
-		 || ((maxfd >= 1) && FD_ISSET (signalfd[0], &readset)))
-			// interrupted by signal
-			break;
-
-		/* Handle incoming data */
-#ifdef MIREDO_TEREDO_SERVER
-		if (server != NULL)
-			server->ProcessPacket (&readset);
-#endif
-
-#ifdef MIREDO_TEREDO_RELAY
-		if (relay != NULL)
-		{
-			char pbuf[65535];
-			int len;
-
-#ifdef MIREDO_TEREDO_CLIENT
-			relay->Process ();
-#endif
-
-			/* Forwards IPv6 packet to Teredo
-			 * (Packet transmission) */
-			len = tunnel.ReceivePacket (&readset, pbuf,
-							sizeof (pbuf));
-			if (len > 0)
-				relay->SendPacket (pbuf, len);
-
-			/* Forwards Teredo packet to IPv6
-			 * (Packet reception) */
-			relay->ReceivePacket (&readset);
-		}
-#endif
-	}
-}
-
-
-/*
- * Initialization stuff
- * (bind_port is in host byte order)
- */
+/* FIXME: move this to main.c, and add a detach function */
 uid_t unpriv_uid = 0;
 
-struct miredo_conf
+extern "C" int
+drop_privileges (void)
 {
-	int mode;
-	char *ifname;
-	union teredo_addr prefix;
-	uint32_t server_ip, server_ip2;
-	uint32_t bind_ip;
-	uint16_t bind_port;
-	union
-	{
-		struct
-		{
-			bool default_route;
-		} client;
-		struct
-		{
-			uint16_t adv_mtu;
-		} relay;
-	} u;
-#define default_route u.client.default_route
-#define adv_mtu       u.relay.adv_mtu
-};
-
-
-static int
-miredo_run (const struct miredo_conf *conf)
-{
-#ifdef MIREDO_TEREDO_CLIENT
-	if (conf->mode == TEREDO_CLIENT)
-		InitNonceGenerator ();
-#endif
-
-#ifdef MIREDO_TEREDO_RELAY
-	/*
-	 * Tunneling interface initialization
-	 *
-	 * NOTE: The Linux kernel does not allow setting up an address
-	 * before the interface is up, and it tends to complain about its
-	 * inability to set a link-scope address for the interface, as it
-	 * lacks an hardware layer address.
-	 */
-
-	/*
-	 * Must likely be root (unless the user was granted access to the
-	 * device file).
-	 */
-	IPv6Tunnel tunnel (conf->ifname);
-
-	if (!tunnel)
-	{
-		syslog (LOG_ALERT, _("Teredo tunnel setup failed:\n %s"),
-				_("You should be root to do that."));
-		return -1;
-	}
-
-	MiredoRelay *relay = NULL;
-#endif
-#ifdef MIREDO_TEREDO_SERVER
-	TeredoServer *server = NULL;
-#endif
-	int fd = -1, retval = -1;
-
-
-	/*
-	 * Must be root to do that.
-	 */
-#ifdef MIREDO_TEREDO_RELAY
-#ifdef MIREDO_TEREDO_CLIENT
-	if (conf->mode == TEREDO_CLIENT)
-	{
-		fd = miredo_privileged_process (tunnel, conf->default_route);
-		if (fd == -1)
-		{
-			syslog (LOG_ALERT,
-				_("Privileged process setup failed: %m"));
-			goto abort;
-		}
-	}
-	else
-#endif
-	if (conf->mode != TEREDO_DISABLED)
-	{
-		if (tunnel.SetMTU (conf->adv_mtu) || tunnel.BringUp ()
-		 || tunnel.AddAddress (conf->mode == TEREDO_RESTRICT
-		 			? &teredo_restrict : &teredo_cone)
-		 || (conf->mode != TEREDO_DISABLED
-		  && tunnel.AddRoute (&conf->prefix.ip6, 32)))
-		{
-			syslog (LOG_ALERT, _("Teredo routing failed:\n %s"),
-				_("You should be root to do that."));
-			goto abort;
-		}
-	}
-#endif
-
-#ifdef MIREDO_TEREDO_SERVER
-	// Sets up server (needs privileges to create raw socket)
-	if ((conf->mode != TEREDO_CLIENT) && (conf->server_ip != INADDR_ANY))
-	{
-		try
-		{
-			server = new TeredoServer (conf->server_ip, conf->server_ip2);
-		}
-		catch (...)
-		{
-			server = NULL;
-			syslog (LOG_ALERT, _("Teredo server failure"));
-			goto abort;
-		}
-
-		if (!*server)
-		{
-			syslog (LOG_ALERT, _("Teredo UDP port failure"));
-			syslog (LOG_NOTICE, _("Make sure another instance "
-				"of the program is not already running."));
-			goto abort;
-		}
-
-		server->SetPrefix (&conf->prefix);
-		server->SetAdvLinkMTU (conf->adv_mtu);
-	}
-#endif
-
 #ifdef MIREDO_CHROOT
 	/*
 	 * We could chroot earlier, but we do it know to keep compatibility with
@@ -345,95 +119,8 @@ miredo_run (const struct miredo_conf *conf)
 	if (setuid (unpriv_uid))
 	{
 		syslog (LOG_ALERT, _("Setting UID failed: %m"));
-		goto abort;
+		return -1;
 	}
-
-	// Sets up relay or client
-
-#ifdef MIREDO_TEREDO_RELAY
-# ifdef MIREDO_TEREDO_CLIENT
-	if (conf->mode == TEREDO_CLIENT)
-	{
-		// Sets up client
-		try
-		{
-			relay = new MiredoRelay (fd, &tunnel,
-			                         conf->server_ip, conf->server_ip2,
-			                         conf->bind_port, conf->bind_ip);
-		}
-		catch (...)
-		{
-			relay = NULL;
-		}
-	}
-	else
-# endif /* ifdef MIREDO_TEREDO_CLIENT */
-	if (conf->mode != TEREDO_DISABLED)
-	{
-		// Sets up relay
-		try
-		{
-			// FIXME: read union teredo_addr instead of prefix ?
-			relay = new MiredoRelay (&tunnel, conf->prefix.teredo.prefix,
-			                         conf->bind_port, conf->bind_ip,
-			                         conf->mode == TEREDO_CONE);
-		}
-		catch (...)
-		{
-			relay = NULL;
-		}
-	}
-
-	if (conf->mode != TEREDO_DISABLED)
-	{
-		if (relay == NULL)
-		{
-			syslog (LOG_ALERT, _("Teredo service failure"));
-			goto abort;
-		}
-
-		if (!*relay)
-		{
-			if (conf->bind_port)
-				syslog (LOG_ALERT,
-					_("Teredo service port failure: "
-					"cannot open UDP port %u"),
-					(unsigned int)ntohs (conf->bind_port));
-			else
-				syslog (LOG_ALERT,
-					_("Teredo service port failure: "
-					"cannot open an UDP port"));
-
-			syslog (LOG_NOTICE, _("Make sure another instance "
-				"of the program is not already running."));
-			goto abort;
-		}
-	}
-#endif /* ifdef MIREDO_TEREDO_RELAY */
-
-	retval = 0;
-	teredo_server_relay (tunnel, relay, server);
-
-abort:
-	if (fd != -1)
-		close (fd);
-#ifdef MIREDO_TEREDO_RELAY
-	if (relay != NULL)
-		delete relay;
-# ifdef MIREDO_TEREDO_CLIENT
-	if (conf->mode == TEREDO_CLIENT)
-		DeinitNonceGenerator ();
-# endif
-#endif
-#ifdef MIREDO_TEREDO_SERVER
-	if (server != NULL)
-		delete server;
-#endif
-
-	if (fd != -1)
-		wait (NULL); // wait for privsep process
-
-	return retval;
 }
 
 
@@ -632,6 +319,9 @@ ParseConf (const char *path, int *newfac, struct miredo_conf *conf,
  * Configuration and respawning stuff
  */
 static const char *const ident = "miredo";
+
+extern int miredo_run (const struct miredo_conf *conf);
+
 
 extern "C" int
 miredo (const char *confpath, const char *server_name)
