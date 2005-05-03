@@ -18,5 +18,5 @@
 # ***********************************************************************
 
 EXTRA_DIST = miredo miredo.sh
-dist_sysconf_DATA = miredo.conf-dist
+dist_sysconf_DATA = miredo.conf-dist miredo-server.conf-dist
 
