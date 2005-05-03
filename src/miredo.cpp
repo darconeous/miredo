@@ -60,7 +60,7 @@
 #include "conf.h"
 
 #ifdef MIREDO_TEREDO_SERVER
-# include "server.h"
+# include <libteredo/server.h>
 #else
 # define teredo_server_relay( t, r, s ) teredo_relay( t, r )
 #endif
@@ -121,7 +121,7 @@ reload_handler (int signum)
  */
 static void
 teredo_server_relay (IPv6Tunnel& tunnel, TeredoRelay *relay = NULL,
-			TeredoServer *server = NULL)
+                     TeredoServer *server = NULL)
 {
 	/* Main loop */
 	while (1)
@@ -265,7 +265,7 @@ miredo_run (const struct miredo_conf *conf)
 	MiredoRelay *relay = NULL;
 #endif
 #ifdef MIREDO_TEREDO_SERVER
-	MiredoServer *server = NULL;
+	TeredoServer *server = NULL;
 #endif
 	int fd = -1, retval = -1;
 
@@ -299,26 +299,13 @@ miredo_run (const struct miredo_conf *conf)
 		}
 	}
 
-#ifdef MIREDO_CHROOT
-	if (chroot (MIREDO_CHROOT) || chdir ("/"))
-		syslog (LOG_WARNING, "chroot to %s failed: %m",
-			MIREDO_CHROOT);
-#endif
-
-	// Definitely drops privileges
-	if (setuid (unpriv_uid))
-	{
-		syslog (LOG_ALERT, _("Setting UID failed: %m"));
-		goto abort;
-	}
-
 #ifdef MIREDO_TEREDO_SERVER
-	// Sets up server sockets
+	// Sets up server (needs privileges to create raw socket)
 	if ((conf->mode != TEREDO_CLIENT) && (conf->server_ip != INADDR_ANY))
 	{
 		try
 		{
-			server = new MiredoServer (conf->server_ip, conf->server_ip2);
+			server = new TeredoServer (conf->server_ip, conf->server_ip2);
 		}
 		catch (...)
 		{
@@ -337,9 +324,26 @@ miredo_run (const struct miredo_conf *conf)
 
 		server->SetPrefix (&conf->prefix);
 		server->SetAdvLinkMTU (conf->adv_mtu);
-		server->SetTunnel (&tunnel);
 	}
 #endif
+
+#ifdef MIREDO_CHROOT
+	/*
+	 * We could chroot earlier, but we do it know to keep compatibility with
+	 * grsecurity Linux kernel patch that automatically removes capabilities
+	 * when chrooted.
+	 */
+	if (chroot (MIREDO_CHROOT) || chdir ("/"))
+		syslog (LOG_WARNING, "chroot to %s failed: %m",
+			MIREDO_CHROOT);
+#endif
+
+	// Definitely drops privileges
+	if (setuid (unpriv_uid))
+	{
+		syslog (LOG_ALERT, _("Setting UID failed: %m"));
+		goto abort;
+	}
 
 	// Sets up relay or client
 

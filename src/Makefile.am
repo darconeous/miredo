@@ -56,10 +56,6 @@ if TEREDO_RELAY
 miredo_SOURCES += relay.cpp relay.h privproc.cpp privproc.h
 endif
 
-if TEREDO_SERVER
-miredo_SOURCES += server.cpp server.h
-endif
-
 miredo_LDADD = @LIBINTL@ ../libtun6/libtun6.a ../libteredo/libteredo.a
 
 # Automake does not support checking for MIREDO_CHROOT || MIREDO_PIDFILE

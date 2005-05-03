@@ -14,13 +14,13 @@ Features:
 (*) fix bubble retransmit / timing,
 (!) option to ignore cone bit,
 ( ) take failure to send UDP packets into account,
-(!) external control program for scripting,
+(*) external control program for scripting,
 (*) some statistics,
 ( ) fixed TODOs and FIXMEs in source code,
 ( ) local Teredo discovery,
 (?) "automatic sunset" / "exit strategy",
-( ) use raw sockets rather than tunnel for server
- OR check that IPv6 routing is enabled at startup
+(!) fix connectivity loss detection (too slow)
+(!) use raw sockets rather than tunnel for server
 
 Security:
 ----------
@@ -36,13 +36,9 @@ Conformance:
 -------------
 (*) implement proper/draft-compliant timeouts,
 
-Testing:
----------
-(!) tests for possible regressions in upcoming release,
-(!) tests for new features,
-
 Performance/scalibility:
 -------------------------
+(*) ensure non-blocking while sending packets
 ( ) faster peer lists lookups/updates,
 ( ) multi-threading in relay/client (will help other things a lot)
 

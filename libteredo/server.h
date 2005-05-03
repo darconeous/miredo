@@ -35,31 +35,22 @@
 /*
  * Checks and handles an Teredo-encapsulated packet.
  */
-class TeredoServer
+class /*sealed*/ TeredoServer
 {
 	private:
 		/* These are all in network byte order (including MTU!!) */
 		uint32_t server_ip, prefix, advLinkMTU;
+
 		TeredoServerUDP sock;
+		int fd; // raw IPv6 socket
 
 		int ProcessPacket (TeredoPacket& packet, bool secondary);
 		int SendRA (const TeredoPacket& p, const struct in6_addr *dest_ip6,
 		            bool use_secondary_ip) const;
 
-	protected:
-		TeredoServer (uint32_t ip1, uint32_t ip2);
-
-		/*
-		 * Sends an IPv6 packet from Teredo toward the IPv6 Internet.
-		 *
-		 * Returns 0 on success, -1 on error.
-		 */
-		virtual int SendIPv6Packet (const void *packet, size_t length) = 0;
-
 	public:
-		virtual ~TeredoServer (void)
-		{
-		}
+		TeredoServer (uint32_t ip1, uint32_t ip2);
+		~TeredoServer (void);
 
 		/* Prefix can be changed asynchronously */
 		void SetPrefix (uint32_t pref)
@@ -87,7 +78,7 @@ class TeredoServer
 
 		int operator! (void) const
 		{
-			return !sock;
+			return (fd == -1) || !sock;
 		}
 
 		int RegisterReadSet (fd_set *rs) const

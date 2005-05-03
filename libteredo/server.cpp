@@ -32,6 +32,8 @@
 #endif
 
 #include <sys/types.h>
+#include <unistd.h> // close()
+#include <sys/socket.h>
 #include <netinet/in.h> // struct in6_addr
 #include <netinet/ip6.h> // struct ip6_hdr
 #include <netinet/icmp6.h>
@@ -258,7 +260,7 @@ ForwardUDPPacket (const TeredoServerUDP& sock, const TeredoPacket& packet,
 
 	memcpy (buf + offset, p, length);
 	return sock.SendPacket (buf, length + offset, dest_ip,
-					~dst.teredo.client_port);
+	                        ~dst.teredo.client_port);
 }
 
 static const struct in6_addr in6addr_allrouters =
@@ -332,7 +334,19 @@ TeredoServer::ProcessPacket (TeredoPacket& packet, bool secondary)
 			return 0; // must be discarded
 
 		if (IN6_TEREDO_PREFIX(&ip6.ip6_dst) != myprefix)
-			return SendIPv6Packet (buf, ip6len + 40);
+		{
+			struct sockaddr_in6 dst;
+
+			memset (&dst, 0, sizeof (dst));
+			dst.sin6_family = AF_INET6;
+#ifdef HAVE_SA_LEN
+			dst.sin6_len = sizeof (dst);
+#endif
+			memcpy (&dst.sin6_addr, &ip6.ip6_dst, sizeof (dst.sin6_addr));
+			ip6len += sizeof (ip6);
+
+			return (sendto (fd, buf, ip6len, 0, (struct sockaddr *)&dst, sizeof (dst)) == (int)ip6len) ? 0 : -1;
+		}
 
 		/*
 		 * If the IPv6 destination is a Teredo address, the packet
@@ -374,5 +388,15 @@ TeredoServer::TeredoServer (uint32_t ip1, uint32_t ip2)
 	  advLinkMTU (htonl (1280))
 {
 	sock.ListenIP (ip1, ip2);
+
+	fd = socket (AF_INET6, SOCK_RAW, IPPROTO_RAW);
+	if (fd != -1)
+		shutdown (fd, SHUT_RD);
 }
 
+
+TeredoServer::~TeredoServer (void)
+{
+	if (fd != -1)
+		close (fd);
+}
