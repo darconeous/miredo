@@ -184,8 +184,6 @@ DeinitSignals (void)
 }
 
 
-
-
 static bool
 ParseConf (const char *path, int *newfac, struct miredo_conf *conf,
            const char *server_name)
@@ -401,8 +399,6 @@ miredo (const char *confpath, const char *server_name)
 		if (pid != -1)
 			while (waitpid (pid, &retval, 0) == -1);
 
-		DeinitSignals ();
-
 		if (pid == -1)
 		{
 		}
@@ -438,6 +434,8 @@ miredo (const char *confpath, const char *server_name)
 				(int)pid, retval, strsignal (retval));
 			retval = 2;
 		}
+
+		DeinitSignals ();
 	}
 	while (retval == 2);
 
