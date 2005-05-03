@@ -263,6 +263,29 @@ ForwardUDPPacket (const TeredoServerUDP& sock, const TeredoPacket& packet,
 	                        ~dst.teredo.client_port);
 }
 
+
+/*
+ * Sends an IPv6 packet of *payload* length <plen> with a raw IPv6 socket.
+ * Returns 0 on success, -1 on error.
+ */
+static int
+SendIPv6Packet (int fd, const struct ip6_hdr *p, size_t plen)
+{
+	struct sockaddr_in6 dst;
+
+	memset (&dst, 0, sizeof (dst));
+	dst.sin6_family = AF_INET6;
+#ifdef HAVE_SA_LEN
+	dst.sin6_len = sizeof (dst);
+#endif
+	memcpy (&dst.sin6_addr, &p->ip6_dst, sizeof (dst.sin6_addr));
+	plen += sizeof (*p);
+
+	return (sendto (fd, p, plen, 0, (struct sockaddr *)&dst, sizeof (dst))
+			== (int)plen) ? 0 : -1;
+}
+
+
 static const struct in6_addr in6addr_allrouters =
 	{ { { 0xff, 0x02, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x2 } } };
 
@@ -334,19 +357,7 @@ TeredoServer::ProcessPacket (TeredoPacket& packet, bool secondary)
 			return 0; // must be discarded
 
 		if (IN6_TEREDO_PREFIX(&ip6.ip6_dst) != myprefix)
-		{
-			struct sockaddr_in6 dst;
-
-			memset (&dst, 0, sizeof (dst));
-			dst.sin6_family = AF_INET6;
-#ifdef HAVE_SA_LEN
-			dst.sin6_len = sizeof (dst);
-#endif
-			memcpy (&dst.sin6_addr, &ip6.ip6_dst, sizeof (dst.sin6_addr));
-			ip6len += sizeof (ip6);
-
-			return (sendto (fd, buf, ip6len, 0, (struct sockaddr *)&dst, sizeof (dst)) == (int)ip6len) ? 0 : -1;
-		}
+			return SendIPv6Packet (fd, &ip6, ip6len);
 
 		/*
 		 * If the IPv6 destination is a Teredo address, the packet

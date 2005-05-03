@@ -20,7 +20,6 @@ Features:
 ( ) local Teredo discovery,
 (?) "automatic sunset" / "exit strategy",
 (!) fix connectivity loss detection (too slow)
-(!) use raw sockets rather than tunnel for server
 
 Security:
 ----------
