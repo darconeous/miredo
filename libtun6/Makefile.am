@@ -19,8 +19,9 @@
 
 AM_CPPFLAGS = -I@top_srcdir@/include -I@top_srcdir@
 
+if TEREDO_RELAY
 noinst_LIBRARIES = libtun6.a
 
 # libtun6.a
 libtun6_a_SOURCES = ipv6-tunnel.cpp ipv6-tunnel.h
-
+endif

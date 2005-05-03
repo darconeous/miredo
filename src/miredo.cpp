@@ -72,7 +72,7 @@
 #  include <libteredo/security.h> // FIXME: dirty
 # endif
 #else
-# define teredo_server_relay(t, r, s ) teredo_server( t, s )
+# define teredo_server_relay(t, r, s ) teredo_server( s )
 #endif
 
 /* FIXME: this file needs a lot of cleanup */
@@ -239,6 +239,7 @@ miredo_run (const struct miredo_conf *conf)
 		InitNonceGenerator ();
 #endif
 
+#ifdef MIREDO_TEREDO_RELAY
 	/*
 	 * Tunneling interface initialization
 	 *
@@ -261,7 +262,6 @@ miredo_run (const struct miredo_conf *conf)
 		return -1;
 	}
 
-#ifdef MIREDO_TEREDO_RELAY
 	MiredoRelay *relay = NULL;
 #endif
 #ifdef MIREDO_TEREDO_SERVER
@@ -273,6 +273,7 @@ miredo_run (const struct miredo_conf *conf)
 	/*
 	 * Must be root to do that.
 	 */
+#ifdef MIREDO_TEREDO_RELAY
 #ifdef MIREDO_TEREDO_CLIENT
 	if (conf->mode == TEREDO_CLIENT)
 	{
@@ -286,6 +287,7 @@ miredo_run (const struct miredo_conf *conf)
 	}
 	else
 #endif
+	if (conf->mode != TEREDO_DISABLED)
 	{
 		if (tunnel.SetMTU (conf->adv_mtu) || tunnel.BringUp ()
 		 || tunnel.AddAddress (conf->mode == TEREDO_RESTRICT
@@ -298,6 +300,7 @@ miredo_run (const struct miredo_conf *conf)
 			goto abort;
 		}
 	}
+#endif
 
 #ifdef MIREDO_TEREDO_SERVER
 	// Sets up server (needs privileges to create raw socket)

@@ -389,13 +389,19 @@ init_security (const char *username, int nodetach)
 static int
 check_libtun6 (void)
 {
+#ifdef MIREDO_TEREDO_RELAY
+	/* FIXME:
+	 * Very hard to solve:
+	 * we don't know yet if we really need the tunnel.
+	 * If we only run as a Teredo server, we don't need it.
+	 */
 	char errbuf[LIBTUN6_ERRBUF_SIZE];
 	if (libtun6_driver_diagnose (errbuf))
 	{
 		fputs (errbuf, stderr);
 		return -1;
 	}
-
+#endif
 	return 0;
 }
 
