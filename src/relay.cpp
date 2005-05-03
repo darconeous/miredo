@@ -330,7 +330,7 @@ miredo_run (MiredoConf& conf, const char *server_name)
 		return -1;
 	}
 
-	MiredoRelay *relay;
+	MiredoRelay *relay = NULL;
 	int retval = -1;
 
 	/*
