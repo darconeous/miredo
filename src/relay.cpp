@@ -34,18 +34,22 @@
 # include <inttypes.h>
 #endif
 
+#include <stdlib.h> // free()
 #include <sys/types.h>
 #include <unistd.h> // close()
 #include <sys/wait.h> // wait()
 #include <syslog.h>
 
+#include <string.h>
+#include <netdb.h>
+#include <netinet/in.h> // struct sockaddr_in
 
 #include <libtun6/ipv6-tunnel.h>
+#include <libteredo/security.h>
 #include "privproc.h"
 #include "relay.h"
 #include "miredo.h"
 #include "conf.h"
-#include <libteredo/security.h>
 
 MiredoRelay::MiredoRelay (const IPv6Tunnel *tun, uint32_t prefix,
                           uint16_t port, uint32_t ipv4, bool cone)
@@ -142,10 +146,150 @@ teredo_relay (IPv6Tunnel& tunnel, TeredoRelay *relay = NULL)
 
 
 extern int
-miredo_run (const struct miredo_conf *conf)
+miredo_run (MiredoConf& conf, const char *server_name)
 {
+	int mode = TEREDO_CLIENT;
+	char *ifname = NULL;
+	union teredo_addr prefix = { 0 };
+	uint32_t bind_ip = INADDR_ANY;
+	uint16_t mtu = 1280, bind_port = 
+#if 0
+		/*
+		 * We use 3545 as a Teredo service port.
+		 * It is better to use a fixed port number for the
+		 * purpose of firewalling, rather than a pseudo-random
+		 * one (all the more as it might be a "dangerous"
+		 * often firewalled port, such as 1214 as it happened
+		 * to me once).
+		 */
+		IPPORT_TEREDO + 1;
+#else
+		0;
+#endif
 #ifdef MIREDO_TEREDO_CLIENT
-	if (conf->mode == TEREDO_CLIENT)
+	uint32_t server_ip = INADDR_ANY, server_ip2 = INADDR_ANY;
+	bool default_route = true; // TODO merge/split mode/default_route
+#endif
+
+	/*
+	 * CONFIGURATION
+	 */
+	prefix.teredo.prefix = htonl (DEFAULT_TEREDO_PREFIX);
+
+	if (!ParseRelayType (conf, "RelayType", &mode))
+	{
+		syslog (LOG_ALERT, _("Fatal configuration error"));
+		return -2;
+	}
+
+	if (mode == TEREDO_CLIENT)
+	{
+#ifdef MIREDO_TEREDO_CLIENT
+		if (!conf.GetBoolean ("DefaultRoute", &default_route))
+		{
+			syslog (LOG_ALERT, _("Fatal configuration error"));
+			return -2;
+		}
+
+		char *hostname = conf.GetRawValue ("ServerAddress");
+
+		if (server_name != NULL)
+		{
+			if (hostname != NULL)
+				free (hostname);
+			hostname = strdup (server_name);
+		}
+
+		if (hostname == NULL)
+		{
+			syslog (LOG_ALERT, _("Server address not specified"));
+			return -2;
+		}
+
+		/*
+		 * We must resolve the server host name before chroot is called.
+		 * (TODO: clean this up)
+		 */
+		struct addrinfo help, *res;
+
+		memset (&help, 0, sizeof (help));
+		help.ai_family = AF_INET;
+		help.ai_socktype = SOCK_DGRAM;
+		help.ai_protocol = IPPROTO_UDP;
+
+		int check = getaddrinfo (hostname, NULL, &help, &res);
+
+		if (check)
+		{
+			syslog (LOG_ALERT, _("Invalid server hostname \"%s\": %s"),
+			        hostname, gai_strerror (check));
+			free (hostname);
+			return -2;
+		}
+
+		server_ip =
+			((const struct sockaddr_in *)res->ai_addr)->sin_addr.s_addr;
+		freeaddrinfo (res);
+		free (hostname);
+
+		// only use ServerAddress2 if server name was not overriden from the
+		// command line
+		if ((server_name == NULL)
+		 && !ParseIPv4 (conf, "ServerAddress2", &server_ip2))
+		{
+			syslog (LOG_ALERT, _("Fatal configuration error"));
+			return -2;
+		}
+#else
+		syslog (LOG_ALERT, _("Unsupported Teredo client mode"));
+		return -2;
+#endif
+	}
+	else
+	{
+		mtu = 1280;
+
+		if (!ParseIPv6 (conf, "Prefix", &prefix.ip6)
+		 || !conf.GetInt16 ("InterfaceMTU", &mtu))
+		{
+			syslog (LOG_ALERT, _("Fatal configuration error"));
+			return -2;
+		}
+	}
+
+	/*
+	 * NOTE:
+	 * While it is not specified in the draft Teredo
+	 * specification, it really seems that the secondary
+	 * server IPv4 address has to be the one just after
+	 * the primary server IPv4 address.
+	 */
+	if ((server_ip != INADDR_ANY) && (server_ip2 == INADDR_ANY))
+		server_ip2 = htonl (ntohl (server_ip) + 1);
+
+	if (!ParseIPv4 (conf, "BindAddress", &bind_ip))
+	{
+		syslog (LOG_ALERT, _("Fatal bind IPv4 address error"));
+		return -2;
+	}
+
+	if (!conf.GetInt16 ("BindPort", &bind_port))
+	{
+		syslog (LOG_ALERT, _("Fatal bind UDP port error"));
+		return -2;
+	}
+	bind_port = htons (bind_port);
+
+	ifname = conf.GetRawValue ("InterfaceName");
+
+	conf.Clear (5);
+
+	/*
+	 * SETUP
+	 */
+
+#ifdef MIREDO_TEREDO_CLIENT
+	if (mode == TEREDO_CLIENT)
 		InitNonceGenerator ();
 #endif
 
@@ -162,7 +306,9 @@ miredo_run (const struct miredo_conf *conf)
 	 * Must likely be root (unless the user was granted access to the
 	 * device file).
 	 */
-	IPv6Tunnel tunnel (conf->ifname);
+	IPv6Tunnel tunnel (ifname);
+	if (ifname != NULL)
+		free (ifname);
 
 	if (!tunnel)
 	{
@@ -172,55 +318,48 @@ miredo_run (const struct miredo_conf *conf)
 	}
 
 	MiredoRelay *relay;
-	int fd = -1, retval = -1;
+	int retval = -1;
 
 	/*
 	 * Must be root to do that.
 	 */
-#ifdef MIREDO_TEREDO_RELAY
 #ifdef MIREDO_TEREDO_CLIENT
-	if (conf->mode == TEREDO_CLIENT)
+	int fd = -1;
+
+	if (mode == TEREDO_CLIENT)
 	{
-		fd = miredo_privileged_process (tunnel, conf->default_route);
+		fd = miredo_privileged_process (tunnel, default_route);
 		if (fd == -1)
 		{
-			syslog (LOG_ALERT,
-				_("Privileged process setup failed: %m"));
+			syslog (LOG_ALERT, _("Privileged process setup failed: %m"));
 			goto abort;
 		}
 	}
 	else
 #endif
-	if (conf->mode != TEREDO_DISABLED)
 	{
-		if (tunnel.SetMTU (conf->adv_mtu) || tunnel.BringUp ()
-		 || tunnel.AddAddress (conf->mode == TEREDO_RESTRICT
+		if (tunnel.SetMTU (mtu) || tunnel.BringUp ()
+		 || tunnel.AddAddress (mode == TEREDO_RESTRICT
 		 			? &teredo_restrict : &teredo_cone)
-		 || (conf->mode != TEREDO_DISABLED
-		  && tunnel.AddRoute (&conf->prefix.ip6, 32)))
+		 || (mode != TEREDO_DISABLED && tunnel.AddRoute (&prefix.ip6, 32)))
 		{
 			syslog (LOG_ALERT, _("Teredo routing failed:\n %s"),
-				_("You should be root to do that."));
+			        _("You should be root to do that."));
 			goto abort;
 		}
 	}
-#endif
 
 	if (drop_privileges ())
 		goto abort;
 
-	// Sets up relay or client
-
-#ifdef MIREDO_TEREDO_RELAY
-# ifdef MIREDO_TEREDO_CLIENT
-	if (conf->mode == TEREDO_CLIENT)
+#ifdef MIREDO_TEREDO_CLIENT
+	if (mode == TEREDO_CLIENT)
 	{
 		// Sets up client
 		try
 		{
-			relay = new MiredoRelay (fd, &tunnel,
-			                         conf->server_ip, conf->server_ip2,
-			                         conf->bind_port, conf->bind_ip);
+			relay = new MiredoRelay (fd, &tunnel, server_ip, server_ip2,
+			                         bind_port, bind_ip);
 		}
 		catch (...)
 		{
@@ -229,15 +368,13 @@ miredo_run (const struct miredo_conf *conf)
 	}
 	else
 # endif /* ifdef MIREDO_TEREDO_CLIENT */
-	if (conf->mode != TEREDO_DISABLED)
 	{
 		// Sets up relay
 		try
 		{
 			// FIXME: read union teredo_addr instead of prefix ?
-			relay = new MiredoRelay (&tunnel, conf->prefix.teredo.prefix,
-			                         conf->bind_port, conf->bind_ip,
-			                         conf->mode == TEREDO_CONE);
+			relay = new MiredoRelay (&tunnel, prefix.teredo.prefix,
+			                         bind_port, bind_ip, mode == TEREDO_CONE);
 		}
 		catch (...)
 		{
@@ -245,48 +382,44 @@ miredo_run (const struct miredo_conf *conf)
 		}
 	}
 
-	if (conf->mode != TEREDO_DISABLED)
+	if (relay == NULL)
 	{
-		if (relay == NULL)
-		{
-			syslog (LOG_ALERT, _("Teredo service failure"));
-			goto abort;
-		}
-
-		if (!*relay)
-		{
-			if (conf->bind_port)
-				syslog (LOG_ALERT,
-					_("Teredo service port failure: "
-					"cannot open UDP port %u"),
-					(unsigned int)ntohs (conf->bind_port));
-			else
-				syslog (LOG_ALERT,
-					_("Teredo service port failure: "
-					"cannot open an UDP port"));
-
-			syslog (LOG_NOTICE, _("Make sure another instance "
-				"of the program is not already running."));
-			goto abort;
-		}
+		syslog (LOG_ALERT, _("Teredo service failure"));
+		goto abort;
 	}
-#endif /* ifdef MIREDO_TEREDO_RELAY */
+
+	if (!*relay)
+	{
+		if (bind_port)
+			syslog (LOG_ALERT, _("Teredo service port failure: "
+			        "cannot open UDP port %u"),
+			        (unsigned int)ntohs (bind_port));
+		else
+			syslog (LOG_ALERT, _("Teredo service port failure: "
+			        "cannot open an UDP port"));
+
+		syslog (LOG_NOTICE, _("Make sure another instance "
+		        "of the program is not already running."));
+		goto abort;
+	}
 
 	retval = 0;
 	teredo_relay (tunnel, relay);
 
 abort:
-	if (fd != -1)
-		close (fd);
 	if (relay != NULL)
 		delete relay;
+
 #ifdef MIREDO_TEREDO_CLIENT
-	if (conf->mode == TEREDO_CLIENT)
+	if (fd != -1)
+	{
+		close (fd);
+		wait (NULL); // wait for privsep process
+	}
+
+	if (mode == TEREDO_CLIENT)
 		DeinitNonceGenerator ();
 #endif
-
-	if (fd != -1)
-		wait (NULL); // wait for privsep process
 
 	return retval;
 }

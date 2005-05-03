@@ -26,32 +26,7 @@
 # define MIREDO_MIREDO_H
 
 # ifdef __cplusplus
-/* FIXME: relying on main.c being not C++ sucks big times */
-
-struct miredo_conf
-{
-	int mode;
-	char *ifname;
-	union teredo_addr prefix;
-	uint32_t server_ip, server_ip2;
-	uint32_t bind_ip;
-	uint16_t bind_port;
-	union
-	{
-		struct
-		{
-			bool default_route;
-		} client;
-		struct
-		{
-			uint16_t adv_mtu;
-		} relay;
-	} u;
-#define default_route u.client.default_route
-#define adv_mtu       u.relay.adv_mtu
-};
-
-extern int signalfd[2];
+extern int signalfd[2]; /* FIXME: dirty */
 
 extern "C"
 {

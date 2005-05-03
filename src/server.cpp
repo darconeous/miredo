@@ -44,10 +44,7 @@
 #include "conf.h"
 #include "miredo.h"
 
-
 #include <libteredo/server.h>
-
-/* FIXME: this file needs a lot of cleanup */
 
 /*
  * Main server function, with UDP datagrams receive loop.
@@ -83,14 +80,52 @@ teredo_server (TeredoServer *server)
 
 
 extern int
-miredo_run (const struct miredo_conf *conf)
+miredo_run (MiredoConf& conf, const char *)
 {
+	union teredo_addr prefix = { 0 };
+	uint32_t server_ip = INADDR_ANY, server_ip2 = INADDR_ANY;
+	uint16_t mtu = 1280;
+
+	prefix.teredo.prefix = htonl (DEFAULT_TEREDO_PREFIX);
+
+	if (!ParseIPv4 (conf, "ServerBindAddress", &server_ip)
+	 || !ParseIPv6 (conf, "Prefix", &prefix.ip6)
+	 || !conf.GetInt16 ("InterfaceMTU", &mtu))
+	{
+		syslog (LOG_ALERT, _("Fatal configuration error"));
+		return -2;
+	}
+
+	if (server_ip == INADDR_ANY)
+	{
+		syslog (LOG_ALERT, _("Fatal error: No server address specified."));
+		return -2;
+	}
+	
+	if (!ParseIPv4 (conf, "ServerBindAddress2", &server_ip2))
+	{
+		syslog (LOG_ALERT, _("Fatal configuration error"));
+		return -2;
+	}
+
+	/*
+	 * NOTE:
+	 * While it is not specified in the draft Teredo
+	 * specification, it really seems that the secondary
+	 * server IPv4 address has to be the one just after
+	 * the primary server IPv4 address.
+	 */
+	if (server_ip2 == INADDR_ANY)
+		server_ip2 = htonl (ntohl (server_ip) + 1);
+
+	conf.Clear (5);
+
 	TeredoServer *server;
 
 	// Sets up server (needs privileges to create raw socket)
 	try
 	{
-		server = new TeredoServer (conf->server_ip, conf->server_ip2);
+		server = new TeredoServer (server_ip, server_ip2);
 	}
 	catch (...)
 	{
@@ -108,8 +143,8 @@ miredo_run (const struct miredo_conf *conf)
 		goto abort;
 	}
 
-	server->SetPrefix (&conf->prefix);
-	server->SetAdvLinkMTU (conf->adv_mtu);
+	server->SetPrefix (&prefix);
+	server->SetAdvLinkMTU (mtu);
 
 	if (drop_privileges ())
 		goto abort;
