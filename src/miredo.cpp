@@ -209,13 +209,25 @@ uid_t unpriv_uid = 0;
 
 struct miredo_conf
 {
+	int mode;
 	char *ifname;
 	union teredo_addr prefix;
-	int mode;
 	uint32_t server_ip, server_ip2;
 	uint32_t bind_ip;
 	uint16_t bind_port;
-	bool default_route;
+	union
+	{
+		struct
+		{
+			bool default_route;
+		} client;
+		struct
+		{
+			uint16_t adv_mtu;
+		} relay;
+	} u;
+#define default_route u.client.default_route
+#define adv_mtu       u.relay.adv_mtu
 };
 
 
@@ -275,7 +287,7 @@ miredo_run (const struct miredo_conf *conf)
 	else
 #endif
 	{
-		if (tunnel.SetMTU (1280) || tunnel.BringUp ()
+		if (tunnel.SetMTU (conf->adv_mtu) || tunnel.BringUp ()
 		 || tunnel.AddAddress (conf->mode == TEREDO_RESTRICT
 		 			? &teredo_restrict : &teredo_cone)
 		 || (conf->mode != TEREDO_DISABLED
@@ -324,7 +336,7 @@ miredo_run (const struct miredo_conf *conf)
 		}
 
 		server->SetPrefix (&conf->prefix);
-		/*TODO: server->SetAdvLinkMTU (...);*/
+		server->SetAdvLinkMTU (conf->adv_mtu);
 		server->SetTunnel (&tunnel);
 	}
 #endif
@@ -501,6 +513,8 @@ ParseConf (const char *path, int *newfac, struct miredo_conf *conf,
 
 	if (conf->mode == TEREDO_CLIENT)
 	{
+		conf->default_route = true;
+
 		if (!cnf.GetBoolean ("DefaultRoute", &conf->default_route))
 		{
 			syslog (LOG_ALERT, _("Fatal configuration error"));
@@ -553,8 +567,11 @@ ParseConf (const char *path, int *newfac, struct miredo_conf *conf,
 	}
 	else
 	{
+		conf->adv_mtu = 1280;
+
 		if (!ParseIPv4 (cnf, "ServerBindAddress", &conf->server_ip)
-		 || !ParseIPv6 (cnf, "Prefix", &conf->prefix.ip6))
+		 || !ParseIPv6 (cnf, "Prefix", &conf->prefix.ip6)
+		 || !cnf.GetInt16 ("InterfaceMTU", &conf->adv_mtu))
 		{
 			syslog (LOG_ALERT, _("Fatal configuration error"));
 			return false;
@@ -626,9 +643,9 @@ miredo (const char *confpath, const char *server_name)
 		int newfac = LOG_DAEMON;
 		struct miredo_conf conf =
 		{
+			TEREDO_CLIENT,	// mode
 			NULL,		// ifname
 			{ 0 },		// prefix
-			TEREDO_CLIENT,	// mode
 			INADDR_ANY, INADDR_ANY, // server_ip{,2}
 			INADDR_ANY,	// bind_ip
 #if 0
@@ -642,9 +659,8 @@ miredo (const char *confpath, const char *server_name)
 		 */
 			htons (IPPORT_TEREDO + 1),
 #else
-			0,		// bind_port
+			0		// bind_port
 #endif
-			true		// default_route
 		};
 		conf.prefix.teredo.prefix = htonl (DEFAULT_TEREDO_PREFIX);
 

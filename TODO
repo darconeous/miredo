@@ -2,7 +2,7 @@ ToDo list:
 ===========
 $Id$
 
-(!) before next release (0.4.3)
+(!) before next release (0.4.4)
 (*) before stable release (1.0.0)
 ( ) unscheduled
 (H) help needed
@@ -13,7 +13,6 @@ Features:
 ----------
 (*) fix bubble retransmit / timing,
 (!) option to ignore cone bit,
-(!) server/relay option to override MTU,
 ( ) take failure to send UDP packets into account,
 (!) external control program for scripting,
 (*) some statistics,

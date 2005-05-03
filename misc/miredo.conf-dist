@@ -118,7 +118,7 @@ ServerAddress teredo.via.ecp.fr
 
 #
 # (Relay & server-only)
-# Teredo IPv6 prefix (32 bits).
+# Teredo IPv6 prefix (32 bits)
 # The Teredo server will advertise this prefix to Teredo clients.
 # The Teredo relay needs know the prefix if ServerAddress is not set.
 #
@@ -156,6 +156,25 @@ ServerAddress teredo.via.ecp.fr
 #######################################################################
 #
 #Prefix 3ffe:831f::
+
+#
+# (Relay & server-only)
+# MTU of the networking interface (in bytes)
+# 
+# It *SHOULD* normally be 1280 bytes. If you use another (bigger) value,
+# you'd have to ensure that all Teredo serves & manually configured
+# relays using the same Teredo prefix as you have the same MTU value in
+# their configuration. Teredo clients will either default to a MTU of
+# 1280 bytes or use the MTU specified by the Teredo server (as of
+# Miredo version 0.4.4). Don't alter this setting unless you know what
+# you are doing.
+#
+# MTU below 1280 bytes are illegal for any kind of IPv6 interface.
+#
+# Defaults: InterfaceMTU 1280
+# Example:  InterfaceMTU 1452
+#
+#InterfaceMTU 1280
 
 #
 # (Server-only)
