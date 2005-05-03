@@ -1,6 +1,5 @@
 /*
- * miredo.cpp - Unix Teredo server & relay implementation
- *              core functions
+ * miredo.cpp - Miredo common daemon functions
  * $Id$
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
