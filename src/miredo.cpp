@@ -48,7 +48,6 @@
 # define LOG_PERROR 0
 #endif
 
-#include "miredo.h"
 #include "conf.h"
 
 /*

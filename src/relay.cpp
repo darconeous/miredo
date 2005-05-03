@@ -45,45 +45,58 @@
 #include <netinet/in.h> // struct sockaddr_in
 
 #include <libtun6/ipv6-tunnel.h>
+
+#include <libteredo/relay.h>
 #include <libteredo/security.h>
+
 #include "privproc.h"
-#include "relay.h"
 #include "miredo.h"
 #include "conf.h"
 
-MiredoRelay::MiredoRelay (const IPv6Tunnel *tun, uint32_t prefix,
-                          uint16_t port, uint32_t ipv4, bool cone)
-	: TeredoRelay (prefix, port, ipv4, cone), tunnel (tun), priv_fd (-1)
+class MiredoRelay : public TeredoRelay
 {
-}
+	private:
+		const IPv6Tunnel *tunnel;
+		int priv_fd;
 
+		virtual int SendIPv6Packet (const void *packet, size_t length)
+		{
+			return tunnel->SendPacket (packet, length);
+		}
 
-int MiredoRelay::SendIPv6Packet (const void *packet, size_t length)
-{
-	return tunnel->SendPacket (packet, length);
-}
+	public:
+		MiredoRelay (const IPv6Tunnel *tun, uint32_t prefix,
+		             uint16_t port = 0, uint32_t ipv4 = 0,
+		             bool cone = true)
+			: TeredoRelay (prefix, port, ipv4, cone), tunnel (tun),
+			  priv_fd (-1)
+		{
+		}
 
+		//virtual void ~MiredoRelay (void);
 
 #ifdef MIREDO_TEREDO_CLIENT
-MiredoRelay::MiredoRelay (int fd, const IPv6Tunnel *tun, uint32_t server_ip,
-                          uint32_t server_ip2, uint16_t port, uint32_t ipv4)
-	: TeredoRelay (server_ip, server_ip2, port, ipv4), tunnel (tun),
-	  priv_fd (fd)
-{
-}
+		MiredoRelay (int fd, const IPv6Tunnel *tun,
+		             uint32_t server_ip, uint32_t server_ip2,
+		             uint16_t port = 0, uint32_t ipv4 = 0)
+			: TeredoRelay (server_ip, server_ip2, port, ipv4), tunnel (tun),
+			  priv_fd (fd)
+		{
+		}
 
+	private:
+		virtual int NotifyUp (const struct in6_addr *addr,
+		                      uint16_t mtu = 1280)
+		{
+			return miredo_configure_tunnel (priv_fd, addr, mtu);
+		}
 
-int MiredoRelay::NotifyUp (const struct in6_addr *addr, uint16_t mtu)
-{
-	return miredo_configure_tunnel (priv_fd, addr, mtu);
-}
-
-
-int MiredoRelay::NotifyDown (void)
-{
-	return NotifyUp (&in6addr_any);
-}
+		virtual int NotifyDown (void)
+		{
+			return NotifyUp (&in6addr_any);
+		}
 #endif /* ifdef MIREDO_TEREDO_CLIENT */
+};
 
 
 /*

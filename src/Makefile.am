@@ -54,7 +54,7 @@ libmiredo_a_SOURCES = main.c miredo.cpp miredo.h \
 			conf.cpp conf.h prefix.c prefix.h
 
 # miredo
-miredo_SOURCES = relay.cpp relay.h
+miredo_SOURCES = relay.cpp
 if TEREDO_CLIENT
 miredo_SOURCES += privproc.cpp privproc.h
 endif
