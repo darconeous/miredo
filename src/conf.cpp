@@ -399,9 +399,7 @@ ParseRelayType (MiredoConf& conf, const char *name, int *type)
 	if (val == NULL)
 		return true;
 
-	if (stricmp (val, "disabled") == 0)
-		*type = TEREDO_DISABLED;
-	else if (stricmp (val, "client") == 0)
+	if (stricmp (val, "client") == 0)
 		*type = TEREDO_CLIENT;
 	else if (stricmp (val, "cone") == 0)
 		*type = TEREDO_CONE;

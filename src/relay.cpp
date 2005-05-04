@@ -333,7 +333,7 @@ miredo_run (MiredoConf& conf, const char *server_name)
 		if (tunnel.SetMTU (mtu) || tunnel.BringUp ()
 		 || tunnel.AddAddress (mode == TEREDO_RESTRICT
 		 			? &teredo_restrict : &teredo_cone)
-		 || (mode != TEREDO_DISABLED && tunnel.AddRoute (&prefix.ip6, 32)))
+		 || tunnel.AddRoute (&prefix.ip6, 32))
 		{
 			syslog (LOG_ALERT, _("Teredo routing failed:\n %s"),
 			        _("You should be root to do that."));

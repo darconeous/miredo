@@ -74,11 +74,10 @@ bool ParseIPv4 (MiredoConf& conf, const char *name, uint32_t *value);
 bool ParseIPv6 (MiredoConf& conf, const char *name, struct in6_addr *value);
 bool ParseTeredoPrefix (MiredoConf& conf, const char *name, uint32_t *value);
 
-#define TEREDO_DISABLED	0
-#define TEREDO_CLIENT	1
-#define TEREDO_RELAY	2
-#define TEREDO_CONE	2
-#define TEREDO_RESTRICT	3
+#define TEREDO_CLIENT   1
+#define TEREDO_RELAY    2
+#define TEREDO_CONE     2
+#define TEREDO_RESTRICT 3
 
 bool ParseRelayType (MiredoConf& conf, const char *name, int *type);
 
