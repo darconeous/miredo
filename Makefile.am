@@ -18,7 +18,7 @@
 # ***********************************************************************
 
 SUBDIRS = m4 po include libtun6 libteredo src misc
-man5_MANS = miredo.conf.5
+man5_MANS = miredo.conf.5 miredo-server.conf.5
 man8_MANS = miredo.8 miredo-server.8
 EXTRA_DIST = admin/config.rpath admin/mkinstalldirs  $(man5_MANS) $(man8_MANS)
 # doc -- it might not be a good idea to include the doc directory inside

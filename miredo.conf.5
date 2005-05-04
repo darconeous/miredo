@@ -32,9 +32,9 @@ directives follows:
 .SH MODES
 
 .TP
-.BR "RelayType" " (" "client" "|" "cone" "|" "restricted" "|" "disabled" ")"
+.BR "RelayType" " (" "client" "|" "cone" "|" "restricted" ")"
 Specifies what type of Teredo relay/client Miredo will serve as.
-There are four possible choices:
+There are three possible choices:
 
 .TP
 .BR "client" " mode (the default)"
@@ -88,14 +88,6 @@ for Teredo relaying behind a cone NAT are disabled.
 .IR "symmetric" " are not supported by the " "Teredo protocol" "."
 .RB "Miredo " "cannot" " be used from behind that kind of NAT routers."
 
-.TP
-.BR "disabled" " mode"
-.RB "In " "disabled" " mode, the Teredo client/relay support of "
-.BR "Miredo" " is completely disabled."
-.RB "This mode is meant to be used with the " "ServerBindAddress"
-directive.
-
-
 .SH CLIENT OPTIONS
 .RI "The following directives are only available in " "client" " mode."
 
@@ -135,28 +127,6 @@ to change.
 .BR "Do not use that directive" " if you don't know what you are"
 doing, as it is more than likely to break your IPv6 connectivity.
 That option must not be used when Miredo serves as a Teredo client.
-
-.SH SERVER OPTION
-.RI "Miredo can also serve as a " "Teredo server" "."
-
-.RI "The following directive is only available in " "cone" " and "
-.IR "disabled" " mode. Miredo cannot serve as a Teredo client and "
-server at the same time. Additionnaly, it is not possible to run a
-Teredo server from behind a NAT.
-
-.TP
-.BI "ServerBindAddress " "server_ip"
-.RI "Turn on " "Teredo server" " functionnality."
-With the above option, Miredo will bind to UDP/IPv4 port 3544 and waits
-for packets from Teredo clients. It will advertise the Teredo prefix
-.RB "which is defined with the " "Prefix" " directive."
-
-A Teredo server needs two subsequent IPv4 addresses. It will wait for
-UDP IPv4 packets on port 3544 on both addresses.
-.IR "server_ip" " specifies the lowest of both IPv4 addresses, which is"
-known as the primary IPv4 server address. The secondary IPv4 address
-.RB "is always " "server_ip + 1" " and must also be assigned to the "
-server.
 
 .SH GENERAL OPTIONS
 .TP

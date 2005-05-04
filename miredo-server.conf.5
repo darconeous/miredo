@@ -1,0 +1,73 @@
+.\" ***********************************************************************
+.\" *  Copyright (C) 2004-2005 Remi Denis-Courmont.                       *
+.\" *  This program is free software; you can redistribute and/or modify  *
+.\" *  it under the terms of the GNU General Public License as published  *
+.\" *  by the Free Software Foundation; version 2 of the license.         *
+.\" *                                                                     *
+.\" *  This program is distributed in the hope that it will be useful,    *
+.\" *  but WITHOUT ANY WARRANTY; without even the implied warranty of     *
+.\" *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.               *
+.\" *  See the GNU General Public License for more details.               *
+.\" *                                                                     *
+.\" *  You should have received a copy of the GNU General Public License  *
+.\" *  along with this program; if not, you can get it from:              *
+.\" *  http://www.gnu.org/copyleft/gpl.html                               *
+.\" ***********************************************************************
+.TH "MIREDO-SERVER.CONF" "5" "$Date$" "miredo" "System Manager's Manual"
+.SH NAME
+miredo-server.conf \- configuration for miredo-server
+.SH SYNOPSIS
+.B miredo-server.conf
+
+.SH DESCRIPTON
+.I miredo-server.conf
+.RB " is the configuration file for " "miredo-server" "."
+Each configuration directive consists of one directive name, possibly
+followed by one or several spaces and a value for the directive.
+White spaces, empty lines and lines starting with '#' are ignored.
+
+Directives are case-insensitive. A comprehensive list of the supported
+directives follows:
+
+.SH SERVER OPTION
+
+.TP
+.BI "Prefix " "teredo_prefix"
+.RB "This directive specifies the " "Teredo prefix" " which the Teredo"
+relay and/or server will advertise.
+.IR "teredo_prefix" " must be a valid IPv6 prefix."
+
+.RB "Currently, the default value is " "3ffe:831f:: but it is subject"
+to change.
+
+.TP
+.BI "ServerBindAddress " "server_ip"
+Specifies the primary IPv4 address of the Teredo server.
+miredo-server will bind to UDP/IPv4 port 3544 on this address and waits
+for packets from Teredo clients. It will advertise the Teredo prefix
+.RB "which is defined with the " "Prefix" " directive."
+
+A Teredo server needs two subsequent IPv4 addresses. It will wait for
+UDP IPv4 packets on port 3544 on both addresses.
+.IR "server_ip" " specifies the lowest of both IPv4 addresses, which is"
+known as the primary IPv4 server address. The secondary IPv4 address
+.RB "should be " "server_ip + 1" " and must also be assigned to the "
+server.
+
+.TP
+.BI "SyslogFacility " "facility"
+Specify which syslog's facility is to be used by miredo-server for
+logging.
+.RB "Possible values are: " "daemon" " (the default), " "local0" ","
+.RB "... " "local7" ", " "kern" " and " "user" " (see syslog(2))."
+
+.SH "SEE ALSO"
+miredo-server(8)
+
+.SH AUTHOR
+Remi Denis-Courmont <rdenis at simphalempin.com>
+
+$Id$
+
+http://www.simphalempin.com/dev/miredo/
+
