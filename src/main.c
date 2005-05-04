@@ -387,26 +387,6 @@ init_security (const char *username, int nodetach)
 }
 
 
-static int
-check_libtun6 (void)
-{
-	/* FIXME:
-	 * Very hard to solve:
-	 * we don't know yet if we really need the tunnel.
-	 * If we only run as a Teredo server, we don't need it.
-	 */
-	char errbuf[LIBTUN6_ERRBUF_SIZE];
-	if (libtun6_driver_diagnose (errbuf))
-	{
-		fputs (errbuf, stderr);
-		return -1;
-	}
-	
-	return 0;
-}
-
-
-
 #ifndef MIREDO_DEFAULT_USERNAME
 # define MIREDO_DEFAULT_USERNAME "nobody"
 #endif
@@ -434,9 +414,9 @@ main (int argc, char *argv[])
 
 	int c;
 
-        setlocale (LC_ALL, "");
-        bindtextdomain (PACKAGE, LOCALEDIR);
-        textdomain (PACKAGE);
+	setlocale (LC_ALL, "");
+	bindtextdomain (PACKAGE, LOCALEDIR);
+	textdomain (PACKAGE);
 
 #define ONETIME_SETTING( setting ) \
 	if (setting != NULL) \
@@ -522,7 +502,9 @@ main (int argc, char *argv[])
 	}
 #endif
 
-	if (check_libtun6 () || init_security (username, flags.foreground))
+	extern int miredo_diagnose (void);
+
+	if (miredo_diagnose () || init_security (username, flags.foreground))
 		return 1;
 
 	/*

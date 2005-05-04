@@ -56,6 +56,21 @@ extern "C" const char *const miredo_conf_filename = "/miredo.conf";
 extern "C" const char *const pidfile = MIREDO_PIDFILEDIR"/miredo.pid";
 
 
+extern "C" int
+miredo_diagnose (void)
+{
+	char errbuf[LIBTUN6_ERRBUF_SIZE];
+	if (libtun6_driver_diagnose (errbuf))
+	{
+		fputs (errbuf, stderr);
+		return -1;
+	}
+	
+	return 0;
+}
+
+
+
 class MiredoRelay : public TeredoRelay
 {
 	private:

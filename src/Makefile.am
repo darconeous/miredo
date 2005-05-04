@@ -63,8 +63,7 @@ miredo_LDADD = $(LIBINTL) libmiredo.a \
 
 # miredo-server
 miredo_server_SOURCES = server.cpp
-miredo_server_LDADD = $(LIBINTL) libmiredo.a ../libteredo/libteredo-server.a \
-			../libtun6/libtun6.a # FIXME: WRONG !!!
+miredo_server_LDADD = $(LIBINTL) libmiredo.a ../libteredo/libteredo-server.a
 
 # Automake does not support checking for MIREDO_CHROOT || MIREDO_PIDFILE
 # so we always create the directory

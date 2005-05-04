@@ -49,6 +49,12 @@
 extern "C" const char *const miredo_conf_filename = "/miredo-server.conf";
 extern "C" const char *const pidfile = MIREDO_PIDFILEDIR"/miredo-server.pid";
 
+extern "C" int
+miredo_diagnose (void)
+{
+	return 0;
+}
+
 /*
  * Main server function, with UDP datagrams receive loop.
  */
