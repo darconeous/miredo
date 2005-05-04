@@ -29,16 +29,7 @@ White spaces, empty lines and lines starting with '#' are ignored.
 Directives are case-insensitive. A comprehensive list of the supported
 directives follows:
 
-.SH SERVER OPTION
-
-.TP
-.BI "Prefix " "teredo_prefix"
-.RB "This directive specifies the " "Teredo prefix" " which the Teredo"
-relay and/or server will advertise.
-.IR "teredo_prefix" " must be a valid IPv6 prefix."
-
-.RB "Currently, the default value is " "3ffe:831f:: but it is subject"
-to change.
+.SH SERVER OPTIONS
 
 .TP
 .BI "ServerBindAddress " "server_ip"
@@ -53,6 +44,21 @@ UDP IPv4 packets on port 3544 on both addresses.
 known as the primary IPv4 server address. The secondary IPv4 address
 .RB "should be " "server_ip + 1" " and must also be assigned to the "
 server.
+
+.TP
+.BI "Prefix " "teredo_prefix"
+.RB "This directive specifies the " "Teredo prefix" " which the Teredo"
+relay and/or server will advertise.
+.IR "teredo_prefix" " must be a valid IPv6 prefix."
+
+.RB "Currently, the default value is " "3ffe:831f:: but it is subject"
+to change.
+
+.TP
+.BI "InterfaceMTU " "mtu"
+This directive overrides the value of the MTU that is advertised to
+Terdo clients. The default value is 1280 bytes and should not be
+changed if the default Teredo prefix is used.
 
 .TP
 .BI "SyslogFacility " "facility"

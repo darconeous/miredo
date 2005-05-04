@@ -110,7 +110,7 @@ Teredo tunneling interface.
 .RB "Defaults to " "on" "."
 
 
-.SH RELAY OPTION
+.SH RELAY OPTIONS
 .RI "The following directive is only available in " "cone" ", "
 .IR "restricted" " and " "disabled" " mode. They are not available in"
 .IR "client" " mode."
@@ -127,6 +127,12 @@ to change.
 .BR "Do not use that directive" " if you don't know what you are"
 doing, as it is more than likely to break your IPv6 connectivity.
 That option must not be used when Miredo serves as a Teredo client.
+
+.TP
+.BI "InterfaceMTU " "mtu"
+This directive overrides the default MTU size of 1280 bytes for the
+Teredo tunneling interface. It should not be used if the default Teredo
+prefix is used.
 
 .SH GENERAL OPTIONS
 .TP
