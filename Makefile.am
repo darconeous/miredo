@@ -19,8 +19,8 @@
 
 SUBDIRS = m4 po libtun6 libteredo src misc
 
-man5_MANS = miredo.conf.5 miredo-server.conf.5
-man8_MANS = miredo.8 miredo-server.8
+man5_MANS = doc/miredo.conf.5 doc/miredo-server.conf.5
+man8_MANS = doc/miredo.8 doc/miredo-server.8
 noinst_HEADERS = include/gettext.h
 
 EXTRA_DIST = admin/config.rpath admin/mkinstalldirs \
