@@ -75,6 +75,8 @@ mkdirs /var/run/miredo
 # Stops Miredo if it is running
 \[ -s "/var/run/miredo.pid" \] && \
 kill -TERM $(cat /var/run/miredo.pid)
+\[ -s "/var/run/miredo-server.pid" \] && \
+kill -TERM $(cat /var/run/miredo-server.pid)
 
 # Uninstall
 uninstallFromLog
