@@ -2,6 +2,7 @@
 # $Id$
 #
 # Miredo start/stop script for Mandrake GNU/Linux
+# THIS SCRIPT NEEDS FIXING/TESTING
 # Author: Remi Denis-Courmont <rdenis (at) simphalempin (dot) com>
 #
 # chkconfig: 345 17 83
@@ -39,6 +40,7 @@ fi
 
 LOCK_FILE=/var/lock/subsys/miredo
 CONF_FILE=/etc/miredo.conf
+PIDFILE=/var/run/miredo.pid
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
 
 # Check that miredo.conf exists.
@@ -69,8 +71,7 @@ start() {
 }	
 stop() {
 	gprintf "Shutting down Miredo services: "
-	# FIXME: use PID file
-	killproc /usr/sbin/miredo
+	[ -s "$PIDFILE" ] && kill `cat "$PIDFILE"`
 	RETVAL=$?
 	echo
 	[ $RETVAL -eq 0 ] && rm -f $LOCK_FILE
@@ -81,10 +82,10 @@ restart() {
 	start
 }	
 reload() {
-	# FIXME use PID file and send SIGHUP
-	gprintf "Reloading miredo.xml: Not supported\n"
-	#RETVAL=$?
-	RETVAL=3 # unimplemented feature
+	gprintf "Reloading Miredo configuration: "
+	[ -s "$PIDFILE" ] && kill -HUP `cat "$PIDFILE"`
+	RETVAL=$?
+	echo
 	return $RETVAL
 }	
 mdkstatus() {
@@ -105,8 +106,7 @@ case "$1" in
   	reload
 	;;
   force-reload)
-	#reload # is not supported
-  	restart
+	reload
 	;;
   status)
   	mdkstatus
