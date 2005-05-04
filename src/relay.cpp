@@ -41,8 +41,7 @@
 #include <syslog.h>
 
 #include <string.h>
-#include <netdb.h>
-#include <netinet/in.h> // struct sockaddr_in
+#include <netdb.h> // gai_strerror()
 
 #include <libtun6/ipv6-tunnel.h>
 
@@ -52,6 +51,9 @@
 #include "privproc.h"
 #include "miredo.h"
 #include "conf.h"
+
+extern "C" const char *const miredo_conf_filename = "/miredo.conf";
+
 
 class MiredoRelay : public TeredoRelay
 {
@@ -204,53 +206,29 @@ miredo_run (MiredoConf& conf, const char *server_name)
 			return -2;
 		}
 
-		char *hostname = conf.GetRawValue ("ServerAddress");
-
 		if (server_name != NULL)
 		{
-			if (hostname != NULL)
-				free (hostname);
-			hostname = strdup (server_name);
+			int check = GetIPv4ByName (server_name, &server_ip);
+			if (check)
+			{
+				syslog (LOG_ALERT, _("Invalid server hostname \"%s\": %s"),
+				        server_name, gai_strerror (check));
+				return -2;
+			}
+		}
+		else
+		{
+			if (!ParseIPv4 (conf, "ServerAddress", &server_ip)
+			 || !ParseIPv4 (conf, "ServerAddress2", &server_ip2))
+			{
+				syslog (LOG_ALERT, _("Fatal configuration error"));
+				return -2;
+			}
 		}
 
-		if (hostname == NULL)
+		if (server_ip == INADDR_ANY)
 		{
 			syslog (LOG_ALERT, _("Server address not specified"));
-			return -2;
-		}
-
-		/*
-		 * We must resolve the server host name before chroot is called.
-		 * (TODO: clean this up)
-		 */
-		struct addrinfo help, *res;
-
-		memset (&help, 0, sizeof (help));
-		help.ai_family = AF_INET;
-		help.ai_socktype = SOCK_DGRAM;
-		help.ai_protocol = IPPROTO_UDP;
-
-		int check = getaddrinfo (hostname, NULL, &help, &res);
-
-		if (check)
-		{
-			syslog (LOG_ALERT, _("Invalid server hostname \"%s\": %s"),
-			        hostname, gai_strerror (check));
-			free (hostname);
-			return -2;
-		}
-
-		server_ip =
-			((const struct sockaddr_in *)res->ai_addr)->sin_addr.s_addr;
-		freeaddrinfo (res);
-		free (hostname);
-
-		// only use ServerAddress2 if server name was not overriden from the
-		// command line
-		if ((server_name == NULL)
-		 && !ParseIPv4 (conf, "ServerAddress2", &server_ip2))
-		{
-			syslog (LOG_ALERT, _("Fatal configuration error"));
 			return -2;
 		}
 

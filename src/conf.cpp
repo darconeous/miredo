@@ -288,18 +288,10 @@ MiredoConf::GetBoolean (const char *name, bool *value, unsigned *line)
 
 
 /*
- * Returns an IPv4 address (network byte order) associated with hostname
- * <name>.
+ * Looks up an IPv4 address (network byte order) associated with hostname.
  */
-bool
-ParseIPv4 (MiredoConf& conf, const char *name, uint32_t *value)
+int GetIPv4ByName (const char *hostname, uint32_t *ipv4)
 {
-	unsigned line;
-	char *val = conf.GetRawValue (name, &line);
-
-	if (val == NULL)
-		return true;
-
 	struct addrinfo help, *res;
 
 	memset (&help, 0, sizeof (help));
@@ -307,19 +299,35 @@ ParseIPv4 (MiredoConf& conf, const char *name, uint32_t *value)
 	help.ai_socktype = SOCK_DGRAM;
 	help.ai_protocol = IPPROTO_UDP;
 
-	int check = getaddrinfo (val, NULL, &help, &res);
+	int check = getaddrinfo (hostname, NULL, &help, &res);
+	if (check)
+		return check;
+
+	*ipv4 = ((const struct sockaddr_in *)res->ai_addr)->sin_addr.s_addr;
+	freeaddrinfo (res);
+	return 0;
+}
+
+
+bool
+ParseIPv4 (MiredoConf& conf, const char *name, uint32_t *ipv4)
+{
+	unsigned line;
+	char *val = conf.GetRawValue (name, &line);
+
+	if (val == NULL)
+		return true;
+
+	int check = GetIPv4ByName (val, ipv4);
+	free (val);
 
 	if (check)
 	{
 		syslog (LOG_ERR, _("Invalid hostname \"%s\" at line %u: %s"),
 			val, line, gai_strerror (check));
-		free (val);
 		return false;
 	}
 
-	*value = ((const struct sockaddr_in *)res->ai_addr)->sin_addr.s_addr;
-	freeaddrinfo (res);
-	free (val);
 	return true;
 }
 

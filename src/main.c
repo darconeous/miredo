@@ -390,7 +390,6 @@ init_security (const char *username, int nodetach)
 static int
 check_libtun6 (void)
 {
-#ifdef MIREDO_TEREDO_RELAY
 	/* FIXME:
 	 * Very hard to solve:
 	 * we don't know yet if we really need the tunnel.
@@ -402,15 +401,12 @@ check_libtun6 (void)
 		fputs (errbuf, stderr);
 		return -1;
 	}
-#endif
+	
 	return 0;
 }
 
 
 
-#ifndef MIREDO_DEFAULT_CONFFILE
-# define MIREDO_DEFAULT_CONFFILE SYSCONFDIR"/miredo.conf"
-#endif
 #ifndef MIREDO_DEFAULT_USERNAME
 # define MIREDO_DEFAULT_USERNAME "nobody"
 #endif
@@ -492,7 +488,10 @@ main (int argc, char *argv[])
 		username = MIREDO_DEFAULT_USERNAME;
 
 	if (conffile == NULL)
-		conffile = MIREDO_DEFAULT_CONFFILE;
+	{
+		extern const char *const miredo_conf_filename;
+		conffile = BR_SYSCONFDIR (miredo_conf_filename);
+	}
 
 	/* Check if config file and chroot dir are present */
 	if (access (conffile, R_OK))

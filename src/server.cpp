@@ -37,6 +37,7 @@
 #include <sys/types.h>
 #include <sys/select.h>
 #include <syslog.h>
+#include <netdb.h> // gai_strerror()
 
 #include <libteredo/teredo.h>
 
@@ -44,6 +45,8 @@
 #include "miredo.h"
 
 #include <libteredo/server.h>
+
+extern "C" const char *const miredo_conf_filename = "/miredo-server.conf";
 
 /*
  * Main server function, with UDP datagrams receive loop.
@@ -79,7 +82,7 @@ teredo_server (TeredoServer *server)
 
 
 extern int
-miredo_run (MiredoConf& conf, const char *)
+miredo_run (MiredoConf& conf, const char *server_name)
 {
 	union teredo_addr prefix = { 0 };
 	uint32_t server_ip = INADDR_ANY, server_ip2 = INADDR_ANY;
@@ -87,23 +90,29 @@ miredo_run (MiredoConf& conf, const char *)
 
 	prefix.teredo.prefix = htonl (DEFAULT_TEREDO_PREFIX);
 
-	if (!ParseIPv4 (conf, "ServerBindAddress", &server_ip)
-	 || !ParseIPv6 (conf, "Prefix", &prefix.ip6)
-	 || !conf.GetInt16 ("InterfaceMTU", &mtu))
+	if (server_name != NULL)
 	{
-		syslog (LOG_ALERT, _("Fatal configuration error"));
-		return -2;
+		int check = GetIPv4ByName (server_name, &server_ip);
+		if (check)
+		{
+			syslog (LOG_ALERT, _("Invalid server hostname \"%s\": %s"),
+			        server_name, gai_strerror (check));
+			return -2;
+		}
+	}
+	else
+	{
+		if (!ParseIPv4 (conf, "ServerBindAddress", &server_ip)
+		 || !ParseIPv4 (conf, "ServerBindAddress2", &server_ip2))
+		{
+			syslog (LOG_ALERT, _("Fatal configuration error"));
+			return -2;
+		}
 	}
 
 	if (server_ip == INADDR_ANY)
 	{
-		syslog (LOG_ALERT, _("Fatal error: No server address specified."));
-		return -2;
-	}
-	
-	if (!ParseIPv4 (conf, "ServerBindAddress2", &server_ip2))
-	{
-		syslog (LOG_ALERT, _("Fatal configuration error"));
+		syslog (LOG_ALERT, _("Server address not specified"));
 		return -2;
 	}
 
@@ -116,6 +125,13 @@ miredo_run (MiredoConf& conf, const char *)
 	 */
 	if (server_ip2 == INADDR_ANY)
 		server_ip2 = htonl (ntohl (server_ip) + 1);
+
+	if (!ParseIPv6 (conf, "Prefix", &prefix.ip6)
+	 || !conf.GetInt16 ("InterfaceMTU", &mtu))
+	{
+		syslog (LOG_ALERT, _("Fatal configuration error"));
+		return -2;
+	}
 
 	conf.Clear (5);
 

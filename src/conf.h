@@ -69,6 +69,7 @@ class MiredoConf
 };
 
 
+int GetIPv4ByName (const char *hostname, uint32_t *ipv4);
 bool ParseIPv4 (MiredoConf& conf, const char *name, uint32_t *value);
 bool ParseIPv6 (MiredoConf& conf, const char *name, struct in6_addr *value);
 bool ParseTeredoPrefix (MiredoConf& conf, const char *name, uint32_t *value);
