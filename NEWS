@@ -25,6 +25,26 @@ changes, run 'miredo -h' to get help. For detailled internal changes, see
 ChangeLog.
 
 =============================================================================
+BETA RELEASE 0.4.4 :
+
+# Fix for infinite loop in client when processing advertisement from server
+  (also backported in release 0.4.3).
+# Limit ICMPv6 Echo Requests sent to 3 per peer every 30 seconds.
+# Safe work-around to reach peers that rejects ICMPv6 Echo Reques.ts
+# Support for MTU setting (in server and relay),
+  clients now gets MTU setting from server.
+# Support for changing Teredo server's secondary address (ServerAddress2
+  and ServerBindAddress2 directives).
+
+# Teredo server support separated : it is now provided by a separate binary
+  "miredo-server", that reads its configuration from "miredo-server.conf".
+  Additionnally, the Teredo server now use raw IPv6 socket rather than the
+  Teredo tunneling interface, so that one doesn't need to enabled IPv6
+  forwarding on the Teredo server (and it is more portable).
+
+# Rudimentary Autopackage support (autopackage being still buggy).
+
+=============================================================================
 BETA RELEASE 0.4.2 : Major bugfixes, minor feature enhancement
 
 # Fixed connectivity issue with restricted Teredo clients/relays.
