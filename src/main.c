@@ -62,25 +62,26 @@
  */
 
 static int
-quick_usage (void)
+quick_usage (const char *path)
 {
-	fputs (_("Try \"miredo -h | more\" for more information.\n"), stderr);
+	fprintf (stderr, _("Try \"%s -h | more\" for more information.\n"),
+	         path);
 	return 2;
 }
 
 
 static int
-usage (void)
+usage (const char *path)
 {
-	puts (_(
-"Usage: miredo [OPTIONS] [SERVER_NAME]\n"
+	printf (_(
+"Usage: %s [OPTIONS] [SERVER_NAME]\n"
 "Creates a Teredo tunneling interface for encapsulation of IPv6 over UDP.\n"
 "\n"
 "  -c, --config     specify an configuration file\n"
 "  -f, --foreground run in the foreground\n"
 "  -h, --help       display this help and exit\n"
 "  -u, --user       override the user to set UID to\n"
-"  -V, --version    display program version and exit\n"));
+"  -V, --version    display program version and exit\n"), path);
 	return 0;
 }
 
@@ -454,7 +455,7 @@ main (int argc, char *argv[])
 		switch (c)
 		{
 			case '?':
-				return quick_usage ();
+				return quick_usage (argv[0]);
 
 			case 'c':
 				ONETIME_SETTING (conffile);
@@ -465,7 +466,7 @@ main (int argc, char *argv[])
 				break;
 
 			case 'h':
-				return usage ();
+				return usage (argv[0]);
 
 			case 'u':
 				ONETIME_SETTING (username);
