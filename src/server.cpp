@@ -47,6 +47,7 @@
 #include <libteredo/server.h>
 
 extern "C" const char *const miredo_conf_filename = "/miredo-server.conf";
+extern "C" const char *const pidfile = MIREDO_PIDFILEDIR"/miredo-server.pid";
 
 /*
  * Main server function, with UDP datagrams receive loop.

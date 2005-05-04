@@ -146,7 +146,7 @@ error_missing (void)
 #endif
 
 
-#ifdef MIREDO_PIDFILE
+#ifdef MIREDO_PIDFILEDIR
 static FILE *
 safe_fopen_w (const char *path)
 {
@@ -175,7 +175,7 @@ safe_fopen_w (const char *path)
 }
 
 
-static const char *pidfile = MIREDO_PIDFILE;
+extern const char *pidfile;
 
 /*
  * Creates a Process-ID file.
@@ -203,7 +203,7 @@ remove_pidfile (void)
 {
 	return unlink (pidfile);
 }
-#else
+#else /* ifdef MIREDO_PIDFILEDIR */
 # define create_pidfile( ) 0
 # define remove_pidfile( ) 0
 #endif

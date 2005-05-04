@@ -32,7 +32,7 @@ if MIREDO_CHROOT
 AM_CPPFLAGS += -DMIREDO_CHROOT=\"$(miredo_chroot)\"
 endif
 if MIREDO_PIDFILE
-AM_CPPFLAGS += -DMIREDO_PIDFILE=\"$(miredo_pidfile)\"
+AM_CPPFLAGS += -DMIREDO_PIDFILEDIR=\"$(miredo_pidfiledir)\"
 endif
 
 sbin_PROGRAMS = miredo miredo-server

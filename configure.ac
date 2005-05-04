@@ -116,9 +116,9 @@ AH_BOTTOM([
 
 
 # Checks for optionnal features
-AC_MSG_CHECKING([whether to enable Teredo client support])
 
 # Teredo client
+AC_MSG_CHECKING([whether to enable Teredo client support])
 AC_ARG_ENABLE(teredo-client,
 	      [AS_HELP_STRING(--disable-teredo-client,
 			      [do not compile Teredo client (enabled by default)])])
@@ -131,16 +131,20 @@ AS_IF([test "x${enable_teredo_client}" != "xno"],
 	[AC_MSG_RESULT(no)])
 
 # chroot path
+AC_MSG_CHECKING([directory to chroot to])
 AC_ARG_ENABLE(chroot,
 	      [AS_HELP_STRING(--enable-chroot,
-	      		      [path to chroot to (${prefix}/var/run/miredo by default)])])
+	      		      [path to chroot to (PREFIX/var/run/miredo by default)])])
 AS_IF([test "x${enable_chroot}" = "x" || test "${enable_chroot}" = "yes"],
 	[enable_chroot='${localstatedir}/run/miredo'])
-AS_IF([test "${enable_chroot}" != "no"],
-	[AC_SUBST(miredo_chroot, "$enable_chroot")])
 AM_CONDITIONAL(MIREDO_CHROOT, [test "${enable_chroot}" != "no"])
+AS_IF([test "${enable_chroot}" != "no"],
+	[AC_SUBST(miredo_chroot, "${enable_chroot}")
+	AC_MSG_RESULT(${enable_chroot})],
+	[AC_MSG_RESULT(not using chroot)])
 
 # unprivileged user
+AC_MSG_CHECKING([user to run as])
 AC_ARG_ENABLE(miredo-user,
 	      [AS_HELP_STRING(--enable-miredo-user,
 			      [run as a specific user (disabled by default)])])
@@ -149,17 +153,22 @@ AS_IF([test "${enable_miredo_user}" = "yes"],
 AH_TEMPLATE(MIREDO_DEFAULT_USERNAME,
             [Define to the system user name to be used by miredo.])
 AS_IF([test "x${enable_miredo_user}" != "x" && test "${enable_miredo_user}" != "no"],
-	[AC_DEFINE_UNQUOTED(MIREDO_DEFAULT_USERNAME, "$enable_miredo_user")])
+	[AC_DEFINE_UNQUOTED(MIREDO_DEFAULT_USERNAME, "${enable_miredo_user}")
+	AC_MSG_RESULT(${enable_miredo_user})],
+	[AC_MSG_RESULT(nobody)])
 
 # pidfile path
-AC_ARG_ENABLE(pidfile,
-	      [AS_HELP_STRING([--enable-pidfile],
-			      [path to the pidfile (enabled by default)])])
-AS_IF([test "x${enable_pidfile}" = "x" || test "${enable_pidfile}" = "yes"],
-	[enable_pidfile='${localstatedir}/run/miredo.pid'])
-AS_IF([test "${enable_pidfile}" != "no"],
-	[AC_SUBST(miredo_pidfile, "$enable_pidfile")])
-AM_CONDITIONAL(MIREDO_PIDFILE, [test "${enable_pidfile}" != "no"])
+AC_MSG_CHECKING([directory for pidfile])
+AC_ARG_ENABLE(pidfiledir,
+	      [AS_HELP_STRING([--enable-pidfiledir],
+			      [directory to put pidfile in (PREFIX/var/run by default)])])
+AS_IF([test "x${enable_pidfiledir}" = "x" || test "${enable_pidfiledir}" = "yes"],
+	[enable_pidfiledir='${localstatedir}/run'])
+AM_CONDITIONAL(MIREDO_PIDFILE, [test "${enable_pidfiledir}" != "no"])
+AS_IF([test "${enable_pidfiledir}" != "no"],
+	[AC_SUBST(miredo_pidfiledir, "${enable_pidfiledir}")
+	AC_MSG_RESULT(${enable_pidfiledir})],
+	[AC_MSG_RESULT(pidfile disabled)])
 
 
 # Defines for <config.h>

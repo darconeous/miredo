@@ -53,6 +53,7 @@
 #include "conf.h"
 
 extern "C" const char *const miredo_conf_filename = "/miredo.conf";
+extern "C" const char *const pidfile = MIREDO_PIDFILEDIR"/miredo.pid";
 
 
 class MiredoRelay : public TeredoRelay
