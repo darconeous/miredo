@@ -23,7 +23,8 @@ man5_MANS = miredo.conf.5 miredo-server.conf.5
 man8_MANS = miredo.8 miredo-server.8
 noinst_HEADERS = include/gettext.h
 
-EXTRA_DIST = admin/config.rpath admin/mkinstalldirs  $(man5_MANS) $(man8_MANS)
+EXTRA_DIST = admin/config.rpath admin/mkinstalldirs \
+		$(man5_MANS) $(man8_MANS) autopackage/default.apspec
 # doc -- it might not be a good idea to include the doc directory inside
 #        official releases.
 ACLOCAL_AMFLAGS = -I m4
