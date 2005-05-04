@@ -71,6 +71,12 @@ Override the user that the program will run as. By default, it runs as
 .BR "\-V" " or " "\-\-version"
 Display program version and license and exit.
 
+.TP
+.BR "server_name"
+This optional command argument specifies a Teredo server to use. It
+will override any ServerAddress directive found in the configuration
+file. It is ignored if RelayType is not set to "client" (see miredo.conf).
+
 .\".SH DIAGNOSTICS
 .SH BUGS
 .RB "The Internet draft specification for " "Teredo" " has not yet"
