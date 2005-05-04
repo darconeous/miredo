@@ -161,6 +161,38 @@ teredo_relay (IPv6Tunnel& tunnel, TeredoRelay *relay = NULL)
 }
 
 
+#define TEREDO_CLIENT   1
+#define TEREDO_RELAY    2
+#define TEREDO_CONE     2
+#define TEREDO_RESTRICT 3
+
+static bool
+ParseRelayType (MiredoConf& conf, const char *name, int *type)
+{
+	unsigned line;
+	char *val = conf.GetRawValue (name, &line);
+
+	if (val == NULL)
+		return true;
+
+	if (strcasecmp (val, "client") == 0)
+		*type = TEREDO_CLIENT;
+	else if (strcasecmp (val, "cone") == 0)
+		*type = TEREDO_CONE;
+	else if (strcasecmp (val, "restricted") == 0)
+		*type = TEREDO_RESTRICT;
+	else
+	{
+		syslog (LOG_ERR, _("Invalid relay type \"%s\" at line %u"),
+			val, line);
+		free (val);
+		return false;
+	}
+	free (val);
+	return true;
+}
+
+
 extern int
 miredo_run (MiredoConf& conf, const char *server_name)
 {

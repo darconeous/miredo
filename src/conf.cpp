@@ -390,33 +390,6 @@ ParseTeredoPrefix (MiredoConf& conf, const char *name, uint32_t *value)
 }
 
 
-bool
-ParseRelayType (MiredoConf& conf, const char *name, int *type)
-{
-	unsigned line;
-	char *val = conf.GetRawValue (name, &line);
-
-	if (val == NULL)
-		return true;
-
-	if (stricmp (val, "client") == 0)
-		*type = TEREDO_CLIENT;
-	else if (stricmp (val, "cone") == 0)
-		*type = TEREDO_CONE;
-	else if (stricmp (val, "restricted") == 0)
-		*type = TEREDO_RESTRICT;
-	else
-	{
-		syslog (LOG_ERR, _("Invalid relay type \"%s\" at line %u"),
-			val, line);
-		free (val);
-		return false;
-	}
-	free (val);
-	return true;
-}
-
-
 static const struct miredo_conf_syslog_facility
 {
 	const char *str;
