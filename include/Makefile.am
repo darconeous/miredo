@@ -1,5 +1,5 @@
 # Makefile.am - include/ directory Makefile for miredo
-# $Id: Makefile.am 228 2004-11-01 17:23:55Z remi $
+# $Id$
 
 # ***********************************************************************
 # *  Copyright (C) 2004 Remi Denis-Courmont.                            *

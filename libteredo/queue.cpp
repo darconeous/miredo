@@ -1,6 +1,6 @@
 /*
  * queue.cpp - Thread-safe packets queue class definition
- * $Id: relay.h 175 2004-10-16 09:48:22Z remi $
+ * $Id$
  */
 
 /***********************************************************************

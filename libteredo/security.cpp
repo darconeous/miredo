@@ -1,6 +1,6 @@
 /*
  * security.cpp - helpers for security-related stuff
- * $Id: packets.h 137 2004-08-30 12:07:43Z remi $
+ * $Id$
  */
 
 /***********************************************************************

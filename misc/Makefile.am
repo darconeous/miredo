@@ -1,5 +1,5 @@
 # Makefile.am - misc Makefile for miredo
-# $Id: Makefile.am 224 2004-11-01 17:14:13Z remi $
+# $Id$
 
 # ***********************************************************************
 # *  Copyright (C) 2004-2005 Remi Denis-Courmont.                       *
