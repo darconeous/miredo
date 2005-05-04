@@ -64,12 +64,12 @@ class TeredoRelay
 		peer *FindPeer (const struct in6_addr *addr);
 
 		int SendUnreach (int code, const void *in, size_t inlen);
-		int PingPeer (peer *p) const;
 
 #ifdef MIREDO_TEREDO_CLIENT
 		uint32_t server_ip2;
 		uint16_t mtu;
 
+		int PingPeer (peer *p) const;
 		bool IsServerPacket (const TeredoPacket *packet) const;
 		int ProcessQualificationPacket (const TeredoPacket *p);
 

@@ -344,6 +344,7 @@ TeredoRelay::SendUnreach (int code, const void *in, size_t inlen)
 }
 
 
+#ifdef MIREDO_TEREDO_CLIENT
 int
 TeredoRelay::PingPeer (peer *p) const
 {
@@ -367,6 +368,7 @@ TeredoRelay::PingPeer (peer *p) const
 	}
 	return 0;
 }
+#endif
 
 
 /*
