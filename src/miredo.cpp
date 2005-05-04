@@ -64,7 +64,7 @@ static int should_reload;
  * Pipe file descriptors (the right way to interrupt select() on Linux
  * from a signal handler, as pselect() is not supported).
  */
-int signalfd[2]; /* FIXME: extern ?? */
+static int signalfd[2];
 
 static void
 exit_handler (int signum)
@@ -88,7 +88,6 @@ reload_handler (int signum)
 }
 
 
-/* FIXME: move this to main.c, and add a detach function */
 uid_t unpriv_uid = 0;
 
 extern "C" int
@@ -179,7 +178,7 @@ DeinitSignals (void)
  */
 static const char *const ident = "miredo";
 
-extern int miredo_run (MiredoConf& conf, const char *server_name = NULL);
+extern int miredo_run (int fd, MiredoConf& conf, const char *server = NULL);
 
 
 extern "C" int
@@ -202,7 +201,6 @@ miredo (const char *confpath, const char *server_name)
 			        confpath);
 		}
 
-		// TODO: support for disabling logging completely
 		int newfac = LOG_DAEMON;
 		(void)ParseSyslogFacility (cnf, "SyslogFacility", &newfac);
 
@@ -225,7 +223,7 @@ miredo (const char *confpath, const char *server_name)
 
 			case 0:
 				asyncsafe_close (signalfd[1]);
-				retval = miredo_run (cnf, server_name);
+				retval = miredo_run (signalfd[0], cnf, server_name);
 		}
 
 		cnf.Clear (0);

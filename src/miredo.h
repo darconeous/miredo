@@ -26,8 +26,6 @@
 # define MIREDO_MIREDO_H
 
 # ifdef __cplusplus
-extern int signalfd[2]; /* FIXME: dirty */
-
 extern "C"
 {
 # endif

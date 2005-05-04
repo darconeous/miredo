@@ -59,7 +59,7 @@ miredo_diagnose (void)
  * Main server function, with UDP datagrams receive loop.
  */
 static void
-teredo_server (TeredoServer *server)
+teredo_server (int fd, TeredoServer *server)
 {
 	/* Main loop */
 	while (1)
@@ -67,18 +67,14 @@ teredo_server (TeredoServer *server)
 		/* Registers file descriptors */
 		fd_set readset;
 		FD_ZERO (&readset);
-
-		int maxfd = signalfd[0];
-		FD_SET(signalfd[0], &readset);
+		FD_SET(fd, &readset);
 
 		int val = server->RegisterReadSet (&readset);
-		if (val > maxfd)
-			maxfd = val;
+		int maxfd = (val > fd) ? val : fd;
 
 		/* Wait until one of them is ready for read */
 		maxfd = select (maxfd + 1, &readset, NULL, NULL, NULL);
-		if ((maxfd < 0)
-		 || ((maxfd >= 1) && FD_ISSET (signalfd[0], &readset)))
+		if ((maxfd < 0) || ((maxfd >= 1) && FD_ISSET (fd, &readset)))
 			// interrupted by signal
 			break;
 
@@ -89,7 +85,7 @@ teredo_server (TeredoServer *server)
 
 
 extern int
-miredo_run (MiredoConf& conf, const char *server_name)
+miredo_run (int fd, MiredoConf& conf, const char *server_name)
 {
 	union teredo_addr prefix = { 0 };
 	uint32_t server_ip = INADDR_ANY, server_ip2 = INADDR_ANY;
@@ -172,7 +168,7 @@ miredo_run (MiredoConf& conf, const char *server_name)
 		goto abort;
 
 	retval = 0;
-	teredo_server (server);
+	teredo_server (fd, server);
 
 abort:
 	delete server;

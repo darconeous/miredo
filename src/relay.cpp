@@ -121,7 +121,7 @@ class MiredoRelay : public TeredoRelay
  * Main server function, with UDP datagrams receive loop.
  */
 static void
-teredo_relay (IPv6Tunnel& tunnel, TeredoRelay *relay = NULL)
+teredo_relay (int sigfd, IPv6Tunnel& tunnel, TeredoRelay *relay = NULL)
 {
 	/* Main loop */
 	while (1)
@@ -130,13 +130,10 @@ teredo_relay (IPv6Tunnel& tunnel, TeredoRelay *relay = NULL)
 		fd_set readset;
 		struct timeval tv;
 		FD_ZERO (&readset);
-
-		int maxfd = signalfd[0];
-		FD_SET(signalfd[0], &readset);
+		FD_SET(sigfd, &readset);
 
 		int val = tunnel.RegisterReadSet (&readset);
-		if (val > maxfd)
-			maxfd = val;
+		int maxfd = (val > maxfd) ? val : maxfd;
 
 		val = relay->RegisterReadSet (&readset);
 		if (val > maxfd)
@@ -150,8 +147,7 @@ teredo_relay (IPv6Tunnel& tunnel, TeredoRelay *relay = NULL)
 
 		/* Wait until one of them is ready for read */
 		maxfd = select (maxfd + 1, &readset, NULL, NULL, &tv);
-		if ((maxfd < 0)
-		 || ((maxfd >= 1) && FD_ISSET (signalfd[0], &readset)))
+		if ((maxfd < 0) || ((maxfd >= 1) && FD_ISSET (sigfd, &readset)))
 			// interrupted by signal
 			break;
 
@@ -209,7 +205,7 @@ ParseRelayType (MiredoConf& conf, const char *name, int *type)
 
 
 extern int
-miredo_run (MiredoConf& conf, const char *server_name)
+miredo_run (int sigfd, MiredoConf& conf, const char *server_name)
 {
 	int mode = TEREDO_CLIENT;
 	char *ifname = NULL;
@@ -231,7 +227,7 @@ miredo_run (MiredoConf& conf, const char *server_name)
 #endif
 #ifdef MIREDO_TEREDO_CLIENT
 	uint32_t server_ip = INADDR_ANY, server_ip2 = INADDR_ANY;
-	bool default_route = true; // TODO merge/split mode/default_route
+	bool default_route = true;
 #endif
 
 	/*
@@ -411,7 +407,6 @@ miredo_run (MiredoConf& conf, const char *server_name)
 		// Sets up relay
 		try
 		{
-			// FIXME: read union teredo_addr instead of prefix ?
 			relay = new MiredoRelay (&tunnel, prefix.teredo.prefix,
 			                         bind_port, bind_ip, mode == TEREDO_CONE);
 		}
@@ -443,7 +438,7 @@ miredo_run (MiredoConf& conf, const char *server_name)
 	}
 
 	retval = 0;
-	teredo_relay (tunnel, relay);
+	teredo_relay (sigfd, tunnel, relay);
 
 abort:
 	if (relay != NULL)
