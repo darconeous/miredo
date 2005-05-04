@@ -104,6 +104,12 @@ address. If it is not present, and no server hostname is specified on
 the command line when starting miredo either, the program will fail.
 
 .TP
+.BI "ServerAddress2 " "hostname2"
+Miredo assumes that the secondary Teredo server address equals the
+primary server address plus one. If that is not the case, this
+directive must be used.
+
+.TP
 .BR "DefaultRoute " "on/off"
 Enable or disable the creation of a default IPv6 route through the
 Teredo tunneling interface.
