@@ -27,13 +27,11 @@ Security:
 (*) relay IPv6 access control lists,
 (*) relay/server IPv4 *modifiable* access control lists
     (currently hard-coded to reject private IPv4 space),
-(*) peers list size limit,
-( ) separate server processing from relay/client
-    (different processes)
+(*) peers list size limit
 
 Conformance:
 -------------
-(*) implement proper/draft-compliant timeouts,
+(*) implement proper/draft-compliant timeouts
 
 Performance/scalibility:
 -------------------------

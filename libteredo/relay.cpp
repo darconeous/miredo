@@ -266,7 +266,6 @@ TeredoRelay::~TeredoRelay (void)
  * correctly.
  *
  * FIXME: number of entry should be bound
- * FIXME: move to another file
  */
 TeredoRelay::peer *TeredoRelay::AllocatePeer (const struct in6_addr *addr)
 {
@@ -345,6 +344,29 @@ TeredoRelay::SendUnreach (int code, const void *in, size_t inlen)
 }
 
 
+int
+TeredoRelay::PingPeer (peer *p) const
+{
+	if (!p->flags.flags.nonce)
+	{
+		if (!GenerateNonce (p->nonce))
+			return -1;
+
+		p->flags.flags.nonce = 1;
+	}
+
+	// FIXME: re-send echo request later if no response
+
+	// FIXME FIXME FIXME:
+	// - sending of pings should be done in a separate thread
+	// - we don't check for the 2 seconds delay between pings
+	if (p->flags.flags.pings < 3)
+	{
+		p->flags.flags.pings++;
+		return SendPing (sock, &addr, &p->addr, p->nonce);
+	}
+	return 0;
+}
 
 
 /*
@@ -449,25 +471,8 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
 			p->TouchTransmit ();
 		}
 
-		// FIXME: re-send echo request later if no response
-		// FIXME: avoid code duplication with the end of ReceivePacket
-
 		p->outqueue.Queue (packet, length);
-
-		if (!p->flags.flags.nonce)
-		{
-			if (!GenerateNonce (p->nonce))
-				return 0;
-
-			p->flags.flags.nonce = 1;
-		}
-
-		if (p->flags.flags.pings < 3)
-		{
-			p->flags.flags.pings++;
-			return SendPing (sock, &addr, &dst->ip6, p->nonce);
-		}
-		return 0;
+		return PingPeer (p);
 #endif
 	}
 
@@ -831,26 +836,9 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 	}
 
 	p->inqueue.Queue (buf, length);
-
-	// FIXME: re-send echo request later if no response
-	if (!p->flags.flags.nonce)
-	{
-		if (!GenerateNonce (p->nonce))
-			return -1;
-		p->flags.flags.nonce = 1;
-	}
-
-	// FIXME FIXME FIXME:
-	// - sending of pings should be done in a separate thread
-	// - we don't check for the 2 seconds delay between pings
-
 	p->TouchReceive ();
-	if (p->flags.flags.pings < 3)
-	{
-		p->flags.flags.pings++;
-		/*p->TouchTransmit() -- useless */
-		return SendPing (sock, &addr, &ip6.ip6_src, p->nonce);
-	}
+
+	return PingPeer (p);
 #endif /* ifdef MIREDO_TEREDO_CLIENT */
 	return 0;
 }
