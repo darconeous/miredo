@@ -494,7 +494,7 @@ main (int argc, char *argv[])
 	}
 
 	/* Check if config file and chroot dir are present */
-	if (access (conffile, R_OK))
+	if ((servername == NULL) && access (conffile, R_OK))
 	{
 		fprintf (stderr, _("Reading configuration from %s: %s\n"),
 				conffile, strerror (errno));
