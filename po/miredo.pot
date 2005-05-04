@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: rdenis@simphalempin.com\n"
-"POT-Creation-Date: 2005-04-29 11:36+0200\n"
+"POT-Creation-Date: 2005-05-04 09:00+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -36,36 +36,40 @@ msgid ""
 "Teredo server UDP socket error: Server IPv4 addresses must not be wildcard."
 msgstr ""
 
-#: libteredo/relay.cpp:215
+#: libteredo/relay.cpp:217
 msgid "Server has a non global IPv4 address. It will most likely not work."
 msgstr ""
 
-#: libteredo/relay.cpp:590
-msgid "Teredo address changed"
+#: libteredo/relay.cpp:601
+msgid "Teredo address/MTU changed"
 msgstr ""
 
-#: libteredo/relay.cpp:862
+#: libteredo/relay.cpp:635
+msgid "Ignoring invalid bubble : your Teredo server is probably buggy."
+msgstr ""
+
+#: libteredo/relay.cpp:885
 msgid "Authentication refused by server."
 msgstr ""
 
-#: libteredo/relay.cpp:889
+#: libteredo/relay.cpp:912
 msgid "Unsupported symmetric NAT detected."
 msgstr ""
 
-#: libteredo/relay.cpp:899
+#: libteredo/relay.cpp:922
 #, c-format
 msgid "Qualified (NAT type: %s)"
 msgstr ""
 
-#: libteredo/relay.cpp:901
+#: libteredo/relay.cpp:924
 msgid "cone"
 msgstr ""
 
-#: libteredo/relay.cpp:901
+#: libteredo/relay.cpp:924
 msgid "restricted"
 msgstr ""
 
-#: libteredo/relay.cpp:1008
+#: libteredo/relay.cpp:1031
 msgid "Lost Teredo connectivity"
 msgstr ""
 
@@ -79,7 +83,11 @@ msgstr ""
 msgid "Error reading random data: %m"
 msgstr ""
 
-#: libteredo/packets.cpp:315
+#: libteredo/packets.cpp:305
+msgid "Multiple Teredo prefixes received"
+msgstr ""
+
+#: libteredo/packets.cpp:347
 msgid "Invalid Teredo prefix received"
 msgstr ""
 
@@ -163,7 +171,12 @@ msgstr ""
 msgid "%s tunnel route removed: %s/%u"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:857
+#: libtun6/ipv6-tunnel.cpp:706
+#, c-format
+msgid "%s tunnel MTU (%u bytes) change failed: %m"
+msgstr ""
+
+#: libtun6/ipv6-tunnel.cpp:859
 msgid ""
 "You should run these commands to create it :\n"
 "# mkdir -p /dev/net\n"
@@ -171,26 +184,26 @@ msgid ""
 "(you must be root to do that).\n"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:862 libtun6/ipv6-tunnel.cpp:887
+#: libtun6/ipv6-tunnel.cpp:864 libtun6/ipv6-tunnel.cpp:889
 msgid ""
 "You can obtain a tunnel driver for the Darwin kernel (Mac OS X) from :\n"
 "http://chrisp.de/en/projects/tunnel.html\n"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:870
+#: libtun6/ipv6-tunnel.cpp:872
 #, c-format
 msgid ""
 "Error: %s character device not found or unavailable.\n"
 "%s"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:883
+#: libtun6/ipv6-tunnel.cpp:885
 msgid ""
 "Make sure your Linux kernel includes the \"Universal TUNTAP driver\"\n"
 "(CONFIG_TUN option), possibly as a module.\n"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:895
+#: libtun6/ipv6-tunnel.cpp:897
 #, c-format
 msgid ""
 "Error: your operating system does not seem to provide a network tunnneling\n"
@@ -198,20 +211,22 @@ msgid ""
 "%s"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:904
+#: libtun6/ipv6-tunnel.cpp:906
 #, c-format
 msgid ""
 "Error: cannot open device file %s (%s)\n"
 "IPv6 tunneling will not work.\n"
 msgstr ""
 
-#: src/main.c:68
-msgid "Try \"miredo -h | more\" for more information.\n"
+#: src/main.c:67
+#, c-format
+msgid "Try \"%s -h | more\" for more information.\n"
 msgstr ""
 
 #: src/main.c:77
+#, c-format
 msgid ""
-"Usage: miredo [OPTIONS] [SERVER_NAME]\n"
+"Usage: %s [OPTIONS] [SERVER_NAME]\n"
 "Creates a Teredo tunneling interface for encapsulation of IPv6 over UDP.\n"
 "\n"
 "  -c, --config     specify an configuration file\n"
@@ -323,138 +338,143 @@ msgstr ""
 msgid "Error (daemon)"
 msgstr ""
 
-#: src/main.c:474
+#: src/main.c:480
 #, c-format
 msgid ""
 "Read unknown option -%c :\n"
 "That is probably a bug. Please report it.\n"
 msgstr ""
 
-#: src/main.c:494
+#: src/main.c:500
 #, c-format
 msgid "Reading configuration from %s: %s\n"
 msgstr ""
 
-#: src/main.c:513
+#: src/main.c:519
 #, c-format
 msgid "Chroot directory %s: %s\n"
 msgstr ""
 
-#: src/miredo.cpp:252
+#: src/miredo.cpp:111
+#, c-format
+msgid "Setting UID failed: %m"
+msgstr ""
+
+#: src/miredo.cpp:127
+#, c-format
+msgid "pipe failed: %m"
+msgstr ""
+
+#: src/miredo.cpp:201
+#, c-format
+msgid "Loading configuration from %s failed"
+msgstr ""
+
+#: src/miredo.cpp:223
+#, c-format
+msgid "fork failed: %m"
+msgstr ""
+
+#: src/miredo.cpp:246
+#, c-format
+msgid "Exiting on signal %d (%s)"
+msgstr ""
+
+#: src/miredo.cpp:254
+#, c-format
+msgid "Reloading configuration on signal %d (%s)"
+msgstr ""
+
+#: src/miredo.cpp:262
+#, c-format
+msgid "Terminated (exit code: %d)"
+msgstr ""
+
+#: src/miredo.cpp:270
+#, c-format
+msgid "Child %d killed by signal %d (%s)"
+msgstr ""
+
+#: src/miredo.cpp:281
+msgid "Terminated with error(s)."
+msgstr ""
+
+#: src/miredo.cpp:283
+msgid "Terminated with no error."
+msgstr ""
+
+#: src/relay.cpp:193 src/relay.cpp:202 src/relay.cpp:221 src/relay.cpp:253
+#: src/server.cpp:106 src/server.cpp:130
+msgid "Fatal configuration error"
+msgstr ""
+
+#: src/relay.cpp:211 src/server.cpp:96
+#, c-format
+msgid "Invalid server hostname \"%s\": %s"
+msgstr ""
+
+#: src/relay.cpp:228 src/server.cpp:113
+msgid "Server address not specified"
+msgstr ""
+
+#: src/relay.cpp:242
+msgid "Unsupported Teredo client mode"
+msgstr ""
+
+#: src/relay.cpp:260
+msgid "Fatal bind IPv4 address error"
+msgstr ""
+
+#: src/relay.cpp:266
+msgid "Fatal bind UDP port error"
+msgstr ""
+
+#: src/relay.cpp:303
 #, c-format
 msgid ""
 "Teredo tunnel setup failed:\n"
 " %s"
 msgstr ""
 
-#: src/miredo.cpp:253 src/miredo.cpp:287
+#: src/relay.cpp:304 src/relay.cpp:335
 msgid "You should be root to do that."
 msgstr ""
 
-#: src/miredo.cpp:273
+#: src/relay.cpp:322
 #, c-format
 msgid "Privileged process setup failed: %m"
 msgstr ""
 
-#: src/miredo.cpp:286
+#: src/relay.cpp:334
 #, c-format
 msgid ""
 "Teredo routing failed:\n"
 " %s"
 msgstr ""
 
-#: src/miredo.cpp:301
-#, c-format
-msgid "Setting UID failed: %m"
-msgstr ""
-
-#: src/miredo.cpp:316
-msgid "Teredo server failure"
-msgstr ""
-
-#: src/miredo.cpp:322
-msgid "Teredo UDP port failure"
-msgstr ""
-
-#: src/miredo.cpp:323 src/miredo.cpp:389
-msgid "Make sure another instance of the program is not already running."
-msgstr ""
-
-#: src/miredo.cpp:373
+#: src/relay.cpp:375
 msgid "Teredo service failure"
 msgstr ""
 
-#: src/miredo.cpp:381
+#: src/relay.cpp:382
 #, c-format
 msgid "Teredo service port failure: cannot open UDP port %u"
 msgstr ""
 
-#: src/miredo.cpp:386
+#: src/relay.cpp:386
 msgid "Teredo service port failure: cannot open an UDP port"
 msgstr ""
 
-#: src/miredo.cpp:430
-#, c-format
-msgid "pipe failed: %m"
+#: src/relay.cpp:389 src/server.cpp:154
+msgid "Make sure another instance of the program is not already running."
 msgstr ""
 
-#: src/miredo.cpp:489
-#, c-format
-msgid "Loading configuration from %s failed"
+#: src/server.cpp:145
+msgid "Teredo server failure"
 msgstr ""
 
-#: src/miredo.cpp:499 src/miredo.cpp:507 src/miredo.cpp:554
-msgid "Fatal configuration error"
-msgstr ""
-
-#: src/miredo.cpp:518
-msgid "Server address not specified"
-msgstr ""
-
-#: src/miredo.cpp:536
-#, c-format
-msgid "Invalid server hostname \"%s\": %s"
-msgstr ""
-
-#: src/miredo.cpp:575
-msgid "Fatal bind IPv4 address error"
-msgstr ""
-
-#: src/miredo.cpp:582
-msgid "Fatal bind UDP port error"
-msgstr ""
-
-#: src/miredo.cpp:656
-#, c-format
-msgid "fork failed: %m"
-msgstr ""
-
-#: src/miredo.cpp:685
-#, c-format
-msgid "Exiting on signal %d (%s)"
-msgstr ""
-
-#: src/miredo.cpp:693
-#, c-format
-msgid "Reloading configuration on signal %d (%s)"
-msgstr ""
-
-#: src/miredo.cpp:702
-#, c-format
-msgid "Terminated (exit code: %d)"
-msgstr ""
-
-#: src/miredo.cpp:710
-#, c-format
-msgid "Child %d killed by signal %d (%s)"
-msgstr ""
-
-#: src/miredo.cpp:718
-msgid "Terminated with error(s)."
-msgstr ""
-
-#: src/miredo.cpp:720
-msgid "Terminated with no error."
+#: src/server.cpp:153
+msgid "Teredo UDP port failure"
 msgstr ""
 
 #: src/conf.cpp:70
@@ -497,22 +517,22 @@ msgstr ""
 msgid "Invalid boolean value \"%s\" for %s"
 msgstr ""
 
-#: src/conf.cpp:314 src/conf.cpp:347
+#: src/conf.cpp:326 src/conf.cpp:355
 #, c-format
 msgid "Invalid hostname \"%s\" at line %u: %s"
 msgstr ""
 
-#: src/conf.cpp:373
+#: src/conf.cpp:381
 #, c-format
 msgid "Invalid Teredo IPv6 prefix: %x::/32"
 msgstr ""
 
-#: src/conf.cpp:404
+#: src/conf.cpp:412
 #, c-format
 msgid "Invalid relay type \"%s\" at line %u"
 msgstr ""
 
-#: src/conf.cpp:484
+#: src/conf.cpp:492
 #, c-format
 msgid "Unknown syslog facility \"%s\" at line %u"
 msgstr ""
