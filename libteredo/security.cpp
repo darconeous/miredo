@@ -4,7 +4,7 @@
  */
 
 /***********************************************************************
- *  Copyright (C) 2004 Remi Denis-Courmont.                            *
+ *  Copyright (C) 2004-2005 Remi Denis-Courmont.                       *
  *  This program is free software; you can redistribute and/or modify  *
  *  it under the terms of the GNU General Public License as published  *
  *  by the Free Software Foundation; version 2 of the license.         *
@@ -24,6 +24,8 @@
 #endif
 
 #include <gettext.h>
+
+#include <string.h>
 
 #include <sys/types.h>
 #include <fcntl.h> // open()
@@ -76,6 +78,8 @@ bool
 GenerateNonce (unsigned char *b, bool critical)
 {
 	int fd = devfd[critical ? 0 : 1];
+
+	memset (b, 0, 8);
 	if (fd != -1)
 	{
 		ssize_t tot = 0, val;
@@ -84,8 +88,7 @@ GenerateNonce (unsigned char *b, bool critical)
 		{
 			val = read (fd, b + tot, 8 - tot);
 			if (val <= 0)
-				syslog (LOG_ERR,
-					_("Error reading random data: %m"));
+				syslog (LOG_ERR, _("Error reading random data: %m"));
 			else
 				tot += val;
 		}
