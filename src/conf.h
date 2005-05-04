@@ -1,6 +1,6 @@
 /*
  * conf.h - Configuration text file parsing declaration
- * $Id: main.c 340 2004-12-31 13:28:42Z remi $
+ * $Id$
  */
 
 /***********************************************************************

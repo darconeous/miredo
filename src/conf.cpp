@@ -1,6 +1,6 @@
 /*
  * conf.cpp - Configuration text file parsing definition
- * $Id: main.c 340 2004-12-31 13:28:42Z remi $
+ * $Id$
  */
 
 /***********************************************************************
