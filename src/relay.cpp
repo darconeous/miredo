@@ -128,7 +128,6 @@ teredo_relay (int sigfd, IPv6Tunnel& tunnel, TeredoRelay *relay = NULL)
 	{
 		/* Registers file descriptors */
 		fd_set readset;
-		struct timeval tv;
 		FD_ZERO (&readset);
 		FD_SET(sigfd, &readset);
 
@@ -139,14 +138,8 @@ teredo_relay (int sigfd, IPv6Tunnel& tunnel, TeredoRelay *relay = NULL)
 		if (val > maxfd)
 			maxfd = val;
 
-		/*
-		 * Short time-out to call relay->Proces () quite often.
-		 */
-		tv.tv_sec = 0;
-		tv.tv_usec = 250000;
-
 		/* Wait until one of them is ready for read */
-		maxfd = select (maxfd + 1, &readset, NULL, NULL, &tv);
+		maxfd = select (maxfd + 1, &readset, NULL, NULL, NULL);
 		if ((maxfd < 0) || ((maxfd >= 1) && FD_ISSET (sigfd, &readset)))
 			// interrupted by signal
 			break;
@@ -154,10 +147,6 @@ teredo_relay (int sigfd, IPv6Tunnel& tunnel, TeredoRelay *relay = NULL)
 		/* Handle incoming data */
 		char pbuf[65535];
 		int len;
-
-#ifdef MIREDO_TEREDO_CLIENT
-		relay->Process ();
-#endif
 
 		/* Forwards IPv6 packet to Teredo
 		 * (Packet transmission) */

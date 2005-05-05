@@ -26,8 +26,10 @@
 # define LIBTEREDO_RELAY_H
 
 # include <sys/time.h> // struct timeval
+# include <pthread.h>
 
-# include <libteredo/relay-udp.h>
+# include <libteredo/relay-udp.h> // FIXME: remove?
+//-> when local discovery is implemented?
 
 struct ip6_hdr;
 struct in6_addr;
@@ -48,14 +50,6 @@ class TeredoRelay
 
 		/*** Internal stuff ***/
 		union teredo_addr addr;
-		struct
-		{
-			struct timeval next;
-			uint8_t nonce[8];
-			unsigned state:2;
-			unsigned count:3;
-		} probe;
-
 		class peer *head;
 
 		TeredoRelayUDP sock;
@@ -66,6 +60,23 @@ class TeredoRelay
 		int SendUnreach (int code, const void *in, size_t inlen);
 
 #ifdef MIREDO_TEREDO_CLIENT
+		struct
+		{
+			pthread_t thread;
+			pthread_mutex_t lock;
+
+			uint8_t nonce[8];
+			pthread_cond_t received;
+
+			unsigned state;
+			unsigned count;
+			bool symmetric;
+			bool working;
+		} maintenance;
+
+		static void *do_maintenance (void *object);
+		void MaintenanceThread (void);
+
 		uint32_t server_ip2;
 		uint16_t mtu;
 
@@ -131,7 +142,11 @@ class TeredoRelay
 
 		int operator! (void) const
 		{
-			return !sock;
+			return !sock
+#ifdef MIREDO_TEREDO_CLIENT
+				|| (IsClient () && !maintenance.working)
+#endif
+			;
 		}
 
 		/*
@@ -152,15 +167,6 @@ class TeredoRelay
 		int ReceivePacket (const fd_set *reaset);
 
 #ifdef MIREDO_TEREDO_CLIENT
-		/*
-		 * Sends pending queued UDP packets (Teredo bubbles,
-		 * Teredo pings, Teredo router solicitation) if any.
-		 *
-		 * Call this function as frequently as possible.
-		 * Not thread-safe yet.
-		 */
-		int Process (void);
-
 		uint32_t GetServerIP (void) const
 		{
 			return IN6_TEREDO_SERVER (&addr);
@@ -214,7 +220,10 @@ class TeredoRelay
 		bool IsRunning (void) const
 		{
 			return is_valid_teredo_prefix (GetPrefix ())
-				&& (probe.state == 0);
+#ifdef MIREDO_TEREDO_CLIENT
+				&& (maintenance.state == 0)
+#endif
+			;
 		}
 
 

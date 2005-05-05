@@ -202,9 +202,12 @@ TeredoRelay::TeredoRelay (uint32_t pref, uint16_t port, uint32_t ipv4,
 	addr.teredo.flags = cone ? htons (TEREDO_FLAG_CONE) : 0;
 	addr.teredo.client_ip = 0;
 	addr.teredo.client_port = 0;
-	probe.state = QUALIFIED;
 
 	sock.ListenPort (port, ipv4);
+#ifdef MIREDO_TEREDO_CLIENT
+	maintenance.state = QUALIFIED;
+	maintenance.working = false;
+#endif
 }
 
 
@@ -225,13 +228,21 @@ TeredoRelay::TeredoRelay (uint32_t ip, uint32_t ip2,
 
 	server_ip2 = ip2;
 
-	if (GenerateNonce (probe.nonce, true)
-	 && (sock.ListenPort (port, ipv4) == 0))
+	maintenance.working = false;
+	maintenance.state = PROBE_CONE;
+
+	if (sock.ListenPort (port, ipv4) == 0)
 	{
-		probe.state = PROBE_CONE;
-		probe.count = 0;
-		gettimeofday (&probe.next, NULL);
-		Process ();
+		pthread_mutex_init (&maintenance.lock, NULL);
+		pthread_cond_init (&maintenance.received, NULL);
+		if (pthread_create (&maintenance.thread, NULL, do_maintenance, this))
+		{
+			syslog (LOG_ALERT, _("pthread_create failure: %m"));
+			pthread_cond_destroy (&maintenance.received);
+			pthread_mutex_destroy (&maintenance.lock);
+		}
+		else
+			maintenance.working = true;
 	}
 }
 
@@ -250,6 +261,17 @@ int TeredoRelay::NotifyDown (void)
 /* Releases peers list entries */
 TeredoRelay::~TeredoRelay (void)
 {
+#ifdef MIREDO_TEREDO_CLIENT
+	if (maintenance.working)
+	{
+		maintenance.working = false;
+		pthread_cancel (maintenance.thread);
+		pthread_join (maintenance.thread, NULL);
+		pthread_cond_destroy (&maintenance.received);
+		pthread_mutex_destroy (&maintenance.lock);
+	}
+#endif
+
 	peer *p = head;
 
 	while (p != NULL)
@@ -589,10 +611,12 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 
 		if (s_nonce != NULL)
 		{
-			if (memcmp (s_nonce, probe.nonce, 8))
+			pthread_mutex_lock (&maintenance.lock);
+			if (memcmp (s_nonce, maintenance.nonce, 8))
+			{
+				pthread_mutex_unlock (&maintenance.lock);
 				return 0; // server authentication failure
-
-			probe.count = 0; // resets failed probes count
+			}
 
 			// Checks if our Teredo address changed:
 			union teredo_addr newaddr;
@@ -600,21 +624,22 @@ int TeredoRelay::ReceivePacket (const fd_set *readset)
 
 			uint16_t new_mtu = mtu;
 
-			if (ParseRA (packet, &newaddr, IsCone (), &new_mtu)
-			 && (memcmp (&addr, &newaddr, sizeof (addr)) || (mtu != new_mtu)))
+			if (ParseRA (packet, &newaddr, IsCone (), &new_mtu))
 			{
-				memcpy (&addr, &newaddr, sizeof (addr));
-				mtu = new_mtu;
-				syslog (LOG_NOTICE, _("Teredo address/MTU changed"));
-				NotifyUp (&newaddr.ip6, new_mtu);
-			}
+				pthread_cond_signal (&maintenance.received);
+				if (memcmp (&addr, &newaddr, sizeof (addr))
+				 || (mtu != new_mtu))
+				{
+					memcpy (&addr, &newaddr, sizeof (addr));
+					mtu = new_mtu;
 
-			/*
-			 * Our server will not send a packet with auth header
-			 * except a Router Advertisement (or it is broken and
-			 * we'd better ignore it).
-			 */
-			return 0;
+					syslog (LOG_NOTICE, _("Teredo address/MTU changed"));
+					NotifyUp (&newaddr.ip6, new_mtu);
+				}
+				pthread_mutex_unlock (&maintenance.lock);
+				return 0;
+			}
+			pthread_mutex_unlock (&maintenance.lock);
 		}
 
 		const struct teredo_orig_ind *ind = packet.GetOrigInd ();
@@ -867,163 +892,185 @@ int TeredoRelay::ProcessQualificationPacket (const TeredoPacket *packet)
 	 * It is far too easy to spoof such packets.
 	 */
 	const uint8_t *s_nonce = packet->GetAuthNonce ();
-	if ((s_nonce == NULL) || memcmp (s_nonce, probe.nonce, 8))
+
+	if (s_nonce == NULL)
 		return 0;
+
+	union teredo_addr newaddr;
+	newaddr.teredo.server_ip = GetServerIP ();
+ 
+	pthread_mutex_lock (&maintenance.lock);
+	if (memcmp (s_nonce, maintenance.nonce, 8))
+	{
+		pthread_mutex_unlock (&maintenance.lock);
+		return 0;
+	}
 
 	if (packet->GetConfByte ())
 	{
+		pthread_mutex_unlock (&maintenance.lock);
 		syslog (LOG_ERR, _("Authentication refused by server."));
 		return 0;
 	}
 
-	union teredo_addr newaddr;
-
-	newaddr.teredo.server_ip = GetServerIP ();
-	if (!ParseRA (*packet, &newaddr, probe.state == PROBE_CONE, &mtu))
+	if (!ParseRA (*packet, &newaddr, maintenance.state == PROBE_CONE, &mtu))
+	{
+		pthread_mutex_unlock (&maintenance.lock);
 		return 0;
-
-	/* Valid router advertisement! */
-	gettimeofday (&probe.next, NULL);
-	unsigned delay;
-
-	if (probe.state == PROBE_RESTRICT)
-	{
-		probe.state = PROBE_SYMMETRIC;
-		SendRS (sock, GetServerIP (), probe.nonce, false);
-
-		delay = QualificationTimeOut;
-		memcpy (&addr, &newaddr, sizeof (addr));
-	}
-	else
-	if ((probe.state == PROBE_SYMMETRIC)
-	 && ((addr.teredo.client_port != newaddr.teredo.client_port)
-	  || (addr.teredo.client_ip != newaddr.teredo.client_ip)))
-	{
-		syslog (LOG_ERR, _("Unsupported symmetric NAT detected."));
-
-		/* Resets state, will retry in 5 minutes */
-		addr.teredo.prefix = PREFIX_UNSET;
-		probe.state = PROBE_CONE;
-		probe.count = 0;
-		delay = RestartDelay;
-	}
-	else
-	{
-		syslog (LOG_INFO, _("Qualified (NAT type: %s)"),
-		        gettext (probe.state == PROBE_CONE
-		        ? N_("cone") : N_("restricted")));
-		probe.state = QUALIFIED;
-		probe.count = 0;
-		delay = SERVER_PING_DELAY;
-
-		// call memcpy before NotifyUp for re-entrancy
-		memcpy (&addr, &newaddr, sizeof (addr));
-		NotifyUp (&newaddr.ip6, mtu);
 	}
 
-	probe.next.tv_sec += delay;
+	/* Valid router advertisement received! */
+	pthread_cond_signal (&maintenance.received);
+
+	if (maintenance.state == PROBE_SYMMETRIC)
+	{
+		maintenance.symmetric =
+			 ((addr.teredo.client_port != newaddr.teredo.client_port)
+			  || (addr.teredo.client_ip != newaddr.teredo.client_ip));
+	}
+
+	/* 
+	 * newaddr (and mtu) must be copied before the lock is released,
+	 * so that it is OK to call NotifyUp from the maintenance thread.
+	 */
+	memcpy (&addr, &newaddr, sizeof (addr));
+	pthread_mutex_unlock (&maintenance.lock);
 
 	return 0;
 }
 
 
-int TeredoRelay::Process (void)
+static void
+asyncsafe_sleep (unsigned sec)
 {
-	if (!sock)
-		return -1;
+	struct timeval tv;
+	int oldstate;
 
-	struct timeval now;
+	tv.tv_sec = sec;
+	tv.tv_usec = 0;
+	pthread_setcanceltype (PTHREAD_CANCEL_ASYNCHRONOUS, &oldstate);
+	select (0, NULL, NULL, NULL, &tv);
+	pthread_setcanceltype (oldstate, NULL);
+	pthread_testcancel ();
+}
 
-	gettimeofday (&now, NULL);
 
-	if (IsRelay ())
-		return 0;
+void TeredoRelay::MaintenanceThread (void)
+{
+	bool cone = true;
 
-	/* Qualification or server refresh (only for client) */
-	if (((signed)(now.tv_sec - probe.next.tv_sec) > 0)
-	 || ((now.tv_sec == probe.next.tv_sec)
-	  && (now.tv_usec > probe.next.tv_usec)))
+	// TODO: regenerate nonce from time to time
+	pthread_mutex_lock (&maintenance.lock);
+	GenerateNonce (maintenance.nonce, true);
+	maintenance.count = 0;
+	/* done in constructor -- maintenance.state = PROBE_CONE;*/
+
+	/*
+	 * Qualification/maintenance procedure
+	 */
+	while (1)
 	{
-		unsigned delay = QualificationTimeOut;
-		bool down = false;
-
-		if (probe.state == QUALIFIED)
+		if ((maintenance.state == 0) && (maintenance.count == 0))
 		{
+			pthread_mutex_unlock (&maintenance.lock);
+
 			// TODO: randomize refresh interval
-			if (probe.count == 0)
-				delay = SERVER_PING_DELAY;
+			asyncsafe_sleep (SERVER_PING_DELAY);
 
-			/*
-			 * FIXME: send a refresh every ~ 30 sec
-			 * but wait for them only [QualificationTimeOut] sec.
-			 * Much easier in a dedicated thread.
-			 */
+			pthread_mutex_lock (&maintenance.lock);
+		}
 
-			// connectivity with server lost
-			if (probe.count >= QualificationRetries)
+		SendRS (sock, maintenance.state == PROBE_RESTRICT /* secondary */
+		              ? GetServerIP2 () : GetServerIP (),
+		        maintenance.nonce, cone);
+
+		struct timespec deadline;
+		{
+			struct timeval tv;
+			gettimeofday (&tv, NULL);
+			deadline.tv_sec = tv.tv_sec + QualificationTimeOut;
+			deadline.tv_nsec = tv.tv_usec * 1000;
+		}
+
+		if (pthread_cond_timedwait (&maintenance.received, &maintenance.lock,
+		                            &deadline))
+		{
+			/* no response */
+			if (maintenance.state == PROBE_SYMMETRIC)
+				maintenance.state = PROBE_RESTRICT;
+			else
+				maintenance.count++;
+
+			if (maintenance.count >= QualificationRetries)
 			{
-				probe.state = IsCone () ? PROBE_CONE : PROBE_RESTRICT;
-				probe.count = 1;
-				down = true;
+				bool down = (maintenance.state == 0);
+
+				maintenance.count = 0;
+				if (maintenance.state == PROBE_CONE)
+				{
+					maintenance.state = PROBE_RESTRICT;
+					cone = false;
+				}
+				else
+				{
+					maintenance.state = PROBE_CONE;
+					cone = true;
+				}
+
+				if (down)
+				{
+					pthread_mutex_unlock (&maintenance.lock);
+					syslog (LOG_NOTICE, _("Lost Teredo connectivity"));
+					NotifyDown ();
+
+					/* Sleep five minutes */
+					asyncsafe_sleep (RestartDelay);
+					pthread_mutex_lock (&maintenance.lock);
+				}
 			}
 		}
 		else
-		if (probe.state == PROBE_CONE)
+		if (maintenance.state)
 		{
-			if (probe.count >= QualificationRetries)
+			if ((maintenance.state == PROBE_SYMMETRIC)
+			 && maintenance.symmetric)
 			{
-				// Cone qualification failed
-				probe.state = PROBE_RESTRICT;
-				probe.count = 0;
-			}
-		}
-		else
-		{
-			if (probe.state == PROBE_SYMMETRIC)
-				/*
-				 * Second half of restricted
-				 * qualification failed: re-trying
-				 * restricted qualifcation
-				 */
-				probe.state = PROBE_RESTRICT;
+				/* FAIL */
+				maintenance.count = 0;
+				maintenance.state = PROBE_CONE;
 
-			switch (QualificationRetries - probe.count)
+				/* Sleep five minutes */
+				pthread_mutex_unlock (&maintenance.lock);
+				syslog (LOG_ERR, _("Unsupported symmetric NAT detected."));
+				asyncsafe_sleep (RestartDelay);
+				pthread_mutex_lock (&maintenance.lock);
+			}
+			else
+			if (maintenance.state == PROBE_RESTRICT)
 			{
-				case 1:
-					/*
-					 * Last restricted qualification
-					 * attempt before declaring failure.
-					 * Defer new attempts for 300 seconds.
-					 */
-					delay = RestartDelay;
-					break;
-
-				case 0:
-					/*
-					 * Restricted qualification failed.
-					 * Restarting from zero.
-					 */
-					probe.state = PROBE_CONE;
+				maintenance.state = PROBE_SYMMETRIC;
 			}
-		}
-
-		probe.count ++;
-
-		SendRS (sock, probe.state == PROBE_RESTRICT /* secondary */
-		               ? GetServerIP2 () : GetServerIP (),
-		        probe.nonce, probe.state == PROBE_CONE /* cone */);
-
-		gettimeofday (&probe.next, NULL);
-		probe.next.tv_sec += delay;
-
-		if (down)
-		{
-			syslog (LOG_NOTICE, _("Lost Teredo connectivity"));
-			// do this at the end to allow re-entrancy
-			NotifyDown ();
+			else
+			{
+				syslog (LOG_INFO, _("Qualified (NAT type: %s)"),
+				        gettext (cone ? N_("cone") : N_("restricted")));
+				maintenance.count = 0;
+				maintenance.state = 0;
+				// FIXME: do this in the main thread
+				// FIXME: ensure that is completed before the main thread continue works
+				// FIXME: prevent possible maintenance.lock dead locking
+				NotifyUp (&addr.ip6, mtu);
+			}
 		}
 	}
-
-	return 0;
 }
+
+
+void *
+TeredoRelay::do_maintenance (void *data)
+{
+	((TeredoRelay *)data)->MaintenanceThread ();
+	return NULL;
+}
+
 #endif /* ifdef MIREDO_TEREDO_CLIENT */
