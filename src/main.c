@@ -467,8 +467,8 @@ main (int argc, char *argv[])
 
 	if (conffile == NULL)
 	{
-		extern const char *const miredo_conf_filename;
-		conffile = BR_SYSCONFDIR (miredo_conf_filename);
+		extern const char *const miredo_conffile;
+		conffile = miredo_conffile;
 	}
 
 	/* Check if config file and chroot dir are present */
@@ -504,8 +504,8 @@ main (int argc, char *argv[])
 
 	if (pidfile == NULL)
 	{
-		extern const char *const default_pidfile;
-		pidfile = default_pidfile;
+		extern const char *const miredo_pidfile;
+		pidfile = miredo_pidfile;
 	}
 
 	if (miredo_diagnose ()
