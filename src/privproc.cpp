@@ -48,7 +48,7 @@ int
 miredo_privileged_process (IPv6Tunnel& tunnel, bool default_route)
 {
 	int fd[2];
-	if (pipe (fd))
+	if (socketpair (PF_LOCAL, SOCK_DGRAM, 0, fd))
 		return -1;
 
 	switch (fork ())
@@ -99,50 +99,55 @@ miredo_privileged_process (IPv6Tunnel& tunnel, bool default_route)
 	{
 		struct miredo_tunnel_settings newcfg;
 		const struct in6_addr *p_newloc;
+		// TODO: set res to -1 in case of error
+		int res = 0;
 
 		/* Waits until new (changed) settings arrive */
-		do
-			if (read (fd[0], &newcfg, sizeof (newcfg)) != sizeof (newcfg))
-				goto die;
-		while (memcmp (&newcfg, &oldcfg, sizeof (newcfg)) == 0);
+		if (recv (fd[0], &newcfg, sizeof (newcfg), 0) != sizeof (newcfg))
+			break;
 
-		/* Unapplies old settings */
-		if (memcmp (&oldcfg.addr, &in6addr_any, 16))
+		if (memcmp (&oldcfg.addr, &newcfg.addr, 16))
 		{
-			if (default_route)
-				tunnel.DelRoute (&in6addr_any, 0);
-			tunnel.DelAddress (&oldcfg.addr, 32);
-		}
-
-		/* Applies new settings */
-		if (memcmp (&newcfg.addr, &in6addr_any, 16))
-		{
-			/* Updates MTU if needed */
-			if (oldcfg.mtu != newcfg.mtu)
-				tunnel.SetMTU (oldcfg.mtu = newcfg.mtu);
-
-			/* Adds new addresses */
-			p_newloc = IN6_IS_TEREDO_ADDR_CONE (&newcfg.addr)
-					? &teredo_cone : &teredo_restrict;
-
-			if (p_newloc != p_oldloc)
+			/* Removes old addresses */
+			if (memcmp (&oldcfg.addr, &in6addr_any, 16))
 			{
-				if (p_oldloc != NULL)
-					tunnel.DelAddress (p_oldloc, 64);
-				tunnel.AddAddress (p_newloc, 64);
-				p_oldloc = p_newloc;
+				if (default_route)
+					tunnel.DelRoute (&in6addr_any, 0);
+				tunnel.DelAddress (&oldcfg.addr, 32);
 			}
 
-			tunnel.AddAddress (&newcfg.addr, 32);
-			if (default_route)
-				tunnel.AddRoute (&in6addr_any, 0);
+			/* Adds new addresses */
+			if (memcmp (&newcfg.addr, &in6addr_any, 16))
+			{
+				/* Only change link-local if needed */
+				p_newloc = IN6_IS_TEREDO_ADDR_CONE (&newcfg.addr)
+						? &teredo_cone : &teredo_restrict;
+	
+				if (p_newloc != p_oldloc)
+				{
+					if (p_oldloc != NULL)
+						tunnel.DelAddress (p_oldloc, 64);
+					tunnel.AddAddress (p_newloc, 64);
+					p_oldloc = p_newloc;
+				}
+	
+				tunnel.AddAddress (&newcfg.addr, 32);
+				if (default_route)
+					tunnel.AddRoute (&in6addr_any, 0);
+			}
+
+			/* Saves address */
+			memcpy (&oldcfg.addr, &newcfg.addr, sizeof (oldcfg.addr));
 		}
 
-		/* Saves address */
-		memcpy (&oldcfg.addr, &newcfg.addr, sizeof (oldcfg.addr));
+		/* Updates MTU if needed */
+		if (oldcfg.mtu != newcfg.mtu)
+			tunnel.SetMTU (oldcfg.mtu = newcfg.mtu);
+
+		if (send (fd[0], &res, sizeof (res), 0) != sizeof (res))
+			break;
 	}
 
-die:
 	close (fd[0]);
 	tunnel.BringDown ();
 	tunnel.CleanUp ();
@@ -154,6 +159,7 @@ int
 miredo_configure_tunnel (int fd, const struct in6_addr *addr, unsigned mtu)
 {
 	struct miredo_tunnel_settings s;
+	int res;
 
 	if (mtu > 65535)
 	{
@@ -165,5 +171,9 @@ miredo_configure_tunnel (int fd, const struct in6_addr *addr, unsigned mtu)
 	memcpy (&s.addr, addr, sizeof (s.addr));
 	s.mtu = mtu;
 
-	return write (fd, &s, sizeof (s)) == sizeof (s) ? 0 : -1;
+	if ((send (fd, &s, sizeof (s), 0) != sizeof (s))
+	 || (recv (fd, &res, sizeof (res), 0) != sizeof (res)))
+		return -1;
+
+	return res;
 }
