@@ -5,12 +5,14 @@ $Id$
 (!) before next release (0.4.4)
 (*) before stable release (1.0.0)
 ( ) unscheduled
-(H) help needed
-(F) in the distant future
-(?) not to be done yet (or ever)
+(H) help needed - cannot be done unless someone volunteers
+(F) in the distant future - unless someone volunteers
+(?) not sure if it should be done
 
 Features:
 ----------
+(!) lock pidfile
+(H) other localizations,
 (*) fix bubble retransmit / timing,
 (!) option to ignore cone bit,
 ( ) take failure to send UDP packets into account,
@@ -18,8 +20,8 @@ Features:
 (*) some statistics,
 ( ) fixed TODOs and FIXMEs in source code,
 ( ) local Teredo discovery,
-(?) "automatic sunset" / "exit strategy",
-(!) fix connectivity loss detection (too slow)
+( ) peers list garbage collection,
+(?) "automatic sunset" / "exit strategy"
 
 Security:
 ----------
@@ -35,7 +37,7 @@ Conformance:
 
 Performance/scalibility:
 -------------------------
-(*) ensure non-blocking while sending packets
+(!) ensure non-blocking while sending packets in server
 ( ) faster peer lists lookups/updates,
 ( ) multi-threading in relay/client (will help other things a lot)
 

@@ -80,6 +80,7 @@ usage (const char *path)
 "  -c, --config     specify an configuration file\n"
 "  -f, --foreground run in the foreground\n"
 "  -h, --help       display this help and exit\n"
+"  -p, --pidfile    override the location of the PID file\n"
 "  -u, --user       override the user to set UID to\n"
 "  -V, --version    display program version and exit\n"), path);
 	return 0;
@@ -146,7 +147,6 @@ error_missing (void)
 #endif
 
 
-#ifdef MIREDO_PIDFILEDIR
 static FILE *
 safe_fopen_w (const char *path)
 {
@@ -175,11 +175,11 @@ safe_fopen_w (const char *path)
 }
 
 
-extern const char *pidfile;
-
 /*
  * Creates a Process-ID file.
  */
+static const char *pidfile = NULL;
+
 static int
 create_pidfile (void)
 {
@@ -203,10 +203,6 @@ remove_pidfile (void)
 {
 	return unlink (pidfile);
 }
-#else /* ifdef MIREDO_PIDFILEDIR */
-# define create_pidfile( ) 0
-# define remove_pidfile( ) 0
-#endif
 
 
 #ifndef HAVE_CLEARENV
@@ -254,24 +250,6 @@ init_security (const char *username, int nodetach)
 
 	for (fd = 3; fd < lim.rlim_cur; fd++)
 		(void)close (fd);
-
-	/*
-	 * Make sure that 0, 1 and 2 are opened.
-	 */
-	fd = open ("/dev/null", O_RDWR);
-	if (fd == -1)
-		return -1;
-	
-	while (fd <= 2)
-	{
-		fd = dup (fd);
-		if (fd == -1)
-			return -1;
-	}
-
-	(void)close (fd); // fd > 2
-
-	/* From then on, it is safe to write to stderr */
 
 	/* Determines unpriviledged user */
 	errno = 0;
@@ -403,13 +381,14 @@ main (int argc, char *argv[])
 
 	const struct option opts[] =
 	{
-		{ "conf",	required_argument,	NULL, 'c' },
-		{ "config",	required_argument,	NULL, 'c' },
-		{ "foreground",	no_argument,		NULL, 'f' },
-		{ "help",	no_argument,		NULL, 'h' },
-		{ "user",	required_argument,	NULL, 'u' },
-		{ "version",	no_argument,		NULL, 'V' },
-		{ NULL,		no_argument,		NULL, '\0'}
+		{ "conf",       required_argument, NULL, 'c' },
+		{ "config",     required_argument, NULL, 'c' },
+		{ "foreground", no_argument,       NULL, 'f' },
+		{ "help",       no_argument,       NULL, 'h' },
+		{ "user",       required_argument, NULL, 'u' },
+		{ "pidfile",    required_argument, NULL, 'p' },
+		{ "version",    no_argument,       NULL, 'V' },
+		{ NULL,         no_argument,       NULL, '\0'}
 	};
 
 	int c;
@@ -426,7 +405,7 @@ main (int argc, char *argv[])
 
 	memset (&flags, 0, sizeof (flags));
 
-	while ((c = getopt_long (argc, argv, "c:fhu:V", opts,
+	while ((c = getopt_long (argc, argv, "c:fhp:u:V", opts,
 					NULL)) != -1)
 		switch (c)
 		{
@@ -443,6 +422,10 @@ main (int argc, char *argv[])
 
 			case 'h':
 				return usage (argv[0]);
+
+			case 'p':
+				ONETIME_SETTING (pidfile);
+				break;
 
 			case 'u':
 				ONETIME_SETTING (username);
@@ -513,6 +496,12 @@ main (int argc, char *argv[])
 	 * pidfile, I'd rather make its initscript's stop function
 	 * fail than deny the service completely.
 	 */
+	 if (pidfile == NULL)
+	 {
+	 	extern const char *const default_pidfile;
+	 	pidfile = default_pidfile;
+	}
+
 	(void)create_pidfile ();
 
 	/*

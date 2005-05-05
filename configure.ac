@@ -157,20 +157,6 @@ AS_IF([test "x${enable_miredo_user}" != "x" && test "${enable_miredo_user}" != "
 	AC_MSG_RESULT(${enable_miredo_user})],
 	[AC_MSG_RESULT(nobody)])
 
-# pidfile path
-AC_MSG_CHECKING([directory for pidfile])
-AC_ARG_ENABLE(pidfiledir,
-	      [AS_HELP_STRING([--enable-pidfiledir],
-			      [directory to put pidfile in (PREFIX/var/run by default)])])
-AS_IF([test "x${enable_pidfiledir}" = "x" || test "${enable_pidfiledir}" = "yes"],
-	[enable_pidfiledir='${localstatedir}/run'])
-AM_CONDITIONAL(MIREDO_PIDFILE, [test "${enable_pidfiledir}" != "no"])
-AS_IF([test "${enable_pidfiledir}" != "no"],
-	[AC_SUBST(miredo_pidfiledir, "${enable_pidfiledir}")
-	AC_MSG_RESULT(${enable_pidfiledir})],
-	[AC_MSG_RESULT(pidfile disabled)])
-
-
 # Defines for <config.h>
 AH_BOTTOM([
 #define _( str )		gettext (str)
