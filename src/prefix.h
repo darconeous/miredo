@@ -54,8 +54,6 @@ extern "C" {
 	#undef DATADIR
 	#undef LIBDIR
 	#undef LIBEXECDIR
-	#undef ETCDIR
-	#undef CONFDIR
 	#undef LOCALEDIR
 
 	#define SELFPATH	(br_thread_local_store (br_locate ((void *) "")))
@@ -66,8 +64,6 @@ extern "C" {
 	#define DATADIR		(br_thread_local_store (br_prepend_prefix ((void *) "", "/share")))
 	#define LIBDIR		(br_thread_local_store (br_prepend_prefix ((void *) "", "/lib")))
 	#define LIBEXECDIR	(br_thread_local_store (br_prepend_prefix ((void *) "", "/libexec")))
-	#define ETCDIR		(br_thread_local_store (br_prepend_prefix ((void *) "", "/etc")))
-	#define CONFDIR		(br_thread_local_store (br_prepend_prefix ((void *) "", "/etc")))
 	#define LOCALEDIR	(br_thread_local_store (br_prepend_prefix ((void *) "", "/share/locale")))
 #endif /* BR_NO_MACROS */
 
@@ -103,8 +99,6 @@ const char *br_thread_local_store (char *str);
 	#define BR_DATADIR(suffix)	DATADIR suffix
 	#define BR_LIBDIR(suffix)	LIBDIR suffix
 	#define BR_LIBEXECDIR(suffix)	LIBEXECDIR suffix
-	#define BR_ETCDIR(suffix)	ETCDIR suffix
-	#define BR_CONFDIR(suffix)	CONFDIR suffix
 	#define BR_LOCALEDIR(suffix)	LOCALEDIR suffix
   #else
 	#define BR_SELFPATH(suffix)	(br_thread_local_store (br_strcat (SELFPATH, suffix)))
@@ -115,9 +109,6 @@ const char *br_thread_local_store (char *str);
 	#define BR_DATADIR(suffix)	(br_thread_local_store (br_strcat (DATADIR, suffix)))
 	#define BR_LIBDIR(suffix)	(br_thread_local_store (br_strcat (LIBDIR, suffix)))
 	#define BR_LIBEXECDIR(suffix)	(br_thread_local_store (br_strcat (LIBEXECDIR, suffix)))
-	#define BR_ETCDIR(suffix)	(br_thread_local_store (br_strcat (ETCDIR, suffix)))
-	#define BR_SYSCONFDIR(suffix)	(br_thread_local_store (br_strcat (SYSCONFDIR, suffix)))
-	#define BR_CONFDIR(suffix)	(br_thread_local_store (br_strcat (CONFDIR, suffix)))
 	#define BR_LOCALEDIR(suffix)	(br_thread_local_store (br_strcat (LOCALEDIR, suffix)))        
   #endif
 #endif
