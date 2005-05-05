@@ -136,10 +136,10 @@ miredo_privileged_process (IPv6Tunnel& tunnel, bool default_route)
 			tunnel.AddAddress (&newcfg.addr, 32);
 			if (default_route)
 				tunnel.AddRoute (&in6addr_any, 0);
-
-			/* Saves address */
-			memcpy (&oldcfg.addr, &newcfg.addr, sizeof (oldcfg.addr));
 		}
+
+		/* Saves address */
+		memcpy (&oldcfg.addr, &newcfg.addr, sizeof (oldcfg.addr));
 	}
 
 die:
