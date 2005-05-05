@@ -147,61 +147,47 @@ error_missing (void)
 #endif
 
 
-static FILE *
-safe_fopen_w (const char *path)
+/*
+ * Creates a Process-ID file.
+ */
+static int
+open_pidfile (const char *path)
 {
 	int fd;
 
-	unlink (path);
-	fd = open (path, O_WRONLY|O_CREAT|O_EXCL, 0644);
+	fd = open (path, O_WRONLY|O_CREAT, 0644);
 	if (fd != -1)
 	{
 		struct stat s;
 
-		if (fstat (fd, &s) == 0)
-		{
-			if (S_ISREG(s.st_mode))
-			{
-				FILE *stream;
+		if ((fstat (fd, &s) == 0)
+		 && S_ISREG(s.st_mode)
+		 && (lockf (fd, F_TLOCK, 0) == 0))
+			return fd;
 
-				stream = fdopen (fd, "w");
-				if (stream != NULL)
-					return stream;
-			}
-		}
 		close (fd);
 	}
-	return NULL;
-}
-
-
-/*
- * Creates a Process-ID file.
- */
-static const char *pidfile = NULL;
-
-static int
-create_pidfile (void)
-{
-	FILE *stream;
-	int retval = -1;
-
-	stream = safe_fopen_w (pidfile);
-	if (stream != NULL)
-	{
-		if (fprintf (stream, "%d", (int)getpid ()) >= 0)
-			retval = 0;
-
-		fclose (stream);
-	}
-	return retval;
+	return -1;
 }
 
 
 static int
-remove_pidfile (void)
+write_pid (int fd)
 {
-	return unlink (pidfile);
+	char buf[20]; // enough for > 2^64
+	size_t len;
+
+	(void)sprintf (buf, "%d", (int)getpid ());
+	len = strlen (buf);
+	return write (fd, buf, len) == len ? 0 : -1;
+}
+
+
+static void
+close_pidfile (int fd)
+{
+	(void)lockf (fd, F_ULOCK, 0);
+	(void)close (fd);
 }
 
 
@@ -228,10 +214,10 @@ setuid_notice (void)
 
 
 /*
- * Initialize daemon security settings.
+ * Initialize daemon context.
  */
 static int
-init_security (const char *username, int nodetach)
+init_daemon (const char *username, const char *pidfile, int nodetach)
 {
 	struct passwd *pw;
 	struct rlimit lim;
@@ -239,6 +225,9 @@ init_security (const char *username, int nodetach)
 
 	/* Clears environment */
 	(void)clearenv ();
+
+	/* Sets sensible umask */
+	umask (022);
 
 	/*
 	 * We close all file handles, except 0, 1 and 2.
@@ -250,6 +239,29 @@ init_security (const char *username, int nodetach)
 
 	for (fd = 3; fd < lim.rlim_cur; fd++)
 		(void)close (fd);
+
+	/* Opens pidfile */
+	fd = open_pidfile (pidfile);
+	if (fd == -1)
+	{
+		fprintf (stderr, _("Cannot create PID file %s:\n %s\n"),
+		         pidfile, strerror (errno));
+		if (errno == EAGAIN)
+			fputs (_("Another instance of the program is probably already "
+			         "running.\n"), stderr);
+		return -1;
+	}
+
+	if (fd < 3)
+	{
+		close (fd);
+		/*
+		 * Abnormal condition (either stdin, stdout and/or stderr are not
+		 * open). The PID file might get corrupted while writing to stderr.
+		 */
+		return -1;
+	}
+	/* NOTE: if needed, we can assume that (fd == 3) */
 
 	/* Determines unpriviledged user */
 	errno = 0;
@@ -361,6 +373,8 @@ init_security (const char *username, int nodetach)
 		return -1;
 	}
 
+	(void)write_pid (fd);
+
 	return 0;
 }
 
@@ -373,7 +387,8 @@ init_security (const char *username, int nodetach)
 int
 main (int argc, char *argv[])
 {
-	const char *username = NULL, *conffile = NULL, *servername = NULL;
+	const char *username = NULL, *conffile = NULL, *servername = NULL,
+	           *pidfile = NULL;
 	struct
 	{
 		unsigned foreground:1; /* Run in the foreground */
@@ -391,7 +406,7 @@ main (int argc, char *argv[])
 		{ NULL,         no_argument,       NULL, '\0'}
 	};
 
-	int c;
+	int c, fd;
 
 	setlocale (LC_ALL, "");
 	bindtextdomain (PACKAGE, LOCALEDIR);
@@ -487,29 +502,23 @@ main (int argc, char *argv[])
 
 	extern int miredo_diagnose (void);
 
-	if (miredo_diagnose () || init_security (username, flags.foreground))
-		return 1;
-
-	/*
-	 * I purposedly don't check create_pidfile for error.
-	 * If the sysadmin fails to setup a directory properly for the
-	 * pidfile, I'd rather make its initscript's stop function
-	 * fail than deny the service completely.
-	 */
-	 if (pidfile == NULL)
-	 {
-	 	extern const char *const default_pidfile;
-	 	pidfile = default_pidfile;
+	if (pidfile == NULL)
+	{
+		extern const char *const default_pidfile;
+		pidfile = default_pidfile;
 	}
 
-	(void)create_pidfile ();
+	if (miredo_diagnose ()
+	 || init_daemon (username, pidfile, flags.foreground))
+		return 1;
 
 	/*
 	 * Run
 	 */
 	c = miredo (conffile, servername);
 
-	(void)remove_pidfile ();
+	close_pidfile (fd);
+	(void)unlink (pidfile);
 
 	return c ? 1 : 0;
 }
