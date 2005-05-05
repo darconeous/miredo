@@ -44,9 +44,9 @@ class /*sealed*/ TeredoServer
 		TeredoServerUDP sock;
 		int fd; // raw IPv6 socket
 
-		int ProcessPacket (TeredoPacket& packet, bool secondary);
-		int SendRA (const TeredoPacket& p, const struct in6_addr *dest_ip6,
-		            bool use_secondary_ip) const;
+		bool ProcessPacket (TeredoPacket& packet, bool secondary);
+		bool SendRA (const TeredoPacket& p, const struct in6_addr *dest_ip6,
+		             bool use_secondary_ip) const;
 
 	public:
 		TeredoServer (uint32_t ip1, uint32_t ip2);
@@ -85,6 +85,8 @@ class /*sealed*/ TeredoServer
 		{
 			return sock.RegisterReadSet (rs);
 		}
+
+		static bool CheckSystem (char *errmsg, size_t len);
 };
 
 #endif /* ifndef MIREDO_SERVER_H */

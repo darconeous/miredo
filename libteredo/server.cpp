@@ -23,6 +23,8 @@
 # include <config.h>
 #endif
 
+#include <gettext.h>
+
 #include <stddef.h>
 #include <string.h> /* memcpy(), memset() */
 #if HAVE_STDINT_H
@@ -30,6 +32,9 @@
 #elif HAVE_INTTYPES_H
 # include <inttypes.h>
 #endif
+
+#include <errno.h> // errno
+#include <stdio.h> // snprintf()
 
 #include <sys/types.h>
 #include <unistd.h> // close()
@@ -96,7 +101,7 @@ icmp6_checksum (const struct ip6_hdr *ip6, const struct icmp6_hdr *icmp6)
  * Sends a Teredo-encapsulated Router Advertisement.
  * Returns -1 on error, 0 on success.
  */
-int
+bool
 TeredoServer::SendRA (const TeredoPacket& p, const struct in6_addr *dest_ip6,
                       bool use_secondary_ip) const
 {
@@ -212,13 +217,13 @@ TeredoServer::SendRA (const TeredoPacket& p, const struct in6_addr *dest_ip6,
 		use_secondary_ip = !use_secondary_ip;
 
 	return sock.SendPacket (packet, ptr - packet, p.GetClientIP (),
-	                        p.GetClientPort (), use_secondary_ip);
+	                        p.GetClientPort (), use_secondary_ip) == 0;
 }
 
 /*
  * Forwards a Teredo packet to a client
  */
-static int
+static bool
 ForwardUDPPacket (const TeredoServerUDP& sock, const TeredoPacket& packet,
                   bool insert_orig = true)
 {
@@ -260,16 +265,15 @@ ForwardUDPPacket (const TeredoServerUDP& sock, const TeredoPacket& packet,
 
 	memcpy (buf + offset, p, length);
 	return sock.SendPacket (buf, length + offset, dest_ip,
-	                        ~dst.teredo.client_port);
+	                        ~dst.teredo.client_port) == 0;
 }
 
 
-#include <syslog.h>
 /*
  * Sends an IPv6 packet of *payload* length <plen> with a raw IPv6 socket.
  * Returns 0 on success, -1 on error.
  */
-static int
+static bool
 SendIPv6Packet (int fd, const void *p, size_t plen)
 {
 	struct sockaddr_in6 dst;
@@ -283,8 +287,8 @@ SendIPv6Packet (int fd, const void *p, size_t plen)
 	        sizeof (dst.sin6_addr));
 	plen += sizeof (struct ip6_hdr);
 
-	return (sendto (fd, p, plen, 0, (struct sockaddr *)&dst, sizeof (dst))
-			== (int)plen) ? 0 : -1;
+	return sendto (fd, p, plen, 0, (struct sockaddr *)&dst, sizeof (dst))
+			== (int)plen;
 }
 
 
@@ -296,12 +300,12 @@ static const struct in6_addr in6addr_allrouters =
  * Thread-safety note: Prefix and AdvLinkMTU might be changed by another
  * thread
  */
-int
+bool
 TeredoServer::ProcessPacket (TeredoPacket& packet, bool secondary)
 {
 	// Teredo server case number 3
 	if (!is_ipv4_global_unicast (packet.GetClientIP ()))
-		return 0;
+		return true;
 
 	// Check IPv6 packet (Teredo server check number 1)
 	size_t ip6len;
@@ -315,7 +319,7 @@ TeredoServer::ProcessPacket (TeredoPacket& packet, bool secondary)
 
 	if (((ip6.ip6_vfc >> 4) != 6)
 	 || (ntohs (ip6.ip6_plen) != ip6len))
-		return 0; // not an IPv6 packet
+		return true; // not an IPv6 packet
 
 	const uint8_t *upper = buf + sizeof (ip6);
 	// NOTE: upper is not aligned, read single bytes only
@@ -324,7 +328,7 @@ TeredoServer::ProcessPacket (TeredoPacket& packet, bool secondary)
 	uint8_t proto = ip6.ip6_nxt;
 	if ((proto != IPPROTO_NONE || ip6len > 0) // neither a bubble...
 	 && proto != IPPROTO_ICMPV6) // nor an ICMPv6 message
-		return 0; // packet not allowed through server
+		return true; // packet not allowed through server
 
 	// Teredo server case number 4
 	if (IN6_IS_ADDR_LINKLOCAL(&ip6.ip6_src)
@@ -344,7 +348,7 @@ TeredoServer::ProcessPacket (TeredoPacket& packet, bool secondary)
 		if (!IN6_MATCHES_TEREDO_CLIENT (&ip6.ip6_src,
 						packet.GetClientIP (),
 						packet.GetClientPort ()))
-			return 0; // case 7
+			return true; // case 7
 
 		// Teredo server case number 5
 		/*
@@ -356,7 +360,7 @@ TeredoServer::ProcessPacket (TeredoPacket& packet, bool secondary)
 		// Ensures that the packet destination has a global scope
 		// (ie 2000::/3) - as specified.
 		if ((ip6.ip6_dst.s6_addr[0] & 0xe0) != 0x20)
-			return 0; // must be discarded
+			return true; // must be discarded
 
 		if (IN6_TEREDO_PREFIX(&ip6.ip6_dst) != myprefix)
 			return SendIPv6Packet (fd, buf, ip6len);
@@ -371,7 +375,7 @@ TeredoServer::ProcessPacket (TeredoPacket& packet, bool secondary)
 		// Source address is not Teredo
 		if (IN6_TEREDO_PREFIX (&ip6.ip6_dst) != myprefix
 		  || IN6_TEREDO_SERVER (&ip6.ip6_dst) != GetServerIP ())
-			return 0; // case 7
+			return true; // case 7
 
 		// Teredo server case number 6
 	}
@@ -402,7 +406,7 @@ TeredoServer::TeredoServer (uint32_t ip1, uint32_t ip2)
 {
 	sock.ListenIP (ip1, ip2);
 
-	fd = socket (AF_INET6, SOCK_RAW, IPPROTO_RAW);
+	fd = socket (PF_INET6, SOCK_RAW, IPPROTO_RAW);
 	if (fd != -1)
 		shutdown (fd, SHUT_RD);
 }
@@ -412,4 +416,21 @@ TeredoServer::~TeredoServer (void)
 {
 	if (fd != -1)
 		close (fd);
+}
+
+
+bool
+TeredoServer::CheckSystem (char *errmsg, size_t len)
+{
+	int fd = socket (PF_INET6, SOCK_RAW, IPPROTO_RAW);
+
+	if (fd >= 0)
+	{
+		close (fd);
+		return true;
+	}
+
+	snprintf (errmsg, len, _("Raw IPv6 sockets not working: %s\n"),
+	          strerror (errno));
+	return false;
 }

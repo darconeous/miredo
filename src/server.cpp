@@ -52,7 +52,14 @@ extern "C" const char *const pidfile = MIREDO_PIDFILEDIR"/miredo-server.pid";
 extern "C" int
 miredo_diagnose (void)
 {
-	return 0;
+	char buf[1024];
+	bool check = TeredoServer::CheckSystem (buf, sizeof (buf));
+	if (!check)
+	{
+		buf[sizeof (buf) - 1] = '\0';
+		fputs (buf, stderr);
+	}
+	return check ? 0 : -1;
 }
 
 /*
