@@ -247,8 +247,9 @@ init_daemon (const char *username, const char *pidfile, int nodetach)
 		fprintf (stderr, _("Cannot create PID file %s:\n %s\n"),
 		         pidfile, strerror (errno));
 		if (errno == EAGAIN)
-			fputs (_("Another instance of the program is probably already "
-			         "running.\n"), stderr);
+			fprintf (stderr, "%s\n",
+			         _("Make sure another instance of the program is not "
+			           "already running."));
 		return -1;
 	}
 
@@ -406,7 +407,7 @@ main (int argc, char *argv[])
 		{ NULL,         no_argument,       NULL, '\0'}
 	};
 
-	int c, fd;
+	int c;
 
 	setlocale (LC_ALL, "");
 	bindtextdomain (PACKAGE, LOCALEDIR);
@@ -517,7 +518,7 @@ main (int argc, char *argv[])
 	 */
 	c = miredo (conffile, servername);
 
-	close_pidfile (fd);
+	close_pidfile (3);
 	(void)unlink (pidfile);
 
 	return c ? 1 : 0;
