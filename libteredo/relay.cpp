@@ -958,11 +958,11 @@ asyncsafe_sleep (unsigned sec)
 void TeredoRelay::MaintenanceThread (void)
 {
 	bool cone = true;
+	unsigned count = 0;
 
 	// TODO: regenerate nonce from time to time
 	pthread_mutex_lock (&maintenance.lock);
 	GenerateNonce (maintenance.nonce, true);
-	maintenance.count = 0;
 	/* done in constructor -- maintenance.state = PROBE_CONE;*/
 
 	/*
@@ -970,7 +970,7 @@ void TeredoRelay::MaintenanceThread (void)
 	 */
 	while (1)
 	{
-		if ((maintenance.state == 0) && (maintenance.count == 0))
+		if ((maintenance.state == 0) && (count == 0))
 		{
 			pthread_mutex_unlock (&maintenance.lock);
 
@@ -999,13 +999,13 @@ void TeredoRelay::MaintenanceThread (void)
 			if (maintenance.state == PROBE_SYMMETRIC)
 				maintenance.state = PROBE_RESTRICT;
 			else
-				maintenance.count++;
+				count++;
 
-			if (maintenance.count >= QualificationRetries)
+			if (count >= QualificationRetries)
 			{
 				bool down = (maintenance.state == 0);
 
-				maintenance.count = 0;
+				count = 0;
 				if (maintenance.state == PROBE_CONE)
 				{
 					maintenance.state = PROBE_RESTRICT;
@@ -1036,7 +1036,7 @@ void TeredoRelay::MaintenanceThread (void)
 			 && maintenance.symmetric)
 			{
 				/* FAIL */
-				maintenance.count = 0;
+				count = 0;
 				maintenance.state = PROBE_CONE;
 
 				/* Sleep five minutes */
@@ -1054,7 +1054,7 @@ void TeredoRelay::MaintenanceThread (void)
 			{
 				syslog (LOG_INFO, _("Qualified (NAT type: %s)"),
 				        gettext (cone ? N_("cone") : N_("restricted")));
-				maintenance.count = 0;
+				count = 0;
 				maintenance.state = 0;
 				// FIXME: do this in the main thread
 				// FIXME: ensure that is completed before the main thread continue works

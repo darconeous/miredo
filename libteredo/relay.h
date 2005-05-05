@@ -64,12 +64,11 @@ class TeredoRelay
 		{
 			pthread_t thread;
 			pthread_mutex_t lock;
-
-			uint8_t nonce[8];
 			pthread_cond_t received;
 
+			uint8_t nonce[8];
+
 			unsigned state;
-			unsigned count;
 			bool symmetric;
 			bool working;
 		} maintenance;
