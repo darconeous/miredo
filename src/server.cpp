@@ -78,6 +78,7 @@ teredo_server (int fd, TeredoServer *server)
 		FD_ZERO (&readset);
 		FD_SET(fd, &readset);
 
+		// FIXME : move this to libteredo
 		int val = server->RegisterReadSet (&readset);
 		int maxfd = (val > fd) ? val : fd;
 
@@ -125,6 +126,7 @@ miredo_run (int fd, MiredoConf& conf, const char *server_name)
 	if (server_ip == INADDR_ANY)
 	{
 		syslog (LOG_ALERT, _("Server address not specified"));
+		syslog (LOG_ALERT, _("Fatal configuration error"));
 		return -2;
 	}
 
@@ -156,7 +158,7 @@ miredo_run (int fd, MiredoConf& conf, const char *server_name)
 	}
 	catch (...)
 	{
-		syslog (LOG_ALERT, _("Teredo server failure"));
+		syslog (LOG_ALERT, _("Teredo server fatal error"));
 		return -1;
 	}
 
@@ -164,7 +166,7 @@ miredo_run (int fd, MiredoConf& conf, const char *server_name)
 
 	if (!*server)
 	{
-		syslog (LOG_ALERT, _("Teredo UDP port failure"));
+		syslog (LOG_ALERT, _("Teredo server fatal error"));
 		syslog (LOG_NOTICE, _("Make sure another instance "
 		        "of the program is not already running."));
 		goto abort;

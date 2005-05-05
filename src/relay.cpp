@@ -246,6 +246,7 @@ miredo_run (int sigfd, MiredoConf& conf, const char *server_name)
 			{
 				syslog (LOG_ALERT, _("Invalid server hostname \"%s\": %s"),
 				        server_name, gai_strerror (check));
+				syslog (LOG_ALERT, _("Fatal configuration error"));
 				return -2;
 			}
 		}
@@ -262,6 +263,7 @@ miredo_run (int sigfd, MiredoConf& conf, const char *server_name)
 		if (server_ip == INADDR_ANY)
 		{
 			syslog (LOG_ALERT, _("Server address not specified"));
+			syslog (LOG_ALERT, _("Fatal configuration error"));
 			return -2;
 		}
 
@@ -276,6 +278,7 @@ miredo_run (int sigfd, MiredoConf& conf, const char *server_name)
 			server_ip2 = htonl (ntohl (server_ip) + 1);
 #else
 		syslog (LOG_ALERT, _("Unsupported Teredo client mode"));
+		syslog (LOG_ALERT, _("Fatal configuration error"));
 		return -2;
 #endif
 	}
@@ -291,17 +294,13 @@ miredo_run (int sigfd, MiredoConf& conf, const char *server_name)
 		}
 	}
 
-	if (!ParseIPv4 (conf, "BindAddress", &bind_ip))
+	if (!ParseIPv4 (conf, "BindAddress", &bind_ip)
+	 || !conf.GetInt16 ("BindPort", &bind_port))
 	{
-		syslog (LOG_ALERT, _("Fatal bind IPv4 address error"));
+		syslog (LOG_ALERT, _("Fatal configuration error"));
 		return -2;
 	}
 
-	if (!conf.GetInt16 ("BindPort", &bind_port))
-	{
-		syslog (LOG_ALERT, _("Fatal bind UDP port error"));
-		return -2;
-	}
 	bind_port = htons (bind_port);
 
 	ifname = conf.GetRawValue ("InterfaceName");
@@ -336,8 +335,9 @@ miredo_run (int sigfd, MiredoConf& conf, const char *server_name)
 
 	if (!tunnel)
 	{
-		syslog (LOG_ALERT, _("Teredo tunnel setup failed:\n %s"),
-				_("You should be root to do that."));
+		syslog (LOG_ALERT, _("Teredo tunnel fatal error"));
+		syslog (LOG_NOTICE, _("Make sure another instance of the program is "
+		                      "not already running."));
 		return -1;
 	}
 
@@ -355,7 +355,7 @@ miredo_run (int sigfd, MiredoConf& conf, const char *server_name)
 		fd = miredo_privileged_process (tunnel, default_route);
 		if (fd == -1)
 		{
-			syslog (LOG_ALERT, _("Privileged process setup failed: %m"));
+			syslog (LOG_ALERT, "%s: %m", _("Teredo tunnel fatal error"));
 			goto abort;
 		}
 	}
@@ -367,8 +367,7 @@ miredo_run (int sigfd, MiredoConf& conf, const char *server_name)
 		 			? &teredo_restrict : &teredo_cone)
 		 || tunnel.AddRoute (&prefix.ip6, 32))
 		{
-			syslog (LOG_ALERT, _("Teredo routing failed:\n %s"),
-			        _("You should be root to do that."));
+			syslog (LOG_ALERT, _("Teredo tunnel fatal error"));
 			goto abort;
 		}
 	}
@@ -407,22 +406,21 @@ miredo_run (int sigfd, MiredoConf& conf, const char *server_name)
 
 	if (relay == NULL)
 	{
-		syslog (LOG_ALERT, _("Teredo service failure"));
+		syslog (LOG_ALERT, _("Teredo tunnel fatal error"));
 		goto abort;
 	}
 
 	if (!*relay)
 	{
+		const char *msg = _("Teredo tunnel fatal error");
 		if (bind_port)
-			syslog (LOG_ALERT, _("Teredo service port failure: "
-			        "cannot open UDP port %u"),
+			syslog (LOG_ALERT, _("%s:\n cannot open UDP port %u"), msg,
 			        (unsigned int)ntohs (bind_port));
 		else
-			syslog (LOG_ALERT, _("Teredo service port failure: "
-			        "cannot open an UDP port"));
+			syslog (LOG_ALERT, _("%s:\n cannot open an UDP port"), msg);
 
-		syslog (LOG_NOTICE, _("Make sure another instance "
-		        "of the program is not already running."));
+		syslog (LOG_NOTICE, _("Make sure another instance of the program is "
+		                      "not already running."));
 		goto abort;
 	}
 
