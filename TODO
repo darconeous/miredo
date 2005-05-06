@@ -14,7 +14,7 @@ Features:
 (H) other localizations,
 (*) fix bubble retransmit / timing,
 (!) fix possible race conditions between NotifyDown/NotifyUp
-    and ReceivePacket/SendPacket
+    and ReceivePacket/SendPacket,
 ( ) take failure to send UDP packets into account,
 (*) external control program for scripting,
 (*) some statistics,
@@ -37,7 +37,6 @@ Conformance:
 
 Performance/scalibility:
 -------------------------
-(!) ensure non-blocking while sending packets in server
 ( ) faster peer lists lookups/updates,
 ( ) multi-threading in relay/client (will help other things a lot)
 

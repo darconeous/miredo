@@ -42,6 +42,7 @@
 #include <netinet/in.h> // struct in6_addr
 #include <netinet/ip6.h> // struct ip6_hdr
 #include <netinet/icmp6.h>
+#include <fcntl.h>
 
 #include <libteredo/server-udp.h>
 #include <libteredo/server.h>
@@ -408,7 +409,12 @@ TeredoServer::TeredoServer (uint32_t ip1, uint32_t ip2)
 
 	fd = socket (PF_INET6, SOCK_RAW, IPPROTO_RAW);
 	if (fd != -1)
+	{
+		int flags = fcntl (fd, F_GETFL, 0);
 		shutdown (fd, SHUT_RD);
+		if (flags != -1)
+			fcntl (fd, F_SETFL, O_NONBLOCK | flags);
+	}
 }
 
 
