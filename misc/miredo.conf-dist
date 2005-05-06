@@ -53,6 +53,20 @@ InterfaceName	teredo
 #SyslogFacility user
 
 #
+# Whether to ignore Teredo peers cone bit
+#
+# If this parameter is enabled, commnunication with all Teredo clients
+# will be handled as if they were behind a restricted NAT, even if they
+# supposedly aren't. That is supposed to improve reliability at the
+# cost of a bit more UDP traffic and longer latencies when first
+# contacting a given Teredo client.
+#
+# Defaults: IgnoreConeBit true
+# Example:  IgnoreConeBit false
+#
+#IgnoreConeBit false
+
+#
 # CLIENT & RELAY PARAMETERS
 #
 
