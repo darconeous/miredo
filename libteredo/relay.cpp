@@ -916,18 +916,31 @@ int TeredoRelay::ProcessQualificationPacket (const TeredoPacket *packet)
 	/* Valid router advertisement received! */
 	pthread_cond_signal (&maintenance.received);
 
-	if (maintenance.state == PROBE_SYMMETRIC)
+	switch (maintenance.state)
 	{
-		maintenance.symmetric =
-			 ((addr.teredo.client_port != newaddr.teredo.client_port)
-			  || (addr.teredo.client_ip != newaddr.teredo.client_ip));
+		case PROBE_SYMMETRIC:
+			maintenance.success =
+				(addr.teredo.client_port == newaddr.teredo.client_port)
+				&& (addr.teredo.client_ip == newaddr.teredo.client_ip);
+			if (!maintenance.success)
+				syslog (LOG_ERR, _("Unsupported symmetric NAT detected."));
+			break;
+
+		case PROBE_RESTRICT:
+			maintenance.success = false;
+			break;
+
+		case PROBE_CONE:
+			maintenance.success = true;
 	}
 
-	/* 
-	 * newaddr (and mtu) must be copied before the lock is released,
-	 * so that it is OK to call NotifyUp from the maintenance thread.
-	 */
 	memcpy (&addr, &newaddr, sizeof (addr));
+
+	if (maintenance.success && NotifyUp (&addr.ip6, mtu))
+	{
+		syslog (LOG_ERR, _("Teredo tunnel setup failure"));
+		maintenance.success = false;
+	}
 	pthread_mutex_unlock (&maintenance.lock);
 
 	return 0;
@@ -1033,10 +1046,12 @@ void TeredoRelay::MaintenanceThread (void)
 				{
 					pthread_mutex_unlock (&maintenance.lock);
 					syslog (LOG_NOTICE, _("Lost Teredo connectivity"));
+					// FIXME: some tunnel implementations might not handle
+					// asynchronous NotifyDown properly
 					NotifyDown ();
 
-					/* Sleep five minutes */
-					asyncsafe_sleep (RestartDelay);
+					/* Sleep some time */
+					asyncsafe_sleep (SERVER_PING_DELAY);
 					pthread_mutex_lock (&maintenance.lock);
 				}
 			}
@@ -1044,18 +1059,12 @@ void TeredoRelay::MaintenanceThread (void)
 		else
 		if (maintenance.state)
 		{
-			if ((maintenance.state == PROBE_SYMMETRIC)
-			 && maintenance.symmetric)
+			if (maintenance.success)
 			{
-				/* FAIL */
+				syslog (LOG_INFO, _("Qualified (NAT type: %s)"),
+				        gettext (cone ? N_("cone") : N_("restricted")));
 				count = 0;
-				maintenance.state = PROBE_CONE;
-
-				/* Sleep five minutes */
-				pthread_mutex_unlock (&maintenance.lock);
-				syslog (LOG_ERR, _("Unsupported symmetric NAT detected."));
-				asyncsafe_sleep (RestartDelay);
-				pthread_mutex_lock (&maintenance.lock);
+				maintenance.state = 0;
 			}
 			else
 			if (maintenance.state == PROBE_RESTRICT)
@@ -1064,14 +1073,14 @@ void TeredoRelay::MaintenanceThread (void)
 			}
 			else
 			{
-				syslog (LOG_INFO, _("Qualified (NAT type: %s)"),
-				        gettext (cone ? N_("cone") : N_("restricted")));
+				/* FAIL */
 				count = 0;
-				maintenance.state = 0;
-				// FIXME: do this in the main thread
-				// FIXME: ensure that is completed before the main thread continue works
-				// FIXME: prevent possible maintenance.lock dead locking
-				NotifyUp (&addr.ip6, mtu);
+				maintenance.state = PROBE_CONE;
+
+				/* Sleep five minutes */
+				pthread_mutex_unlock (&maintenance.lock);
+				asyncsafe_sleep (RestartDelay);
+				pthread_mutex_lock (&maintenance.lock);
 			}
 		}
 	}

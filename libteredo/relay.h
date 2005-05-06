@@ -70,7 +70,7 @@ class TeredoRelay
 			uint8_t nonce[8];
 
 			unsigned state;
-			bool symmetric;
+			bool success;
 			bool working;
 		} maintenance;
 

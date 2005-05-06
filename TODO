@@ -13,8 +13,6 @@ Features:
 ----------
 (H) other localizations,
 (*) fix bubble retransmit / timing,
-(!) fix possible race conditions between NotifyDown/NotifyUp
-    and ReceivePacket/SendPacket,
 ( ) take failure to send UDP packets into account,
 (*) external control program for scripting,
 (*) some statistics,
