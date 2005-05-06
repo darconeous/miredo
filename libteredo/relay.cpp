@@ -938,7 +938,7 @@ int TeredoRelay::ProcessQualificationPacket (const TeredoPacket *packet)
 
 	if (maintenance.success && NotifyUp (&addr.ip6, mtu))
 	{
-		syslog (LOG_ERR, _("Teredo tunnel setup failure"));
+		syslog (LOG_ERR, _("Teredo tunnel fatal error"));
 		maintenance.success = false;
 	}
 	pthread_mutex_unlock (&maintenance.lock);
