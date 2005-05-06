@@ -53,6 +53,7 @@ class TeredoRelay
 		class peer *head;
 
 		TeredoRelayUDP sock;
+		bool allowCone;
 
 		peer *AllocatePeer (const struct in6_addr *addr);
 		peer *FindPeer (const struct in6_addr *addr);
@@ -175,6 +176,10 @@ class TeredoRelay
 		{
 			return server_ip2;
 		}
+
+		static unsigned QualificationRetries;
+		static unsigned QualificationTimeOut;
+		static unsigned RestartDelay;
 #endif
 
 		/*
@@ -225,15 +230,15 @@ class TeredoRelay
 			;
 		}
 
+		void SetConeIgnore (bool ignore = true)
+		{
+			allowCone = !ignore;
+		}
 
 		int RegisterReadSet (fd_set *rs) const
 		{
 			return sock.RegisterReadSet (rs);
 		}
-
-		static unsigned QualificationRetries;
-		static unsigned QualificationTimeOut;
-		static unsigned RestartDelay;
 };
 
 #endif /* ifndef MIREDO_RELAY_H */
