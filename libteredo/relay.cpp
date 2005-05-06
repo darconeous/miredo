@@ -955,15 +955,17 @@ unsigned TeredoRelay::QualificationTimeOut = 4; // seconds
 unsigned TeredoRelay::QualificationRetries = 3;
 unsigned TeredoRelay::RestartDelay = 300; // seconds
 
+unsigned TeredoRelay::ServerNonceLifetime = 3600; // seconds
+
 
 void TeredoRelay::MaintenanceThread (void)
 {
 	bool cone = true;
 	unsigned count = 0;
+	struct timeval nonce_death = { 0, 0 };
 
-	// TODO: regenerate nonce from time to time
 	pthread_mutex_lock (&maintenance.lock);
-	GenerateNonce (maintenance.nonce, true);
+
 	/* done in constructor -- maintenance.state = PROBE_CONE;*/
 
 	/*
@@ -976,9 +978,21 @@ void TeredoRelay::MaintenanceThread (void)
 			pthread_mutex_unlock (&maintenance.lock);
 
 			// TODO: randomize refresh interval
+			// FIXME: wait for an absolute time rather than a delay (?)
 			asyncsafe_sleep (SERVER_PING_DELAY);
 
 			pthread_mutex_lock (&maintenance.lock);
+		}
+
+		struct timeval now;
+		gettimeofday (&now, NULL);
+		if (now.tv_sec > nonce_death.tv_sec)
+		{
+			/* The lifetime of the nonce is not critical
+			 => no need to check tv_usec */
+			GenerateNonce (maintenance.nonce, true);
+			gettimeofday (&nonce_death, NULL);
+			nonce_death.tv_sec += ServerNonceLifetime;
 		}
 
 		SendRS (sock, maintenance.state == PROBE_RESTRICT /* secondary */
@@ -986,12 +1000,9 @@ void TeredoRelay::MaintenanceThread (void)
 		        maintenance.nonce, cone);
 
 		struct timespec deadline;
-		{
-			struct timeval tv;
-			gettimeofday (&tv, NULL);
-			deadline.tv_sec = tv.tv_sec + QualificationTimeOut;
-			deadline.tv_nsec = tv.tv_usec * 1000;
-		}
+		gettimeofday (&now, NULL);
+		deadline.tv_sec = now.tv_sec + QualificationTimeOut;
+		deadline.tv_nsec = now.tv_usec * 1000;
 
 		if (pthread_cond_timedwait (&maintenance.received, &maintenance.lock,
 		                            &deadline))

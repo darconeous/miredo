@@ -29,6 +29,10 @@ BETA RELEASE 0.4.4 :
 
 # Fix for infinite loop in client when processing advertisement from server
   (also backported in release 0.4.3).
+# Finally implemented correct Teredo maintenance procedure / qualification
+  and connectivity loss detection (which is now quicker).
+# Regenerate server authentication token ("nonce") every hour for increased
+  security.
 # Limit ICMPv6 Echo Requests sent to 3 per peer every 30 seconds.
 # Safe work-around to reach peers that rejects ICMPv6 Echo Reques.ts
 # Support for MTU setting (in server and relay),
