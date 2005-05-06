@@ -1,5 +1,5 @@
 RELEASE NOTES for Miredo
-version 0.4.2 (beta version)
+version 0.5.0 (beta version)
 =============================
 $Id$
 
@@ -25,7 +25,7 @@ changes, run 'miredo -h' to get help. For detailled internal changes, see
 ChangeLog.
 
 =============================================================================
-BETA RELEASE 0.4.4 :
+BETA RELEASE 0.5.0 : Major feature enhancement
 
 # Fix for infinite loop in client when processing advertisement from server
   (also backported in release 0.4.3).
@@ -39,6 +39,7 @@ BETA RELEASE 0.4.4 :
   clients now gets MTU setting from server.
 # Support for changing Teredo server's secondary address (ServerAddress2
   and ServerBindAddress2 directives).
+# Fix a minor race condition when the Teredo tunnel is brought up.
 
 # Teredo server support separated : it is now provided by a separate binary
   "miredo-server", that reads its configuration from "miredo-server.conf".
