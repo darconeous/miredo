@@ -289,9 +289,8 @@ init_daemon (const char *username, const char *pidfile, int nodetach)
 		fputs (_("Error: This program is not supposed to keep root\n"
 			"privileges. That is potentially very dangerous\n"
 			"(all the more as it is beta quality code that has\n"
-			"never been audited for security vulnerabilities).\n"
-			"Besides, it does not even work properly when root\n"
-			"privileges are kept.\n"), stderr);
+			"never been audited for security vulnerabilities).\n"),
+			stderr);
 		return -1;
 	}
 
@@ -326,11 +325,14 @@ init_daemon (const char *username, const char *pidfile, int nodetach)
 #ifdef HAVE_LIBCAP
 	{
 		cap_t s;
+		// TODO: keep CAP_NET_ADMIN in miredo only
+		//   and keep CAP_NET_RAW in miredo-server only
 		cap_value_t v[] =
 		{
 			CAP_SYS_CHROOT,
 			CAP_SETUID,
-			CAP_NET_ADMIN
+			CAP_NET_ADMIN,
+			CAP_NET_RAW
 		};
 
 		s = cap_init ();
@@ -341,8 +343,8 @@ init_daemon (const char *username, const char *pidfile, int nodetach)
 			return -1;
 		}
 
-		if (cap_set_flag (s, CAP_PERMITTED, 3, v, CAP_SET)
-		 || cap_set_flag (s, CAP_EFFECTIVE, 3, v, CAP_SET))
+		if (cap_set_flag (s, CAP_PERMITTED, sizeof(v)/sizeof(*v), v, CAP_SET)
+		 || cap_set_flag (s, CAP_EFFECTIVE, sizeof(v)/sizeof(*v), v, CAP_SET))
 		{
 			/* Unlikely */
 			perror (_("Fatal error"));

@@ -25,6 +25,11 @@ changes, run 'miredo -h' to get help. For detailled internal changes, see
 ChangeLog.
 
 =============================================================================
+BETA RELEASE 0.5.1 : ??????????????????????
+
+# Fix use of POSIX capabilities with miredo-server.
+
+=============================================================================
 BETA RELEASE 0.5.0 : Major feature enhancement
 
 # Fix for infinite loop in client when processing advertisement from server
