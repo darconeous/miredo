@@ -218,6 +218,7 @@ miredo_run (int sigfd, MiredoConf& conf, const char *server_name)
 	uint32_t server_ip = INADDR_ANY, server_ip2 = INADDR_ANY;
 	bool default_route = true;
 #endif
+	bool ignore_cone = true;
 
 	/*
 	 * CONFIGURATION
@@ -295,7 +296,8 @@ miredo_run (int sigfd, MiredoConf& conf, const char *server_name)
 	}
 
 	if (!ParseIPv4 (conf, "BindAddress", &bind_ip)
-	 || !conf.GetInt16 ("BindPort", &bind_port))
+	 || !conf.GetInt16 ("BindPort", &bind_port)
+	 || !conf.GetBoolean ("IgnoreConeBit", &ignore_cone))
 	{
 		syslog (LOG_ALERT, _("Fatal configuration error"));
 		return -2;
@@ -423,6 +425,8 @@ miredo_run (int sigfd, MiredoConf& conf, const char *server_name)
 		                      "not already running."));
 		goto abort;
 	}
+
+	relay->SetConeIgnore (ignore_cone);
 
 	retval = 0;
 	teredo_relay (sigfd, tunnel, relay);
