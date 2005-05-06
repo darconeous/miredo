@@ -1,5 +1,5 @@
 /*
- * relay.cpp - Teredo relay peers list definition
+ * relay.cpp - Teredo relay core
  * $Id$
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
@@ -51,6 +51,7 @@
 #include "security.h"
 #include "queue.h"
 #include <libteredo/relay.h>
+#include "peerlist.h"
 
 #define TEREDO_TIMEOUT 30 // seconds
 
@@ -58,134 +59,7 @@
 #define PREFIX_UNSET 0xffffffff
 
 
-#define MAXQUEUE 1280 // bytes
-
-
-/*
- * Queueng of packets from the IPv6 toward Teredo
- */
-class TeredoRelay::OutQueue : public PacketsQueue
-{
-	private:
-		TeredoRelayUDP *sock;
-		uint32_t addr;
-		uint16_t port;
-
-		virtual int SendPacket (const void *p, size_t len)
-		{
-			return sock->SendPacket (p, len, addr, port);
-		}
-
-	public:
-		OutQueue (TeredoRelayUDP *s) : PacketsQueue (MAXQUEUE),
-					       sock (s)
-		{
-		}
-
-		void SetMapping (uint32_t mapped_addr, uint16_t mapped_port)
-		{
-			addr = mapped_addr;
-			port = mapped_port;
-		}
-};
-
-/*
- * Queueing of packets from Teredo toward the IPv6
- */
-class TeredoRelay::InQueue : public PacketsQueue
-{
-	private:
-		TeredoRelay *relay;
-
-		virtual int SendPacket (const void *p, size_t len)
-		{
-			return relay->SendIPv6Packet (p, len);
-		}
-
-	public:
-		InQueue (TeredoRelay *r) : PacketsQueue (MAXQUEUE), relay (r)
-		{
-		}
-};
-
-
-
-class TeredoRelay::peer
-{
-	private:
-		struct timeval expiry;
-
-	public:
-		OutQueue outqueue;
-		InQueue inqueue;
-
-		peer (TeredoRelayUDP *sock, TeredoRelay *r)
-			: outqueue (sock), inqueue (r)
-		{
-		}
-		
-		peer *next;
-
-		struct in6_addr addr;
-		uint32_t mapped_addr;
-		uint16_t mapped_port;
-		union
-		{
-			struct
-			{
-				unsigned trusted:1;
-				unsigned replied:1;
-				unsigned bubbles:2;
-				unsigned pings:2;
-				unsigned nonce:1; // mapped_* unset, nonce set
-				unsigned dummy:9;
-			} flags;
-			uint16_t all_flags;
-		} flags;
-		// TODO: nonce and mapped_* could be union-ed
-		uint8_t nonce[8]; /* only for client toward non-client */
-
-	private:
-		void Touch (void)
-		{
-			gettimeofday (&expiry, NULL);
-			expiry.tv_sec += TEREDO_TIMEOUT;
-		}
-
-	public:
-		void SetMapping (uint32_t ip, uint16_t port)
-		{
-			mapped_addr = ip;
-			mapped_port = port;
-			outqueue.SetMapping (ip, port);
-		}
-
-		void SetMappingFromPacket (const TeredoPacket& p)
-		{
-			SetMapping (p.GetClientIP (), p.GetClientPort ());
-		}
-
-		void TouchReceive (void)
-		{
-			flags.flags.replied = 1;
-			Touch ();
-		}
-
-		void TouchTransmit (void)
-		{
-			if (flags.flags.replied == 0)
-				Touch ();
-		}
-
-		bool IsExpired (const struct timeval& now) const
-		{
-			return ((signed)(now.tv_sec - expiry.tv_sec) > 0)
-			     || ((now.tv_sec == expiry.tv_sec)
-			      && (now.tv_usec >= expiry.tv_usec));
-		}
-};
-
-
+/* FIXME: remove */
 #define PROBE_CONE	1
 #define PROBE_RESTRICT	2
 #define PROBE_SYMMETRIC	3
@@ -205,7 +79,7 @@ TeredoRelay::TeredoRelay (uint32_t pref, uint16_t port, uint32_t ipv4,
 
 	sock.ListenPort (port, ipv4);
 #ifdef MIREDO_TEREDO_CLIENT
-	maintenance.state = QUALIFIED;
+	maintenance.state = 0;
 	maintenance.working = false;
 #endif
 }
@@ -261,6 +135,7 @@ TeredoRelay::~TeredoRelay (void)
 	}
 #endif
 
+/* FIXME */
 	peer *p = head;
 
 	while (p != NULL)
@@ -269,68 +144,6 @@ TeredoRelay::~TeredoRelay (void)
 		delete p;
 		p = buf;
 	}
-}
-
-
-/* 
- * Allocates a peer entry. It is up to the caller to fill informations
- * correctly.
- *
- * FIXME: number of entry should be bound
- */
-TeredoRelay::peer *TeredoRelay::AllocatePeer (const struct in6_addr *addr)
-{
-	struct timeval now;
-	gettimeofday (&now, NULL);
-	peer *p;
-
-	/* Tries to recycle a timed-out peer entry */
-	for (p = head; p != NULL; p = p->next)
-		if (p->IsExpired (now))
-		{
-			p->outqueue.Trash ();
-			p->inqueue.Trash ();
-			break;
-		}
-
-	/* Otherwise allocates a new peer entry */
-	if (p == NULL)
-	{
-		try
-		{
-			p = new peer (&sock, this);
-		}
-		catch (...)
-		{
-			return NULL;
-		}
-
-		/* Puts new entry at the head of the list */
-		p->next = head;
-		head = p;
-	}
-
-	memcpy (&p->addr, addr, sizeof (struct in6_addr));
-	return p;
-}
-
-
-/*
- * Returns a pointer to the first peer entry matching <addr>,
- * or NULL if none were found.
- */
-TeredoRelay::peer *TeredoRelay::FindPeer (const struct in6_addr *addr)
-{
-	struct timeval now;
-
-	gettimeofday(&now, NULL);
-
-	for (peer *p = head; p != NULL; p = p->next)
-		if (memcmp (&p->addr, addr, sizeof (struct in6_addr)) == 0)
-			if (!p->IsExpired (now))
-				return p; // found!
-
-	return NULL;
 }
 
 

@@ -3,6 +3,7 @@ libteredo/server-udp.cpp
 libteredo/relay.cpp
 libteredo/security.cpp
 libteredo/packets.cpp
+libteredo/maintain.cpp
 libtun6/ipv6-tunnel.cpp
 src/main.c
 src/miredo.cpp
