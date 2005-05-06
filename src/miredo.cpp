@@ -42,6 +42,9 @@
 #include <syslog.h>
 #include <unistd.h> // uid_t
 #include <sys/wait.h> // waitpid()
+#if HAVE_SYS_CAPABILITY_H
+# include <sys/capability.h>
+#endif
 
 #ifndef LOG_PERROR
 # define LOG_PERROR 0
@@ -111,6 +114,14 @@ drop_privileges (void)
 		return -1;
 	}
 
+#ifdef HAVE_LIBCAP
+	cap_t s = cap_init ();
+	if (s != NULL)
+	{
+		cap_set_proc (s);
+		cap_free (s);
+	}
+#endif
 	return 0;
 }
 
