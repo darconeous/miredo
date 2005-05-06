@@ -1,4 +1,1000 @@
 ------------------------------------------------------------------------
+r556 | remi | 2005-05-06 13:07:19 +0200 (ven, 06 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+   M /trunk/po/fr.po
+   M /trunk/po/miredo.pot
+
+String rationalization
+
+------------------------------------------------------------------------
+r555 | remi | 2005-05-06 13:02:58 +0200 (ven, 06 mai 2005) | 4 lines
+Changed paths:
+   M /trunk/NEWS
+   M /trunk/README
+   M /trunk/TODO
+   M /trunk/configure.ac
+
+Change version to 0.5.0 as they were a lot of changes,
+some of which break user interface
+(most particularly the introduction of miredo-server)
+
+------------------------------------------------------------------------
+r554 | remi | 2005-05-06 12:56:55 +0200 (ven, 06 mai 2005) | 3 lines
+Changed paths:
+   M /trunk/TODO
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/relay.h
+
+- fix race condition when calling NotifyUp()
+- wait for 30 seconds rather than 300 upon initial connectivity loss
+
+------------------------------------------------------------------------
+r553 | remi | 2005-05-06 12:27:12 +0200 (ven, 06 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/libteredo/teredo-udp.cpp
+
+Put all Teredo UDP sockets in non-blocking mode
+
+------------------------------------------------------------------------
+r552 | remi | 2005-05-06 12:21:12 +0200 (ven, 06 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/TODO
+   M /trunk/libteredo/server.cpp
+
+Ensure relaying of Echo requests is non-blocking
+
+------------------------------------------------------------------------
+r551 | remi | 2005-05-06 11:38:30 +0200 (ven, 06 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/NEWS
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/relay.h
+
+Regenerate server nonce every hour
+
+------------------------------------------------------------------------
+r550 | remi | 2005-05-06 11:01:23 +0200 (ven, 06 mai 2005) | 3 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+
+- fix compilation with --disable-teredo-client
+- use nanosleep() instead of select()
+
+------------------------------------------------------------------------
+r549 | remi | 2005-05-06 10:55:45 +0200 (ven, 06 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/TODO
+   M /trunk/misc/miredo.conf-dist
+
+Add IgnoreConeBit to sample config
+
+------------------------------------------------------------------------
+r548 | remi | 2005-05-06 10:47:17 +0200 (ven, 06 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/src/relay.cpp
+
+Add new option IgnoreConeBit
+
+------------------------------------------------------------------------
+r547 | remi | 2005-05-06 10:43:19 +0200 (ven, 06 mai 2005) | 3 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/relay.h
+
+Option to ignore cone bit
+(ie. always treat peers as if they were restricted)
+
+------------------------------------------------------------------------
+r546 | remi | 2005-05-05 22:56:08 +0200 (jeu, 05 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/src/relay.cpp
+   M /trunk/src/server.cpp
+
+String rationalization
+
+------------------------------------------------------------------------
+r545 | remi | 2005-05-05 22:33:32 +0200 (jeu, 05 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/po/fr.po
+   M /trunk/po/miredo.pot
+
+PO resync
+
+------------------------------------------------------------------------
+r544 | remi | 2005-05-05 21:56:06 +0200 (jeu, 05 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/src/main.c
+
+Fix closing of pidfile
+
+------------------------------------------------------------------------
+r543 | remi | 2005-05-05 21:42:58 +0200 (jeu, 05 mai 2005) | 3 lines
+Changed paths:
+   M /trunk/src/prefix.h
+
+completely remove ETCDIR/CONFDIR/SYSCONFDIR ...
+at least until binreloc & autopackage are fixed
+
+------------------------------------------------------------------------
+r542 | remi | 2005-05-05 21:32:23 +0200 (jeu, 05 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/src/main.c
+   M /trunk/src/relay.cpp
+   M /trunk/src/server.cpp
+
+Fix compilation without binreloc
+
+------------------------------------------------------------------------
+r541 | remi | 2005-05-05 21:23:15 +0200 (jeu, 05 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/src/privproc.cpp
+
+BSD compile fix
+
+------------------------------------------------------------------------
+r540 | remi | 2005-05-05 21:12:20 +0200 (jeu, 05 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/TODO
+   M /trunk/src/main.c
+
+Lock pidfile properly
+
+------------------------------------------------------------------------
+r539 | remi | 2005-05-05 19:19:20 +0200 (jeu, 05 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/src/privproc.cpp
+
+Fixes a bug whereby privileged process would never terminate
+
+------------------------------------------------------------------------
+r538 | remi | 2005-05-05 19:09:56 +0200 (jeu, 05 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/TODO
+   M /trunk/configure.ac
+   M /trunk/src/Makefile.am
+   M /trunk/src/main.c
+   M /trunk/src/relay.cpp
+   M /trunk/src/server.cpp
+
+Add a command line option to modify pidfile path
+
+------------------------------------------------------------------------
+r537 | remi | 2005-05-05 18:42:26 +0200 (jeu, 05 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/libteredo/server.cpp
+   M /trunk/libteredo/server.h
+   M /trunk/src/server.cpp
+
+Check IPv6 support before starting server
+
+------------------------------------------------------------------------
+r536 | remi | 2005-05-05 18:27:48 +0200 (jeu, 05 mai 2005) | 3 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/relay.h
+
+failed server solicitation counter need not be accessed outside of
+MaintenanceThread
+
+------------------------------------------------------------------------
+r535 | remi | 2005-05-05 17:26:30 +0200 (jeu, 05 mai 2005) | 5 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/relay.h
+   M /trunk/src/relay.cpp
+
+Rewrite qualification and maintenance
+- now run in a dedicated thread
+- fix connectivity loss detection (45(+30) seconds => 15(+30) seconds)
+- suppress Process() callback
+
+------------------------------------------------------------------------
+r534 | remi | 2005-05-05 17:09:35 +0200 (jeu, 05 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/src/privproc.cpp
+
+miredo_configure_tunnel now wait until the configuration is actually applied
+
+------------------------------------------------------------------------
+r533 | remi | 2005-05-05 16:55:40 +0200 (jeu, 05 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/src/privproc.cpp
+
+Fix bug whereby privproc would attempt to delete address multiple times
+
+------------------------------------------------------------------------
+r532 | remi | 2005-05-04 21:15:29 +0200 (mer, 04 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/libteredo/security.cpp
+
+make sure we don't leak memory content when nonce generation fails
+
+------------------------------------------------------------------------
+r531 | remi | 2005-05-04 18:20:11 +0200 (mer, 04 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/relay.h
+
+Hopefully fix linking with --disable-teredo-client
+
+------------------------------------------------------------------------
+r530 | remi | 2005-05-04 18:18:28 +0200 (mer, 04 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/TODO
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/relay.h
+
+Avoid duplication of code to send ping (Direct connectivity test)
+
+------------------------------------------------------------------------
+r529 | remi | 2005-05-04 13:49:55 +0200 (mer, 04 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/README
+   M /trunk/libteredo/Makefile.am
+   M /trunk/libtun6/Makefile.am
+   M /trunk/src/conf.cpp
+   M /trunk/src/conf.h
+
+Update copyright notices as appropriate
+
+------------------------------------------------------------------------
+r528 | remi | 2005-05-04 13:43:41 +0200 (mer, 04 mai 2005) | 3 lines
+Changed paths:
+   M /trunk/src/miredo.cpp
+   M /trunk/src/miredo.h
+   M /trunk/src/relay.cpp
+   M /trunk/src/server.cpp
+
+Yet another cleanup
+(no more TODOs / FIXMEs in src/)
+
+------------------------------------------------------------------------
+r527 | remi | 2005-05-04 12:55:25 +0200 (mer, 04 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/NEWS
+
+Some news
+
+------------------------------------------------------------------------
+r526 | remi | 2005-05-04 12:38:06 +0200 (mer, 04 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/autopackage/default.apspec.in
+
+Kill miredo-server if found upon uninstallation
+
+------------------------------------------------------------------------
+r525 | remi | 2005-05-04 12:18:14 +0200 (mer, 04 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/src/Makefile.am
+   M /trunk/src/main.c
+   M /trunk/src/relay.cpp
+   M /trunk/src/server.cpp
+
+Don't link miredo-server with libtun6
+
+------------------------------------------------------------------------
+r524 | remi | 2005-05-04 12:05:47 +0200 (mer, 04 mai 2005) | 2 lines
+Changed paths:
+   A /trunk/misc/miredo-server.sh (from /trunk/misc/miredo.sh:523)
+
+Debian initscript for miredo-server
+
+------------------------------------------------------------------------
+r523 | remi | 2005-05-04 12:02:17 +0200 (mer, 04 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/misc/miredo
+
+Some fixes. Still incomplete/buggy
+
+------------------------------------------------------------------------
+r522 | remi | 2005-05-04 11:55:37 +0200 (mer, 04 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/doc/miredo-server.conf.5
+   M /trunk/doc/miredo.conf.5
+
+Document ServerAddress2 and ServerBindAddress2
+
+------------------------------------------------------------------------
+r521 | remi | 2005-05-04 11:50:53 +0200 (mer, 04 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/doc/miredo-server.conf.5
+   M /trunk/doc/miredo.conf.5
+
+Document InterfaceMTU options
+
+------------------------------------------------------------------------
+r520 | remi | 2005-05-04 11:42:49 +0200 (mer, 04 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/Makefile.am
+   A /trunk/doc
+   A /trunk/doc/miredo-server.8 (from /trunk/miredo-server.8:519)
+   A /trunk/doc/miredo-server.conf.5 (from /trunk/miredo-server.conf.5:519)
+   A /trunk/doc/miredo.8 (from /trunk/miredo.8:519)
+   A /trunk/doc/miredo.conf.5 (from /trunk/miredo.conf.5:519)
+   D /trunk/miredo-server.8
+   D /trunk/miredo-server.conf.5
+   D /trunk/miredo.8
+   D /trunk/miredo.conf.5
+
+Moved man page to a new directory
+
+------------------------------------------------------------------------
+r519 | remi | 2005-05-04 11:40:06 +0200 (mer, 04 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/configure.ac
+
+Oops, forgot to remove include/Makefile from config.status
+
+------------------------------------------------------------------------
+r518 | remi | 2005-05-04 11:39:25 +0200 (mer, 04 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/miredo.8
+
+Notes about server_name command line parameter
+
+------------------------------------------------------------------------
+r517 | remi | 2005-05-04 11:38:11 +0200 (mer, 04 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/Makefile.am
+
+Include autopackage stuff in source tarball
+
+------------------------------------------------------------------------
+r516 | remi | 2005-05-04 11:36:42 +0200 (mer, 04 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/Makefile.am
+   D /trunk/include/Makefile.am
+
+Exclude include/ from build
+
+------------------------------------------------------------------------
+r515 | remi | 2005-05-04 11:33:33 +0200 (mer, 04 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/include/Makefile.am
+   M /trunk/libteredo/queue.cpp
+   M /trunk/libteredo/queue.h
+   M /trunk/libteredo/security.cpp
+   M /trunk/libteredo/security.h
+   M /trunk/misc/Makefile.am
+
+All $Id$ fixes
+
+------------------------------------------------------------------------
+r514 | remi | 2005-05-04 11:28:20 +0200 (mer, 04 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/src/conf.cpp
+   M /trunk/src/conf.h
+
+Fix $Id$
+
+------------------------------------------------------------------------
+r513 | remi | 2005-05-04 11:27:10 +0200 (mer, 04 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/src/conf.cpp
+   M /trunk/src/conf.h
+   M /trunk/src/relay.cpp
+
+Compile ParseRelayType in miredo, not in miredo-server
+
+------------------------------------------------------------------------
+r512 | remi | 2005-05-04 10:49:32 +0200 (mer, 04 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/src/conf.cpp
+   M /trunk/src/conf.h
+   M /trunk/src/relay.cpp
+
+Removed obsoleted disabled RelayType
+
+------------------------------------------------------------------------
+r511 | remi | 2005-05-04 10:47:15 +0200 (mer, 04 mai 2005) | 3 lines
+Changed paths:
+   M /trunk/src/main.c
+   M /trunk/src/miredo.cpp
+
+Accept not having a config file if a server name is specified
+through the command line (will use default for every thing else)
+
+------------------------------------------------------------------------
+r510 | remi | 2005-05-04 10:39:16 +0200 (mer, 04 mai 2005) | 3 lines
+Changed paths:
+   M /trunk/configure.ac
+   M /trunk/src/Makefile.am
+   M /trunk/src/main.c
+   M /trunk/src/relay.cpp
+   M /trunk/src/server.cpp
+
+- Use a different pidfile for miredo and miredo-server
+- Replace --enable-pidfile with --enable-pidfiledir
+
+------------------------------------------------------------------------
+r509 | remi | 2005-05-04 09:40:38 +0200 (mer, 04 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/Makefile.am
+   M /trunk/miredo-server.8
+   A /trunk/miredo-server.conf.5 (from /trunk/miredo.conf.5:508)
+   M /trunk/miredo.conf.5
+
+Split miredo-conf.5 into miredo.conf.5 and miredo-server.conf.5
+
+------------------------------------------------------------------------
+r508 | remi | 2005-05-04 09:31:52 +0200 (mer, 04 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/Makefile.am
+   A /trunk/miredo-server.8 (from /trunk/miredo.8:507)
+   M /trunk/miredo.8
+
+Split miredo.8 into miredo.8 and miredo-server.8
+
+------------------------------------------------------------------------
+r507 | remi | 2005-05-04 09:21:13 +0200 (mer, 04 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/po/POTFILES.in
+   M /trunk/po/fr.po
+   M /trunk/po/miredo.pot
+
+Translations update
+
+------------------------------------------------------------------------
+r506 | remi | 2005-05-04 09:20:51 +0200 (mer, 04 mai 2005) | 3 lines
+Changed paths:
+   M /trunk/src/conf.cpp
+   M /trunk/src/conf.h
+   M /trunk/src/main.c
+   M /trunk/src/relay.cpp
+   M /trunk/src/server.cpp
+
+- clean up DNS resolution of server name
+- use different default configuration files for miredo and miredo-server
+
+------------------------------------------------------------------------
+r505 | remi | 2005-05-04 08:59:19 +0200 (mer, 04 mai 2005) | 3 lines
+Changed paths:
+   M /trunk/src/main.c
+
+use argv[0] in usage() and quick_usage()
+so that running miredo-server prints miredo-server rather than miredo
+
+------------------------------------------------------------------------
+r504 | remi | 2005-05-03 22:39:55 +0200 (mar, 03 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/configure.ac
+
+Remove obsoleted options --disable-teredo-server and --disable-teredo-relay
+
+------------------------------------------------------------------------
+r503 | remi | 2005-05-03 22:33:13 +0200 (mar, 03 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/src/relay.cpp
+
+Fix invalid delete in case of error
+
+------------------------------------------------------------------------
+r502 | remi | 2005-05-03 22:30:53 +0200 (mar, 03 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/src/relay.cpp
+
+Fix building with --disable-miredo-client
+
+------------------------------------------------------------------------
+r501 | remi | 2005-05-03 22:27:15 +0200 (mar, 03 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/src/miredo.cpp
+   M /trunk/src/relay.cpp
+   M /trunk/src/server.cpp
+
+Fixes files descriptions
+
+------------------------------------------------------------------------
+r500 | remi | 2005-05-03 22:25:42 +0200 (mar, 03 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/src/Makefile.am
+   M /trunk/src/miredo.cpp
+   M /trunk/src/relay.cpp
+   D /trunk/src/relay.h
+
+src/relay.h was no longer needed
+
+------------------------------------------------------------------------
+r499 | remi | 2005-05-03 22:17:20 +0200 (mar, 03 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/misc/Makefile.am
+   A /trunk/misc/miredo-server.conf-dist (from /trunk/misc/miredo.conf-dist:498)
+   M /trunk/misc/miredo.conf-dist
+
+Split configuration sample files
+
+------------------------------------------------------------------------
+r498 | remi | 2005-05-03 22:12:30 +0200 (mar, 03 mai 2005) | 3 lines
+Changed paths:
+   M /trunk/src/miredo.cpp
+   M /trunk/src/miredo.h
+   M /trunk/src/relay.cpp
+   M /trunk/src/server.cpp
+
+Move configuration parsing to non-common parts :
+configuration for relay/client and server are now separated
+
+------------------------------------------------------------------------
+r497 | remi | 2005-05-03 21:23:45 +0200 (mar, 03 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/src/miredo.cpp
+
+Remove signal handlers later
+
+------------------------------------------------------------------------
+r496 | remi | 2005-05-03 21:20:02 +0200 (mar, 03 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/src/miredo.cpp
+   M /trunk/src/relay.cpp
+   M /trunk/src/server.cpp
+
+Some fixes
+
+------------------------------------------------------------------------
+r495 | remi | 2005-05-03 20:55:47 +0200 (mar, 03 mai 2005) | 4 lines
+Changed paths:
+   M /trunk/libteredo/Makefile.am
+   M /trunk/libtun6/Makefile.am
+   M /trunk/src
+   M /trunk/src/Makefile.am
+   M /trunk/src/miredo.cpp
+   M /trunk/src/miredo.h
+   M /trunk/src/relay.cpp
+   A /trunk/src/server.cpp (from /trunk/src/miredo.cpp:494)
+
+Split Teredo server and Teredo relay/client in separate binaries
+
+Still a lot of cleanup to be done
+
+------------------------------------------------------------------------
+r494 | remi | 2005-05-03 18:44:44 +0200 (mar, 03 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/libtun6/Makefile.am
+   M /trunk/src/Makefile.am
+   M /trunk/src/main.c
+   M /trunk/src/miredo.cpp
+
+Don't include libtun6 if we only build a Teredo server
+
+------------------------------------------------------------------------
+r493 | remi | 2005-05-03 18:38:38 +0200 (mar, 03 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/libteredo/server.cpp
+
+Fix previous broken commit
+
+------------------------------------------------------------------------
+r492 | remi | 2005-05-03 18:25:16 +0200 (mar, 03 mai 2005) | 3 lines
+Changed paths:
+   M /trunk/TODO
+   M /trunk/libteredo/server.cpp
+   D /trunk/src/server.cpp
+   D /trunk/src/server.h
+
+- Remove MiredoServer class's files
+- Clean up
+
+------------------------------------------------------------------------
+r491 | remi | 2005-05-03 18:18:36 +0200 (mar, 03 mai 2005) | 5 lines
+Changed paths:
+   M /trunk/TODO
+   M /trunk/libteredo/server.cpp
+   M /trunk/libteredo/server.h
+   M /trunk/src/Makefile.am
+   M /trunk/src/miredo.cpp
+   M /trunk/src/miredo.h
+
+Use raw IPv6 socket instead of tunnel to relay pings through Teredo server
+
+That will allow the server to work properly even when IPv6 forwarding is
+not enabled.
+
+------------------------------------------------------------------------
+r490 | remi | 2005-05-03 12:07:36 +0200 (mar, 03 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/TODO
+   M /trunk/misc/miredo.conf-dist
+   M /trunk/src/miredo.cpp
+
+(Dangerous) option to change Teredo MTU in relay and server
+
+------------------------------------------------------------------------
+r489 | remi | 2005-05-02 20:20:26 +0200 (lun, 02 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/misc/miredo.conf-dist
+
+Another public Teredo server added
+
+------------------------------------------------------------------------
+r488 | remi | 2005-05-02 20:19:33 +0200 (lun, 02 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/src/privproc.cpp
+
+Make valgrind happier
+
+------------------------------------------------------------------------
+r487 | remi | 2005-05-02 19:42:42 +0200 (lun, 02 mai 2005) | 6 lines
+Changed paths:
+   M /trunk/libteredo/packets.cpp
+
+Accept ICMPv6 Echo Request encapsulated in ICMPv6 Unreachable
+as an alternative to a ICMPv6 Echo Reply for Direct IPv6 connectivity
+
+That allows spoof-safe connectivity with hosts that reject pings with
+ICMPv6 Unreachable messages instead of replying.
+
+------------------------------------------------------------------------
+r486 | remi | 2005-05-02 19:13:23 +0200 (lun, 02 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+
+Same as previous commit - the code is indeed duplicated
+
+------------------------------------------------------------------------
+r485 | remi | 2005-05-02 19:10:00 +0200 (lun, 02 mai 2005) | 3 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+
+Limit sending of echo request for Direct IPv6 connectivity test
+to 3 every 30 seconds
+
+------------------------------------------------------------------------
+r484 | remi | 2005-05-02 17:19:43 +0200 (lun, 02 mai 2005) | 3 lines
+Changed paths:
+   M /trunk/TODO
+   M /trunk/misc/miredo.conf-dist
+
+- ng_teredo's server is no more
+- adds Consulintel's server
+
+------------------------------------------------------------------------
+r476 | remi | 2005-05-02 09:50:32 +0200 (lun, 02 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/configure.ac
+
+Skip release number 0.4.3 and use 0.4.4
+
+------------------------------------------------------------------------
+r475 | remi | 2005-05-02 09:48:34 +0200 (lun, 02 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/TODO
+
+One more TODO done
+
+------------------------------------------------------------------------
+r474 | remi | 2005-05-02 09:31:44 +0200 (lun, 02 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/libteredo/packets.cpp
+
+Fix completely broken parsing of Router Advertisement option
+
+------------------------------------------------------------------------
+r473 | remi | 2005-05-02 09:17:50 +0200 (lun, 02 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/src/relay.cpp
+   M /trunk/src/relay.h
+
+Update NotifyUp callback to use mtu value
+
+------------------------------------------------------------------------
+r472 | remi | 2005-05-02 09:10:24 +0200 (lun, 02 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.h
+
+Fix building with --disable-teredo-client
+
+------------------------------------------------------------------------
+r471 | remi | 2005-05-02 09:06:06 +0200 (lun, 02 mai 2005) | 3 lines
+Changed paths:
+   M /trunk/libteredo/packets.cpp
+   M /trunk/libteredo/packets.h
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/relay.h
+
+Parse MTU option in router advertisement
+(and probably some breakage with --disable-teredo-client)
+
+------------------------------------------------------------------------
+r470 | remi | 2005-05-01 22:25:50 +0200 (dim, 01 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/TODO
+   M /trunk/libteredo/packets.cpp
+   M /trunk/libteredo/packets.h
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/relay.h
+   M /trunk/src/miredo.cpp
+   M /trunk/src/relay.cpp
+   M /trunk/src/relay.h
+
+Actually implement ServerAddress2
+
+------------------------------------------------------------------------
+r469 | remi | 2005-05-01 21:53:14 +0200 (dim, 01 mai 2005) | 5 lines
+Changed paths:
+   M /trunk/misc/miredo.conf-dist
+   M /trunk/src/miredo.cpp
+
+New options ServerAddress2, resp. ServerBindAddress2 to specify the server
+secondary address in client, resp. server
+It should already work for server, it is not yet implemented in libteredo's
+Teredo client
+
+------------------------------------------------------------------------
+r468 | remi | 2005-05-01 20:47:45 +0200 (dim, 01 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/TODO
+
+More comprehensive TODO list
+
+------------------------------------------------------------------------
+r467 | remi | 2005-05-01 20:00:26 +0200 (dim, 01 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/Makefile.am
+
+Use DESTDIR when copying miredo.conf-dist to miredo.conf
+
+------------------------------------------------------------------------
+r466 | remi | 2005-05-01 19:59:04 +0200 (dim, 01 mai 2005) | 3 lines
+Changed paths:
+   M /trunk/src/Makefile.am
+
+Add quotes as appropriate
+(would probably previously fail if there was a space in DESTDIR)
+
+------------------------------------------------------------------------
+r465 | remi | 2005-05-01 19:52:46 +0200 (dim, 01 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/miredo.8
+
+Typos fixed
+
+------------------------------------------------------------------------
+r464 | remi | 2005-05-01 18:48:30 +0200 (dim, 01 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/libteredo/server.cpp
+   M /trunk/libteredo/server.h
+
+Clean up teredo_send_ra
+
+------------------------------------------------------------------------
+r463 | remi | 2005-05-01 18:25:07 +0200 (dim, 01 mai 2005) | 3 lines
+Changed paths:
+   M /trunk/README
+
+- Update to match new miredo.conf installation
+- More spacing
+
+------------------------------------------------------------------------
+r462 | remi | 2005-05-01 18:05:48 +0200 (dim, 01 mai 2005) | 4 lines
+Changed paths:
+   M /trunk/Makefile.am
+   M /trunk/misc/Makefile.am
+
+- Put message about miredo.conf at the very end of "make install"
+- Automatically copy miredo.conf-dist to miredo.conf if miredo.conf
+  doesn't already exists
+
+------------------------------------------------------------------------
+r461 | remi | 2005-05-01 15:23:36 +0200 (dim, 01 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/libteredo/server.cpp
+   M /trunk/libteredo/server.h
+   M /trunk/src/miredo.cpp
+
+Allow changing of server advertised MTU
+
+------------------------------------------------------------------------
+r460 | remi | 2005-05-01 14:56:11 +0200 (dim, 01 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/libteredo/server.cpp
+   M /trunk/libtun6/ipv6-tunnel.cpp
+   M /trunk/libtun6/ipv6-tunnel.h
+   M /trunk/src/privproc.cpp
+   M /trunk/src/privproc.h
+   M /trunk/src/relay.cpp
+
+Copyright notice date updates
+
+------------------------------------------------------------------------
+r459 | remi | 2005-05-01 14:43:50 +0200 (dim, 01 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/src/miredo.cpp
+   M /trunk/src/privproc.cpp
+
+Clean up setting of MTU in client mode
+
+------------------------------------------------------------------------
+r458 | remi | 2005-05-01 14:43:08 +0200 (dim, 01 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/libtun6/ipv6-tunnel.cpp
+
+Log MTU change failure through syslog
+
+------------------------------------------------------------------------
+r457 | remi | 2005-05-01 14:29:41 +0200 (dim, 01 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/src/privproc.cpp
+   M /trunk/src/privproc.h
+   M /trunk/src/relay.cpp
+
+Support for setting MTU from privileged process
+
+------------------------------------------------------------------------
+r456 | remi | 2005-05-01 13:54:02 +0200 (dim, 01 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/libteredo/server.cpp
+
+Send MTU option (testing)
+
+------------------------------------------------------------------------
+r455 | remi | 2005-05-01 13:46:25 +0200 (dim, 01 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/TODO
+
+Update TODO list
+
+------------------------------------------------------------------------
+r454 | remi | 2005-05-01 13:46:02 +0200 (dim, 01 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/autopackage/default.apspec.in
+
+One comment about libcap
+
+------------------------------------------------------------------------
+r453 | remi | 2005-05-01 13:45:41 +0200 (dim, 01 mai 2005) | 2 lines
+Changed paths:
+   M /trunk/libtun6/ipv6-tunnel.h
+
+Add missing #include
+
+------------------------------------------------------------------------
+r452 | remi | 2005-04-30 18:26:35 +0200 (sam, 30 avr 2005) | 4 lines
+Changed paths:
+   M /trunk/Makefile.am
+   D /trunk/autopackage/Makefile.am
+   M /trunk/configure.ac
+
+Remove autopackage directory from source tarball :
+it's not supposed/meant to be used by external packagers/users
+(and it's still available through SVN anyway)
+
+------------------------------------------------------------------------
+r451 | remi | 2005-04-30 18:19:03 +0200 (sam, 30 avr 2005) | 2 lines
+Changed paths:
+   M /trunk/configure.ac
+
+autopackage/default.apsec needn't be generated automatically by configure
+
+------------------------------------------------------------------------
+r450 | remi | 2005-04-30 14:16:18 +0200 (sam, 30 avr 2005) | 3 lines
+Changed paths:
+   M /trunk/autopackage/default.apspec.in
+
+apbuild spec that works (if installed as root only)
+There's still several shortcomings in autopackage to be addressed first
+
+------------------------------------------------------------------------
+r449 | remi | 2005-04-30 12:06:20 +0200 (sam, 30 avr 2005) | 2 lines
+Changed paths:
+   M /trunk/configure.ac
+
+Clean up
+
+------------------------------------------------------------------------
+r448 | remi | 2005-04-30 11:59:07 +0200 (sam, 30 avr 2005) | 2 lines
+Changed paths:
+   M /trunk/misc/miredo
+   M /trunk/misc/miredo.conf-dist
+   M /trunk/misc/miredo.sh
+
+Add/fix $Id$
+
+------------------------------------------------------------------------
+r447 | remi | 2005-04-30 11:44:52 +0200 (sam, 30 avr 2005) | 2 lines
+Changed paths:
+   M /trunk/m4/binreloc.m4
+   M /trunk/src/Makefile.am
+   M /trunk/src/main.c
+   M /trunk/src/prefix.h
+
+Don't let BinReloc handle SYSCONFDIR (it is inconsistent with autopackage)
+
+------------------------------------------------------------------------
+r446 | remi | 2005-04-30 11:43:55 +0200 (sam, 30 avr 2005) | 2 lines
+Changed paths:
+   M /trunk/misc/miredo.conf-dist
+
+Fix defaults value documentation for InterfaceName
+
+------------------------------------------------------------------------
+r445 | remi | 2005-04-29 23:06:43 +0200 (ven, 29 avr 2005) | 2 lines
+Changed paths:
+   M /trunk
+   M /trunk/Makefile.am
+   A /trunk/autopackage
+   A /trunk/autopackage/Makefile.am
+   A /trunk/autopackage/default.apspec.in
+   M /trunk/configure.ac
+
+Initial autopackage package build support
+
+------------------------------------------------------------------------
+r444 | remi | 2005-04-29 19:46:26 +0200 (ven, 29 avr 2005) | 2 lines
+Changed paths:
+   M /trunk/m4/Makefile.am
+   M /trunk/src/Makefile.am
+
+Fix copyright notices
+
+------------------------------------------------------------------------
+r443 | remi | 2005-04-29 19:42:17 +0200 (ven, 29 avr 2005) | 2 lines
+Changed paths:
+   M /trunk/m4/Makefile.am
+
+- add m4/binreloc.m4 to EXTRA_DIST
+
+------------------------------------------------------------------------
+r442 | remi | 2005-04-29 19:28:00 +0200 (ven, 29 avr 2005) | 4 lines
+Changed paths:
+   M /trunk/configure.ac
+   A /trunk/m4/binreloc.m4
+   M /trunk/src/Makefile.am
+   M /trunk/src/main.c
+   A /trunk/src/prefix.c
+   A /trunk/src/prefix.h
+
+Use of BinReloc from AutoPackage project
+(with modifications to binreloc.m4 not to check for pthread,
+since we don't need it)
+
+------------------------------------------------------------------------
+r441 | remi | 2005-04-29 19:02:34 +0200 (ven, 29 avr 2005) | 2 lines
+Changed paths:
+   M /trunk/src/Makefile.am
+
+Cleanup creation/deletion of pidfile/chroot directory
+
+------------------------------------------------------------------------
+r440 | remi | 2005-04-29 18:12:43 +0200 (ven, 29 avr 2005) | 3 lines
+Changed paths:
+   M /trunk/configure.ac
+   M /trunk/src/Makefile.am
+   M /trunk/src/main.c
+
+Get rid of built source src/host.h
+/ Use a much simpler alternative from configure.ac
+
+------------------------------------------------------------------------
+r439 | remi | 2005-04-29 18:01:25 +0200 (ven, 29 avr 2005) | 2 lines
+Changed paths:
+   M /trunk/configure.ac
+
+Fix a typo
+
+------------------------------------------------------------------------
+r438 | remi | 2005-04-29 17:54:54 +0200 (ven, 29 avr 2005) | 2 lines
+Changed paths:
+   M /trunk/src/Makefile.am
+   M /trunk/src/main.c
+
+Bring back host and build architecture in version infos
+
+------------------------------------------------------------------------
+r437 | remi | 2005-04-29 15:56:41 +0200 (ven, 29 avr 2005) | 2 lines
+Changed paths:
+   M /trunk/configure.ac
+
+Bump version number to 0.4.3
+
+------------------------------------------------------------------------
+r435 | remi | 2005-04-29 11:51:06 +0200 (ven, 29 avr 2005) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog
+
+ChangeLog update for release 0.4.2
+
+------------------------------------------------------------------------
 r434 | remi | 2005-04-29 11:49:06 +0200 (ven, 29 avr 2005) | 3 lines
 Changed paths:
    M /trunk/NEWS
