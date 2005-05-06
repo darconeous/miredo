@@ -570,12 +570,6 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
  * (as specified per paragraph 5.4.2). That's called "Packet reception".
  * Returns 0 on success, -1 on error.
  */
-#define SERVER_PING_DELAY 30
-
-unsigned TeredoRelay::QualificationTimeOut = 4; // seconds
-unsigned TeredoRelay::QualificationRetries = 3;
-unsigned TeredoRelay::RestartDelay = 300; // seconds
-
 int TeredoRelay::ReceivePacket (const fd_set *readset)
 {
 	TeredoPacket packet;
@@ -943,16 +937,23 @@ int TeredoRelay::ProcessQualificationPacket (const TeredoPacket *packet)
 static void
 asyncsafe_sleep (unsigned sec)
 {
-	struct timeval tv;
+	struct timespec ts;
 	int oldstate;
 
-	tv.tv_sec = sec;
-	tv.tv_usec = 0;
+	ts.tv_sec = sec;
+	ts.tv_nsec = 0;
 	pthread_setcanceltype (PTHREAD_CANCEL_ASYNCHRONOUS, &oldstate);
-	select (0, NULL, NULL, NULL, &tv);
+	nanosleep (&ts, NULL);
 	pthread_setcanceltype (oldstate, NULL);
 	pthread_testcancel ();
 }
+
+
+#define SERVER_PING_DELAY 30
+
+unsigned TeredoRelay::QualificationTimeOut = 4; // seconds
+unsigned TeredoRelay::QualificationRetries = 3;
+unsigned TeredoRelay::RestartDelay = 300; // seconds
 
 
 void TeredoRelay::MaintenanceThread (void)
