@@ -2,7 +2,7 @@ ToDo list:
 ===========
 $Id$
 
-(!) before next release (0.5.0)
+(!) before next release (0.5.1)
 (*) before stable release (1.0.0)
 ( ) unscheduled
 (H) help needed - cannot be done unless someone volunteers
@@ -18,6 +18,7 @@ Features:
 (*) some statistics,
 ( ) fixed TODOs and FIXMEs in source code,
 ( ) local Teredo discovery,
+(!) interval determination procedure,
 ( ) peers list garbage collection,
 (?) "automatic sunset" / "exit strategy"
 
@@ -35,7 +36,7 @@ Conformance:
 
 Performance/scalibility:
 -------------------------
-( ) faster peer lists lookups/updates,
+(!) faster peer lists lookups/updates,
 ( ) multi-threading in relay/client (will help other things a lot)
 
 Portability:
@@ -58,6 +59,6 @@ Re-usability:
 --------------
 (F) libteredo API stabilization,
 (?) thread-safety in libteredo,
-(F) libteredo C bindings.
-( ) don't use a callback to receive packets
-
+(F) libteredo C bindings,
+( ) don't use a callback to receive packets,
+(!) clean up miredo-server
