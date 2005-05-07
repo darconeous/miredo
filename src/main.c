@@ -284,6 +284,7 @@ init_daemon (const char *username, const char *pidfile, int nodetach)
 		return -1;
 	}
 
+#ifdef MIREDO_DEFAULT_USERNAME
 	if (pw->pw_uid == 0)
 	{
 		fputs (_("Error: This program is not supposed to keep root\n"
@@ -293,6 +294,9 @@ init_daemon (const char *username, const char *pidfile, int nodetach)
 			stderr);
 		return -1;
 	}
+#else
+# define MIREDO_DEFAULT_USERNAME "root"
+#endif
 
 	unpriv_uid = pw->pw_uid;
 
@@ -380,11 +384,6 @@ init_daemon (const char *username, const char *pidfile, int nodetach)
 
 	return 0;
 }
-
-
-#ifndef MIREDO_DEFAULT_USERNAME
-# define MIREDO_DEFAULT_USERNAME "nobody"
-#endif
 
 
 int

@@ -150,12 +150,15 @@ AC_ARG_ENABLE(miredo-user,
 			      [run as a specific user (disabled by default)])])
 AS_IF([test "${enable_miredo_user}" = "yes"],
 	[enable_miredo_user="miredo"])
+AS_IF([test "x${enable_miredo_user}" = "x" || test "${enable_miredo_user}" = "no"],
+	[enable_miredo_user="nobody"])
 AH_TEMPLATE(MIREDO_DEFAULT_USERNAME,
             [Define to the system user name to be used by miredo.])
-AS_IF([test "x${enable_miredo_user}" != "x" && test "${enable_miredo_user}" != "no"],
+AS_IF([test "${enable_miredo_user}" != "root"],
 	[AC_DEFINE_UNQUOTED(MIREDO_DEFAULT_USERNAME, "${enable_miredo_user}")
 	AC_MSG_RESULT(${enable_miredo_user})],
-	[AC_MSG_RESULT(nobody)])
+	[AC_MSG_RESULT(root)
+	AC_MSG_WARN([Running as root is DANGEROUS!])])
 
 # Defines for <config.h>
 AH_BOTTOM([
