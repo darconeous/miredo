@@ -123,37 +123,41 @@ class MiredoRelay : public TeredoRelay
 static void
 teredo_relay (int sigfd, IPv6Tunnel& tunnel, TeredoRelay *relay = NULL)
 {
+	fd_set refset;
+
+	FD_ZERO (&refset);
+	FD_SET (sigfd, &refset);
+	int maxfd = sigfd;
+	int val = tunnel.RegisterReadSet (&refset);
+	if (val > maxfd)
+		maxfd = val;
+
+	val = relay->RegisterReadSet (&refset);
+	if (val > maxfd)
+		maxfd = val;
+
+	maxfd++;
+
 	/* Main loop */
 	while (1)
 	{
 		fd_set readset;
-
-		FD_ZERO (&readset);
-		FD_SET (sigfd, &readset);
-		int maxfd = sigfd;
-		int val = tunnel.RegisterReadSet (&readset);
-		if (val > maxfd)
-			maxfd = val;
-
-		val = relay->RegisterReadSet (&readset);
-		if (val > maxfd)
-			maxfd = val;
+		memcpy (&readset, &refset, sizeof (readset));
 
 		/* Wait until one of them is ready for read */
-		maxfd = select (maxfd + 1, &readset, NULL, NULL, NULL);
-		if ((maxfd < 0) || ((maxfd >= 1) && FD_ISSET (sigfd, &readset)))
+		val = select (maxfd, &readset, NULL, NULL, NULL);
+		if ((val < 0) || ((val >= 1) && FD_ISSET (sigfd, &readset)))
 			// interrupted by signal
 			break;
 
 		/* Handle incoming data */
 		char pbuf[65535];
-		int len;
 
 		/* Forwards IPv6 packet to Teredo
 		 * (Packet transmission) */
-		len = tunnel.ReceivePacket (&readset, pbuf, sizeof (pbuf));
-		if (len > 0)
-			relay->SendPacket (pbuf, len);
+		val = tunnel.ReceivePacket (&readset, pbuf, sizeof (pbuf));
+		if (val > 0)
+			relay->SendPacket (pbuf, val);
 
 		/* Forwards Teredo packet to IPv6
 		 * (Packet reception) */
