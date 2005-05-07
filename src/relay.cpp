@@ -146,8 +146,10 @@ teredo_relay (int sigfd, IPv6Tunnel& tunnel, TeredoRelay *relay = NULL)
 
 		/* Wait until one of them is ready for read */
 		val = select (maxfd, &readset, NULL, NULL, NULL);
-		if ((val < 0) || ((val >= 1) && FD_ISSET (sigfd, &readset)))
-			// interrupted by signal
+		if (val < 0)
+			continue;
+		if (FD_ISSET (sigfd, &readset))
+			// parent's been signaled or died 
 			break;
 
 		/* Handle incoming data */
