@@ -162,7 +162,7 @@ teredo_relay (int sigfd, IPv6Tunnel& tunnel, TeredoRelay *relay = NULL)
 		/* Forwards IPv6 packet to Teredo
 		 * (Packet transmission) */
 		val = tunnel.ReceivePacket (&readset, &pbuf.ip6, sizeof (pbuf));
-		if (val > 0)
+		if (val >= 40)
 			relay->SendPacket (&pbuf.ip6, val);
 
 		/* Forwards Teredo packet to IPv6
