@@ -180,8 +180,7 @@ void TeredoRelay::MaintenanceThread (void)
 	struct timeval nonce_death = { 0, 0 };
 
 	pthread_mutex_lock (&maintenance.lock);
-
-	/* done in constructor -- maintenance.state = PROBE_CONE;*/
+	maintenance.state = PROBE_CONE;
 
 	/*
 	 * Qualification/maintenance procedure
@@ -191,11 +190,8 @@ void TeredoRelay::MaintenanceThread (void)
 		if ((maintenance.state == 0) && (count == 0))
 		{
 			pthread_mutex_unlock (&maintenance.lock);
-
-			// TODO: randomize refresh interval
-			// FIXME: wait for an absolute time rather than a delay (?)
+			// TODO refresh interval optimization
 			asyncsafe_sleep (SERVER_PING_DELAY);
-
 			pthread_mutex_lock (&maintenance.lock);
 		}
 

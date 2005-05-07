@@ -19,7 +19,7 @@ Features:
 ( ) fixed TODOs and FIXMEs in source code,
 ( ) local Teredo discovery,
 (!) interval determination procedure,
-( ) peers list garbage collection,
+(*) peers list garbage collection,
 (?) "automatic sunset" / "exit strategy"
 
 Security:
@@ -43,8 +43,7 @@ Portability:
 -------------
 (H) big-endianess/byte-alignment compatibility tests,
 (H) Darwin/Solaris/NetBSD/OpenBSD compilation,
-(H) FreeBSD routing tests,
-(?) libteredo on Windows
+(H) FreeBSD routing tests
 
 Compatibility:
 ---------------

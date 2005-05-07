@@ -59,14 +59,6 @@
 #define PREFIX_UNSET 0xffffffff
 
 
-/* FIXME: remove */
-#define PROBE_CONE	1
-#define PROBE_RESTRICT	2
-#define PROBE_SYMMETRIC	3
-
-#define QUALIFIED	0
-
-
 TeredoRelay::TeredoRelay (uint32_t pref, uint16_t port, uint32_t ipv4,
                           bool cone)
 	:  head (NULL), allowCone (false), isCone (cone)
@@ -100,7 +92,7 @@ TeredoRelay::TeredoRelay (uint32_t ip, uint32_t ip2,
 	server_ip2 = ip2;
 
 	maintenance.working = false;
-	maintenance.state = PROBE_CONE;
+	maintenance.state = (unsigned)(-1);
 
 	if (sock.ListenPort (port, ipv4) == 0)
 	{
