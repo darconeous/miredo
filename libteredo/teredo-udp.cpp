@@ -102,13 +102,10 @@ TeredoPacket::OpenSocket (uint32_t bind_ip, uint16_t port)
 
 
 void
-TeredoPacket::CloseSocket (int& fd)
+TeredoPacket::CloseSocket (int fd)
 {
 	if (fd != -1)
-	{
 		close (fd);
-		fd = -1;
-	}
 }
 
 
