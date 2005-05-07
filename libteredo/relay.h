@@ -190,7 +190,7 @@ class TeredoRelay
 		 */
 		uint32_t GetPrefix (void) const
 		{
-			return IN6_TEREDO_PREFIX (&addr);
+			return addr.teredo.prefix;
 		}
 
 		bool IsCone (void) const
