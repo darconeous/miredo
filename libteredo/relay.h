@@ -53,7 +53,7 @@ class TeredoRelay
 		class peer *head;
 
 		TeredoRelayUDP sock;
-		bool allowCone;
+		bool allowCone, isCone;
 
 		peer *AllocatePeer (const struct in6_addr *addr);
 		peer *FindPeer (const struct in6_addr *addr);
@@ -195,7 +195,7 @@ class TeredoRelay
 
 		bool IsCone (void) const
 		{
-			return IN6_IS_TEREDO_ADDR_CONE (&addr);
+			return isCone;
 		}
 
 		uint16_t GetMappedPort (void) const

@@ -176,7 +176,6 @@ unsigned TeredoRelay::ServerNonceLifetime = 3600; // seconds
 
 void TeredoRelay::MaintenanceThread (void)
 {
-	bool cone = true;
 	unsigned count = 0;
 	struct timeval nonce_death = { 0, 0 };
 
@@ -213,7 +212,7 @@ void TeredoRelay::MaintenanceThread (void)
 
 		SendRS (sock, maintenance.state == PROBE_RESTRICT /* secondary */
 		              ? GetServerIP2 () : GetServerIP (),
-		        maintenance.nonce, cone);
+		        maintenance.nonce, isCone);
 
 		struct timespec deadline;
 		gettimeofday (&now, NULL);
@@ -236,13 +235,13 @@ void TeredoRelay::MaintenanceThread (void)
 				count = 0;
 				if (maintenance.state == PROBE_CONE)
 				{
+					isCone = false;
 					maintenance.state = PROBE_RESTRICT;
-					cone = false;
 				}
 				else
 				{
+					isCone = true;
 					maintenance.state = PROBE_CONE;
-					cone = true;
 				}
 
 				if (down)
@@ -265,7 +264,7 @@ void TeredoRelay::MaintenanceThread (void)
 			if (maintenance.success)
 			{
 				syslog (LOG_INFO, _("Qualified (NAT type: %s)"),
-				        gettext (cone ? N_("cone") : N_("restricted")));
+				        gettext (isCone ? N_("cone") : N_("restricted")));
 				count = 0;
 				maintenance.state = 0;
 			}
