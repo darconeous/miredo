@@ -179,6 +179,7 @@ void TeredoRelay::MaintenanceThread (void)
 	unsigned count = 0;
 	struct timeval nonce_death = { 0, 0 };
 
+	isCone = true;
 	pthread_mutex_lock (&maintenance.lock);
 	maintenance.state = PROBE_CONE;
 
