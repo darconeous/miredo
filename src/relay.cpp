@@ -123,20 +123,30 @@ class MiredoRelay : public TeredoRelay
 static void
 teredo_relay (int sigfd, IPv6Tunnel& tunnel, TeredoRelay *relay = NULL)
 {
+	/* Registers file descriptors once and for all */
+	fd_set refset;
+
+	int maxfd = sigfd;
+	FD_ZERO (&refset);
+	FD_SET(sigfd, &refset);
+
+	{
+		int val = tunnel.RegisterReadSet (&refset);
+		if (val > maxfd)
+			maxfd = val;
+
+		val = relay->RegisterReadSet (&refset);
+		if (val > maxfd)
+			maxfd = val;
+	}
+
+	maxfd++;
+
 	/* Main loop */
 	while (1)
 	{
-		/* Registers file descriptors */
 		fd_set readset;
-		FD_ZERO (&readset);
-		FD_SET(sigfd, &readset);
-
-		int val = tunnel.RegisterReadSet (&readset);
-		int maxfd = (val > maxfd) ? val : maxfd;
-
-		val = relay->RegisterReadSet (&readset);
-		if (val > maxfd)
-			maxfd = val;
+		memcpy (&readset, &refset, sizeof (readset));
 
 		/* Wait until one of them is ready for read */
 		maxfd = select (maxfd + 1, &readset, NULL, NULL, NULL);
