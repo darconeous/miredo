@@ -72,6 +72,7 @@ TeredoRelay::TeredoRelay (uint32_t pref, uint16_t port, uint32_t ipv4,
 	:  head (NULL), allowCone (false), isCone (cone)
 {
 	addr.teredo.prefix = pref;
+	addr.teredo.server_ip = 0;
 
 	sock.ListenPort (port, ipv4);
 #ifdef MIREDO_TEREDO_CLIENT

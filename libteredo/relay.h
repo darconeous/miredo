@@ -140,7 +140,7 @@ class TeredoRelay
 	public:
 		virtual ~TeredoRelay ();
 
-		int operator! (void) const
+		bool operator! (void) const
 		{
 			return !sock
 #ifdef MIREDO_TEREDO_CLIENT
@@ -169,7 +169,7 @@ class TeredoRelay
 #ifdef MIREDO_TEREDO_CLIENT
 		uint32_t GetServerIP (void) const
 		{
-			return IN6_TEREDO_SERVER (&addr);
+			return addr.teredo.server_ip;
 		}
 
 		uint32_t GetServerIP2 (void) const

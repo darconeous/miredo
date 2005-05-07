@@ -59,7 +59,7 @@ class TeredoRelayUDP
 		int SendPacket (const void *packet, size_t len,
 				uint32_t dest_ip, uint16_t dest_port) const;
 
-		int operator! (void) const
+		bool operator! (void) const
 		{
 			return fd == -1;
 		}	
