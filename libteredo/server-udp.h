@@ -69,16 +69,14 @@ class TeredoServerUDP
 		 * Returns 0 on success, -1 if no packet were to be received
 		 * or they were not valid Terdo-encapsulated-packets.
 		 */
-		int ReceivePacket (const fd_set *readset,
-					TeredoPacket& packet) const
+		int ReceivePacket (TeredoPacket& packet) const
 		{
-			return packet.Receive (readset, fd_primary);
+			return packet.Receive (fd_primary);
 		}
 
-		int ReceivePacket2 (const fd_set *readset,
-					TeredoPacket& packet) const
+		int ReceivePacket2 (TeredoPacket& packet) const
 		{
-			return packet.Receive (readset, fd_secondary);
+			return packet.Receive (fd_secondary);
 		}
 
 		/*

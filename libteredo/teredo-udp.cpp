@@ -7,7 +7,7 @@
  */
 
 /***********************************************************************
- *  Copyright (C) 2004 Remi Denis-Courmont.                            *
+ *  Copyright (C) 2004-2005 Remi Denis-Courmont.                       *
  *  This program is free software; you can redistribute and/or modify  *
  *  it under the terms of the GNU General Public License as published  *
  *  by the Free Software Foundation; version 2 of the license.         *
@@ -158,32 +158,29 @@ TeredoPacket::Receive (int fd)
 	nonce = NULL;
 
 	// Parse Teredo headers
-	if (length < 2)
+	if (length < 40)
 		return -1; // too small
 
 	// Teredo Authentication header
 	if ((ptr[0] == 0) && (ptr[1] == teredo_auth_hdr))
 	{
 		ptr += 2;
-		/* ID and Auth */
-		length -= 4;
+		length -= 13;
 		if (length < 0)
 			return -1; // too small
 
-		uint8_t id_len = *ptr;
-		ptr++;
-		uint8_t au_len = *ptr;
-		ptr++;
+		/* ID and Auth */
+		uint8_t id_len = *ptr++;
+		uint8_t au_len = *ptr++;
 
 		length -= id_len + au_len;
+		if (length < 0)
+			return -1;
+
 		/* TODO: secure qualification */
 		ptr += id_len + au_len;
 
 		/* Nonce + confirmation byte */
-		length -= 9;
-		if (length < 0)
-			return -1;
-
 		nonce = ptr;
 		ptr += 9;
 	}
@@ -200,19 +197,9 @@ TeredoPacket::Receive (int fd)
 		ptr += sizeof (orig_buf);
 	}
 
-	if (length < 0)
-		return -1;
-
 	// length <= 65507 = sizeof(buf)
 	ip6len = length;
 	ip6 = ptr;
 
 	return 0;
-}
-
-
-int
-TeredoPacket::Receive (const fd_set *readset, int fd)
-{
-	return (fd != -1) && FD_ISSET (fd, readset) ? Receive (fd) : -1;
 }

@@ -160,11 +160,11 @@ class TeredoRelay
 
 		/*
 		 * Receives a packet from Teredo to IPv6 Internet, i.e.
-		 * performs "Packet reception". This function will block until
-		 * a Teredo packet is received.
+		 * performs "Packet reception". This function will NOT block until
+		 * a Teredo packet is received (but maybe it should).
 		 * Not thread-safe yet.
 		 */
-		int ReceivePacket (const fd_set *reaset);
+		int ReceivePacket ();
 
 #ifdef MIREDO_TEREDO_CLIENT
 		uint32_t GetServerIP (void) const

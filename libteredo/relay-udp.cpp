@@ -76,6 +76,7 @@ TeredoRelayUDP::SendPacket (const void *packet, size_t len,
 
 
 /*** TeredoClientUDP implementation ***/
+#if 0
 #ifdef MIREDO_TEREDO_CLIENT
 TeredoClientUDP::TeredoClientUDP (void)
 {
@@ -99,4 +100,5 @@ TeredoClientUDP::RegisterReadSet (fd_set *readset) const
 	int maxfd = TeredoRelayUDP::RegisterReadSet (readset);
 	return (maxfd > mfd) ? maxfd : mfd;
 }
+#endif
 #endif

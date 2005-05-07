@@ -372,11 +372,11 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
  * (as specified per paragraph 5.4.2). That's called "Packet reception".
  * Returns 0 on success, -1 on error.
  */
-int TeredoRelay::ReceivePacket (const fd_set *readset)
+int TeredoRelay::ReceivePacket (void)
 {
 	TeredoPacket packet;
 
-	if (sock.ReceivePacket (readset, packet))
+	if (sock.ReceivePacket (packet))
 		return -1;
 
 	size_t length;

@@ -7,7 +7,7 @@
  */
 
 /***********************************************************************
- *  Copyright (C) 2004 Remi Denis-Courmont.                            *
+ *  Copyright (C) 2004-2005 Remi Denis-Courmont.                       *
  *  This program is free software; you can redistribute and/or modify  *
  *  it under the terms of the GNU General Public License as published  *
  *  by the Free Software Foundation; version 2 of the license.         *
@@ -51,10 +51,9 @@ class TeredoRelayUDP
 
 		// Thread safe functions:
 		int RegisterReadSet (fd_set *readset) const;
-		int ReceivePacket (const fd_set *readset,
-					TeredoPacket& packet) const
+		int ReceivePacket (TeredoPacket& packet) const
 		{
-			return packet.Receive (readset, fd);
+			return packet.Receive (fd);
 		}
 
 		int SendPacket (const void *packet, size_t len,
@@ -66,6 +65,7 @@ class TeredoRelayUDP
 		}	
 };
 
+#if 0
 # ifdef MIREDO_TEREDO_CLIENT
 class TeredoClientUDP : TeredoRelayUDP
 {
@@ -93,4 +93,5 @@ class TeredoClientUDP : TeredoRelayUDP
 		}	
 };
 # endif /* ifdef MIREDO_TEREDO_CLIENT */
+#endif
 #endif /* ifndef LIBTEREDO_RELAY_UDP_H */

@@ -163,7 +163,7 @@ teredo_relay (int sigfd, IPv6Tunnel& tunnel, TeredoRelay *relay = NULL)
 
 		/* Forwards Teredo packet to IPv6
 		 * (Packet reception) */
-		relay->ReceivePacket (&readset);
+		relay->ReceivePacket ();
 	}
 }
 

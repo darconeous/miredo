@@ -388,15 +388,18 @@ TeredoServer::ProcessPacket (TeredoPacket& packet, bool secondary)
 }
 
 
+/* FIXME: should be called ProcessPackets
+   FIXME: put all select() and loop here
+ */
 void
 TeredoServer::ProcessPacket (const fd_set *readset)
 {
 	TeredoPacket packet;
 
-	if (sock.ReceivePacket (readset, packet) == 0)
+	if (sock.ReceivePacket (packet) == 0)
 		ProcessPacket (packet, false);
 
-	if (sock.ReceivePacket2 (readset, packet) == 0)
+	if (sock.ReceivePacket2 (packet) == 0)
 		ProcessPacket (packet, true);
 }
 

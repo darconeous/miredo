@@ -7,7 +7,7 @@
  */
 
 /***********************************************************************
- *  Copyright (C) 2004 Remi Denis-Courmont.                            *
+ *  Copyright (C) 2004-2005 Remi Denis-Courmont.                       *
  *  This program is free software; you can redistribute and/or modify  *
  *  it under the terms of the GNU General Public License as published  *
  *  by the Free Software Foundation; version 2 of the license.         *
@@ -59,7 +59,6 @@ class TeredoPacket
 		 * fd. This is not thread-safe (the object should be locked).
 		 */
 		int Receive (int fd);
-		int Receive (const fd_set *readset, int fd);
 
 		/*
 		 * Returns a pointer to the IPv6 packet last received with
