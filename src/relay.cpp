@@ -445,6 +445,8 @@ abort:
 	if (relay != NULL)
 		delete relay;
 
+	tunnel.CleanUp ();
+
 #ifdef MIREDO_TEREDO_CLIENT
 	if (fd != -1)
 	{
