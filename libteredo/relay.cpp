@@ -132,15 +132,7 @@ TeredoRelay::~TeredoRelay (void)
 	}
 #endif
 
-/* FIXME */
-	peer *p = head;
-
-	while (p != NULL)
-	{
-		peer *buf = p->next;
-		delete p;
-		p = buf;
-	}
+	TeredoRelay::peer::DestroyList (head);
 }
 
 
@@ -185,7 +177,7 @@ TeredoRelay::PingPeer (peer *p) const
 	if (p->flags.flags.pings < 3)
 	{
 		p->flags.flags.pings++;
-		return SendPing (sock, &addr, &p->addr, p->nonce);
+		return SendPing (sock, &addr, p->GetIPv6Address (), p->nonce);
 	}
 	return 0;
 }

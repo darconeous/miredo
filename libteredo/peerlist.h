@@ -81,6 +81,7 @@ class TeredoRelay::peer
 		struct timeval expiry;
 
 	public:
+		union teredo_addr addr;
 		OutQueue outqueue;
 		InQueue inqueue;
 
@@ -90,8 +91,11 @@ class TeredoRelay::peer
 		}
 		
 		peer *next;
+		const struct in6_addr *GetIPv6Address (void) const
+		{
+			return &addr.ip6;
+		}
 
-		struct in6_addr addr;
 		uint32_t mapped_addr;
 		uint16_t mapped_port;
 		union
@@ -148,6 +152,8 @@ class TeredoRelay::peer
 			     || ((now.tv_sec == expiry.tv_sec)
 			      && (now.tv_usec >= expiry.tv_usec));
 		}
+
+		static void DestroyList (peer *head);
 };
 
 #endif /* ifndef LIBTEREDO_PEERLIST_H */

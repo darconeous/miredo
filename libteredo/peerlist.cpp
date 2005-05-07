@@ -45,17 +45,30 @@
 #include <libteredo/relay.h>
 #include "peerlist.h"
 
-/* FIXME: Releases peers list entries */
-/*	peer *p = head;
-
-	while (p != NULL)
+void
+TeredoRelay::peer::DestroyList (peer *head)
+{
+	while (head != NULL)
 	{
-		peer *buf = p->next;
-		delete p;
-		p = buf;
+		peer *buf = head->next;
+		delete head;
+		head = buf;
 	}
-*/
+}
 
+
+/*
+ * It's pretty much the same as memcmp(), but it is optimized to
+ * compare Teredo addresses (the first bytes tend to be always the same,
+ * while the last ones are most often different).
+ */
+inline int t6cmp (const union teredo_addr *a1, const union teredo_addr *a2)
+{
+	return (a1->t6_addr32[3] - a2->t6_addr32[3])
+	    && (a1->t6_addr32[2] - a2->t6_addr32[2])
+	    && (a1->t6_addr32[1] - a2->t6_addr32[1])
+	    && (a1->t6_addr32[0] - a2->t6_addr32[0]);
+}
 
 /* 
  * Allocates a peer entry. It is up to the caller to fill informations
@@ -95,7 +108,7 @@ TeredoRelay::peer *TeredoRelay::AllocatePeer (const struct in6_addr *addr)
 		head = p;
 	}
 
-	memcpy (&p->addr, addr, sizeof (struct in6_addr));
+	memcpy (&p->addr.ip6, addr, sizeof (struct in6_addr));
 	return p;
 }
 
@@ -111,7 +124,7 @@ TeredoRelay::peer *TeredoRelay::FindPeer (const struct in6_addr *addr)
 	gettimeofday(&now, NULL);
 
 	for (peer *p = head; p != NULL; p = p->next)
-		if (memcmp (&p->addr, addr, sizeof (struct in6_addr)) == 0)
+		if (t6cmp (&p->addr, (const union teredo_addr *)addr) == 0)
 			if (!p->IsExpired (now))
 				return p; // found!
 

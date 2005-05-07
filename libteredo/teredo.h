@@ -7,7 +7,7 @@
  */
 
 /***********************************************************************
- *  Copyright (C) 2002-2004 Remi Denis-Courmont.                       *
+ *  Copyright (C) 2004-2005 Remi Denis-Courmont.                       *
  *  This program is free software; you can redistribute and/or modify  *
  *  it under the terms of the GNU General Public License as published  *
  *  by the Free Software Foundation; version 2 of the license.         *
@@ -55,6 +55,7 @@ union teredo_addr
 		uint16_t client_port;
 		uint32_t client_ip;
 	} teredo;
+	uint32_t t6_addr32[4];
 };
 
 #define TEREDO_FLAG_CONE	0x8000
