@@ -152,11 +152,12 @@ class TeredoRelay
 		/*
 		 * Transmits a packet from IPv6 Internet via Teredo,
 		 * i.e. performs "Packet transmission".
-		 * This function will not block because normal IPv4 stacks do
-		 * not block when sending UDP packets.
 		 * Not thread-safe yet.
+		 *
+		 * It is assumed that len > 40 and that packet is properly
+		 * aligned. Otherwise, behavior is undefined.
 		 */
-		int SendPacket (const void *packet, size_t len);
+		int SendPacket (const struct ip6_hdr *packet, size_t len);
 
 		/*
 		 * Receives a packet from Teredo to IPv6 Internet, i.e.

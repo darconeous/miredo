@@ -190,29 +190,26 @@ inline bool IsBubble (const struct ip6_hdr *hdr)
  * Handles a packet coming from the IPv6 Internet, toward a Teredo node
  * (as specified per paragraph 5.4.1). That's what the specification calls
  * "Packet transmission".
+ *
+ * It is assumed that the packet is valid (if not, it will be dropped by
+ * the receiving Teredo peer). It is furthermore assumed that the packet
+ * is at least 40 bytes long (room for the IPv6 header and that it is
+ * properly aligned.
+ *
+ * The packet size should not exceed the MTU (1280 bytes by default).
+ * In any case, sending will fail if the packets size exceeds 65507 bytes
+ * (maximum size for a UDP packet's payload).
+ *
  * Returns 0 on success, -1 on error.
  */
-int TeredoRelay::SendPacket (const void *packet, size_t length)
+int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 {
-	struct ip6_hdr ip6;
-	if ((length < sizeof (ip6)) || (length > 65507))
-		return 0;
-
-	memcpy (&ip6, packet, sizeof (ip6));
-
-	// Sanity check (should we trust the kernel?):
-	// It's no use emitting such a broken packet because the other side
-	// will drop it anyway.
-	if (((ip6.ip6_vfc >> 4) != 6)
-	 || ((sizeof (ip6) + ntohs (ip6.ip6_plen)) != length))
-		return 0; // invalid IPv6 packet
-
 	/* Makes sure we are qualified properly */
 	if (!IsRunning ())
 		return SendUnreach (0, packet, length);
 
-	const union teredo_addr *dst = (union teredo_addr *)&ip6.ip6_dst,
-				*src = (union teredo_addr *)&ip6.ip6_src;
+	const union teredo_addr *dst = (union teredo_addr *)&packet->ip6_dst,
+				*src = (union teredo_addr *)&packet->ip6_src;
 
 	if (dst->teredo.prefix != GetPrefix ()
 	 && src->teredo.prefix != GetPrefix ())
@@ -227,7 +224,7 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
 		return SendUnreach (1, packet, length);
 
 
-	peer *p = FindPeer (&ip6.ip6_dst);
+	peer *p = FindPeer (&dst->ip6);
 
 	if (p != NULL)
 	{
@@ -236,9 +233,8 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
 		{
 			/* Already known -valid- peer */
 			p->TouchTransmit ();
-			return sock.SendPacket (packet, length,
-						p->mapped_addr,
-						p->mapped_port);
+			return sock.SendPacket (packet, length, p->mapped_addr,
+			                        p->mapped_port);
 		}
 	}
 	
@@ -268,7 +264,7 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
 		// TODO: avoid code duplication
 		if (p == NULL)
 		{
-			p = AllocatePeer (&ip6.ip6_dst);
+			p = AllocatePeer (&dst->ip6);
 			if (p == NULL)
 				return -1; // memory error
 
@@ -286,8 +282,8 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
 	/* Unknown or untrusted Teredo client */
 
 	// Ignores Teredo clients with incorrect server IPv4
-	if (!is_ipv4_global_unicast (IN6_TEREDO_SERVER (&ip6.ip6_dst))
-	 || (IN6_TEREDO_SERVER (&ip6.ip6_dst) == 0))
+	uint32_t peer_server = IN6_TEREDO_SERVER (dst);
+	if (!is_ipv4_global_unicast (peer_server) || (peer_server == 0))
 		return 0;
 
 	/* Client case 3: TODO: implement local discovery */
@@ -297,7 +293,7 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
 		/* Unknown Teredo clients */
 
 		// Creates a new entry
-		p = AllocatePeer (&ip6.ip6_dst);
+		p = AllocatePeer (&dst->ip6);
 		if (p == NULL)
 			return -1; // insufficient memory
 
@@ -309,12 +305,11 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
 		p->TouchTransmit ();
 
 		/* Client case 4 & relay case 2: new cone peer */
-		if (allowCone && IN6_IS_TEREDO_ADDR_CONE (&ip6.ip6_dst))
+		if (allowCone && IN6_IS_TEREDO_ADDR_CONE (dst))
 		{
 			p->flags.flags.trusted = 1;
-			return sock.SendPacket (packet, length,
-						p->mapped_addr,
-						p->mapped_port);
+			return sock.SendPacket (packet, length, p->mapped_addr,
+			                        p->mapped_port);
 		}
 	}
 
@@ -337,10 +332,10 @@ int TeredoRelay::SendPacket (const void *packet, size_t length)
 		 * Open the return path if we are behind a
 		 * restricted NAT.
 		 */
-		if (!IsCone () && SendBubble (sock, &ip6.ip6_dst, false, false))
+		if (!IsCone () && SendBubble (sock, &dst->ip6, false, false))
 			return -1;
 
-		return SendBubble (sock, &ip6.ip6_dst, IsCone ());
+		return SendBubble (sock, &dst->ip6, IsCone ());
 	}
 
 	// Too many bubbles already sent

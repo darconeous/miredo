@@ -153,13 +153,17 @@ teredo_relay (int sigfd, IPv6Tunnel& tunnel, TeredoRelay *relay = NULL)
 			break;
 
 		/* Handle incoming data */
-		char pbuf[65535];
+		union
+		{
+			struct ip6_hdr ip6;
+			uint8_t fill[65507];
+		} pbuf;
 
 		/* Forwards IPv6 packet to Teredo
 		 * (Packet transmission) */
-		val = tunnel.ReceivePacket (&readset, pbuf, sizeof (pbuf));
+		val = tunnel.ReceivePacket (&readset, &pbuf.ip6, sizeof (pbuf));
 		if (val > 0)
-			relay->SendPacket (pbuf, val);
+			relay->SendPacket (&pbuf.ip6, val);
 
 		/* Forwards Teredo packet to IPv6
 		 * (Packet reception) */
