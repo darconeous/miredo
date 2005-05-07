@@ -113,11 +113,8 @@ int
 TeredoPacket::Send (int fd, const void *packet, size_t plen,
 			uint32_t dest_ip, uint16_t dest_port)
 {
-	if ((plen > 65507) || (fd == -1))
-		return -1;
-
 	struct sockaddr_in nat_addr;
-	memset (&nat_addr, 0, sizeof (nat_addr));
+
 	nat_addr.sin_family = AF_INET;
 	nat_addr.sin_port = dest_port;
 	nat_addr.sin_addr.s_addr = dest_ip;
