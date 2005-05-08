@@ -42,7 +42,7 @@ BETA RELEASE 0.5.0 : Major feature enhancement
 # Regenerate server authentication token ("nonce") every hour for increased
   security.
 # Limit ICMPv6 Echo Requests sent to 3 per peer every 30 seconds.
-# Safe work-around to reach peers that rejects ICMPv6 Echo Reques.ts
+# Safe work-around to reach peers that rejects ICMPv6 Echo Requests.
 # Support for MTU setting (in server and relay),
   clients now gets MTU setting from server.
 # Support for changing Teredo server's secondary address (ServerAddress2
