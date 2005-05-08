@@ -725,8 +725,7 @@ IPv6Tunnel::SetMTU (unsigned mtu) const
 int
 IPv6Tunnel::RegisterReadSet (fd_set *readset) const
 {
-	if (fd != -1)
-		FD_SET (fd, readset);
+	FD_SET (fd, readset);
 	return fd;
 }
 
@@ -739,7 +738,7 @@ IPv6Tunnel::RegisterReadSet (fd_set *readset) const
 int
 IPv6Tunnel::ReceivePacket (const fd_set *readset, void *buffer, size_t maxlen)
 {
-	if ((fd == -1) || !FD_ISSET (fd, readset))
+	if (!FD_ISSET (fd, readset))
 		return -1;
 
 #if defined (HAVE_LINUX)
@@ -793,7 +792,7 @@ IPv6Tunnel::ReceivePacket (const fd_set *readset, void *buffer, size_t maxlen)
 int
 IPv6Tunnel::SendPacket (const void *packet, size_t len) const
 {
-	if ((len > 65535) || (fd == -1))
+	if (len > 65535)
 		return -1;
 
 #if defined (HAVE_LINUX)

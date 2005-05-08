@@ -113,6 +113,8 @@ class IPv6Tunnel
 		int DelRoute (const struct in6_addr *addr,
 				unsigned prefix_len) const;
 
+		/* Behavior of the methods below is undefined if operator! is true */
+
 		/*
 		 * Registers file descriptors in an fd_set for use with
 		 * select(). Returns the "biggest" file descriptor
