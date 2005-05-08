@@ -240,29 +240,12 @@ init_daemon (const char *username, const char *pidfile, int nodetach)
 	for (fd = 3; fd < lim.rlim_cur; fd++)
 		(void)close (fd);
 
-	/* Opens pidfile */
-	fd = open_pidfile (pidfile);
-	if (fd == -1)
-	{
-		fprintf (stderr, _("Cannot create PID file %s:\n %s\n"),
-		         pidfile, strerror (errno));
-		if (errno == EAGAIN)
-			fprintf (stderr, "%s\n",
-			         _("Make sure another instance of the program is not "
-			           "already running."));
+	/*
+	 * Make sure 0, 1 and 2 are open.
+	 */
+	if (dup (2) != 3)
 		return -1;
-	}
-
-	if (fd < 3)
-	{
-		close (fd);
-		/*
-		 * Abnormal condition (either stdin, stdout and/or stderr are not
-		 * open). The PID file might get corrupted while writing to stderr.
-		 */
-		return -1;
-	}
-	/* NOTE: if needed, we can assume that (fd == 3) */
+	close (3);
 
 	/* Determines unpriviledged user */
 	errno = 0;
@@ -369,6 +352,19 @@ init_daemon (const char *username, const char *pidfile, int nodetach)
 		cap_free (s);
 	}
 #endif
+
+	/* Opens pidfile */
+	fd = open_pidfile (pidfile);
+	if (fd == -1)
+	{
+		fprintf (stderr, _("Cannot create PID file %s:\n %s\n"),
+		         pidfile, strerror (errno));
+		if (errno == EAGAIN)
+			fprintf (stderr, "%s\n",
+			         _("Make sure another instance of the program is not "
+			           "already running."));
+		return -1;
+	}
 
 	/* 
 	 * Detaches. This is not really a security thing, but it is simpler to
