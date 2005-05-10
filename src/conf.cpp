@@ -33,7 +33,6 @@
 # include <inttypes.h>
 #endif
 #include <string.h>
-#define stricmp( a, b ) strcasecmp( a, b )
 #include <syslog.h>
 
 #include <sys/types.h>
@@ -188,7 +187,7 @@ MiredoConf::GetRawValue (const char *name, unsigned *line)
 
 	for (struct setting *p = head; p != NULL; p = p->next)
 	{
-		if (stricmp (p->name, name) == 0)
+		if (strcasecmp (p->name, name) == 0)
 		{
 			char *buf = p->value;
 
@@ -266,7 +265,7 @@ MiredoConf::GetBoolean (const char *name, bool *value, unsigned *line)
 	}
 
 	for (const char **ptr = true_strings; *ptr != NULL; ptr++)
-		if (!stricmp (val, *ptr))
+		if (!strcasecmp (val, *ptr))
 		{
 			*value = true;
 			free (val);
@@ -274,7 +273,7 @@ MiredoConf::GetBoolean (const char *name, bool *value, unsigned *line)
 		}
 
 	for (const char **ptr = false_strings; *ptr != NULL; ptr++)
-		if (!stricmp (val, *ptr))
+		if (!strcasecmp (val, *ptr))
 		{
 			*value = false;
 			free (val);
@@ -453,7 +452,7 @@ ParseSyslogFacility (MiredoConf& conf, const char *name, int *facility)
 
 	for (const struct miredo_conf_syslog_facility *ptr = facilities;
 						ptr->str != NULL; ptr++)
-		if (!stricmp (str, ptr->str))
+		if (!strcasecmp (str, ptr->str))
 		{
 			*facility = ptr->facility;
 			free (str);
