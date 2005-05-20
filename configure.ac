@@ -96,7 +96,7 @@ RDC_STRUCT_SOCKADDR_LEN
 
 # Checks for library functions.
 RDC_REPLACE_FUNC_GETOPT_LONG
-AC_CHECK_FUNCS(clearenv)
+AC_CHECK_FUNCS([clearenv strlcpy])
 
 # Socket stuff
 RDC_FUNC_SOCKET

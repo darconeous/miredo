@@ -145,8 +145,12 @@ socket_udp6 (void)
 inline void
 secure_strncpy (char *tgt, const char *src, size_t len)
 {
+#ifndef HAVE_STRLCPY
 	strncpy (tgt, src, --len);
 	tgt[len] = '\0';
+#else
+	strlcpy (tgt, src, len);
+#endif
 }
 
 
