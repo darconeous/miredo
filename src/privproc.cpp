@@ -35,6 +35,7 @@
 
 #include <sys/types.h>
 #include <unistd.h>
+#include <sys/socket.h>
 #include <netinet/in.h>
 #if HAVE_SYS_CAPABILITY_H
 # include <sys/capability.h>
