@@ -64,27 +64,27 @@ miredo_diagnose (void)
 	return check ? 0 : -1;
 }
 
+
 /*
  * Main server function, with UDP datagrams receive loop.
  */
 static void
 teredo_server (int fd, TeredoServer *server)
 {
+	/* Registers file descriptors */
+	fd_set readset;
+	FD_ZERO (&readset);
+	FD_SET (fd, &readset);
+
+	int val = server->RegisterReadSet (&readset);
+	int maxfd = ((val > fd) ? val : fd) + 1;
+
 	/* Main loop */
 	while (1)
 	{
-		/* Registers file descriptors */
-		fd_set readset;
-		FD_ZERO (&readset);
-		FD_SET(fd, &readset);
-
-		// FIXME : move this to libteredo
-		int val = server->RegisterReadSet (&readset);
-		int maxfd = (val > fd) ? val : fd;
-
 		/* Wait until one of them is ready for read */
-		maxfd = select (maxfd + 1, &readset, NULL, NULL, NULL);
-		if ((maxfd < 0) || ((maxfd >= 1) && FD_ISSET (fd, &readset)))
+		val = select (maxfd, &readset, NULL, NULL, NULL);
+		if ((val < 0) || FD_ISSET (fd, &readset))
 			// interrupted by signal
 			break;
 
