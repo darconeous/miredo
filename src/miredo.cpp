@@ -224,7 +224,7 @@ miredo (const char *confpath, const char *server_name)
 		}
 
 		// Starts the main miredo process
-		pid_t pid = /*fork ()*/ 0;
+		pid_t pid = fork ();
 
 		switch (pid)
 		{
@@ -233,7 +233,7 @@ miredo (const char *confpath, const char *server_name)
 				break;
 
 			case 0:
-				//asyncsafe_close (signalfd[1]);
+				asyncsafe_close (signalfd[1]);
 				retval = miredo_run (signalfd[0], cnf, server_name);
 		}
 
