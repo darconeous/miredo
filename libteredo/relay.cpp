@@ -206,43 +206,13 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 {
 	/* Makes sure we are qualified properly */
 	if (!IsRunning ())
-		return SendUnreach (0, packet, length);
+		return SendUnreach (3, packet, length);
 
 	const union teredo_addr *dst = (union teredo_addr *)&packet->ip6_dst,
 				*src = (union teredo_addr *)&packet->ip6_src;
 
-	if (dst->teredo.prefix != GetPrefix ()
-	 && src->teredo.prefix != GetPrefix ())
-		/*
-		 * Routing packets not from a Teredo client,
-		 * neither toward a Teredo client is NOT allowed through a
-		 * Teredo tunnel. The Teredo server will reject the packet.
-		 *
-		 * We also drop link-local unicast and multicast packets as
-		 * they can't be routed through Teredo properly.
-		 */
-		return SendUnreach (1, packet, length);
-
-
-	peer *p = FindPeer (&dst->ip6);
-
-	if (p != NULL)
-	{
-		/* Case 1 (paragraphs 5.2.4 & 5.4.1): trusted peer */
-		if (p->flags.flags.trusted)
-		{
-			/* Already known -valid- peer */
-			p->TouchTransmit ();
-			return sock.SendPacket (packet, length, p->mapped_addr,
-			                        p->mapped_port);
-		}
-	}
-	
-	/* Unknown or untrusted peer */
 	if (dst->teredo.prefix != GetPrefix ())
 	{
-		/* Unkown or untrusted non-Teredo node */
-
 		/*
 		 * If we are not a qualified client, ie. we have no server
 		 * IPv4 address to contact for direct IPv6 connectivity, we
@@ -257,9 +227,41 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 		 * back to the kernel.
 		 */
 		if (IsRelay ())
+			return SendUnreach (0, packet, length);
+
+		if (src->teredo.prefix != GetPrefix ())
+			/*
+			* Routing packets not from a Teredo client,
+			* neither toward a Teredo client is NOT allowed through a
+			* Teredo tunnel. The Teredo server will reject the packet.
+			*
+			* We also drop link-local unicast and multicast packets as
+			* they can't be routed through Teredo properly.
+			*/
 			return SendUnreach (1, packet, length);
+	}
+
+	peer *p = FindPeer (&dst->ip6);
+
+	if (p != NULL)
+	{
+		/* Case 1 (paragraphs 5.2.4 & 5.4.1): trusted peer */
+		if (p->flags.flags.trusted)
+		{
+			/* Already known -valid- peer */
+			p->TouchTransmit ();
+			return sock.SendPacket (packet, length, p->mapped_addr,
+			                        p->mapped_port);
+		}
+	}
 
 #ifdef MIREDO_TEREDO_CLIENT
+	/* Unknown or untrusted peer */
+	if (dst->teredo.prefix != GetPrefix ())
+	{
+		/* ASSERT(IsClient ()) */
+		/* Unkown or untrusted non-Teredo node */
+
 		/* Client case 2: direct IPv6 connectivity test */
 		// TODO: avoid code duplication
 		if (p == NULL)
@@ -276,8 +278,8 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 
 		p->outqueue.Queue (packet, length);
 		return PingPeer (p);
-#endif
 	}
+#endif
 
 	/* Unknown or untrusted Teredo client */
 
@@ -538,15 +540,7 @@ int TeredoRelay::ReceivePacket (void)
 			p->outqueue.Flush ();
 			p->inqueue.Flush ();
 
-			/*
-			 * NOTE:
-			 * This implies the kernel will see Echo replies sent
-			 * for Teredo tunneling maintenance. It's not really
-			 * an issue, as IPv6 stacks ignore them.
-			 *
-			 * FIXME: do not do this
-			 */
-			return SendIPv6Packet (buf, length);
+			return 0;
 		}
 #endif /* ifdef MIREDO_TEREDO_CLIENT */
 	}

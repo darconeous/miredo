@@ -59,5 +59,4 @@ Re-usability:
 (F) libteredo API stabilization,
 (?) thread-safety in libteredo,
 (F) libteredo C bindings,
-( ) don't use a callback to receive packets,
-(!) clean up miredo-server
+( ) don't use a callback to receive packets
