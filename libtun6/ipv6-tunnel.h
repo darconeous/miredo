@@ -109,9 +109,9 @@ class IPv6Tunnel
 		int SetMTU (unsigned mtu) const;
 
 		int AddRoute (const struct in6_addr *addr,
-				unsigned prefix_len) const;
+		              unsigned prefix_len, int rel_metric = 0) const;
 		int DelRoute (const struct in6_addr *addr,
-				unsigned prefix_len) const;
+		              unsigned prefix_len, int rel_metric = 0) const;
 
 		/* Behavior of the methods below is undefined if operator! is true */
 

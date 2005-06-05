@@ -341,7 +341,7 @@ IPv6Tunnel::SetState (bool up) const
 
 #ifdef SIOCAIFADDR_IN6
 /*
- * Converts a prefix length to a netmask.
+ * Converts a prefix length to a netmask (used for the BSD routing)
  */
 static void
 plen_to_mask (unsigned plen, struct in6_addr *mask)
@@ -450,10 +450,8 @@ _iface_addr (const char *ifname, bool add,
 				"Please do it manually.", ifname);
 	return 0;
 #endif
-	int retval = -1;
 
-	if ((cmd != 0) && (req != NULL) && (ioctl (reqfd, cmd, req) == 0))
-		retval = 0;
+	int retval = ioctl (reqfd, cmd, req) >= 0 ? 0 : -1;
 	close (reqfd);
 
 	char str[INET6_ADDRSTRLEN];
@@ -494,7 +492,7 @@ _iface_addr (const char *ifname, bool add,
  */
 static int
 _iface_route (const char *ifname, bool add,
-		const struct in6_addr *addr, unsigned prefix_len)
+		const struct in6_addr *addr, unsigned prefix_len, int rel_metric = 0)
 {
 	if ((ifname == NULL)
 	 || (prefix_len > 128))
@@ -520,7 +518,7 @@ _iface_route (const char *ifname, bool add,
 	req6.rtmsg_dst_len = (unsigned short)prefix_len;
 	/* By default, the Linux kernel's metric is 256 for subnets,
 	 * and 1024 for gatewayed route. */
-	req6.rtmsg_metric = 1024;
+	req6.rtmsg_metric = 1024 + rel_metric;
 	if (prefix_len == 128)
 		req6.rtmsg_flags |= RTF_HOST;
 	// no gateway
@@ -532,6 +530,7 @@ _iface_route (const char *ifname, bool add,
 #elif defined (RTM_ADD)
 	/*
 	 * BSD routing socket interface
+	 * FIXME: metric uninplemented
 	 */
 	int s = socket (PF_ROUTE, SOCK_RAW, AF_INET6);
 	if (s != -1)
@@ -674,16 +673,18 @@ IPv6Tunnel::DelAddress (const struct in6_addr *addr, unsigned prefixlen) const
 
 
 int
-IPv6Tunnel::AddRoute (const struct in6_addr *addr, unsigned prefix_len) const
+IPv6Tunnel::AddRoute (const struct in6_addr *addr, unsigned prefix_len,
+                      int rel_metric) const
 {
-	return _iface_route (ifname, true, addr, prefix_len);
+	return _iface_route (ifname, true, addr, prefix_len, rel_metric);
 }
 
 
 int
-IPv6Tunnel::DelRoute (const struct in6_addr *addr, unsigned prefix_len) const
+IPv6Tunnel::DelRoute (const struct in6_addr *addr, unsigned prefix_len,
+                      int rel_metric) const
 {
-	return _iface_route (ifname, false, addr, prefix_len);
+	return _iface_route (ifname, false, addr, prefix_len, rel_metric);
 }
 
 
