@@ -120,7 +120,7 @@ miredo_privileged_process (IPv6Tunnel& tunnel, bool default_route)
 			if (memcmp (&oldcfg.addr, &in6addr_any, 16))
 			{
 				if (default_route)
-					tunnel.DelRoute (&in6addr_any, 0);
+					tunnel.DelRoute (&in6addr_any, 0, +5);
 				tunnel.DelAddress (&oldcfg.addr, 32);
 			}
 
@@ -141,7 +141,7 @@ miredo_privileged_process (IPv6Tunnel& tunnel, bool default_route)
 	
 				tunnel.AddAddress (&newcfg.addr, 32);
 				if (default_route)
-					tunnel.AddRoute (&in6addr_any, 0);
+					tunnel.AddRoute (&in6addr_any, 0, +5);
 			}
 
 			/* Saves address */
