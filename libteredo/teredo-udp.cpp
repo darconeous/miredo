@@ -33,7 +33,7 @@
 #elif HAVE_INTTYPES_H
 # include <inttypes.h>
 #endif
-#include <string.h> // memset()
+#include <string.h> // memcpy()
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -56,8 +56,7 @@
 int
 TeredoPacket::OpenSocket (uint32_t bind_ip, uint16_t port)
 {
-	struct sockaddr_in myaddr;
-	memset (&myaddr, 0, sizeof (myaddr));
+	struct sockaddr_in myaddr = { };
 	myaddr.sin_family = AF_INET;
 	myaddr.sin_port = port;
 	myaddr.sin_addr.s_addr = bind_ip;

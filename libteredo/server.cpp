@@ -277,9 +277,8 @@ ForwardUDPPacket (const TeredoServerUDP& sock, const TeredoPacket& packet,
 static bool
 SendIPv6Packet (int fd, const void *p, size_t plen)
 {
-	struct sockaddr_in6 dst;
+	struct sockaddr_in6 dst = { };
 
-	memset (&dst, 0, sizeof (dst));
 	dst.sin6_family = AF_INET6;
 #ifdef HAVE_SA_LEN
 	dst.sin6_len = sizeof (dst);
