@@ -381,7 +381,6 @@ init_daemon (const char *username, const char *pidfile, int nodetach)
 	return 0;
 }
 
-extern int miredo_diagnose (void);
 
 int
 main (int argc, char *argv[])
@@ -465,10 +464,7 @@ main (int argc, char *argv[])
 		username = MIREDO_DEFAULT_USERNAME;
 
 	if (conffile == NULL)
-	{
-		extern const char *const miredo_conffile;
 		conffile = miredo_conffile;
-	}
 
 	/* Check if config file and chroot dir are present */
 	if ((servername == NULL) && access (conffile, R_OK))
@@ -500,10 +496,7 @@ main (int argc, char *argv[])
 #endif
 
 	if (pidfile == NULL)
-	{
-		extern const char *const miredo_pidfile;
 		pidfile = miredo_pidfile;
-	}
 
 	if (miredo_diagnose ()
 	 || init_daemon (username, pidfile, flags.foreground))

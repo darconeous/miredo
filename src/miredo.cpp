@@ -51,6 +51,7 @@
 #endif
 
 #include "conf.h"
+#include "miredo.h"
 
 /*
  * Signal handlers
@@ -188,8 +189,6 @@ DeinitSignals (void)
  * Configuration and respawning stuff
  */
 static const char *const ident = "miredo";
-
-extern int miredo_run (int fd, MiredoConf& conf, const char *server = NULL);
 
 
 extern "C" int

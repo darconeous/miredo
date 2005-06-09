@@ -389,9 +389,10 @@ TeredoServer::ProcessPacket (TeredoPacket& packet, bool secondary)
 
 /* FIXME: should be called ProcessPackets
    FIXME: put all select() and loop here
+   FIXME: useless parameter
  */
 void
-TeredoServer::ProcessPacket (const fd_set *readset)
+TeredoServer::ProcessPacket (const fd_set *)
 {
 	TeredoPacket packet;
 

@@ -49,8 +49,8 @@
 #include <libteredo/security.h>
 
 #include "privproc.h"
-#include "miredo.h"
 #include "conf.h"
+#include "miredo.h"
 
 extern "C" const char *const miredo_conffile = SYSCONFDIR"/miredo.conf";
 extern "C" const char *const miredo_pidfile = LOCALSTATEDIR"/run/miredo.pid";

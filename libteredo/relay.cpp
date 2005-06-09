@@ -632,6 +632,7 @@ int TeredoRelay::ReceivePacket (void)
 	p->TouchReceive ();
 
 	return PingPeer (p);
-#endif /* ifdef MIREDO_TEREDO_CLIENT */
+#else /* ifdef MIREDO_TEREDO_CLIENT */
 	return 0;
+#endif
 }

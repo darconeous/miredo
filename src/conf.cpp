@@ -238,8 +238,9 @@ MiredoConf::GetInt16 (const char *name, uint16_t *value, unsigned *line)
 
 
 
-const char *true_strings[] = { "yes", "true", "on", "enabled", NULL };
-const char *false_strings[] = { "no", "false", "off", "disabled", NULL };
+static const char *true_strings[] = { "yes", "true", "on", "enabled", NULL };
+static const char *false_strings[] =
+	{ "no", "false", "off", "disabled", NULL };
 
 bool
 MiredoConf::GetBoolean (const char *name, bool *value, unsigned *line)

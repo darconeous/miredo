@@ -57,7 +57,7 @@
 #define QUALIFIED	0
 
 
-int TeredoRelay::NotifyUp (const struct in6_addr *, uint16_t mtu)
+int TeredoRelay::NotifyUp (const struct in6_addr *, uint16_t)
 {
 	return 0;
 }

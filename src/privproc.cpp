@@ -44,6 +44,7 @@
 #include <libtun6/ipv6-tunnel.h>
 #include <libteredo/teredo.h>
 
+#include "privproc.h"
 
 struct miredo_tunnel_settings
 {

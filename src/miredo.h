@@ -26,6 +26,8 @@
 # define MIREDO_MIREDO_H
 
 # ifdef __cplusplus
+extern int miredo_run (int fd, MiredoConf& conf, const char *server = NULL);
+
 extern "C"
 {
 # endif
@@ -34,12 +36,15 @@ extern "C"
 
 int miredo (const char *conffile, const char *server_name);
 int drop_privileges (void);
+int miredo_diagnose (void);
 
 # ifdef __cplusplus
 }
 # endif
 
 extern uid_t unpriv_uid;
+extern const char *const miredo_pidfile;
+extern const char *const miredo_conffile;
 
 #endif /* ifndef MIREDO_CONF_H */
 
