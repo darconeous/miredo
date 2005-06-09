@@ -46,9 +46,9 @@
 
 #include <libteredo/server.h>
 
-extern "C" const char *const miredo_conffile =
+const char *const miredo_conffile =
 		SYSCONFDIR"/miredo-server.conf";
-extern "C" const char *const miredo_pidfile =
+const char *const miredo_pidfile =
 		LOCALSTATEDIR"/run/miredo-server.pid";
 
 extern "C" int

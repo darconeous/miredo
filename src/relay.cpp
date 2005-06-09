@@ -52,8 +52,8 @@
 #include "conf.h"
 #include "miredo.h"
 
-extern "C" const char *const miredo_conffile = SYSCONFDIR"/miredo.conf";
-extern "C" const char *const miredo_pidfile = LOCALSTATEDIR"/run/miredo.pid";
+const char *const miredo_conffile = SYSCONFDIR"/miredo.conf";
+const char *const miredo_pidfile = LOCALSTATEDIR"/run/miredo.pid";
 
 
 extern "C" int
