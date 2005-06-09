@@ -381,6 +381,7 @@ init_daemon (const char *username, const char *pidfile, int nodetach)
 	return 0;
 }
 
+extern int miredo_diagnose (void);
 
 int
 main (int argc, char *argv[])
@@ -497,8 +498,6 @@ main (int argc, char *argv[])
 		}
 	}
 #endif
-
-	extern int miredo_diagnose (void);
 
 	if (pidfile == NULL)
 	{
