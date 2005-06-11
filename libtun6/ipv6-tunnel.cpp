@@ -295,6 +295,25 @@ void IPv6Tunnel::CleanUp ()
  * error, and 0 on success. Similarly, they should require root privileges.
  */
 
+#if defined (HAVE_LINUX)
+static void
+proc_write_zero (const char *path)
+{
+	int fd;
+
+	syslog (LOG_DEBUG, "setting %s to 0...", path);
+	fd = open (path, O_WRONLY);
+	if (fd != -1)
+	{
+		write (fd, "0", 1);
+		close (fd);
+	}
+	else
+		syslog (LOG_DEBUG, "error (%m)");
+}
+#endif
+
+
 /*
  * Brings the tunnel interface up or down.
  */
@@ -332,6 +351,23 @@ IPv6Tunnel::SetState (bool up) const
 		close (reqfd);
 		return 0;
 	}
+
+#if defined (HAVE_LINUX)
+	if (up)
+	{
+		char proc_path[24 + IFNAMSIZ + 16 + 1] = "/proc/sys/net/ipv6/conf/";
+
+		/* Disable Autoconfiguration and ICMPv6 redirects */
+		sprintf (proc_path + 24, "%s/accept_ra", ifname);
+		proc_write_zero (proc_path);
+	
+		sprintf (proc_path + 24, "%s/accept_redirects", ifname);
+		proc_write_zero (proc_path);
+	
+		sprintf (proc_path + 24, "%s/autoconf", ifname);
+		proc_write_zero (proc_path);
+	}
+#endif
 
 	close (reqfd);
 	return -1;
