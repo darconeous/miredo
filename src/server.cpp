@@ -33,6 +33,7 @@
 #elif HAVE_INTTYPES_H
 # include <inttypes.h>
 #endif
+#include <string.h> // memset()
 
 #include <sys/types.h>
 #include <sys/select.h>
