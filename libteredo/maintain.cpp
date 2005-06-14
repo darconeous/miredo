@@ -204,6 +204,10 @@ void TeredoRelay::MaintenanceThread (void)
 			pthread_mutex_lock (&maintenance.lock);
 		}
 
+		int val;
+
+		pthread_cleanup_push (cleanup_unlock, &maintenance.lock);
+
 		struct timeval now;
 		gettimeofday (&now, NULL);
 		if (now.tv_sec > nonce_death.tv_sec)
@@ -224,14 +228,13 @@ void TeredoRelay::MaintenanceThread (void)
 		deadline.tv_sec = now.tv_sec + QualificationTimeOut;
 		deadline.tv_nsec = now.tv_usec * 1000;
 
-		int val;
-		pthread_cleanup_push (cleanup_unlock, &maintenance.lock);
 		do
 		{
 			val = pthread_cond_timedwait (&maintenance.received,
 			                              &maintenance.lock, &deadline);
 		}
 		while (val && (val != ETIMEDOUT));
+
 		pthread_cleanup_pop (0);
 
 		if (val)
