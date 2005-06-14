@@ -36,6 +36,7 @@
 #include <syslog.h>
 
 #include <sys/types.h>
+#include <sys/socket.h> // AF_INET, SOCK_DGRAM
 #include <netinet/in.h>
 #include <netdb.h>
 #include <libteredo/teredo.h>
