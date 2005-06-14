@@ -41,6 +41,7 @@
 #include <sys/time.h>
 #include <netinet/in.h> // struct in6_addr
 #include <syslog.h>
+#include <errno.h> // ETIMEDOUT
 
 #include <libteredo/teredo.h>
 
@@ -165,6 +166,13 @@ asyncsafe_sleep (unsigned sec)
 }
 
 
+static void
+cleanup_unlock (void *o)
+{
+	pthread_mutex_unlock ((pthread_mutex_t *)o);
+}
+
+
 #define SERVER_PING_DELAY 30
 
 unsigned TeredoRelay::QualificationTimeOut = 4; // seconds
@@ -216,8 +224,17 @@ void TeredoRelay::MaintenanceThread (void)
 		deadline.tv_sec = now.tv_sec + QualificationTimeOut;
 		deadline.tv_nsec = now.tv_usec * 1000;
 
-		if (pthread_cond_timedwait (&maintenance.received, &maintenance.lock,
-		                            &deadline))
+		int val;
+		pthread_cleanup_push (cleanup_unlock, &maintenance.lock);
+		do
+		{
+			val = pthread_cond_timedwait (&maintenance.received,
+			                              &maintenance.lock, &deadline);
+		}
+		while (val && (val != ETIMEDOUT));
+		pthread_cleanup_pop (0);
+
+		if (val)
 		{
 			/* no response */
 			if (maintenance.state == PROBE_SYMMETRIC)
