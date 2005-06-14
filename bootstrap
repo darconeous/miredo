@@ -47,7 +47,7 @@ echo "Removing backups ..."
 rm -f m4/Makefile.am~ Makefile.am~ configure.ac~ m4/*.m4~ po/*~
 unlink po/Makevars.template
 
-for d in /usr /usr/local /opt/gettext $HOME ; do
+for d in /usr /usr/local /opt/gettext /usr/pkg $HOME ; do
 	if test -f $d/share/gettext/gettext.h ; then
 		test -z $gettext_h && ln -sf $d/share/gettext/gettext.h \
 					include/gettext.h
