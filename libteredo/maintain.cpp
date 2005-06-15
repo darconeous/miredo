@@ -280,8 +280,11 @@ void TeredoRelay::MaintenanceThread (void)
 		{
 			if (maintenance.success)
 			{
+				pthread_cleanup_push (cleanup_unlock, &maintenance.lock);
 				syslog (LOG_INFO, _("Qualified (NAT type: %s)"),
 				        gettext (isCone ? N_("cone") : N_("restricted")));
+				pthread_cleanup_pop (0);
+
 				count = 0;
 				maintenance.state = 0;
 			}
