@@ -18,9 +18,12 @@ Features:
 (*) some statistics,
 ( ) fixed TODOs and FIXMEs in source code,
 ( ) local Teredo discovery,
+( ) support for reading kernel's gatewayed route through the tunneled
+    (TUNSLMODE on NetBSD)
 (!) interval determination procedure,
 (*) peers list garbage collection,
 (?) "automatic sunset" / "exit strategy"
+(*) Linux: see if we should use TUN_NOCHECKSUM
 
 Security:
 ----------

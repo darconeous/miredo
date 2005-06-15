@@ -75,13 +75,16 @@ static const char *os_driver = "Linux";
  */
 # include <net/if_var.h>
 # include <netinet6/in6_var.h> // struct in6_aliasreq, struct in6_ifreq
+#if 0
 /*
  * Unless you have a very recent KAME implementation <netinet6/nd6.h> is
  * not usable in a C++ program.
  * cf: http://www.atm.tut.fi/list-archive/snap-users/msg03004.html
  */
-//# include <netinet6/nd6.h> // ND6_INFINITE_LIFETIME
 # define ND6_INFINITE_LIFETIME 0xffffffff
+#else
+# include <netinet6/nd6.h> // ND6_INFINITE_LIFETIME
+#endif
 
 # include <net/if_tun.h> // TUNSIFHEAD - FreeBSD tunnel driver
 # include <net/route.h> // AF_ROUTE things
@@ -95,7 +98,7 @@ static const char *os_driver = "FreeBSD";
 #elif defined (HAVE_OPENBSD)
 /*
  * OpenBSD tunneling driver
- * TODO: OpenBSD routing support, compile-test
+ * TODO: OpenBSD adress, routing support, compile-test
  */
 # define USE_TUNHEAD
 static const char *os_driver = "OpenBSD";
@@ -103,8 +106,10 @@ static const char *os_driver = "OpenBSD";
 #elif defined (HAVE_NETBSD)
 /*
  * NetBSD tunneling driver
- * TODO: NetBSD routing support, compile-test
+ * TODO: NetBSD routing support
  */
+# include <netinet6/in6_var.h> // struct in6_aliasreq
+# include <netinet6/nd6.h> // ND6_INFINITE_LIFETIME
 static const char *os_driver = "NetBSD";
 
 #elif defined (HAVE_DARWIN)
@@ -444,7 +449,7 @@ _iface_addr (const char *ifname, bool add,
 	req = &r;
 #elif defined (SIOCAIFADDR_IN6)
 	/*
-	 * FreeBSD ioctl interface
+	 * FreeBSD/NetBSD ioctl interface
 	 */
 	union
 	{
@@ -462,6 +467,8 @@ _iface_addr (const char *ifname, bool add,
 			sizeof (r.addreq6.ifra_addr.sin6_addr));
 
 		plen_to_sin6 (prefix_len, &r.addreq6.ifra_prefixmask);
+		// NetBSD kernel strangeness :
+		r.addreq6.ifra_prefixmask.sin6_family = 0;
 
 		r.addreq6.ifra_lifetime.ia6t_vltime = ND6_INFINITE_LIFETIME;
 		r.addreq6.ifra_lifetime.ia6t_pltime = ND6_INFINITE_LIFETIME;
