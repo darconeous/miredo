@@ -404,7 +404,8 @@ plen_to_sin6 (unsigned plen, struct sockaddr_in6 *sin6)
 {
 	memset (sin6, 0, sizeof (struct sockaddr_in6));
 
-	sin6->sin6_family = AF_INET6;
+	// NetBSD kernel strangeness :
+	//sin6->sin6_family = AF_INET6;
 # if HAVE_SA_LEN
 	sin6->sin6_len = sizeof (struct sockaddr_in6);
 # endif
@@ -467,8 +468,6 @@ _iface_addr (const char *ifname, bool add,
 			sizeof (r.addreq6.ifra_addr.sin6_addr));
 
 		plen_to_sin6 (prefix_len, &r.addreq6.ifra_prefixmask);
-		// NetBSD kernel strangeness :
-		r.addreq6.ifra_prefixmask.sin6_family = 0;
 
 		r.addreq6.ifra_lifetime.ia6t_vltime = ND6_INFINITE_LIFETIME;
 		r.addreq6.ifra_lifetime.ia6t_pltime = ND6_INFINITE_LIFETIME;

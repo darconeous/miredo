@@ -375,6 +375,10 @@ miredo_run (int sigfd, MiredoConf& conf, const char *server_name)
 	else
 #endif
 	{
+		/*
+		 * FIXME: breaks on NetBSD whereby tunnel is always preserved
+		 * on exit.
+		 */
 		if (tunnel.SetMTU (mtu) || tunnel.BringUp ()
 		 || tunnel.AddAddress (mode == TEREDO_RESTRICT
 		 			? &teredo_restrict : &teredo_cone)
