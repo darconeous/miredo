@@ -158,6 +158,18 @@ miredo_privileged_process (IPv6Tunnel& tunnel, bool default_route)
 	}
 
 	close (fd[0]);
+
+	/* Removes old addresses */
+	if (memcmp (&oldcfg.addr, &in6addr_any, 16))
+	{
+		if (default_route)
+			tunnel.DelRoute (&in6addr_any, 0, +5);
+		tunnel.DelAddress (&oldcfg.addr, 32);
+	}
+
+	if (p_oldloc != NULL)
+		tunnel.DelAddress (p_oldloc, 64);
+
 	tunnel.BringDown ();
 	tunnel.CleanUp ();
 	exit (0);
