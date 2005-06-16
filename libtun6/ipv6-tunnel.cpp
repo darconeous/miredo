@@ -75,7 +75,7 @@ static const char *os_driver = "Linux";
  */
 # include <net/if_var.h>
 # include <netinet6/in6_var.h> // struct in6_aliasreq, struct in6_ifreq
-#if 0
+#if 1
 /*
  * Unless you have a very recent KAME implementation <netinet6/nd6.h> is
  * not usable in a C++ program.
@@ -107,6 +107,8 @@ static const char *os_driver = "OpenBSD";
 /*
  * NetBSD tunneling driver
  * TODO: NetBSD routing support
+ * NOTE: the driver does NOT really work because NetBSD tun driver
+ * only accepts IPv4 packets :-(
  */
 # include <netinet6/in6_var.h> // struct in6_aliasreq
 # include <netinet6/nd6.h> // ND6_INFINITE_LIFETIME
@@ -214,7 +216,8 @@ IPv6Tunnel::IPv6Tunnel (const char *req_name) : fd (-1), ifname (NULL)
 			if (fd == -1)
 				continue;
 
-# if defined (SIOCSIFNAME)
+# if defined (HAVE_LINUX)
+			// TODO: have this work on FreeBSD
 			// Overrides the interface name
 			struct ifreq req;
 			memset (&req, 0, sizeof (req));
@@ -227,6 +230,7 @@ IPv6Tunnel::IPv6Tunnel (const char *req_name) : fd (-1), ifname (NULL)
 					_("Tunnel error (SIOCSIFNAME): %m"));
 				close (fd);
 				fd = -1;
+				continue;
 			}
 # else /* SIOCSIFNAME */
 			ifname = strdup (tundev + 5); // strlen ("/dev/") == 5
@@ -307,15 +311,12 @@ proc_write_zero (const char *path)
 {
 	int fd;
 
-	syslog (LOG_DEBUG, "setting %s to 0...", path);
 	fd = open (path, O_WRONLY);
 	if (fd != -1)
 	{
 		write (fd, "0", 1);
 		close (fd);
 	}
-	else
-		syslog (LOG_DEBUG, "error (%m)");
 }
 #endif
 
@@ -759,14 +760,8 @@ IPv6Tunnel::RegisterReadSet (fd_set *readset) const
 int
 IPv6Tunnel::ReceivePacket (const fd_set *readset, void *buffer, size_t maxlen)
 {
-	puts ("DEBUG : looking for packet...");
-	fflush (stdout);
-
 	if (!FD_ISSET (fd, readset))
 		return -1;
-
-	puts ("DEBUG : there is one...");
-	fflush (stdout);
 
 #if defined (HAVE_LINUX)
 	struct
