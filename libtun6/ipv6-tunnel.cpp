@@ -110,6 +110,7 @@ static const char *os_driver = "OpenBSD";
  */
 # include <netinet6/in6_var.h> // struct in6_aliasreq
 # include <netinet6/nd6.h> // ND6_INFINITE_LIFETIME
+# include <net/route.h>
 static const char *os_driver = "NetBSD";
 
 #elif defined (HAVE_DARWIN)
@@ -431,7 +432,7 @@ _iface_addr (const char *ifname, bool add,
 	long cmd = 0;
 	void *req = NULL;
 
-#if defined (SIOCGIFINDEX)
+#if defined (HAVE_LINUX)
 	/*
 	 * Linux ioctl interface
 	 */
@@ -572,68 +573,41 @@ _iface_route (const char *ifname, bool add,
 #elif defined (RTM_ADD)
 	/*
 	 * BSD routing socket interface
-	 * FIXME: metric uninplemented
+	 * FIXME: metric unimplemented
 	 */
 	int s = socket (PF_ROUTE, SOCK_RAW, AF_INET6);
 	if (s != -1)
 	{
 		shutdown (s, 0);
 
-		uint8_t buf[sizeof (rt_msghdr)
-					+ 2 * sizeof (struct sockaddr_in6)
-					+ 2 * sizeof (struct sockaddr_dl)];
-
-		uint8_t *ptr = buf;
-
+		/* don't rely on properly aligned struct */
+		struct
 		{
-			static int rtm_seq = 0;
 			struct rt_msghdr hdr;
-
-			memset (&hdr, 0, sizeof (hdr));
-			hdr.rtm_msglen = sizeof (buf);
-			hdr.rtm_version = RTM_VERSION;
-			hdr.rtm_type = add ? RTM_ADD : RTM_DELETE;
-			hdr.rtm_index = if_nametoindex (ifname);
-			hdr.rtm_flags = RTF_UP | RTF_GATEWAY;
-			hdr.rtm_addrs = RTA_DST | RTA_NETMASK | RTA_GATEWAY | RTA_IFP;
-			hdr.rtm_pid = getpid ();
-			hdr.rtm_seq = rtm_seq++;
-		
-			memcpy (ptr, &hdr, sizeof (hdr));
-			ptr += sizeof (hdr);
-		}
-		{
 			struct sockaddr_in6 dst;
-			memset (&dst, 0, sizeof (dst));
-			dst.sin6_family = AF_INET6;
-			dst.sin6_len = sizeof (dst);
-			memcpy (&dst.sin6_addr, addr, sizeof (dst.sin6_addr));
-
-			memcpy (ptr, &dst, sizeof (dst));
-			ptr += sizeof (dst);
-		}
-		{
 			struct sockaddr_in6 mask;
-			plen_to_sin6 (prefix_len, &mask);
+		} msg;
 
-			memcpy (ptr, &mask, sizeof (mask));
-			ptr += sizeof (mask);
-		}
-		{
-			struct sockaddr_dl ifp;
-			memset (&ifp, 0, sizeof (ifp));
-			ifp.sdl_family = AF_LINK;
-			ifp.sdl_len = sizeof (ifp);
-			ifp.sdl_index = if_nametoindex (ifname);
+		memset (&msg, 0, sizeof (msg));
+		msg.hdr.rtm_msglen = sizeof (msg);
+		msg.hdr.rtm_version = RTM_VERSION;
+		msg.hdr.rtm_type = add ? RTM_ADD : RTM_DELETE;
+		msg.hdr.rtm_index = if_nametoindex (ifname);
+		msg.hdr.rtm_flags = RTF_UP;
+		msg.hdr.rtm_addrs = RTA_NETMASK;
+		msg.hdr.rtm_pid = getpid ();
 
-			memcpy (ptr, &ifp, sizeof (ifp));
-			ptr += sizeof (ifp);
-			memcpy (ptr, &ifp, sizeof (ifp));
-		}
+		static int rtm_seq = 0;
+		msg.hdr.rtm_seq = rtm_seq++;
+
+		msg.dst.sin6_family = AF_INET6;
+		msg.dst.sin6_len = sizeof (msg.dst);
+		memcpy (&msg.dst.sin6_addr, addr, sizeof (msg.dst.sin6_addr));
+		plen_to_sin6 (prefix_len, &msg.mask);
 
 		errno = 0;
 
-		if ((write (s, buf, sizeof (buf)) == sizeof (buf))
+		if ((write (s, &msg, sizeof (msg)) == sizeof (msg))
 		 && (errno == 0))
 			retval = 0;
 		else
@@ -785,8 +759,14 @@ IPv6Tunnel::RegisterReadSet (fd_set *readset) const
 int
 IPv6Tunnel::ReceivePacket (const fd_set *readset, void *buffer, size_t maxlen)
 {
+	puts ("DEBUG : looking for packet...");
+	fflush (stdout);
+
 	if (!FD_ISSET (fd, readset))
 		return -1;
+
+	puts ("DEBUG : there is one...");
+	fflush (stdout);
 
 #if defined (HAVE_LINUX)
 	struct
@@ -796,6 +776,9 @@ IPv6Tunnel::ReceivePacket (const fd_set *readset, void *buffer, size_t maxlen)
 	} head;
 #elif defined (HAVE_FREEBSD) || defined (HAVE_OPENBSD)
 	uint32_t head;
+#elif defined (HAVE_NETBSD)
+	struct sockaddr_in6 head;
+# define USE_TUNHEAD 1
 #endif
 
 #if defined (USE_TUNHEAD)
@@ -827,6 +810,12 @@ IPv6Tunnel::ReceivePacket (const fd_set *readset, void *buffer, size_t maxlen)
 	/* FreeBSD driver */
 	if (head != htonl (AF_INET6))
 		return -1;
+#elif defined (HAVE_NETBSD)
+	puts ("Checking packet...");
+	if (head.sin6_family != AF_INET6)
+		return -1;
+	puts ("Packet is valid");
+# undef USE_TUNHEAD
 #endif
 
 	return len;
