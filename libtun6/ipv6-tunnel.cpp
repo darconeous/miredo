@@ -585,11 +585,11 @@ _iface_route (const char *ifname, bool add,
 	{
 		shutdown (s, 0);
 
-		/* don't rely on properly aligned struct */
 		struct
 		{
 			struct rt_msghdr hdr;
 			struct sockaddr_in6 dst;
+			struct sockaddr_dl gw;
 			struct sockaddr_in6 mask;
 		} msg;
 
@@ -598,24 +598,23 @@ _iface_route (const char *ifname, bool add,
 		msg.hdr.rtm_version = RTM_VERSION;
 		msg.hdr.rtm_type = add ? RTM_ADD : RTM_DELETE;
 		msg.hdr.rtm_index = if_nametoindex (ifname);
+		msg.hdr.rtm_flags = RTF_UP | RTF_STATIC;
+		msg.hdr.rtm_addrs = RTA_DST | RTA_GATEWAY | RTA_NETMASK;
 		if (prefix_len == 128)
-		{
-			msg.hdr.rtm_flags = RTF_UP | RTF_HOST;
-			msg.hdr.rtm_addrs = RTA_DST;
-		}
-		else
-		{
-			msg.hdr.rtm_flags = RTF_UP;
-			msg.hdr.rtm_addrs = RTA_DST | RTA_NETMASK;
-		}
+			msg.hdr.rtm_flags |= RTF_HOST;
 		msg.hdr.rtm_pid = getpid ();
 
 		static int rtm_seq = 0;
-		msg.hdr.rtm_seq = rtm_seq++;
+		msg.hdr.rtm_seq = ++rtm_seq;
 
 		msg.dst.sin6_family = AF_INET6;
 		msg.dst.sin6_len = sizeof (msg.dst);
 		memcpy (&msg.dst.sin6_addr, addr, sizeof (msg.dst.sin6_addr));
+
+		msg.gw.sdl_family = AF_LINK;
+		msg.gw.sdl_len = sizeof (msg.gw);
+		msg.gw.sdl_index = if_nametoindex (ifname);
+
 		plen_to_sin6 (prefix_len, &msg.mask);
 
 		errno = 0;
@@ -623,26 +622,6 @@ _iface_route (const char *ifname, bool add,
 		if ((write (s, &msg, sizeof (msg)) == sizeof (msg))
 		 && (errno == 0))
 			retval = 0;
-		else
-			/* FIXME */
-			syslog (LOG_ERR, "PF_ROUTE error: %m");
-
-		/*
-		 * Setting a route on FreeBSD is a real pain, with which I am
-		 * fed up. You can't just say "route this network prefix
-		 * through that interface" as with Linux. Unless a FreeBSD
-		 * guru gets it right, it is probably not going to work
-		 * anytime soon.
-		 * TODO: Have someone else do it. I've lost enough time with
-		 * that silly thing.
-		 */
-		if (retval)
-		{
-			syslog (LOG_ERR,
-				"Setting a route on FreeBSD does not work "
-				"fine. Please do it by hand.");
-			retval = 0;
-		}
 
 		close (s);
 	}
