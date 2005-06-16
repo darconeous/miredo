@@ -92,6 +92,7 @@ static const char *os_driver = "Linux";
 
 # include <net/if_dl.h> // struct sockaddr_dl
 
+# define HAVE_BSD
 # define USE_TUNHEAD
 static const char *os_driver = "FreeBSD";
 
@@ -100,6 +101,7 @@ static const char *os_driver = "FreeBSD";
  * OpenBSD tunneling driver
  * TODO: OpenBSD adress, routing support, compile-test
  */
+# define HAVE_BSD
 # define USE_TUNHEAD
 static const char *os_driver = "OpenBSD";
  
@@ -113,6 +115,8 @@ static const char *os_driver = "OpenBSD";
 # include <netinet6/in6_var.h> // struct in6_aliasreq
 # include <netinet6/nd6.h> // ND6_INFINITE_LIFETIME
 # include <net/route.h>
+
+# define HAVE_BSD
 static const char *os_driver = "NetBSD";
 
 #elif defined (HAVE_DARWIN)
@@ -120,6 +124,7 @@ static const char *os_driver = "NetBSD";
  * Darwin tunneling driver
  * TODO: Darwin routing support
  */
+# define HAVE_BSD
 static const char *os_driver = "Darwin";
 
 #else
@@ -196,10 +201,9 @@ IPv6Tunnel::IPv6Tunnel (const char *req_name) : fd (-1), ifname (NULL)
 	}
 
 	ifname = strdup (req.ifr_name);
-#elif defined (HAVE_FREEBSD) || defined (HAVE_OPENBSD) \
-   || defined (HAVE_NETBSD) || defined (HAVE_DARWIN)
+#elif defined (HAVE_BSD)
 	/*
-	 * BSD tunnel drivers initialization
+	 * BSD tunnel driver initialization
 	 */
 	char tundev[12];
 	int reqfd = socket_udp6 ();
@@ -216,7 +220,7 @@ IPv6Tunnel::IPv6Tunnel (const char *req_name) : fd (-1), ifname (NULL)
 			if (fd == -1)
 				continue;
 
-# if defined (HAVE_LINUX)
+# if 0
 			// TODO: have this work on FreeBSD
 			// Overrides the interface name
 			struct ifreq req;
@@ -382,7 +386,7 @@ IPv6Tunnel::SetState (bool up) const
 }
 
 
-#ifdef SIOCAIFADDR_IN6
+#ifdef HAVE_BSD
 /*
  * Converts a prefix length to a netmask (used for the BSD routing)
  */
@@ -413,7 +417,7 @@ plen_to_sin6 (unsigned plen, struct sockaddr_in6 *sin6)
 # endif
 	plen_to_mask (plen, &sin6->sin6_addr);
 }
-#endif
+#endif /* ifdef SOCAIFADDR_IN6 */
 
 /*
  * Adds or removes an address and a prefix to the tunnel interface.
@@ -450,9 +454,9 @@ _iface_addr (const char *ifname, bool add,
 
 	cmd = add ? SIOCSIFADDR : SIOCDIFADDR;
 	req = &r;
-#elif defined (SIOCAIFADDR_IN6)
+#elif defined (HAVE_BSD)
 	/*
-	 * FreeBSD/NetBSD ioctl interface
+	 * BSD ioctl interface
 	 */
 	union
 	{
@@ -544,7 +548,7 @@ _iface_route (const char *ifname, bool add,
 
 	int retval = -1;
 
-#if defined (SIOCGIFINDEX)
+#if defined (HAVE_LINUX)
 	/*
 	 * Linux ioctl interface
 	 */
@@ -571,7 +575,7 @@ _iface_route (const char *ifname, bool add,
 		retval = 0;
 
 	close (reqfd);
-#elif defined (RTM_ADD)
+#elif defined (HAVE_BSD)
 	/*
 	 * BSD routing socket interface
 	 * FIXME: metric unimplemented
@@ -594,8 +598,16 @@ _iface_route (const char *ifname, bool add,
 		msg.hdr.rtm_version = RTM_VERSION;
 		msg.hdr.rtm_type = add ? RTM_ADD : RTM_DELETE;
 		msg.hdr.rtm_index = if_nametoindex (ifname);
-		msg.hdr.rtm_flags = RTF_UP;
-		msg.hdr.rtm_addrs = RTA_NETMASK;
+		if (prefix_len == 128)
+		{
+			msg.hdr.rtm_flags = RTF_UP | RTF_HOST;
+			msg.hdr.rtm_addrs = RTA_DST;
+		}
+		else
+		{
+			msg.hdr.rtm_flags = RTF_UP;
+			msg.hdr.rtm_addrs = RTA_DST | RTA_NETMASK;
+		}
 		msg.hdr.rtm_pid = getpid ();
 
 		static int rtm_seq = 0;
@@ -771,9 +783,6 @@ IPv6Tunnel::ReceivePacket (const fd_set *readset, void *buffer, size_t maxlen)
 	} head;
 #elif defined (HAVE_FREEBSD) || defined (HAVE_OPENBSD)
 	uint32_t head;
-#elif defined (HAVE_NETBSD)
-	struct sockaddr_in6 head;
-# define USE_TUNHEAD 1
 #endif
 
 #if defined (USE_TUNHEAD)
@@ -805,12 +814,6 @@ IPv6Tunnel::ReceivePacket (const fd_set *readset, void *buffer, size_t maxlen)
 	/* FreeBSD driver */
 	if (head != htonl (AF_INET6))
 		return -1;
-#elif defined (HAVE_NETBSD)
-	puts ("Checking packet...");
-	if (head.sin6_family != AF_INET6)
-		return -1;
-	puts ("Packet is valid");
-# undef USE_TUNHEAD
 #endif
 
 	return len;
