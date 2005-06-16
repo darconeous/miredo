@@ -406,9 +406,9 @@ main (int argc, char *argv[])
 
 	int c;
 
-	setlocale (LC_ALL, "");
-	bindtextdomain (PACKAGE, LOCALEDIR);
-	textdomain (PACKAGE);
+	(void)setlocale (LC_ALL, "");
+	(void)bindtextdomain (PACKAGE, LOCALEDIR);
+	(void)textdomain (PACKAGE);
 
 #define ONETIME_SETTING( setting ) \
 	if (setting != NULL) \
