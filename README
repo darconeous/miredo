@@ -45,9 +45,9 @@ a Teredo server.
   Miredo can be used to provide IPv6 connectivity to users behind NAT
 which do not support IPv6, and not even proto-41 forwarding. For this
 to work, users need to have a Teredo client running on their system.
-That can be Miredo itself on Linux/FreeBSD. Microsoft provides a Teredo
-client built-in with Windows XP SP2 IPv6 stack, and in its "Advanced
-Networking pack" for Windows XP SP1.
+That can be Miredo itself on Linux/FreeBSD/OpenBSD. Microsoft provides
+a Teredo client built-in with Windows XP SP2 IPv6 stack, and in its
+"Advanced Networking pack" for Windows XP SP1.
 
   For more informations on the Teredo technology, please refer to the
 Microsoft IPv6 : Teredo overview.
@@ -56,15 +56,15 @@ Microsoft IPv6 : Teredo overview.
 System requirements
 ====================
 
-  Miredo runs fine on Linux kernel 2.6.x and FreeBSD 5.x. It should
-also work with Linux 2.4.x and FreeBSD 4.x, but they were not tested.
+  Miredo runs fine on Linux kernel 2.6.x, FreeBSD 5.x and OpenBSD 3.7;
+it should also work with Linux 2.4.x, and older releases of FreeBSD
+(4.x) and OpenBSD, provided they support IPv6, but these configurations
+were not tested.
 
-Miredo might work on Mac OS X, with an additionnal tunneling driver,
-but it was not tested (help needed). Some minor modifications will
-probably be needed to run Miredo on OpenBSD.
-
+  Mac OS X might work, with a third pary-provided tunneling driver, but
+it could not be tested.
   NetBSD is *NOT* supported since its tunneling driver does not
-support IPv6 yet.
+support IPv6 yet. It should work as soon as NetBSD kernel gets fixed.
 
   Miredo is believed to be architecture-independant, but it was only
 properly tested on i386.
@@ -120,6 +120,9 @@ teredo    Link encap:UNSPEC  HWaddr 00-00-00-00-00-00-00-00-00-00-00...
           TX packets:7 errors:0 dropped:0 overruns:0 carrier:0
           collisions:0 txqueuelen:500
           RX bytes:468 (468.0 b)  TX bytes:560 (560.0 b)
+
+NOTE: on *BSD operating systems, the interface will usually be called
+tun0 (or tun1, tun2...).
 
 # ping6 -c 4 www.kame.net
 PING www.kame.net(orange.kame.net) 56 data bytes

@@ -46,7 +46,7 @@ Performance/scalibility:
 Portability:
 -------------
 (H) big-endianess/byte-alignment compatibility tests,
-(H) Darwin/Solaris/OpenBSD compilation,
+(H) Darwin/Solaris compilation,
 
 Compatibility:
 ---------------

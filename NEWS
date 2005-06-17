@@ -1,5 +1,5 @@
 RELEASE NOTES for Miredo
-version 0.5.0 (beta version)
+version 0.5.1 (beta version)
 =============================
 $Id$
 
@@ -38,6 +38,8 @@ BETA RELEASE 0.5.1 : Minor bugfixes
 # Fix adding/removal of tunnel route on FreeBSD.
 # Fix POSIX mutex deletion on exit.
 # Fix incorrect/useless passing of Teredo maintenance packets to IPv6 stack.
+# Support for OpenBSD operating system.
+# Would-be support for NetBSD operating system.
 
 =============================================================================
 BETA RELEASE 0.5.0 : Major feature enhancement
