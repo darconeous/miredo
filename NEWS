@@ -25,12 +25,19 @@ changes, run 'miredo -h' to get help. For detailled internal changes, see
 ChangeLog.
 
 =============================================================================
-BETA RELEASE 0.5.1 : ??????????????????????
+BETA RELEASE 0.5.1 : Minor bugfixes
 
-# Fix use of POSIX capabilities with miredo-server.
+# Set a bigger metric (lower priority) for Teredo's default IPv6 route than
+  usual default IPv6 route, so that one can safely run miredo even if/when
+  other/better IPv6 connectivity is otherwise available (Linux-only).
+# Some code optimization for better performance.
 # Allow running miredo as root (if and only if explicitly enabled through
   ./configure).
-# Some code optimization for better performance.
+# Fix use of POSIX capabilities with miredo-server.
+# Fix compilation on FreeBSD.
+# Fix adding/removal of tunnel route on FreeBSD.
+# Fix POSIX mutex deletion on exit.
+# Fix incorrect/useless passing of Teredo maintenance packets to IPv6 stack.
 
 =============================================================================
 BETA RELEASE 0.5.0 : Major feature enhancement

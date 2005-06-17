@@ -83,18 +83,6 @@ file. It is ignored if RelayType is not set to "client" (see miredo.conf).
 been validated. As such it is subject to change and miredo might not
 work correctly with other implementations.
 
-.RB "Routing on " "FreeBSD" " does not work automatically yet."
-You have to add a route to the Teredo prefix if you run a Teredo relay.
-This can typically be done this way:
-
-route add -inet6 -net 3ffe:831f::
--prefixlen 32 fe80::8000:5445:5245:444f%tun0
-
-.RI "Where " "tun0" " is the Teredo tunneling interface name,"
-.IR "3ffe:831f::" " is the Teredo IPv6 prefix and "
-.IR "fe80::8000:5445:5245:444f" " is the link-local tunnel"
-interface's address.
-
 .RB "Routing and IPv6 addressing on " "Darwin" ", " "NetBSD" " and "
 .BR "OpenBSD" " is not implemented. Miredo is untested on these"
 platforms.

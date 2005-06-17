@@ -24,6 +24,7 @@ Features:
 (*) peers list garbage collection,
 (?) "automatic sunset" / "exit strategy"
 (*) Linux: see if we should use TUN_NOCHECKSUM
+(!) Metric support on BSD
 
 Security:
 ----------

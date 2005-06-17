@@ -7,6 +7,7 @@ Copyright (C) 2004-2005 Remi Denis-Courmont.
 
 Where to go?
 =============
+
   If you've used olders versions of this program, you should read NEWS
 for a summary of the most recent updates and changes.
 
@@ -37,15 +38,9 @@ What is Miredo?
 
   Miredo is an Unix daemon program which implements the "Teredo:
 Tunneling IPv6 over UDP through NATs" Internet draft specification.
-At the moment, Miredo runs fine on GNU/Linux 2.6.x and not so fine on
-FreeBSD 4.x/5.x. It can provide either client or relay functionnality.
-A separate program, miredo-server is also included in the package; it
-consists or a Teredo server.
-  Linux 2.4.x IPv6 support is a bit buggy and broken. It is therefore
-not officially supported. If possible, upgrade to branch 2.6.x, as is
-recommended by USAGI if you want to route IPv6.
-  Mac OS X might work with an additionnal tunneling driver. It could
-not be tested. OpenBSD and NetBSD were not tested either.
+It can provide either client or relay functionnality. A separate
+program, miredo-server is also included in the package; it consists of
+a Teredo server.
 
   Miredo can be used to provide IPv6 connectivity to users behind NAT
 which do not support IPv6, and not even proto-41 forwarding. For this
@@ -58,14 +53,28 @@ Networking pack" for Windows XP SP1.
 Microsoft IPv6 : Teredo overview.
 
 
+System requirements
+====================
+
+  Miredo runs fine on Linux kernel 2.6.x and FreeBSD 5.x. It should
+also work with Linux 2.4.x and FreeBSD 4.x, but they were not tested.
+
+Miredo might work on Mac OS X, with an additionnal tunneling driver,
+but it was not tested (help needed). Some minor modifications will
+probably be needed to run Miredo on OpenBSD.
+
+  NetBSD is *NOT* supported since its tunneling driver does not
+support IPv6 yet.
+
+  Miredo is believed to be architecture-independant, but it was only
+properly tested on i386.
+
 
 Quick usage
 ============
 
-
 Easy installation:
 -------------------
-
   First, compile and install Miredo. Refer to INSTALL for detailled
 instructions. Usually, it can be done the common way:
 
@@ -84,10 +93,8 @@ will cause Miredo to run as a Teredo client, with "teredo.via.ecp.fr"
 (Miredo official testing Teredo server) as its Teredo server. You can
 find more extensive explanations in the configuration file.
 
-
 Starting the program:
 ----------------------
-
   Before you start, please note that Miredo must be started by root,
 and that it will detach and run in the background. If something goes
 wrong, there are two ways two know what :
@@ -125,14 +132,11 @@ PING www.kame.net(orange.kame.net) 56 data bytes
 4 packets transmitted, 4 received, 0% packet loss, time 3003ms
 rtt min/avg/max/mdev = 552.830/564.865/585.031/12.218 ms
 
-
 Monitoring:
 ------------
-
   If you wish to monitor the Teredo tunnel, I suggest you use famous
 network analyzer Ethereal which has had a built-in Teredo dissector for
 some time.
-
 
 Teredo relay and/or server:
 ----------------------------
@@ -143,7 +147,6 @@ miredo(8) and miredo.conf(5)
 
 # man 8 miredo
 # man 5 miredo.conf
-
 
 
 Securing you Miredo installation
@@ -184,7 +187,6 @@ parameters (it must be root to do that). If someone breaks Miredo, it
 might still be able to break your IPv6 networking setup, but it should
 not be able to compromise the whole system.
 
-
 2) Chroot jail:
 ----------------
   Chroot jail setup does no longer require manual setup. It is always
@@ -202,7 +204,6 @@ automatic.
 POSIX capabilities library development files, before building Miredo.
 
 
-
 Feedback:
 ==========
 
@@ -210,8 +211,6 @@ Feedback:
 
     rdenis (at) simphalempin (dot) com
 
-
 -- 
 Remi Denis-Courmont <rdenis (at) simphalempin (dot) com>
 http://www.simphalempin.com/dev/miredo/
-

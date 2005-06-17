@@ -71,9 +71,13 @@ static const char *os_driver = "Linux";
 #elif defined (HAVE_FREEBSD)
 /*
  * FreeBSD tunneling driver
- * FIXME: FreeBSD routing is broken
  */
 # include <net/if_var.h>
+# include <net/if_tun.h> // TUNSIFHEAD - FreeBSD tunnel driver
+# include <net/if_dl.h> // struct sockaddr_dl
+# include <net/route.h> // AF_ROUTE things
+# include <errno.h> // errno
+
 # include <netinet6/in6_var.h> // struct in6_aliasreq, struct in6_ifreq
 #if 1
 /*
@@ -86,11 +90,6 @@ static const char *os_driver = "Linux";
 # include <netinet6/nd6.h> // ND6_INFINITE_LIFETIME
 #endif
 
-# include <net/if_tun.h> // TUNSIFHEAD - FreeBSD tunnel driver
-# include <net/route.h> // AF_ROUTE things
-# include <errno.h> // errno
-
-# include <net/if_dl.h> // struct sockaddr_dl
 
 # define HAVE_BSD
 # define USE_TUNHEAD
@@ -112,9 +111,11 @@ static const char *os_driver = "OpenBSD";
  * NOTE: the driver does NOT really work because NetBSD tun driver
  * only accepts IPv4 packets :-(
  */
+# include <net/if_dl.h> // struct sockaddr_dl
+# include <net/route.h> // AF_ROUTE things
+# include <errno.h> // errno
 # include <netinet6/in6_var.h> // struct in6_aliasreq
 # include <netinet6/nd6.h> // ND6_INFINITE_LIFETIME
-# include <net/route.h>
 
 # define HAVE_BSD
 static const char *os_driver = "NetBSD";
