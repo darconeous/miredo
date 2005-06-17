@@ -34,7 +34,12 @@
 
 #include "security.h"
 
-static const char *randfile = "/dev/random", *urandfile = "/dev/urandom";
+#ifndef HAVE_OPENBSD
+static const char *randfile = "/dev/random";
+#else
+static const char *randfile = "/dev/srandom";
+#endif
+static const char *urandfile = "/dev/urandom";
 static int devfd[2] = { -1, -1 };
 
 static int
