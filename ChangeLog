@@ -1,4 +1,529 @@
 ------------------------------------------------------------------------
+r622 | remi | 2005-06-17 17:54:17 +0200 (ven, 17 jun 2005) | 2 lines
+Chemins modifiés :
+   M /trunk/TODO
+   M /trunk/po/fr.po
+   M /trunk/po/miredo.pot
+
+Prepare make dist
+
+------------------------------------------------------------------------
+r621 | remi | 2005-06-17 17:35:53 +0200 (ven, 17 jun 2005) | 2 lines
+Chemins modifiés :
+   M /trunk/NEWS
+   M /trunk/README
+   M /trunk/TODO
+   M /trunk/doc/miredo.8
+
+Document OpenBSD support
+
+------------------------------------------------------------------------
+r620 | remi | 2005-06-17 17:02:19 +0200 (ven, 17 jun 2005) | 2 lines
+Chemins modifiés :
+   M /trunk/src/main.c
+
+Work-around for a buggy OS known as OpenBSD
+
+------------------------------------------------------------------------
+r619 | remi | 2005-06-17 16:59:46 +0200 (ven, 17 jun 2005) | 2 lines
+Chemins modifiés :
+   M /trunk/libteredo/security.cpp
+
+Fix random device file path on OpenBSD
+
+------------------------------------------------------------------------
+r618 | remi | 2005-06-17 15:24:27 +0200 (ven, 17 jun 2005) | 2 lines
+Chemins modifiés :
+   M /trunk/libtun6/ipv6-tunnel.cpp
+   M /trunk/src/main.c
+
+Makes OpenBSD happy
+
+------------------------------------------------------------------------
+r617 | remi | 2005-06-17 08:46:55 +0200 (ven, 17 jun 2005) | 2 lines
+Chemins modifiés :
+   M /trunk/NEWS
+   M /trunk/README
+   M /trunk/TODO
+   M /trunk/doc/miredo.8
+   M /trunk/libtun6/ipv6-tunnel.cpp
+
+Doc update
+
+------------------------------------------------------------------------
+r616 | remi | 2005-06-16 21:15:32 +0200 (jeu, 16 jun 2005) | 2 lines
+Chemins modifiés :
+   M /trunk/TODO
+   M /trunk/libtun6/ipv6-tunnel.cpp
+
+At long last, route setup on FreeBSD works :-)
+
+------------------------------------------------------------------------
+r615 | remi | 2005-06-16 20:45:34 +0200 (jeu, 16 jun 2005) | 2 lines
+Chemins modifiés :
+   M /trunk/libtun6/ipv6-tunnel.cpp
+
+FreeBSD compile fix + clean up
+
+------------------------------------------------------------------------
+r614 | remi | 2005-06-16 18:24:53 +0200 (jeu, 16 jun 2005) | 2 lines
+Chemins modifiés :
+   M /trunk/libtun6/ipv6-tunnel.cpp
+
+Remove debug messages
+
+------------------------------------------------------------------------
+r613 | remi | 2005-06-16 18:15:27 +0200 (jeu, 16 jun 2005) | 2 lines
+Chemins modifiés :
+   M /trunk/libtun6/ipv6-tunnel.cpp
+
+FreeBSD partial compile fix
+
+------------------------------------------------------------------------
+r612 | remi | 2005-06-16 18:15:12 +0200 (jeu, 16 jun 2005) | 2 lines
+Chemins modifiés :
+   M /trunk/po/fr.po
+   M /trunk/po/miredo.pot
+
+PO update
+
+------------------------------------------------------------------------
+r611 | remi | 2005-06-16 18:10:29 +0200 (jeu, 16 jun 2005) | 2 lines
+Chemins modifiés :
+   M /trunk/src/main.c
+
+Fix warning when compiling without NLS
+
+------------------------------------------------------------------------
+r610 | remi | 2005-06-16 17:49:16 +0200 (jeu, 16 jun 2005) | 2 lines
+Chemins modifiés :
+   M /trunk/Makefile.am
+
+Fix make distcheck
+
+------------------------------------------------------------------------
+r609 | remi | 2005-06-15 19:18:32 +0200 (mer, 15 jun 2005) | 2 lines
+Chemins modifiés :
+   M /trunk/libtun6/ipv6-tunnel.cpp
+   M /trunk/src/relay.cpp
+
+clean up
+
+------------------------------------------------------------------------
+r608 | remi | 2005-06-15 19:14:22 +0200 (mer, 15 jun 2005) | 2 lines
+Chemins modifiés :
+   M /trunk/src/privproc.cpp
+
+Removes addresses and route on exit
+
+------------------------------------------------------------------------
+r607 | remi | 2005-06-15 18:56:23 +0200 (mer, 15 jun 2005) | 2 lines
+Chemins modifiés :
+   M /trunk/TODO
+   M /trunk/libtun6/ipv6-tunnel.cpp
+
+NetBSD tunnel addresses setup support
+
+------------------------------------------------------------------------
+r606 | remi | 2005-06-15 18:56:01 +0200 (mer, 15 jun 2005) | 2 lines
+Chemins modifiés :
+   M /trunk/src/server.cpp
+
+NetBSD compile fix
+
+------------------------------------------------------------------------
+r605 | remi | 2005-06-15 18:29:57 +0200 (mer, 15 jun 2005) | 2 lines
+Chemins modifiés :
+   M /trunk/m4/sockaddr.m4
+
+Fix sockaddr.sa_len detection
+
+------------------------------------------------------------------------
+r604 | remi | 2005-06-15 18:11:42 +0200 (mer, 15 jun 2005) | 2 lines
+Chemins modifiés :
+   M /trunk/libteredo/maintain.cpp
+
+Fix possible (unlikely) locked mutex destroy bug on NetBSD in syslog
+
+------------------------------------------------------------------------
+r603 | remi | 2005-06-14 22:14:57 +0200 (mar, 14 jun 2005) | 2 lines
+Chemins modifiés :
+   M /trunk/libteredo/maintain.cpp
+
+More complete fix for NetBSD
+
+------------------------------------------------------------------------
+r602 | remi | 2005-06-14 21:59:15 +0200 (mar, 14 jun 2005) | 4 lines
+Chemins modifiés :
+   M /trunk/libteredo/maintain.cpp
+
+Fix pthread_cond_timedwait call : previously failed to unlock the
+maintenance mutex if the maintenance thread was cancelled
+(i.e. upon exit)
+
+------------------------------------------------------------------------
+r601 | remi | 2005-06-14 18:59:21 +0200 (mar, 14 jun 2005) | 2 lines
+Chemins modifiés :
+   M /trunk/src/server.cpp
+
+Another compile fix
+
+------------------------------------------------------------------------
+r600 | remi | 2005-06-14 18:58:03 +0200 (mar, 14 jun 2005) | 2 lines
+Chemins modifiés :
+   M /trunk/src/conf.cpp
+
+NetBSD compile fix
+
+------------------------------------------------------------------------
+r599 | remi | 2005-06-14 18:49:21 +0200 (mar, 14 jun 2005) | 2 lines
+Chemins modifiés :
+   M /trunk/bootstrap
+
+Bootstrap NetBSD fix
+
+------------------------------------------------------------------------
+r598 | remi | 2005-06-11 22:44:55 +0200 (sam, 11 jun 2005) | 3 lines
+Chemins modifiés :
+   M /trunk/libtun6/ipv6-tunnel.cpp
+
+Prevent autoconfiguration through sysctl() (/proc actually) on Linux
+It doesn't prevent initial attempt at autoconfiguration by the kernel :(
+
+------------------------------------------------------------------------
+r597 | remi | 2005-06-09 10:54:41 +0200 (jeu, 09 jun 2005) | 2 lines
+Chemins modifiés :
+   M /trunk/src/relay.cpp
+   M /trunk/src/server.cpp
+
+ICC warning fixes
+
+------------------------------------------------------------------------
+r596 | remi | 2005-06-09 10:49:58 +0200 (jeu, 09 jun 2005) | 2 lines
+Chemins modifiés :
+   M /trunk/libteredo/maintain.cpp
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/server.cpp
+   M /trunk/src/conf.cpp
+   M /trunk/src/main.c
+   M /trunk/src/miredo.cpp
+   M /trunk/src/miredo.h
+   M /trunk/src/privproc.cpp
+   M /trunk/src/relay.cpp
+
+Intel compiler warning fixes
+
+------------------------------------------------------------------------
+r595 | remi | 2005-06-09 10:28:17 +0200 (jeu, 09 jun 2005) | 2 lines
+Chemins modifiés :
+   M /trunk/src/main.c
+
+gcc2 compile fix
+
+------------------------------------------------------------------------
+r594 | remi | 2005-06-08 17:58:38 +0200 (mer, 08 jun 2005) | 2 lines
+Chemins modifiés :
+   M /trunk/libteredo/server.cpp
+   M /trunk/libteredo/teredo-udp.cpp
+
+Two fewer memset() calls
+
+------------------------------------------------------------------------
+r593 | remi | 2005-06-05 10:44:58 +0200 (dim, 05 jun 2005) | 3 lines
+Chemins modifiés :
+   M /trunk/src/privproc.cpp
+
+Sets a biger metric for Miredo's default route, so that other IPv6
+connectivity mediums will always be prioritized
+
+------------------------------------------------------------------------
+r592 | remi | 2005-06-05 10:37:29 +0200 (dim, 05 jun 2005) | 2 lines
+Chemins modifiés :
+   M /trunk/libtun6/ipv6-tunnel.cpp
+   M /trunk/libtun6/ipv6-tunnel.h
+
+Support for specifying a route metric
+
+------------------------------------------------------------------------
+r590 | remi | 2005-06-04 11:07:30 +0200 (sam, 04 jun 2005) | 2 lines
+Chemins modifiés :
+   M /trunk/src/miredo.cpp
+
+Undo buggy commit r589 on src/miredo.cpp
+
+------------------------------------------------------------------------
+r589 | remi | 2005-06-04 11:06:25 +0200 (sam, 04 jun 2005) | 3 lines
+Chemins modifiés :
+   M /trunk/TODO
+   M /trunk/libteredo/relay.cpp
+   M /trunk/src/miredo.cpp
+
+- Use better ICMPv6 error messages
+- Don't pass connectivity test response pakcets to user
+
+------------------------------------------------------------------------
+r588 | remi | 2005-05-30 13:02:16 +0200 (lun, 30 mai 2005) | 2 lines
+Chemins modifiés :
+   M /trunk/src/server.cpp
+
+clean up
+
+------------------------------------------------------------------------
+r587 | remi | 2005-05-24 17:09:48 +0200 (mar, 24 mai 2005) | 2 lines
+Chemins modifiés :
+   M /trunk/src/privproc.cpp
+
+#include fix
+
+------------------------------------------------------------------------
+r586 | remi | 2005-05-20 22:50:47 +0200 (ven, 20 mai 2005) | 2 lines
+Chemins modifiés :
+   M /trunk/configure.ac
+   M /trunk/libtun6/ipv6-tunnel.cpp
+
+Use strlcpy when available
+
+------------------------------------------------------------------------
+r585 | remi | 2005-05-10 12:49:56 +0200 (mar, 10 mai 2005) | 2 lines
+Chemins modifiés :
+   M /trunk/src/conf.cpp
+
+stricmp => strcasecmp
+
+------------------------------------------------------------------------
+r584 | remi | 2005-05-08 12:17:51 +0200 (dim, 08 mai 2005) | 2 lines
+Chemins modifiés :
+   M /trunk/NEWS
+
+Fix a typo
+
+------------------------------------------------------------------------
+r583 | remi | 2005-05-08 09:34:04 +0200 (dim, 08 mai 2005) | 3 lines
+Chemins modifiés :
+   M /trunk/src/main.c
+
+Fix nasty PID file not unlinked bug when POSIX capabilities are used
+and ${localstatedir}/run is not owned by root
+
+------------------------------------------------------------------------
+r582 | remi | 2005-05-08 08:36:13 +0200 (dim, 08 mai 2005) | 2 lines
+Chemins modifiés :
+   M /trunk/libtun6/ipv6-tunnel.cpp
+   M /trunk/libtun6/ipv6-tunnel.h
+
+Remove useless sanity check
+
+------------------------------------------------------------------------
+r581 | remi | 2005-05-07 22:46:07 +0200 (sam, 07 mai 2005) | 3 lines
+Chemins modifiés :
+   M /trunk/src/relay.cpp
+
+Ensure IPv6 packets are at least 40 bytes-long before trying to tunnel
+them through Teredo
+
+------------------------------------------------------------------------
+r580 | remi | 2005-05-07 22:43:17 +0200 (sam, 07 mai 2005) | 2 lines
+Chemins modifiés :
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/relay.h
+   M /trunk/src/relay.cpp
+
+Don't check and copy IPv6 header in TeredoRelay::SendPacket
+
+------------------------------------------------------------------------
+r579 | remi | 2005-05-07 22:41:37 +0200 (sam, 07 mai 2005) | 2 lines
+Chemins modifiés :
+   M /trunk/libteredo/maintain.cpp
+
+Fix use of unitialized value
+
+------------------------------------------------------------------------
+r578 | remi | 2005-05-07 21:46:12 +0200 (sam, 07 mai 2005) | 2 lines
+Chemins modifiés :
+   M /trunk/TODO
+   M /trunk/libteredo/maintain.cpp
+   M /trunk/libteredo/relay.cpp
+
+Some clean up
+
+------------------------------------------------------------------------
+r577 | remi | 2005-05-07 21:32:54 +0200 (sam, 07 mai 2005) | 3 lines
+Chemins modifiés :
+   M /trunk/NEWS
+   M /trunk/libteredo/peerlist.cpp
+   M /trunk/libteredo/peerlist.h
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/teredo.h
+
+- Optimize peer list search
+- Clean up peer list deletion
+
+------------------------------------------------------------------------
+r576 | remi | 2005-05-07 20:28:54 +0200 (sam, 07 mai 2005) | 2 lines
+Chemins modifiés :
+   M /trunk/libteredo/relay.h
+
+Avoid pointer reference and dereference in TeredoRelay::GetPrefix
+
+------------------------------------------------------------------------
+r575 | remi | 2005-05-07 20:24:17 +0200 (sam, 07 mai 2005) | 3 lines
+Chemins modifiés :
+   M /trunk/libteredo/relay-udp.h
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/relay.h
+
+- fix unitialized value in relay setup,
+- fasten TeredoRelay::GetServerIP()
+
+------------------------------------------------------------------------
+r574 | remi | 2005-05-07 20:05:48 +0200 (sam, 07 mai 2005) | 3 lines
+Chemins modifiés :
+   M /trunk/libteredo/maintain.cpp
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/relay.h
+
+Don't use costly call to in6_is_teredo_addr_cone
+in TeredoRelay::IsCone
+
+------------------------------------------------------------------------
+r573 | remi | 2005-05-07 18:12:40 +0200 (sam, 07 mai 2005) | 2 lines
+Chemins modifiés :
+   M /trunk/libteredo/relay-udp.cpp
+   M /trunk/libteredo/relay-udp.h
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/relay.h
+   M /trunk/libteredo/server-udp.h
+   M /trunk/libteredo/server.cpp
+   M /trunk/libteredo/teredo-udp.cpp
+   M /trunk/libteredo/teredo-udp.h
+   M /trunk/src/relay.cpp
+
+Get rid of readset parameter where possible
+
+------------------------------------------------------------------------
+r572 | remi | 2005-05-07 17:41:37 +0200 (sam, 07 mai 2005) | 4 lines
+Chemins modifiés :
+   M /trunk/src/relay.cpp
+
+More robust select()
+It was causing a lot of problems whereby miredo would quit for no
+reasons (particularly when debugging)
+
+------------------------------------------------------------------------
+r571 | remi | 2005-05-07 16:31:40 +0200 (sam, 07 mai 2005) | 2 lines
+Chemins modifiés :
+   M /trunk/src/relay.cpp
+
+Redo r566 in a non brain-dead manner
+
+------------------------------------------------------------------------
+r570 | remi | 2005-05-07 16:11:37 +0200 (sam, 07 mai 2005) | 3 lines
+Chemins modifiés :
+   M /trunk/src/relay.cpp
+
+Undo severly buggy commit r566
+(I still don't get what's wrong with it)
+
+------------------------------------------------------------------------
+r569 | remi | 2005-05-07 15:58:57 +0200 (sam, 07 mai 2005) | 2 lines
+Chemins modifiés :
+   M /trunk/bootstrap
+
+Unbreak bootstrap
+
+------------------------------------------------------------------------
+r568 | remi | 2005-05-07 15:20:02 +0200 (sam, 07 mai 2005) | 2 lines
+Chemins modifiés :
+   M /trunk/src/relay.cpp
+
+Clean up tunnel explicitly at end
+
+------------------------------------------------------------------------
+r567 | remi | 2005-05-07 15:10:54 +0200 (sam, 07 mai 2005) | 3 lines
+Chemins modifiés :
+   M /trunk/libteredo/teredo-udp.cpp
+
+- Remove useless checks
+- Remove useless memset
+
+------------------------------------------------------------------------
+r566 | remi | 2005-05-07 15:01:10 +0200 (sam, 07 mai 2005) | 2 lines
+Chemins modifiés :
+   M /trunk/src/relay.cpp
+
+Cache select's read set
+
+------------------------------------------------------------------------
+r565 | remi | 2005-05-07 14:55:39 +0200 (sam, 07 mai 2005) | 2 lines
+Chemins modifiés :
+   M /trunk/libteredo/teredo-udp.cpp
+   M /trunk/libteredo/teredo-udp.h
+
+Don't use a reference since it's not needed
+
+------------------------------------------------------------------------
+r564 | remi | 2005-05-07 08:39:15 +0200 (sam, 07 mai 2005) | 2 lines
+Chemins modifiés :
+   M /trunk/NEWS
+   M /trunk/configure.ac
+   M /trunk/src/main.c
+
+Allow running as root if --enable-miredo-user=root was used
+
+------------------------------------------------------------------------
+r562 | remi | 2005-05-06 22:30:59 +0200 (ven, 06 mai 2005) | 4 lines
+Chemins modifiés :
+   M /trunk/src/miredo.cpp
+
+Leave of POSIX capabilities even we unpriv_uid is 0.
+It's still a bad idea, even without capabilities.
+That's why it's still impossible without patching the program.
+
+------------------------------------------------------------------------
+r561 | remi | 2005-05-06 22:28:00 +0200 (ven, 06 mai 2005) | 2 lines
+Chemins modifiés :
+   M /trunk/NEWS
+   M /trunk/src/main.c
+
+Fix use of POSIX capabilities for miredo-server
+
+------------------------------------------------------------------------
+r560 | remi | 2005-05-06 19:04:59 +0200 (ven, 06 mai 2005) | 2 lines
+Chemins modifiés :
+   M /trunk/libteredo/Makefile.am
+   A /trunk/libteredo/peerlist.cpp (de /trunk/libteredo/relay.cpp:559)
+   A /trunk/libteredo/peerlist.h (de /trunk/libteredo/relay.cpp:559)
+   M /trunk/libteredo/relay.cpp
+   M /trunk/po/POTFILES.in
+
+Another split : move TeredoRelay::peer in separate files
+
+------------------------------------------------------------------------
+r559 | remi | 2005-05-06 18:50:52 +0200 (ven, 06 mai 2005) | 3 lines
+Chemins modifiés :
+   M /trunk/libteredo/Makefile.am
+   A /trunk/libteredo/maintain.cpp (de /trunk/libteredo/relay.cpp:558)
+   M /trunk/libteredo/relay.cpp
+
+Move qualification/maintainance away from relay.cpp
+which was once again getting fairly long
+
+------------------------------------------------------------------------
+r558 | remi | 2005-05-06 17:31:45 +0200 (ven, 06 mai 2005) | 2 lines
+Chemins modifiés :
+   M /trunk/TODO
+   M /trunk/configure.ac
+
+Bump version number to 0.5.1
+
+------------------------------------------------------------------------
+r557 | remi | 2005-05-06 14:47:50 +0200 (ven, 06 mai 2005) | 2 lines
+Chemins modifiés :
+   M /trunk/ChangeLog
+
+ChangeLog update for release 0.5.0
+
+------------------------------------------------------------------------
 r556 | remi | 2005-05-06 13:07:19 +0200 (ven, 06 mai 2005) | 2 lines
 Changed paths:
    M /trunk/libteredo/relay.cpp
