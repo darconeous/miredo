@@ -90,26 +90,15 @@ static const char *os_driver = "Linux";
 # include <netinet6/nd6.h> // ND6_INFINITE_LIFETIME
 #endif
 
-
 # define HAVE_BSD
 # define USE_TUNHEAD
 static const char *os_driver = "FreeBSD";
 
-#elif defined (HAVE_OPENBSD)
+#elif defined (HAVE_OPENBSD) || defined (HAVE_NETBSD)
 /*
- * OpenBSD tunneling driver
- * TODO: OpenBSD adress, routing support, compile-test
- */
-# define HAVE_BSD
-# define USE_TUNHEAD
-static const char *os_driver = "OpenBSD";
- 
-#elif defined (HAVE_NETBSD)
-/*
- * NetBSD tunneling driver
- * TODO: NetBSD routing support
- * NOTE: the driver does NOT really work because NetBSD tun driver
- * only accepts IPv4 packets :-(
+ * OpenBSD/NetBSD tunneling driver
+ * NOTE: the driver does NOT really work on NetBSD
+ * because NetBSD tun driver only accepts IPv4 packets :-(
  */
 # include <net/if_dl.h> // struct sockaddr_dl
 # include <net/route.h> // AF_ROUTE things
@@ -118,7 +107,12 @@ static const char *os_driver = "OpenBSD";
 # include <netinet6/nd6.h> // ND6_INFINITE_LIFETIME
 
 # define HAVE_BSD
+# if defined (HAVE_OPENBSD)
+#  define USE_TUNHEAD
+static const char *os_driver = "OpenBSD";
+# else
 static const char *os_driver = "NetBSD";
+# endif /* if HAVE_OPENBSD */
 
 #elif defined (HAVE_DARWIN)
 /*

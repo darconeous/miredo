@@ -177,7 +177,8 @@ write_pid (int fd)
 	char buf[20]; // enough for > 2^64
 	size_t len;
 
-	(void)sprintf (buf, "%d", (int)getpid ());
+	(void)snprintf (buf, sizeof (buf), "%d", (int)getpid ());
+	buf[sizeof (buf) - 1] = '\0';
 	len = strlen (buf);
 	return write (fd, buf, len) == len ? 0 : -1;
 }
