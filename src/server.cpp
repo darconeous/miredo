@@ -74,27 +74,29 @@ static void
 teredo_server (int fd, TeredoServer *server)
 {
 	/* Registers file descriptors */
-	fd_set readset;
-	FD_ZERO (&readset);
-	FD_SET (fd, &readset);
+	fd_set refset;
+	FD_ZERO (&refset);
+	FD_SET (fd, &refset);
 
-	int val = server->RegisterReadSet (&readset);
+	int val = server->RegisterReadSet (&refset);
 	int maxfd = ((val > fd) ? val : fd) + 1;
 
 	/* Main loop */
-	while (1)
+	fd_set readset;
+
+	do
 	{
 		/* Wait until one of them is ready for read */
-		val = select (maxfd, &readset, NULL, NULL, NULL);
-		if (val < 0)
-			continue;
-		if (FD_ISSET (fd, &readset))
-			// parent's been signaled or died
-			break;
+		do
+			memcpy (&readset, &refset, sizeof (readset));
+		while (select (maxfd, &readset, NULL, NULL, NULL) < 0);
 
 		/* Handle incoming data */
 		server->ProcessPacket (&readset);
 	}
+	while (!FD_ISSET (fd, &readset));
+
+	// parent's been signaled or died
 }
 
 
