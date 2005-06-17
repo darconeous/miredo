@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: rdenis@simphalempin.com\n"
-"POT-Creation-Date: 2005-06-16 17:49+0200\n"
+"POT-Creation-Date: 2005-06-17 17:49+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -53,12 +53,12 @@ msgstr ""
 msgid "Ignoring invalid bubble : your Teredo server is probably buggy."
 msgstr ""
 
-#: libteredo/security.cpp:45
+#: libteredo/security.cpp:50
 #, c-format
 msgid "Error opening %s: %m"
 msgstr ""
 
-#: libteredo/security.cpp:91
+#: libteredo/security.cpp:96
 #, c-format
 msgid "Error reading random data: %m"
 msgstr ""
@@ -101,42 +101,42 @@ msgstr ""
 msgid "restricted"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:146
+#: libtun6/ipv6-tunnel.cpp:148
 #, c-format
 msgid "IPv6 stack not available: %m"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:177
+#: libtun6/ipv6-tunnel.cpp:179
 #, c-format
 msgid "Tunneling driver error (%s): %m"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:191
+#: libtun6/ipv6-tunnel.cpp:193
 #, c-format
 msgid "Tunnel error (TUNSETIFF): %m"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:227
+#: libtun6/ipv6-tunnel.cpp:229
 #, c-format
 msgid "Tunnel error (SIOCSIFNAME): %m"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:241
+#: libtun6/ipv6-tunnel.cpp:244
 #, c-format
 msgid "%s tunnel error (TUNSIFHEAD): %m"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:255
+#: libtun6/ipv6-tunnel.cpp:258
 #, c-format
 msgid "%s tunneling interface %s created"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:258
+#: libtun6/ipv6-tunnel.cpp:261
 #, c-format
 msgid "%s tunneling interface creation failure"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:271
+#: libtun6/ipv6-tunnel.cpp:274
 #, c-format
 msgid "Tunneling interface %s removed"
 msgstr ""
@@ -161,32 +161,32 @@ msgstr ""
 msgid "%s tunnel address deleted: %s/%u"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:657
+#: libtun6/ipv6-tunnel.cpp:644
 #, c-format
 msgid "%s tunnel route %s/%u setup error: %m"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:659
+#: libtun6/ipv6-tunnel.cpp:646
 #, c-format
 msgid "%s tunnel route %s/%u removal error: %m"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:666
+#: libtun6/ipv6-tunnel.cpp:653
 #, c-format
 msgid "%s tunnel route set: %s/%u"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:668
+#: libtun6/ipv6-tunnel.cpp:655
 #, c-format
 msgid "%s tunnel route removed: %s/%u"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:727
+#: libtun6/ipv6-tunnel.cpp:714
 #, c-format
 msgid "%s tunnel MTU (%u bytes) change failed: %m"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:894
+#: libtun6/ipv6-tunnel.cpp:866
 msgid ""
 "You should run these commands to create it :\n"
 "# mkdir -p /dev/net\n"
@@ -194,26 +194,26 @@ msgid ""
 "(you must be root to do that).\n"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:899 libtun6/ipv6-tunnel.cpp:924
+#: libtun6/ipv6-tunnel.cpp:871 libtun6/ipv6-tunnel.cpp:896
 msgid ""
 "You can obtain a tunnel driver for the Darwin kernel (Mac OS X) from :\n"
 "http://chrisp.de/en/projects/tunnel.html\n"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:907
+#: libtun6/ipv6-tunnel.cpp:879
 #, c-format
 msgid ""
 "Error: %s character device not found or unavailable.\n"
 "%s"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:920
+#: libtun6/ipv6-tunnel.cpp:892
 msgid ""
 "Make sure your Linux kernel includes the \"Universal TUNTAP driver\"\n"
 "(CONFIG_TUN option), possibly as a module.\n"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:932
+#: libtun6/ipv6-tunnel.cpp:904
 #, c-format
 msgid ""
 "Error: your operating system does not seem to provide a network tunnneling\n"
@@ -221,7 +221,7 @@ msgid ""
 "%s"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:941
+#: libtun6/ipv6-tunnel.cpp:913
 #, c-format
 msgid ""
 "Error: cannot open device file %s (%s)\n"
@@ -282,18 +282,18 @@ msgstr ""
 msgid "Error: missing command line parameter\n"
 msgstr ""
 
-#: src/main.c:210
+#: src/main.c:211
 msgid ""
 "That is usually an indication that you are trying to start\n"
 "the program as an user with insufficient system privileges.\n"
 "This program should normally be started by root.\n"
 msgstr ""
 
-#: src/main.c:257
+#: src/main.c:261
 msgid "User not found"
 msgstr ""
 
-#: src/main.c:259
+#: src/main.c:263
 #, c-format
 msgid ""
 "Error: This program was asked to run in the\n"
@@ -305,7 +305,7 @@ msgid ""
 "user.\n"
 msgstr ""
 
-#: src/main.c:273
+#: src/main.c:277
 msgid ""
 "Error: This program is not supposed to keep root\n"
 "privileges. That is potentially very dangerous\n"
@@ -313,64 +313,64 @@ msgid ""
 "never been audited for security vulnerabilities).\n"
 msgstr ""
 
-#: src/main.c:290
+#: src/main.c:294
 #, c-format
 msgid "SetGID to group ID %u: %s\n"
 msgstr ""
 
-#: src/main.c:292
+#: src/main.c:296
 msgid ""
 "Error: This program tried to change its system\n"
 "group(s) security context but it failed.\n"
 msgstr ""
 
-#: src/main.c:306
+#: src/main.c:310
 #, c-format
 msgid "SetUID to root: %s\n"
 msgstr ""
 
-#: src/main.c:329 src/main.c:337
+#: src/main.c:333 src/main.c:341
 msgid "Fatal error"
 msgstr ""
 
-#: src/main.c:344
+#: src/main.c:348
 msgid "Getting required capabilities"
 msgstr ""
 
-#: src/main.c:346
+#: src/main.c:350
 msgid ""
 "Error: This program tried to obtain required system administration\n"
 "privileges but it failed.\n"
 msgstr ""
 
-#: src/main.c:360
+#: src/main.c:364
 #, c-format
 msgid ""
 "Cannot create PID file %s:\n"
 " %s\n"
 msgstr ""
 
-#: src/main.c:364 src/relay.cpp:352 src/relay.cpp:439 src/server.cpp:172
+#: src/main.c:368 src/relay.cpp:352 src/relay.cpp:439 src/server.cpp:172
 msgid "Make sure another instance of the program is not already running."
 msgstr ""
 
-#: src/main.c:375
+#: src/main.c:379
 msgid "Error (daemon)"
 msgstr ""
 
-#: src/main.c:452
+#: src/main.c:456
 #, c-format
 msgid ""
 "Read unknown option -%c :\n"
 "That is probably a bug. Please report it.\n"
 msgstr ""
 
-#: src/main.c:472
+#: src/main.c:476
 #, c-format
 msgid "Reading configuration from %s: %s\n"
 msgstr ""
 
-#: src/main.c:491
+#: src/main.c:495
 #, c-format
 msgid "Chroot directory %s: %s\n"
 msgstr ""

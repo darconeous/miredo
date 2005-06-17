@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: miredo 0.4.2\n"
 "Report-Msgid-Bugs-To: rdenis@simphalempin.com\n"
-"POT-Creation-Date: 2005-06-16 17:49+0200\n"
+"POT-Creation-Date: 2005-06-17 17:49+0200\n"
 "PO-Revision-Date: 2005-05-06 13:06+0200\n"
 "Last-Translator: Rémi Denis-Courmont <rdenis (at) simphalempin (dot) com>\n"
 "Language-Team: N/A\n"
@@ -59,12 +59,12 @@ msgstr "Adresse/MTU Teredo changée"
 msgid "Ignoring invalid bubble : your Teredo server is probably buggy."
 msgstr "Bulle invalide ignorée : votre serveur Teredo est probablement bogué."
 
-#: libteredo/security.cpp:45
+#: libteredo/security.cpp:50
 #, c-format
 msgid "Error opening %s: %m"
 msgstr "Erreur d'ouverture de %s: %m"
 
-#: libteredo/security.cpp:91
+#: libteredo/security.cpp:96
 #, c-format
 msgid "Error reading random data: %m"
 msgstr "Erreur de lecture de données aléatoires: %m"
@@ -107,42 +107,42 @@ msgstr "cône"
 msgid "restricted"
 msgstr "restreint"
 
-#: libtun6/ipv6-tunnel.cpp:146
+#: libtun6/ipv6-tunnel.cpp:148
 #, c-format
 msgid "IPv6 stack not available: %m"
 msgstr "Pile IPv6 non disponible: %m"
 
-#: libtun6/ipv6-tunnel.cpp:177
+#: libtun6/ipv6-tunnel.cpp:179
 #, c-format
 msgid "Tunneling driver error (%s): %m"
 msgstr "Erreur du pilote de tunneling (%s): %m"
 
-#: libtun6/ipv6-tunnel.cpp:191
+#: libtun6/ipv6-tunnel.cpp:193
 #, c-format
 msgid "Tunnel error (TUNSETIFF): %m"
 msgstr "Erreur de tunnel (TUNSETIFF): %m"
 
-#: libtun6/ipv6-tunnel.cpp:227
+#: libtun6/ipv6-tunnel.cpp:229
 #, c-format
 msgid "Tunnel error (SIOCSIFNAME): %m"
 msgstr "Erreur de tunnel (SIOCSIFNAME): %m"
 
-#: libtun6/ipv6-tunnel.cpp:241
+#: libtun6/ipv6-tunnel.cpp:244
 #, c-format
 msgid "%s tunnel error (TUNSIFHEAD): %m"
 msgstr "Erreur du tunnel %s (TUNSIFHEAD): %m"
 
-#: libtun6/ipv6-tunnel.cpp:255
+#: libtun6/ipv6-tunnel.cpp:258
 #, c-format
 msgid "%s tunneling interface %s created"
 msgstr "Interface %1$s de tunneling %2$s créée"
 
-#: libtun6/ipv6-tunnel.cpp:258
+#: libtun6/ipv6-tunnel.cpp:261
 #, c-format
 msgid "%s tunneling interface creation failure"
 msgstr "Échec de création de l'interface de tunneling %s"
 
-#: libtun6/ipv6-tunnel.cpp:271
+#: libtun6/ipv6-tunnel.cpp:274
 #, c-format
 msgid "Tunneling interface %s removed"
 msgstr "Interface %s de tunneling supprimée"
@@ -167,32 +167,32 @@ msgstr "Adresse ajoutée au tunnel %s: %s/%u"
 msgid "%s tunnel address deleted: %s/%u"
 msgstr "Adresse du tunnel %s supprimée: %s/%u"
 
-#: libtun6/ipv6-tunnel.cpp:657
+#: libtun6/ipv6-tunnel.cpp:644
 #, c-format
 msgid "%s tunnel route %s/%u setup error: %m"
 msgstr "Erreur de réglage de la route %2$s/%3$u pour le tunnel %1$s: %m"
 
-#: libtun6/ipv6-tunnel.cpp:659
+#: libtun6/ipv6-tunnel.cpp:646
 #, c-format
 msgid "%s tunnel route %s/%u removal error: %m"
 msgstr "Erreur de suppression de la route %2$s/%3$u pour le tunnel %1$s: %m"
 
-#: libtun6/ipv6-tunnel.cpp:666
+#: libtun6/ipv6-tunnel.cpp:653
 #, c-format
 msgid "%s tunnel route set: %s/%u"
 msgstr "Route définie sur le tunnel %s: %s/%u"
 
-#: libtun6/ipv6-tunnel.cpp:668
+#: libtun6/ipv6-tunnel.cpp:655
 #, c-format
 msgid "%s tunnel route removed: %s/%u"
 msgstr "Route retirée du tunnel %s: %s/%u"
 
-#: libtun6/ipv6-tunnel.cpp:727
+#: libtun6/ipv6-tunnel.cpp:714
 #, c-format
 msgid "%s tunnel MTU (%u bytes) change failed: %m"
 msgstr "Échec du changement du MTU du tunnel %s (%u octets): %m"
 
-#: libtun6/ipv6-tunnel.cpp:894
+#: libtun6/ipv6-tunnel.cpp:866
 msgid ""
 "You should run these commands to create it :\n"
 "# mkdir -p /dev/net\n"
@@ -204,7 +204,7 @@ msgstr ""
 "# mknod /dev/net/tun c 10 200\n"
 "(vous devez être root pour cela).\n"
 
-#: libtun6/ipv6-tunnel.cpp:899 libtun6/ipv6-tunnel.cpp:924
+#: libtun6/ipv6-tunnel.cpp:871 libtun6/ipv6-tunnel.cpp:896
 msgid ""
 "You can obtain a tunnel driver for the Darwin kernel (Mac OS X) from :\n"
 "http://chrisp.de/en/projects/tunnel.html\n"
@@ -212,7 +212,7 @@ msgstr ""
 "Vous pouvez obtenir un pilote de tunnel pour le noyau Darwin (Mac OS X) à :\n"
 "http://chrisp.de/en/projects/tunnel.html\n"
 
-#: libtun6/ipv6-tunnel.cpp:907
+#: libtun6/ipv6-tunnel.cpp:879
 #, c-format
 msgid ""
 "Error: %s character device not found or unavailable.\n"
@@ -221,7 +221,7 @@ msgstr ""
 "Erreur: périphérique %s non trouvé ou non disponible.\n"
 "%s"
 
-#: libtun6/ipv6-tunnel.cpp:920
+#: libtun6/ipv6-tunnel.cpp:892
 msgid ""
 "Make sure your Linux kernel includes the \"Universal TUNTAP driver\"\n"
 "(CONFIG_TUN option), possibly as a module.\n"
@@ -229,7 +229,7 @@ msgstr ""
 "Vérifiez que votre noyau Linux comporte l'«Universal TUNTAP driver»\n"
 "(option CONFIG_TUN), éventuellement sous forme de module.\n"
 
-#: libtun6/ipv6-tunnel.cpp:932
+#: libtun6/ipv6-tunnel.cpp:904
 #, c-format
 msgid ""
 "Error: your operating system does not seem to provide a network tunnneling\n"
@@ -240,7 +240,7 @@ msgstr ""
 "périphérique de tunnel réseau, ce qui est indispensable.\n"
 "%s"
 
-#: libtun6/ipv6-tunnel.cpp:941
+#: libtun6/ipv6-tunnel.cpp:913
 #, c-format
 msgid ""
 "Error: cannot open device file %s (%s)\n"
@@ -320,7 +320,7 @@ msgstr "%s: paramètre en trop\n"
 msgid "Error: missing command line parameter\n"
 msgstr "Erreur: paramètre de la ligne de commande manquant\n"
 
-#: src/main.c:210
+#: src/main.c:211
 msgid ""
 "That is usually an indication that you are trying to start\n"
 "the program as an user with insufficient system privileges.\n"
@@ -330,11 +330,11 @@ msgstr ""
 "en tant qu'utilisateur avec des privilèges systèmes insuffisants.\n"
 "Normalement, ce programme devrait être démarré par root.\n"
 
-#: src/main.c:257
+#: src/main.c:261
 msgid "User not found"
 msgstr "Utilisateur non trouvé"
 
-#: src/main.c:259
+#: src/main.c:263
 #, c-format
 msgid ""
 "Error: This program was asked to run in the\n"
@@ -353,7 +353,7 @@ msgstr ""
 "ce\n"
 "programme  dans le contexte de sécurité d'un autre utilisateur.\n"
 
-#: src/main.c:273
+#: src/main.c:277
 msgid ""
 "Error: This program is not supposed to keep root\n"
 "privileges. That is potentially very dangerous\n"
@@ -365,12 +365,12 @@ msgstr ""
 "code de qualité «beta» qui n'a jamais été audité à la recherche de\n"
 "failles de sécurité).\n"
 
-#: src/main.c:290
+#: src/main.c:294
 #, c-format
 msgid "SetGID to group ID %u: %s\n"
 msgstr "SetGID vers l'ID de groupe %u: %s\n"
 
-#: src/main.c:292
+#: src/main.c:296
 msgid ""
 "Error: This program tried to change its system\n"
 "group(s) security context but it failed.\n"
@@ -378,20 +378,20 @@ msgstr ""
 "Erreur: Ce programme a tenté de changer son contexte de sécurité\n"
 "groupe(s) système(s), mais il a échoué.\n"
 
-#: src/main.c:306
+#: src/main.c:310
 #, c-format
 msgid "SetUID to root: %s\n"
 msgstr "SetUID vers root: %s\n"
 
-#: src/main.c:329 src/main.c:337
+#: src/main.c:333 src/main.c:341
 msgid "Fatal error"
 msgstr "Erreur fatale"
 
-#: src/main.c:344
+#: src/main.c:348
 msgid "Getting required capabilities"
 msgstr "Obtention des privilèges nécessaires"
 
-#: src/main.c:346
+#: src/main.c:350
 msgid ""
 "Error: This program tried to obtain required system administration\n"
 "privileges but it failed.\n"
@@ -399,7 +399,7 @@ msgstr ""
 "Erreur: Ce programme a tenté d'obtenir des privilèges\n"
 "systèmes indispensables mais il a échoué.\n"
 
-#: src/main.c:360
+#: src/main.c:364
 #, c-format
 msgid ""
 "Cannot create PID file %s:\n"
@@ -408,15 +408,15 @@ msgstr ""
 "Impossible de créer le fichier de PID %s:\n"
 " %s\n"
 
-#: src/main.c:364 src/relay.cpp:352 src/relay.cpp:439 src/server.cpp:172
+#: src/main.c:368 src/relay.cpp:352 src/relay.cpp:439 src/server.cpp:172
 msgid "Make sure another instance of the program is not already running."
 msgstr "Vérifiez qu'une autre instance du programme n'est pas déjà en marche."
 
-#: src/main.c:375
+#: src/main.c:379
 msgid "Error (daemon)"
 msgstr "Erreur (daemon)"
 
-#: src/main.c:452
+#: src/main.c:456
 #, c-format
 msgid ""
 "Read unknown option -%c :\n"
@@ -425,12 +425,12 @@ msgstr ""
 "Option lue inconnue -%c :\n"
 "C'est probablement un bogue. Veuillez le signaler.\n"
 
-#: src/main.c:472
+#: src/main.c:476
 #, c-format
 msgid "Reading configuration from %s: %s\n"
 msgstr "Lecture de la configuration depuis %s: %s\n"
 
-#: src/main.c:491
+#: src/main.c:495
 #, c-format
 msgid "Chroot directory %s: %s\n"
 msgstr "Répertoire de cloisement (chroot) %s: %s\n"
