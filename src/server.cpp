@@ -86,8 +86,10 @@ teredo_server (int fd, TeredoServer *server)
 	{
 		/* Wait until one of them is ready for read */
 		val = select (maxfd, &readset, NULL, NULL, NULL);
-		if ((val < 0) || FD_ISSET (fd, &readset))
-			// interrupted by signal
+		if (val < 0)
+			continue;
+		if (FD_ISSET (fd, &readset))
+			// parent's been signaled or died
 			break;
 
 		/* Handle incoming data */
