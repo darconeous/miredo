@@ -244,9 +244,12 @@ init_daemon (const char *username, const char *pidfile, int nodetach)
 	/*
 	 * Make sure 0, 1 and 2 are open.
 	 */
+#ifndef HAVE_OPENBSD
+	/* OpenBugs^H^H^HSD won't return 3 which is obviously wrong! */
 	if (dup (2) != 3)
 		return -1;
 	close (3);
+#endif
 
 	/* Determines unpriviledged user */
 	errno = 0;
