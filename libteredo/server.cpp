@@ -476,10 +476,12 @@ TeredoServer::Start (void)
 	pthread_cond_init (&d.ready, NULL);
 	pthread_mutex_lock (&d.mutex);
 
+	d.secondary = true;
 	if (pthread_create (&t2, NULL, Thread, &d) == 0)
 	{
 		pthread_cond_wait (&d.ready, &d.mutex);
 
+		d.secondary = false;
 		if (pthread_create (&t1, NULL, Thread, &d) == 0)
 		{
 			pthread_cond_wait (&d.ready, &d.mutex);
