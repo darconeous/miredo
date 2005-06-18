@@ -67,39 +67,6 @@ miredo_diagnose (void)
 }
 
 
-/*
- * Main server function, with UDP datagrams receive loop.
- */
-static void
-teredo_server (int fd, TeredoServer *server)
-{
-	/* Registers file descriptors */
-	fd_set refset;
-	FD_ZERO (&refset);
-	FD_SET (fd, &refset);
-
-	int val = server->RegisterReadSet (&refset);
-	int maxfd = ((val > fd) ? val : fd) + 1;
-
-	/* Main loop */
-	fd_set readset;
-
-	do
-	{
-		/* Wait until one of them is ready for read */
-		do
-			memcpy (&readset, &refset, sizeof (readset));
-		while (select (maxfd, &readset, NULL, NULL, NULL) < 0);
-
-		/* Handle incoming data */
-		server->ProcessPacket (&readset);
-	}
-	while (!FD_ISSET (fd, &readset));
-
-	// parent's been signaled or died
-}
-
-
 extern int
 miredo_run (int fd, MiredoConf& conf, const char *server_name)
 {
@@ -155,39 +122,28 @@ miredo_run (int fd, MiredoConf& conf, const char *server_name)
 
 	conf.Clear (5);
 
-	TeredoServer *server;
-
 	// Sets up server (needs privileges to create raw socket)
-	try
-	{
-		server = new TeredoServer (server_ip, server_ip2);
-	}
-	catch (...)
-	{
-		syslog (LOG_ALERT, _("Teredo server fatal error"));
-		return -1;
-	}
+	TeredoServer server (server_ip, server_ip2);
 
-	int retval = -1;
-
-	if (!*server)
-	{
-		syslog (LOG_ALERT, _("Teredo server fatal error"));
-		syslog (LOG_NOTICE, _("Make sure another instance "
-		        "of the program is not already running."));
-		goto abort;
-	}
-
-	server->SetPrefix (&prefix);
-	server->SetAdvLinkMTU (mtu);
+	server.SetPrefix (&prefix);
+	server.SetAdvLinkMTU (mtu);
 
 	if (drop_privileges ())
-		goto abort;
+		return -1;
 
-	retval = 0;
-	teredo_server (fd, server);
+	if (server && server.Start ())
+	{
+		int dummy;
 
-abort:
-	delete server;
-	return retval;
+		while (read (fd, &dummy, sizeof (dummy)) < 0);
+		server.Stop ();
+
+		// parent's been signaled or died
+		return 0;
+	}
+
+	syslog (LOG_ALERT, _("Teredo server fatal error"));
+	syslog (LOG_NOTICE, _("Make sure another instance "
+	        "of the program is not already running."));
+	return -1;
 }

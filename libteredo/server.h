@@ -38,19 +38,29 @@
 class /*sealed*/ TeredoServer
 {
 	private:
+		pthread_t t1, t2;
+
 		/* These are all in network byte order (including MTU!!) */
 		uint32_t server_ip, prefix, advLinkMTU;
 
 		TeredoServerUDP sock;
 		int fd; // raw IPv6 socket
 
-		bool ProcessPacket (TeredoPacket& packet, bool secondary);
 		bool SendRA (const TeredoPacket& p, const struct in6_addr *dest_ip6,
 		             bool use_secondary_ip) const;
+		bool ProcessPacket (bool secondary);
+		static void *Thread (void *o);
 
 	public:
 		TeredoServer (uint32_t ip1, uint32_t ip2);
 		~TeredoServer (void);
+
+		bool Start (void);
+		/*
+		 * Stop() shall only be called after a successful call to Start().
+		 * Start() can then be re-called to restart, and so on.
+		 */
+		void Stop (void);
 
 		/* Prefix can be changed asynchronously */
 		void SetPrefix (uint32_t pref)
@@ -69,8 +79,6 @@ class /*sealed*/ TeredoServer
 			advLinkMTU = htonl (mtu);
 		}
 
-		void ProcessPacket (const fd_set *readset);
-
 		uint32_t GetServerIP (void) const
 		{
 			return server_ip;
@@ -81,13 +89,14 @@ class /*sealed*/ TeredoServer
 			return (fd == -1) || !sock;
 		}
 
-		int RegisterReadSet (fd_set *rs) const
+		operator int (void) const
 		{
-			return sock.RegisterReadSet (rs);
+			return (fd != -1) && !!sock;
 		}
 
 		static bool CheckSystem (char *errmsg, size_t len);
 };
+
 
 #endif /* ifndef MIREDO_SERVER_H */
 

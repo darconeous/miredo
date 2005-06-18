@@ -43,6 +43,7 @@
 #include <netinet/ip6.h> // struct ip6_hdr
 #include <netinet/icmp6.h>
 #include <fcntl.h>
+#include <pthread.h>
 
 #include <libteredo/server-udp.h>
 #include <libteredo/server.h>
@@ -301,8 +302,14 @@ static const struct in6_addr in6addr_allrouters =
  * thread
  */
 bool
-TeredoServer::ProcessPacket (TeredoPacket& packet, bool secondary)
+TeredoServer::ProcessPacket (bool secondary)
 {
+	TeredoPacket packet;
+
+	if (secondary ? sock.ReceivePacket2 (packet)
+	              : sock.ReceivePacket (packet))
+		return false;
+
 	// Teredo server case number 3
 	if (!is_ipv4_global_unicast (packet.GetClientIP ()))
 		return true;
@@ -352,7 +359,7 @@ TeredoServer::ProcessPacket (TeredoPacket& packet, bool secondary)
 
 		// Teredo server case number 5
 		/*
-		 * TODO: Theoretically, we "should" accept ICMPv6 toward the
+		 * NOTE: Theoretically, we "should" accept ICMPv6 toward the
 		 * server's own local-link address or the ip6-allrouters
 		 * multicast address. In practice, it never happens.
 		 */
@@ -384,23 +391,6 @@ TeredoServer::ProcessPacket (TeredoPacket& packet, bool secondary)
 	// (destination is a Teredo IPv6 address)
 	return ForwardUDPPacket (sock, packet,
 		IN6_TEREDO_SERVER (&ip6.ip6_dst) == GetServerIP ());
-}
-
-
-/* FIXME: should be called ProcessPackets
-   FIXME: put all select() and loop here
-   FIXME: useless parameter
- */
-void
-TeredoServer::ProcessPacket (const fd_set *)
-{
-	TeredoPacket packet;
-
-	if (sock.ReceivePacket (packet) == 0)
-		ProcessPacket (packet, false);
-
-	if (sock.ReceivePacket2 (packet) == 0)
-		ProcessPacket (packet, true);
 }
 
 
@@ -442,4 +432,80 @@ TeredoServer::CheckSystem (char *errmsg, size_t len)
 	snprintf (errmsg, len, _("Raw IPv6 sockets not working: %s\n"),
 	          strerror (errno));
 	return false;
+}
+
+
+typedef struct server_thread_data
+{
+	TeredoServer *server;
+	bool secondary;
+	pthread_cond_t ready;
+	pthread_mutex_t mutex;
+};
+
+
+void *
+TeredoServer::Thread (void *o)
+{
+	struct server_thread_data *d = (struct server_thread_data *)o;
+
+	TeredoServer *s = d->server;
+	bool secondary = d->secondary;
+
+	pthread_mutex_lock (&d->mutex);
+	pthread_cond_signal (&d->ready);
+	pthread_mutex_unlock (&d->mutex);
+
+	while (1)
+	{
+		pthread_testcancel ();
+		s->ProcessPacket (secondary);
+	}
+
+	/* unreachable */
+}
+
+
+bool
+TeredoServer::Start (void)
+{
+	struct server_thread_data d;
+
+	d.server = this;
+	pthread_mutex_init (&d.mutex, NULL);
+	pthread_cond_init (&d.ready, NULL);
+	pthread_mutex_lock (&d.mutex);
+
+	if (pthread_create (&t2, NULL, Thread, &d) == 0)
+	{
+		pthread_cond_wait (&d.ready, &d.mutex);
+
+		if (pthread_create (&t1, NULL, Thread, &d) == 0)
+		{
+			pthread_cond_wait (&d.ready, &d.mutex);
+			pthread_mutex_unlock (&d.mutex);
+			pthread_cond_destroy (&d.ready);
+			pthread_mutex_destroy (&d.mutex);
+			return true;
+		}
+
+		pthread_cancel (t2);
+		pthread_join (t2, NULL);
+	}
+
+	pthread_mutex_unlock (&d.mutex);
+	pthread_cond_destroy (&d.ready);
+	pthread_mutex_destroy (&d.mutex);
+
+	return false;
+}
+
+
+void
+TeredoServer::Stop (void)
+{
+	pthread_cancel (t1);
+	pthread_cancel (t2);
+	pthread_join (t1, NULL);
+	pthread_join (t2, NULL);
 }
