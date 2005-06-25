@@ -382,7 +382,7 @@ init_daemon (const char *username, const char *pidfile, int nodetach)
 
 	(void)write_pid (fd);
 
-	return 0;
+	return fd;
 }
 
 
@@ -408,7 +408,7 @@ main (int argc, char *argv[])
 		{ NULL,         no_argument,       NULL, '\0'}
 	};
 
-	int c;
+	int c, fd;
 
 	(void)setlocale (LC_ALL, "");
 	(void)bindtextdomain (PACKAGE, LOCALEDIR);
@@ -502,16 +502,18 @@ main (int argc, char *argv[])
 	if (pidfile == NULL)
 		pidfile = miredo_pidfile;
 
-	if (miredo_diagnose ()
-	 || init_daemon (username, pidfile, flags.foreground))
+	if (miredo_diagnose ())
+		return 1;
+	fd = init_daemon (username, pidfile, flags.foreground);
+	if (fd == -1)
 		return 1;
 
 	/*
 	 * Run
 	 */
-	c = miredo (conffile, servername);
+	c = miredo (conffile, servername, fd);
 
-	close_pidfile (3);
+	close_pidfile (fd);
 	(void)unlink (pidfile);
 
 	return c ? 1 : 0;

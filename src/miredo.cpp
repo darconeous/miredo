@@ -192,7 +192,7 @@ static const char *const ident = "miredo";
 
 
 extern "C" int
-miredo (const char *confpath, const char *server_name)
+miredo (const char *confpath, const char *server_name, int pidfd)
 {
 	int facility = LOG_DAEMON, retval;
 	openlog (ident, LOG_PID | LOG_PERROR, facility);
@@ -232,6 +232,7 @@ miredo (const char *confpath, const char *server_name)
 				break;
 
 			case 0:
+				close (pidfd);
 				asyncsafe_close (signalfd[1]);
 				retval = miredo_run (signalfd[0], cnf, server_name);
 		}

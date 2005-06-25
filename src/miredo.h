@@ -34,7 +34,7 @@ extern "C"
 
 # include <sys/types.h> // uid_t
 
-int miredo (const char *conffile, const char *server_name);
+int miredo (const char *conffile, const char *server_name, int pidfd);
 int drop_privileges (void);
 int miredo_diagnose (void);
 
