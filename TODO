@@ -22,9 +22,10 @@ Features:
     (TUNSLMODE on NetBSD)
 (!) interval determination procedure,
 (*) peers list garbage collection,
-(?) "automatic sunset" / "exit strategy"
-(*) Linux: see if we should use TUN_NOCHECKSUM
-(!) Metric support on BSD
+(?) "automatic sunset" / "exit strategy",
+(*) Linux: see if we should use TUN_NOCHECKSUM,
+(!) Metric support on BSD,
+( ) support for UPnP GID to open an UDP port on supporting NATs
 
 Security:
 ----------

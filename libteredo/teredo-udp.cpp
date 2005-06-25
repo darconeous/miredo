@@ -202,3 +202,16 @@ TeredoPacket::Receive (int fd)
 
 	return 0;
 }
+
+
+int
+TeredoPacket::ReceiveBlocking (int fd)
+{
+	fd_set readset;
+	int val;
+
+	FD_ZERO (&readset);
+	FD_SET (fd, &readset);
+	val = select (fd + 1, &readset, NULL, NULL, NULL);
+	return (val == 1) ? Receive (fd) : -1;
+}

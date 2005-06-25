@@ -349,6 +349,7 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
  * Handles a packet coming from the Teredo tunnel
  * (as specified per paragraph 5.4.2). That's called "Packet reception".
  * Returns 0 on success, -1 on error.
+ * FIXME: use a receive buffer
  */
 int TeredoRelay::ReceivePacket (void)
 {

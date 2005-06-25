@@ -59,6 +59,7 @@ class TeredoPacket
 		 * fd. This is not thread-safe (the object should be locked).
 		 */
 		int Receive (int fd);
+		int ReceiveBlocking (int fd);
 
 		/*
 		 * Returns a pointer to the IPv6 packet last received with

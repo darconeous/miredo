@@ -62,8 +62,7 @@ class TeredoServerUDP
 		int RegisterReadSet (fd_set *readset) const;
 
 		/*
-		 * Checks an fd_set, receives a packet from an UDP
-		 * socket if it is in the fd_set.
+		 * Waits for and receives a packet from an UDP socket.
 		 * Then, parses Teredo headers.
 		 *
 		 * Returns 0 on success, -1 if no packet were to be received
@@ -71,12 +70,12 @@ class TeredoServerUDP
 		 */
 		int ReceivePacket (TeredoPacket& packet) const
 		{
-			return packet.Receive (fd_primary);
+			return packet.ReceiveBlocking (fd_primary);
 		}
 
 		int ReceivePacket2 (TeredoPacket& packet) const
 		{
-			return packet.Receive (fd_secondary);
+			return packet.ReceiveBlocking (fd_secondary);
 		}
 
 		/*
