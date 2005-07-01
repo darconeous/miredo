@@ -40,7 +40,7 @@
 #include <unistd.h>
 #include <syslog.h>
 
-#include <sys/socket.h> // socket(PF_INET6, SOCK_DGRAM, 0)
+#include <sys/socket.h> // socket(AF_INET6, SOCK_DGRAM, 0)
 #include <netinet/in.h> // htons()
 #include <net/if.h> // struct ifreq, if_nametoindex()
 
@@ -143,7 +143,7 @@ static const char *os_driver = "Generic";
 static int
 socket_udp6 (void)
 {
-	int fd = socket (PF_INET6, SOCK_DGRAM, 0);
+	int fd = socket (AF_INET6, SOCK_DGRAM, 0);
 	if (fd == -1)
                 syslog (LOG_ERR, _("IPv6 stack not available: %m"));
 	return fd;
@@ -575,7 +575,7 @@ _iface_route (const char *ifname, bool add,
 	 * BSD routing socket interface
 	 * FIXME: metric unimplemented
 	 */
-	int s = socket (PF_ROUTE, SOCK_RAW, AF_INET6);
+	int s = socket (AF_ROUTE, SOCK_RAW, AF_INET6);
 	if (s != -1)
 	{
 		shutdown (s, 0);

@@ -64,7 +64,7 @@ TeredoPacket::OpenSocket (uint32_t bind_ip, uint16_t port)
 	myaddr.sin_len = sizeof (myaddr);
 #endif
 
-	int fd = socket (PF_INET, SOCK_DGRAM, IPPROTO_UDP);
+	int fd = socket (AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	if (fd == -1)
 	{
 		syslog (LOG_ALERT, _("Fatal socket error: %m"));

@@ -400,7 +400,7 @@ TeredoServer::TeredoServer (uint32_t ip1, uint32_t ip2)
 {
 	sock.ListenIP (ip1, ip2);
 
-	fd = socket (PF_INET6, SOCK_RAW, IPPROTO_RAW);
+	fd = socket (AF_INET6, SOCK_RAW, IPPROTO_RAW);
 	if (fd != -1)
 	{
 		int flags = fcntl (fd, F_GETFL, 0);
@@ -421,7 +421,7 @@ TeredoServer::~TeredoServer (void)
 bool
 TeredoServer::CheckSystem (char *errmsg, size_t len)
 {
-	int fd = socket (PF_INET6, SOCK_RAW, IPPROTO_RAW);
+	int fd = socket (AF_INET6, SOCK_RAW, IPPROTO_RAW);
 
 	if (fd >= 0)
 	{

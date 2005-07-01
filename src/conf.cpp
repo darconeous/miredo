@@ -345,7 +345,7 @@ ParseIPv6 (MiredoConf& conf, const char *name, struct in6_addr *value)
 	struct addrinfo help, *res;
 
 	memset (&help, 0, sizeof (help));
-	help.ai_family = PF_INET6;
+	help.ai_family = AF_INET6;
 	help.ai_socktype = SOCK_DGRAM;
 	help.ai_protocol = IPPROTO_UDP;
 

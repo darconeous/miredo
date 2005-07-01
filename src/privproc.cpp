@@ -57,7 +57,7 @@ int
 miredo_privileged_process (IPv6Tunnel& tunnel, bool default_route)
 {
 	int fd[2];
-	if (socketpair (PF_LOCAL, SOCK_STREAM, 0, fd))
+	if (socketpair (AF_LOCAL, SOCK_STREAM, 0, fd))
 		return -1;
 
 	switch (fork ())
