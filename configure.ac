@@ -104,7 +104,7 @@ AC_SEARCH_LIBS(inet_ntop, [nsl])
 dnl AC_SEARCH_LIBS(inet_aton, [resolv])
 
 # POSIX threads
-AC_SEARCH_LIBS(pthread_create, [pthread libc_c lthread])
+AC_SEARCH_LIBS(pthread_create, [pthread c_r])
 
 # POSIX capabilities
 AC_CHECK_LIB(cap, cap_set_proc)

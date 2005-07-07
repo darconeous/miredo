@@ -24,9 +24,11 @@ sysconfdir = @sysconfdir@
 LIBINTL = @LIBINTL@
 
 # _GNU_SOURCE is needed for old glibc on Linux
-AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir) -D_GNU_SOURCE \
+AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir) -D_REENTRANT \
+	-D_GNU_SOURCE \
 	-DLOCALEDIR=\"$(localedir)\" -DSYSCONFDIR=\"$(sysconfdir)\" \
-	-DLOCALSTATEDIR=\"$(localstatedir)\" -DBR_PTHREADS=0
+	-DLOCALSTATEDIR=\"$(localstatedir)\" \
+	-DBR_PTHREADS=0
 
 if MIREDO_CHROOT
 AM_CPPFLAGS += -DMIREDO_CHROOT=\"$(miredo_chroot)\"

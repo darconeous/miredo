@@ -17,7 +17,7 @@
 # *  http://www.gnu.org/copyleft/gpl.html                               *
 # ***********************************************************************
 
-AM_CPPFLAGS = -I@top_srcdir@/include -I@top_srcdir@
+AM_CPPFLAGS = -I@top_srcdir@/include -I@top_srcdir@ -D_REENTRANT
 noinst_LIBRARIES = libteredo.a libteredo-server.a
 
 common_SOURCES =	teredo.c teredo.h \
