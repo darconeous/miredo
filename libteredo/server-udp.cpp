@@ -35,19 +35,23 @@
 #endif
 #include <sys/types.h>
 #include <sys/select.h>
+#include <unistd.h>
 
 #include <syslog.h> // syslog()
 
 #include <libteredo/v4global.h> // is_ipv4_global_unicast()
-#include <libteredo/teredo-udp.h>
+#include <libteredo/teredo.h>
 #include <libteredo/server-udp.h>
 
 
 /*** TeredoServerUDP implementation ***/
 TeredoServerUDP::~TeredoServerUDP ()
 {
-	TeredoPacket::CloseSocket (fd_primary);
-	TeredoPacket::CloseSocket (fd_secondary);
+	if (fd_primary != -1)
+	{
+		close (fd_primary);
+		close (fd_secondary);
+	}
 }
 
 
@@ -68,17 +72,26 @@ int TeredoServerUDP::ListenIP (uint32_t ip1, uint32_t ip2)
 		return -1;
 	}
 
-	TeredoPacket::CloseSocket (fd_primary);
-	TeredoPacket::CloseSocket (fd_secondary);
+	if (fd_primary != -1)
+	{
+		close (fd_primary);
+		close (fd_secondary);
+	}
 
-	fd_primary = TeredoPacket::OpenSocket (ip1, htons (IPPORT_TEREDO));
+	fd_primary = teredo_socket (ip1, htons (IPPORT_TEREDO));
 	if (fd_primary == -1)
+	{
+		syslog (LOG_ERR, _("Primary socket: %m"));
+		fd_secondary = -1;
 		return -1;
+	}
 
-	fd_secondary = TeredoPacket::OpenSocket (ip2, htons (IPPORT_TEREDO));
+	fd_secondary = teredo_socket (ip2, htons (IPPORT_TEREDO));
 	if (fd_secondary == -1)
 	{
-		TeredoPacket::CloseSocket (fd_primary);
+		syslog (LOG_ERR, _("Secondary socket: %m"));
+		close (fd_primary);
+		fd_primary = -1;
 		return -1;
 	}
 
@@ -103,15 +116,4 @@ int TeredoServerUDP::RegisterReadSet (fd_set *readset) const
 			maxfd = fd_secondary;
 	}
 	return maxfd;
-}
-
-
-int
-TeredoServerUDP::SendPacket (const void *packet, size_t len,
-				uint32_t dest_ip, uint16_t dest_port,
-				bool use_secondary_ip) const
-{
-	return TeredoPacket::Send (use_secondary_ip
-					? fd_secondary : fd_primary,
-					packet, len, dest_ip, dest_port);
 }

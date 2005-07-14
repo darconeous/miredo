@@ -36,6 +36,7 @@
 
 #include <sys/types.h>
 #include <sys/select.h>
+#include <unistd.h>
 
 #include <syslog.h> // syslog()
 
@@ -44,34 +45,24 @@
 /*** TeredoRelayUDP implementation ***/
 TeredoRelayUDP::~TeredoRelayUDP (void)
 {
-	TeredoPacket::CloseSocket (fd);
+	if (fd != -1)
+		close (fd);
 }
 
 
 int TeredoRelayUDP::ListenPort (uint16_t port, uint32_t ipv4)
 {
 	// Closes former socket:
-	TeredoPacket::CloseSocket (fd);
-
-	fd = TeredoPacket::OpenSocket (ipv4, port);
-	return fd != -1 ? 0 : -1;
-}
-
-
-int
-TeredoRelayUDP::RegisterReadSet (fd_set *readset) const
-{
 	if (fd != -1)
-		FD_SET (fd, readset);
-	return fd;
-}
+		close (fd);
 
-
-int
-TeredoRelayUDP::SendPacket (const void *packet, size_t len,
-				uint32_t dest_ip, uint16_t dest_port) const
-{
-	return TeredoPacket::Send (fd, packet, len, dest_ip, dest_port);
+	fd = teredo_socket (ipv4, port);
+	if (fd == -1)
+	{
+		syslog (LOG_ERR, _("Teredo UDP socket: %m"));
+		return -1;
+	}
+	return 0;
 }
 
 

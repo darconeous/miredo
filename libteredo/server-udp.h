@@ -32,7 +32,7 @@
 # include <sys/types.h>
 # include <sys/select.h> // fd_set
 
-# include <libteredo/teredo-udp.h>
+# include <libteredo/teredo.h>
 
 class TeredoServerUDP
 {
@@ -96,5 +96,15 @@ class TeredoServerUDP
 			return fd_primary == -1 || fd_secondary == -1;
 		}
 };
+
+inline int
+TeredoServerUDP::SendPacket (const void *packet, size_t len,
+				uint32_t dest_ip, uint16_t dest_port,
+				bool use_secondary_ip) const
+{
+	return teredo_send (use_secondary_ip ? fd_secondary : fd_primary,
+	                    packet, len, dest_ip, dest_port);
+}
+
 
 #endif /* LIBTEREDO_SERVER_UDP_H */

@@ -37,94 +37,11 @@
 
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <unistd.h> // close()
-#include <fcntl.h>
+#include <unistd.h>
 #include <sys/select.h>
 #include <netinet/in.h>
 
-#include <syslog.h> // syslog()
-
-#include "teredo-udp.h"
-
-#ifndef SOL_IP
-# define SOL_IP IPPROTO_IP
-#endif
-
-/*
- * Opens a Teredo UDP/IPv4 socket.
- */
-int
-TeredoPacket::OpenSocket (uint32_t bind_ip, uint16_t port)
-{
-	struct sockaddr_in myaddr = { };
-	myaddr.sin_family = AF_INET;
-	myaddr.sin_port = port;
-	myaddr.sin_addr.s_addr = bind_ip;
-#ifdef HAVE_SA_LEN
-	myaddr.sin_len = sizeof (myaddr);
-#endif
-
-	int fd = socket (AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-	if (fd == -1)
-	{
-		syslog (LOG_ALERT, _("Fatal socket error: %m"));
-		return -1; // failure
-	}
-
-	int flags = fcntl (fd, F_GETFL, 0);
-	if (flags != -1)
-		fcntl (fd, F_SETFL, O_NONBLOCK | flags);
-
-	if (bind (fd, (struct sockaddr *)&myaddr, sizeof (myaddr)))
-	{
-		syslog (LOG_ALERT, _("Fatal bind error: %m"));
-		return -1;
-	}
-
-	flags = 1;
-	setsockopt (fd, SOL_SOCKET, SO_REUSEADDR, &flags, sizeof (flags));
-#ifdef IP_PMTUDISC_DONT
-	/* 
-	 * This tells the (Linux) kernel not to set the Don't Fragment flags
-	 * on UDP packets we send. This is recommended by the Teredo
-	 * specifiation.
-	 */
-	flags = IP_PMTUDISC_DONT;
-	setsockopt (fd, SOL_IP, IP_MTU_DISCOVER, &flags, sizeof (flags));
-#endif
-	/*
-	 * Teredo multicast packets always have a TTL of 1.
-	 */
-	setsockopt (fd, SOL_IP, IP_MULTICAST_TTL, &flags, sizeof (flags));
-	return fd;
-}
-
-
-void
-TeredoPacket::CloseSocket (int fd)
-{
-	if (fd != -1)
-		close (fd);
-}
-
-
-int
-TeredoPacket::Send (int fd, const void *packet, size_t plen,
-			uint32_t dest_ip, uint16_t dest_port)
-{
-	struct sockaddr_in nat_addr;
-
-	nat_addr.sin_family = AF_INET;
-	nat_addr.sin_port = dest_port;
-	nat_addr.sin_addr.s_addr = dest_ip;
-#ifdef HAVE_SA_LEN
-	nat_addr.sin_len = sizeof (nat_addr);
-#endif
-
-	return sendto (fd, packet, plen, 0, (struct sockaddr *)&nat_addr,
-			sizeof (nat_addr)) == (int)plen ? 0 : -1;
-}
-
+#include <libteredo/teredo.h>
 
 /*** TeredoPacket implementation ***/
 

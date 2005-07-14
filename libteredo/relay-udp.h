@@ -32,7 +32,7 @@
 # include <sys/types.h>
 # include <sys/select.h> // fd_set
 
-# include <libteredo/teredo-udp.h>
+# include <libteredo/teredo.h>
 
 class TeredoRelayUDP
 {
@@ -64,6 +64,24 @@ class TeredoRelayUDP
 			return fd == -1;
 		}	
 };
+
+
+inline int
+TeredoRelayUDP::RegisterReadSet (fd_set *readset) const
+{
+	if (fd != -1)
+		FD_SET (fd, readset);
+	return fd;
+}
+
+
+inline int
+TeredoRelayUDP::SendPacket (const void *packet, size_t len,
+				uint32_t dest_ip, uint16_t dest_port) const
+{
+	return teredo_send (fd, packet, len, dest_ip, dest_port);
+}
+
 
 #if 0
 # ifdef MIREDO_TEREDO_CLIENT
