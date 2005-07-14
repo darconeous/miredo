@@ -155,13 +155,11 @@ static void
 asyncsafe_sleep (unsigned sec)
 {
 	struct timespec ts;
-	int oldstate;
 
 	ts.tv_sec = sec;
 	ts.tv_nsec = 0;
-	pthread_setcanceltype (PTHREAD_CANCEL_ASYNCHRONOUS, &oldstate);
+	pthread_testcancel();
 	nanosleep (&ts, NULL);
-	pthread_setcanceltype (oldstate, NULL);
 	pthread_testcancel ();
 }
 
@@ -177,7 +175,6 @@ cleanup_unlock (void *o)
 
 unsigned TeredoRelay::QualificationTimeOut = 4; // seconds
 unsigned TeredoRelay::QualificationRetries = 3;
-unsigned TeredoRelay::RestartDelay = 300; // seconds
 
 unsigned TeredoRelay::ServerNonceLifetime = 3600; // seconds
 
@@ -300,8 +297,10 @@ void TeredoRelay::MaintenanceThread (void)
 				maintenance.state = PROBE_CONE;
 
 				/* Sleep five minutes */
+				/* TODO: watch for new interface events
+				* (netlink on Linux, PF_ROUTE on BSD) */
 				pthread_mutex_unlock (&maintenance.lock);
-				asyncsafe_sleep (RestartDelay);
+				asyncsafe_sleep (SERVER_PING_DELAY);
 				pthread_mutex_lock (&maintenance.lock);
 			}
 		}

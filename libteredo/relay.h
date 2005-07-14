@@ -180,7 +180,6 @@ class TeredoRelay
 
 		static unsigned QualificationRetries;
 		static unsigned QualificationTimeOut;
-		static unsigned RestartDelay;
 		static unsigned ServerNonceLifetime;
 #endif
 
