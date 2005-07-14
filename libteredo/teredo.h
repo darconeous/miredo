@@ -25,8 +25,8 @@
 #ifndef MIREDO_INCLUDE_TEREDO_H
 # define MIREDO_INCLUDE_TEREDO_H
 
-
-#define IPPORT_TEREDO 3544 /* UDP Teredo port number */
+/* UDP Teredo port number */
+#define IPPORT_TEREDO 3544
 
 #define TEREDO_DISCOVERY_STR	"224.0.0.252"
 #define TEREDO_DISCOVERY_IP	0xe00000fc
@@ -83,8 +83,8 @@ static inline int
 in6_matches_teredo_client (const union teredo_addr *ip6, uint32_t ip,
 				uint16_t port)
 {
-	return !(((uint32_t)(ip ^ ip6->teredo.client_ip))
-		| ((uint16_t)(port ^ ip6->teredo.client_port)));
+	return !(((ip ^ ip6->teredo.client_ip) == 0xffffffff)
+		| ((port ^ ip6->teredo.client_port) == 0xffff));
 }
 
 /*
