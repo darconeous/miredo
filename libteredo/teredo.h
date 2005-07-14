@@ -83,7 +83,8 @@ static inline int
 in6_matches_teredo_client (const union teredo_addr *ip6, uint32_t ip,
 				uint16_t port)
 {
-	return !((ip ^ ip6->teredo.client_ip) | (port ^ ip6->teredo.client_port));
+	return !(((uint32_t)(ip ^ ip6->teredo.client_ip))
+		| ((uint16_t)(port ^ ip6->teredo.client_port)));
 }
 
 /*
