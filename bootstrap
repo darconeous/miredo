@@ -63,6 +63,8 @@ exit 1
 }
 echo "Generating \`config.h.in' with autoheader ..."
 autoheader || exit 1
+echo "Installing libtool with libtoolize ..."
+libtoolize --force || exit 1
 echo "Generating \`Makefile.in' with automake ..."
 automake --add-missing || {
 echo "Error: automake is probably not on your system, or it is too old."
