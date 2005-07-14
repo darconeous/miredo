@@ -52,28 +52,3 @@ in6_matches_teredo_client (const union teredo_addr *ip6, uint32_t ip,
 	return (ip == (uint32_t)~ip6->teredo.client_ip)
 		&& (port == (uint16_t)~ip6->teredo.client_port);
 }
-
-int
-in6_matches_teredo_server (const union teredo_addr *ip6, uint32_t ip)
-{
-	return ip6->teredo.server_ip == ip;
-}
-
-int
-in6_is_teredo_addr_cone (const union teredo_addr *ip6)
-{
-	return ip6->teredo.flags & htons (TEREDO_FLAG_CONE);
-}
-
-
-/*
- * Returns true if prefix can be used as a Teredo prefix.
- * As per RFC3513, anything could be used for Teredo (unicast)
- * except the multicast range (ff00::/8).
- */
-int
-is_valid_teredo_prefix (uint32_t prefix)
-{
-	return (prefix & 0xff000000) != 0xff000000;
-}
-

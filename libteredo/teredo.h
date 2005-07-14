@@ -66,11 +66,9 @@ union teredo_addr
 #define IN6_MATCHES_TEREDO_CLIENT( ip6, ip4, port ) \
 	in6_matches_teredo_client ((const union teredo_addr *)ip6, ip4, port)
 
-#define IN6_MATCHES_TEREDO_SERVER( ip6, ip4 ) \
-	in6_matches_teredo_server ((const union teredo_addr *)ip6, ip4)
-
 #define IN6_IS_TEREDO_ADDR_CONE( ip6 ) \
-	in6_is_teredo_addr_cone ((const union teredo_addr *)ip6)
+	(((const union teredo_addr *)(ip6))->teredo.flags \
+	& htons (TEREDO_FLAG_CONE))
 
 #define IN6_TEREDO_PREFIX( ip6 ) \
 	(((const union teredo_addr *)ip6)->teredo.prefix)
@@ -81,6 +79,22 @@ union teredo_addr
 #define IN6_TEREDO_PORT( ip6 ) \
 	(~((const union teredo_addr *)ip6)->teredo.client_port)
 
+/*int
+in6_matches_teredo_client (const union teredo_addr *ip6, uint32_t ip,
+				uint16_t port)
+{
+	return (ip == (uint32_t)~ip6->teredo.client_ip)
+		&& (port == (uint16_t)~ip6->teredo.client_port);
+}*/
+
+/*
+ * Returns true if prefix can be used as a Teredo prefix.
+ * As per RFC3513, anything could be used for Teredo (unicast)
+ * except the multicast range (ff00::/8).
+ */
+#define is_valid_teredo_prefix( prefix ) \
+	((prefix & 0xff000000) != 0xff000000)
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -88,14 +102,7 @@ extern "C" {
 int in6_matches_teredo_client (const union teredo_addr *ip6,
 				uint32_t ip4, uint16_t port);
 
-int in6_matches_teredo_server (const union teredo_addr *ip6, uint32_t ip4);
-
 int in6_is_teredo_addr_cone (const union teredo_addr *ip6);
-
-/*
- * Returns true if prefix can be used as a Teredo prefix.
- */
-int is_valid_teredo_prefix (uint32_t prefix);
 
 #ifdef __cplusplus
 }
