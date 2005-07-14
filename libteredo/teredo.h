@@ -84,7 +84,7 @@ in6_matches_teredo_client (const union teredo_addr *ip6, uint32_t ip,
 				uint16_t port)
 {
 	return (((ip ^ ip6->teredo.client_ip) == 0xffffffff)
-		| ((port ^ ip6->teredo.client_port) == 0xffff));
+		&& ((port ^ ip6->teredo.client_port) == 0xffff));
 }
 
 /*
