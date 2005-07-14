@@ -7,7 +7,7 @@
  */
 
 /***********************************************************************
- *  Copyright (C) 2002-2004 Remi Denis-Courmont.                       *
+ *  Copyright (C) 2004-2005 Remi Denis-Courmont.                       *
  *  This program is free software; you can redistribute and/or modify  *
  *  it under the terms of the GNU General Public License as published  *
  *  by the Free Software Foundation; version 2 of the license.         *
@@ -44,11 +44,3 @@ const struct in6_addr teredo_cone =
 	{ { { 0xfe, 0x80, 0, 0, 0, 0, 0, 0,
 		    0x80, 0, 'T', 'E', 'R', 'E', 'D', 'O' } } };
 
-
-int
-in6_matches_teredo_client (const union teredo_addr *ip6, uint32_t ip,
-				uint16_t port)
-{
-	return (ip == (uint32_t)~ip6->teredo.client_ip)
-		&& (port == (uint16_t)~ip6->teredo.client_port);
-}

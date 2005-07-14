@@ -79,13 +79,12 @@ union teredo_addr
 #define IN6_TEREDO_PORT( ip6 ) \
 	(~((const union teredo_addr *)ip6)->teredo.client_port)
 
-/*int
+static inline int
 in6_matches_teredo_client (const union teredo_addr *ip6, uint32_t ip,
 				uint16_t port)
 {
-	return (ip == (uint32_t)~ip6->teredo.client_ip)
-		&& (port == (uint16_t)~ip6->teredo.client_port);
-}*/
+	return !((ip ^ ip6->teredo.client_ip) | (port ^ ip6->teredo.client_port));
+}
 
 /*
  * Returns true if prefix can be used as a Teredo prefix.
@@ -94,19 +93,6 @@ in6_matches_teredo_client (const union teredo_addr *ip6, uint32_t ip,
  */
 #define is_valid_teredo_prefix( prefix ) \
 	((prefix & 0xff000000) != 0xff000000)
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-	
-int in6_matches_teredo_client (const union teredo_addr *ip6,
-				uint32_t ip4, uint16_t port);
-
-int in6_is_teredo_addr_cone (const union teredo_addr *ip6);
-
-#ifdef __cplusplus
-}
-#endif
 
 /*
  * Teredo headers
