@@ -33,7 +33,6 @@
 
 struct ip6_hdr;
 struct in6_addr;
-union teredo_addr;
 class TeredoPacket;
 
 

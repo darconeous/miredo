@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: rdenis@simphalempin.com\n"
-"POT-Creation-Date: 2005-06-17 17:49+0200\n"
+"POT-Creation-Date: 2005-07-20 19:09+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,24 +16,24 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: libteredo/teredo-udp.cpp:70
-#, c-format
-msgid "Fatal socket error: %m"
-msgstr ""
-
-#: libteredo/teredo-udp.cpp:80
-#, c-format
-msgid "Fatal bind error: %m"
-msgstr ""
-
-#: libteredo/server-udp.cpp:59
+#: libteredo/server-udp.cpp:63
 msgid ""
 "Teredo server UDP socket error: Server IPv4 addresses must be global unicast."
 msgstr ""
 
-#: libteredo/server-udp.cpp:66
+#: libteredo/server-udp.cpp:70
 msgid ""
 "Teredo server UDP socket error: Server IPv4 addresses must not be wildcard."
+msgstr ""
+
+#: libteredo/server-udp.cpp:84
+#, c-format
+msgid "Primary socket: %m"
+msgstr ""
+
+#: libteredo/server-udp.cpp:92
+#, c-format
+msgid "Secondary socket: %m"
 msgstr ""
 
 #: libteredo/relay.cpp:83
@@ -45,12 +45,12 @@ msgstr ""
 msgid "pthread_create failure: %m"
 msgstr ""
 
-#: libteredo/relay.cpp:410
+#: libteredo/relay.cpp:411
 msgid "Teredo address/MTU changed"
 msgstr ""
 
-#: libteredo/relay.cpp:441
-msgid "Ignoring invalid bubble : your Teredo server is probably buggy."
+#: libteredo/relay.cpp:442
+msgid "Ignoring invalid bubble: your Teredo server is probably buggy."
 msgstr ""
 
 #: libteredo/security.cpp:50
@@ -84,20 +84,20 @@ msgstr ""
 msgid "Teredo tunnel fatal error"
 msgstr ""
 
-#: libteredo/maintain.cpp:267
+#: libteredo/maintain.cpp:264
 msgid "Lost Teredo connectivity"
 msgstr ""
 
-#: libteredo/maintain.cpp:284
+#: libteredo/maintain.cpp:281
 #, c-format
 msgid "Qualified (NAT type: %s)"
 msgstr ""
 
-#: libteredo/maintain.cpp:285
+#: libteredo/maintain.cpp:282
 msgid "cone"
 msgstr ""
 
-#: libteredo/maintain.cpp:285
+#: libteredo/maintain.cpp:282
 msgid "restricted"
 msgstr ""
 
@@ -188,7 +188,7 @@ msgstr ""
 
 #: libtun6/ipv6-tunnel.cpp:866
 msgid ""
-"You should run these commands to create it :\n"
+"You should run these commands to create it:\n"
 "# mkdir -p /dev/net\n"
 "# mknod /dev/net/tun c 10 200\n"
 "(you must be root to do that).\n"
@@ -196,7 +196,7 @@ msgstr ""
 
 #: libtun6/ipv6-tunnel.cpp:871 libtun6/ipv6-tunnel.cpp:896
 msgid ""
-"You can obtain a tunnel driver for the Darwin kernel (Mac OS X) from :\n"
+"You can obtain a tunnel driver for the Darwin kernel (Mac OS X) from:\n"
 "http://chrisp.de/en/projects/tunnel.html\n"
 msgstr ""
 
@@ -350,7 +350,7 @@ msgid ""
 " %s\n"
 msgstr ""
 
-#: src/main.c:368 src/relay.cpp:352 src/relay.cpp:439 src/server.cpp:172
+#: src/main.c:368 src/relay.cpp:352 src/relay.cpp:439 src/server.cpp:146
 msgid "Make sure another instance of the program is not already running."
 msgstr ""
 
@@ -361,7 +361,7 @@ msgstr ""
 #: src/main.c:456
 #, c-format
 msgid ""
-"Read unknown option -%c :\n"
+"Read unknown option -%c:\n"
 "That is probably a bug. Please report it.\n"
 msgstr ""
 
@@ -395,31 +395,31 @@ msgstr ""
 msgid "fork failed: %m"
 msgstr ""
 
-#: src/miredo.cpp:254
+#: src/miredo.cpp:255
 #, c-format
 msgid "Exiting on signal %d (%s)"
 msgstr ""
 
-#: src/miredo.cpp:262
+#: src/miredo.cpp:263
 #, c-format
 msgid "Reloading configuration on signal %d (%s)"
 msgstr ""
 
-#: src/miredo.cpp:270
+#: src/miredo.cpp:271
 #, c-format
 msgid "Terminated (exit code: %d)"
 msgstr ""
 
-#: src/miredo.cpp:278
+#: src/miredo.cpp:279
 #, c-format
 msgid "Child %d killed by signal %d (%s)"
 msgstr ""
 
-#: src/miredo.cpp:289
+#: src/miredo.cpp:290
 msgid "Terminated with error(s)."
 msgstr ""
 
-#: src/miredo.cpp:291
+#: src/miredo.cpp:292
 msgid "Terminated with no error."
 msgstr ""
 
@@ -430,16 +430,16 @@ msgstr ""
 
 #: src/relay.cpp:241 src/relay.cpp:250 src/relay.cpp:261 src/relay.cpp:270
 #: src/relay.cpp:278 src/relay.cpp:293 src/relay.cpp:304 src/relay.cpp:313
-#: src/server.cpp:123 src/server.cpp:131 src/server.cpp:148
+#: src/server.cpp:94 src/server.cpp:102 src/server.cpp:119
 msgid "Fatal configuration error"
 msgstr ""
 
-#: src/relay.cpp:259 src/server.cpp:113
+#: src/relay.cpp:259 src/server.cpp:84
 #, c-format
 msgid "Invalid server hostname \"%s\": %s"
 msgstr ""
 
-#: src/relay.cpp:277 src/server.cpp:130
+#: src/relay.cpp:277 src/server.cpp:101
 msgid "Server address not specified"
 msgstr ""
 
@@ -461,7 +461,7 @@ msgid ""
 " cannot open an UDP port"
 msgstr ""
 
-#: src/server.cpp:163 src/server.cpp:171
+#: src/server.cpp:145
 msgid "Teredo server fatal error"
 msgstr ""
 

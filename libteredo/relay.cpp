@@ -439,7 +439,7 @@ int TeredoRelay::ReceivePacket (void)
 				            &ip6.ip6_src);
 			else
 			{
-				syslog (LOG_WARNING, _("Ignoring invalid bubble : "
+				syslog (LOG_WARNING, _("Ignoring invalid bubble: "
 				        "your Teredo server is probably buggy."));
 			}
 			return 0; // don't pass bubble to kernel
@@ -474,7 +474,7 @@ int TeredoRelay::ReceivePacket (void)
 	 *
 	 * It should be noted that dropping packets with link-local
 	 * destination here, before further processing, breaks connectivity
-	 * with restricted Teredo clients : we send them Teredo bubbles with
+	 * with restricted Teredo clients: we send them Teredo bubbles with
 	 * a link-local source, to which they reply with Teredo bubbles with
 	 * a link-local destination. Indeed, the specification specifies that
 	 * the relay MUST look up the peer in the list and update last

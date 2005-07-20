@@ -405,7 +405,7 @@ plen_to_sin6 (unsigned plen, struct sockaddr_in6 *sin6)
 {
 	memset (sin6, 0, sizeof (struct sockaddr_in6));
 
-	// NetBSD kernel strangeness :
+	// NetBSD kernel strangeness:
 	//sin6->sin6_family = AF_INET6;
 # if HAVE_SA_LEN
 	sin6->sin6_len = sizeof (struct sockaddr_in6);
@@ -863,13 +863,13 @@ int libtun6_driver_diagnose (char *errbuf)
 		const char *specific;
 
 #if defined (HAVE_LINUX)
-		specific = N_("You should run these commands to create it :\n"
+		specific = N_("You should run these commands to create it:\n"
 			"# mkdir -p /dev/net\n"
 			"# mknod /dev/net/tun c 10 200\n"
 			"(you must be root to do that).\n");
 #elif defined (HAVE_DARWIN)
 		specific = N_("You can obtain a tunnel driver for the "
-			"Darwin kernel (Mac OS X) from :\n"
+			"Darwin kernel (Mac OS X) from:\n"
 			"http://chrisp.de/en/projects/tunnel.html\n");
 #else
 		specific = NULL;
@@ -894,7 +894,7 @@ int libtun6_driver_diagnose (char *errbuf)
 			"(CONFIG_TUN option), possibly as a module.\n");
 #elif defined (HAVE_DARWIN)
 		specific = N_("You can obtain a tunnel driver for the "
-			"Darwin kernel (Mac OS X) from :\n"
+			"Darwin kernel (Mac OS X) from:\n"
 			"http://chrisp.de/en/projects/tunnel.html\n");
 #else
 		specific = NULL;

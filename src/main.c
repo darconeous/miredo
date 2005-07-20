@@ -94,7 +94,7 @@ version (void)
 # define VERSION "unknown version"
 #endif
  	puts (
-"Miredo : Teredo IPv6 tunneling software "VERSION" ("PACKAGE_HOST")\n"
+"Miredo: Teredo IPv6 tunneling software "VERSION" ("PACKAGE_HOST")\n"
 " built "__DATE__" on "PACKAGE_BUILD_HOSTNAME" ("PACKAGE_BUILD")\n"
 "Copyright (C) 2004-2005 Remi Denis-Courmont");
 	puts (_(
@@ -453,7 +453,7 @@ main (int argc, char *argv[])
 
 			default:
 				fprintf (stderr, _(
-"Read unknown option -%c :\n"
+"Read unknown option -%c:\n"
 "That is probably a bug. Please report it.\n"), c);
 				return 1;
 		}
