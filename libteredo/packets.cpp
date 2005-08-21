@@ -101,15 +101,14 @@ SendBubble (const TeredoRelayUDP& sock, const struct in6_addr *dst,
 }
 
 
-static uint16_t
-sum16 (const uint8_t *data, size_t length, uint32_t sum32 = 0)
+static inline uint16_t
+sum16 (const uint16_t *data, size_t length, uint32_t sum32 = 0)
 {
-	size_t wordc = length / 2;
+	for (; length >= 2; length -= 2)
+		sum32 += *data++;
 
-	for (size_t i = 0; i < wordc; i++)
-		sum32 += ((uint16_t *)data)[i];
-	if (length & 1) // trailing byte if length is odd
-		sum32 += ntohs(((uint16_t)(data[length - 1])) << 8);
+	if (length) // trailing byte if length is odd
+		sum32 += ntohs((*(const uint8_t *)data) << 8);
 
 	while (sum32 > 0xffff)
 		sum32 = (sum32 & 0xffff) + (sum32 >> 16);
@@ -120,7 +119,7 @@ sum16 (const uint8_t *data, size_t length, uint32_t sum32 = 0)
 /*
  * Computes an IPv6 Pseudo-header 16-bits checksum
  */
-static uint16_t 
+static inline uint16_t 
 ipv6_sum (const struct ip6_hdr *ip6)
 {
 	uint32_t sum32 = 0;
@@ -145,7 +144,7 @@ ipv6_sum (const struct ip6_hdr *ip6)
 static uint16_t
 icmp6_checksum (const struct ip6_hdr *ip6, const struct icmp6_hdr *icmp6)
 {
-	return ~sum16 ((uint8_t *)icmp6, ntohs (ip6->ip6_plen),
+	return ~sum16 ((uint16_t *)icmp6, ntohs (ip6->ip6_plen),
 			ipv6_sum (ip6));
 }
 
@@ -164,16 +163,18 @@ int
 SendRS (const TeredoRelayUDP& sock, uint32_t server_ip,
         const unsigned char *nonce, bool cone)
 {
-	uint8_t packet[13 + sizeof (struct ip6_hdr)
+	uint8_t packet[3 + 13 + sizeof (struct ip6_hdr)
 			+ sizeof (struct nd_router_solicit)
 			+ sizeof (nd_opt_hdr) + 14],
-                *ptr = packet;
+                *ptr = packet + 3;
 
+	/* add 3 bytes for properly aligned IPv6 & ICMPv6 headers */
 	// Authentication header
 	// TODO: secure qualification
 	{
 		struct teredo_simple_auth *auth;
 
+		// only bytes - not aligned
 		auth = (struct teredo_simple_auth *)ptr;
 		auth->hdr.hdr.zero = 0;
 		auth->hdr.hdr.code = teredo_auth_hdr;
@@ -185,29 +186,30 @@ SendRS (const TeredoRelayUDP& sock, uint32_t server_ip,
 	}
 
 	{
-		struct
+		// must be aligned on a 4 bytes boundary!
+		struct teredo_rs
 		{
 			struct ip6_hdr ip6;
 			struct nd_router_solicit rs;
 			struct nd_opt_hdr opt;
 			uint8_t lladdr[14];
-		} rs;
+		} *rs = (struct teredo_rs *)ptr;
 
-		rs.ip6.ip6_flow = htonl (0x60000000);
-		rs.ip6.ip6_plen = htons (sizeof (rs) - sizeof (rs.ip6));
-		rs.ip6.ip6_nxt = IPPROTO_ICMPV6;
-		rs.ip6.ip6_hlim = 255;
-		memcpy (&rs.ip6.ip6_src, cone
+		rs->ip6.ip6_flow = htonl (0x60000000);
+		rs->ip6.ip6_plen = htons (sizeof (*rs) - sizeof (rs->ip6));
+		rs->ip6.ip6_nxt = IPPROTO_ICMPV6;
+		rs->ip6.ip6_hlim = 255;
+		memcpy (&rs->ip6.ip6_src, cone
 			? &teredo_cone : &teredo_restrict,
-			sizeof (rs.ip6.ip6_src));
-		memcpy (&rs.ip6.ip6_dst, &in6addr_allrouters,
-			sizeof (rs.ip6.ip6_dst));
+			sizeof (rs->ip6.ip6_src));
+		memcpy (&rs->ip6.ip6_dst, &in6addr_allrouters,
+			sizeof (rs->ip6.ip6_dst));
 	
-		rs.rs.nd_rs_type = ND_ROUTER_SOLICIT;
-		rs.rs.nd_rs_code = 0;
+		rs->rs.nd_rs_type = ND_ROUTER_SOLICIT;
+		rs->rs.nd_rs_code = 0;
 		// Checksums are pre-computed
-		rs.rs.nd_rs_cksum = htons (cone ? 0x114b : 0x914b);
-		rs.rs.nd_rs_reserved = 0;
+		rs->rs.nd_rs_cksum = cone ? htons (0x114b) : htons (0x914b);
+		rs->rs.nd_rs_reserved = 0;
 
 		/*
 		 * Microsoft Windows XP sends a 14 byte nul
@@ -217,15 +219,15 @@ SendRS (const TeredoRelayUDP& sock, uint32_t server_ip,
 		 * We keep it nul every time. It avoids having to compute the
 		 * checksum and it is not specified.
 		 */
-		rs.opt.nd_opt_type = ND_OPT_SOURCE_LINKADDR;
-		rs.opt.nd_opt_len = 2; // 16 bytes
+		rs->opt.nd_opt_type = ND_OPT_SOURCE_LINKADDR;
+		rs->opt.nd_opt_len = 2; // 16 bytes
 
-		memset (rs.lladdr, 0, sizeof (rs.lladdr));
+		memset (rs->lladdr, 0, sizeof (rs->lladdr));
 
-		memcpy (ptr, &rs, sizeof (rs));
+		ptr += sizeof (*rs);
 	}
 
-	return sock.SendPacket (packet, sizeof (packet), server_ip,
+	return sock.SendPacket (packet + 3, sizeof (packet) - 3, server_ip,
 	                        htons (IPPORT_TEREDO));
 }
 
