@@ -86,8 +86,8 @@ TeredoRelay::peer *TeredoRelay::AllocatePeer (const struct in6_addr *addr)
 	for (p = head; p != NULL; p = p->next)
 		if (p->IsExpired (now))
 		{
-			p->outqueue.Trash ();
-			p->inqueue.Trash ();
+			p->outqueue.Trash (MAXQUEUE);
+			p->inqueue.Trash (MAXQUEUE);
 			break;
 		}
 

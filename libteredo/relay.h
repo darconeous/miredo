@@ -42,10 +42,7 @@ class TeredoRelay
 {
 	private:
 		class peer;
-		class OutQueue;
-		friend class OutQueue;
-		class InQueue;
-		friend class InQueue;
+		class InDequeue;
 
 		/*** Internal stuff ***/
 		union teredo_addr addr;

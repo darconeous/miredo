@@ -153,21 +153,21 @@ TeredoRelay::SendUnreach (int code, const void *in, size_t inlen)
 int
 TeredoRelay::PingPeer (peer *p) const
 {
-	if (!p->flags.flags.nonce)
+	if (p->flags.flags.pings < 3)
 	{
-		if (!GenerateNonce (p->nonce, false))
-			return -1;
+		if (!p->flags.flags.nonce)
+		{
+			if (!GenerateNonce (p->nonce, false))
+				return -1;
 
-		p->flags.flags.nonce = 1;
-	}
+			p->flags.flags.nonce = 1;
+		}
 
 	// FIXME: re-send echo request later if no response
 
 	// FIXME FIXME FIXME:
 	// - sending of pings should be done in a separate thread
 	// - we don't check for the 2 seconds delay between pings
-	if (p->flags.flags.pings < 3)
-	{
 		p->flags.flags.pings++;
 		return SendPing (sock, &addr, p->GetIPv6Address (), p->nonce);
 	}
@@ -538,8 +538,9 @@ int TeredoRelay::ReceivePacket (void)
 			p->SetMappingFromPacket (packet);
 			p->TouchReceive ();
 
-			p->outqueue.Flush ();
-			p->inqueue.Flush ();
+			InDequeue cb (this);
+			p->inqueue.Flush (cb, MAXQUEUE);
+			p->outqueue.Flush (*p, MAXQUEUE);
 
 			return 0;
 		}
@@ -559,6 +560,20 @@ int TeredoRelay::ReceivePacket (void)
 		{
 			if (p == NULL)
 			{
+#ifdef MIREDO_TEREDO_CLIENT
+				if (IsClient ())
+				{
+					// TODO: do not duplicate this code
+					p = AllocatePeer (&ip6.ip6_dst);
+					if (p == NULL)
+						return -1; // insufficient memory
+
+					p->SetMapping (IN6_TEREDO_IPV4 (&ip6.ip6_dst),
+				    	           IN6_TEREDO_PORT (&ip6.ip6_dst));
+					p->flags.all_flags = 0;
+				}
+				else
+#endif
 				/*
 				 * Relays are explicitly allowed to drop packets from
 				 * unknown peers. It prevents routing of packet through the
@@ -566,28 +581,16 @@ int TeredoRelay::ReceivePacket (void)
 				 * libteredo implementation, it will be able to use a relay to
 				 * reach any destination. Not too good (FIXME).
 				 */
-				if (IsRelay ())
 					return 0;
 
-#ifdef MIREDO_TEREDO_CLIENT
-				// TODO: do not duplicate this code
-				p = AllocatePeer (&ip6.ip6_dst);
-				if (p == NULL)
-					return -1; // insufficient memory
-
-				p->mapped_port =
-					IN6_TEREDO_PORT (&ip6.ip6_dst);
-				p->mapped_addr =
-					IN6_TEREDO_IPV4 (&ip6.ip6_dst);
-				p->outqueue.SetMapping (p->mapped_addr,
-							p->mapped_port);
-				p->flags.all_flags = 0;
-#endif
 			}
 			else
 			{
-				p->outqueue.Flush ();
-				/* p->inqueue.Flush (); -- always empty */
+#ifdef MIREDO_TEREDO_CLIENT
+				InDequeue cb (this);
+				p->inqueue.Flush (cb, MAXQUEUE);
+#endif
+				p->outqueue.Flush (*p, MAXQUEUE);
 			}
 
 			p->flags.flags.trusted = 1;

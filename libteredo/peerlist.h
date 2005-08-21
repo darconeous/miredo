@@ -23,70 +23,52 @@
 # define LIBTEREDO_PEERLIST_H
 
 # define TEREDO_TIMEOUT 30 // seconds
-# define MAXQUEUE 1280 // bytes
-
-
-/*
- * Queueng of packets from the IPv6 toward Teredo
- */
-class TeredoRelay::OutQueue : public PacketsQueue
-{
-	private:
-		TeredoRelayUDP *sock;
-		uint32_t addr;
-		uint16_t port;
-
-		virtual int SendPacket (const void *p, size_t len)
-		{
-			return sock->SendPacket (p, len, addr, port);
-		}
-
-	public:
-		OutQueue (TeredoRelayUDP *s) : PacketsQueue (MAXQUEUE),
-					       sock (s)
-		{
-		}
-
-		void SetMapping (uint32_t mapped_addr, uint16_t mapped_port)
-		{
-			addr = mapped_addr;
-			port = mapped_port;
-		}
-};
+# define MAXQUEUE 1280u // bytes
 
 
 /*
  * Queueing of packets from Teredo toward the IPv6
  */
-class TeredoRelay::InQueue : public PacketsQueue
+class TeredoRelay::InDequeue : public PacketsQueueCallback
 {
 	private:
 		TeredoRelay *relay;
 
-		virtual int SendPacket (const void *p, size_t len)
+		virtual void SendPacket (const void *p, size_t len)
 		{
-			return relay->SendIPv6Packet (p, len);
+			relay->SendIPv6Packet (p, len);
 		}
 
 	public:
-		InQueue (TeredoRelay *r) : PacketsQueue (MAXQUEUE), relay (r)
+		InDequeue (TeredoRelay *r) : relay (r)
 		{
 		}
 };
 
 
-class TeredoRelay::peer
+class TeredoRelay::peer : public PacketsQueueCallback
 {
 	private:
 		struct timeval expiry;
 
+		/*
+		 * Queuing of packets from the IPv6 toward Teredo
+		 */
+		TeredoRelayUDP *udp;
+		virtual void SendPacket (const void *p, size_t len)
+		{
+			udp->SendPacket (p, len, mapped_addr, mapped_port);
+		}
+
 	public:
 		union teredo_addr addr;
-		OutQueue outqueue;
-		InQueue inqueue;
+		PacketsQueue outqueue;
+#ifdef MIREDO_TEREDO_CLIENT
+		PacketsQueue inqueue;
+#endif
 
 		peer (TeredoRelayUDP *sock, TeredoRelay *r)
-			: outqueue (sock), inqueue (r)
+			: udp (sock), outqueue (MAXQUEUE), inqueue (MAXQUEUE)
 		{
 		}
 		
@@ -126,7 +108,6 @@ class TeredoRelay::peer
 		{
 			mapped_addr = ip;
 			mapped_port = port;
-			outqueue.SetMapping (ip, port);
 		}
 
 		void SetMappingFromPacket (const TeredoPacket& p)

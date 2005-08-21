@@ -4,7 +4,7 @@
  */
 
 /***********************************************************************
- *  Copyright (C) 2004 Remi Denis-Courmont.                            *
+ *  Copyright (C) 2004-2005 Remi Denis-Courmont.                       *
  *  This program is free software; you can redistribute and/or modify  *
  *  it under the terms of the GNU General Public License as published  *
  *  by the Free Software Foundation; version 2 of the license.         *
@@ -23,119 +23,69 @@
 # include <config.h>
 #endif
 
-# include <pthread.h>
-# include <stdlib.h> // malloc(), free()
-# include <string.h> // memcpy()
+#include <stdlib.h> // malloc(), free()
+#include <string.h> // memcpy()
 
-# include "queue.h"
+#include "queue.h"
 
-PacketsQueue::PacketsQueue (size_t maxbytes)
-	: max (maxbytes), left (maxbytes), head (NULL), tail (NULL)
+void
+PacketsQueueCallback::SendPacket(const void *, size_t)
 {
-	pthread_mutex_init (&mutex, NULL);
 }
 
+static PacketsQueueCallback oblivion;
 
 int
 PacketsQueue::Queue (const void *p, size_t len)
 {
+	if (len > left)
+		return 1;
 
-	void *d = malloc (len);
-	if (d == NULL)
-		return -1;
-
-	struct packet_list *e = (struct packet_list *)
-					malloc (sizeof (struct packet_list));
+	struct packet_list *e =
+		(struct packet_list *)malloc (sizeof (struct packet_list) + len);
 	if (e == NULL)
-	{
-		free (d);
 		return -1;
-	}
 
-	memcpy (d, p, len);
-	e->data = d;
+	memcpy (e->data, p, len);
 	e->len = len;
 	e->next = NULL;
 
-	int retval = 0;
+	left -= len;
 
-	pthread_mutex_lock (&mutex);
-	if (len <= left)
-	{
-		left -= len;
-		if (tail != NULL)
-			tail->next = e;
-		else
-			head = e;
-		tail = e;
-	}
-	else
-		retval = -1;
-	pthread_mutex_unlock (&mutex);
+	/* lock */
+	*tail = e;
+	tail = &e->next;
+	/* unlock */
 
-	return retval;
+	return 0;
 }
 
 
-int
-PacketsQueue::Flush (void)
+void
+PacketsQueue::Flush (PacketsQueueCallback& cb, size_t totalbytes)
 {
-	int retval = 0;
 	struct packet_list *ptr;
 
-	pthread_mutex_lock (&mutex);
-	left = max;
+	/* lock */
+	left = totalbytes;
 	ptr = head;
 	head = NULL;
-	tail = NULL;
-	pthread_mutex_unlock (&mutex);
+	tail = &head;
+	/* unlock */
 
 	while (ptr != NULL)
 	{
-		retval |= (SendPacket (ptr->data, ptr->len) != (int)ptr->len);
-
 		struct packet_list *buf = ptr->next;
-		free (ptr->data);
+
+		cb.SendPacket (ptr->data, ptr->len);
 		free (ptr);
 		ptr = buf;
-	}	
-
-	return retval ? -1 : 0;
-}
-
-
-void
-PacketsQueue::Trash (void)
-{
-	struct packet_list *ptr;
-
-	pthread_mutex_lock (&mutex);
-	left = max;
-	ptr = head;
-	head = NULL;
-	tail = NULL;
-	pthread_mutex_unlock (&mutex);
-
-	unsafe_Trash (ptr);
-}
-
-
-void
-PacketsQueue::unsafe_Trash (struct packet_list *ptr)
-{
-	while (ptr != NULL)
-	{
-		struct packet_list *buf = ptr;
-		ptr = buf->next;
-		free (buf->data);
-		free (buf);
 	}
 }
 
 
-PacketsQueue::~PacketsQueue (void)
+void
+PacketsQueue::Trash (size_t max)
 {
-	pthread_mutex_destroy (&mutex);
-	unsafe_Trash (head);
+	Flush (oblivion, max);
 }
-

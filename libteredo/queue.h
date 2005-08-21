@@ -1,5 +1,5 @@
 /*
- * queue.h - Thread-safe packets queue class declaration
+ * queue.h - Packets queue class declaration
  * $Id$
  */
 
@@ -23,30 +23,35 @@
 # define LIBMIREDO_QUEUE_H
 
 # include <stddef.h>
-# include <pthread.h>
+# include <stdint.h>
+
+class PacketsQueueCallback
+{
+	public:
+		virtual void SendPacket(const void *data, size_t len);
+};
 
 class PacketsQueue
 {
 	private:
-		size_t max, left;
+		size_t left;
 		struct packet_list
 		{
-			void *data;
-			size_t len;
-
 			struct packet_list *next;
-		} *head, *tail;
-
-		pthread_mutex_t mutex;
-
-		virtual int SendPacket (const void *p, size_t len) = 0;
-
-		static void unsafe_Trash (struct packet_list *h);
-
-	protected:
-		PacketsQueue (size_t totalbytes);
+			size_t len;
+			uint8_t data[0];
+		} *head, **tail;
 
 	public:
+		PacketsQueue (size_t max) : left (max), head (NULL), tail (&head)
+		{
+		}
+
+		~PacketsQueue (void)
+		{
+			Trash (0);
+		}
+
 		/* 
 		 * Queues one packet. Return 0 on success, 1 if the queue is
 		 * full, and -1 if there was an errro (ENOMEN).
@@ -56,15 +61,12 @@ class PacketsQueue
 		/*
 		 * Flushes the packets queue through SendPacket()
 		 */
-		int Flush (void);
+		void Flush (PacketsQueueCallback& cb, size_t newmax);
 
 		/*
 		 * Flushes the packets queue to nowhere.
 		 */
-		void Trash (void);
-
-		virtual ~PacketsQueue (void);
+		void Trash (size_t newmax);
 };
 
 #endif /* ifndef LIBMIREDO_QUEUE_H */
-
