@@ -22,25 +22,36 @@
 #ifndef __LIBTEREDO_SECURITY_H
 # define __LIBTEREDO_SECURITY_H
 
-# ifndef __cplusplus
-#  error C++ header
+# ifdef __cplusplus
+extern "C" {
 # endif
 
-/*
- * MUST be called before any call to GenerateNonce().
- * Not thread-safe.
+/**
+ * Has to be called before any call to GenerateNonce() can succeed.
+ * It should additionnaly be called before calling chroot().
+ * Thread-safe. Can be called multiple times with no side effect.
  */
 void InitNonceGenerator (void);
 
-/*
+/**
  * Should be called after use of GenerateNonce().
- * Not thread-safe.
+ * Thread-safe. Can be called as many times.
  */
 void DeinitNonceGenerator (void);
 
-/*
+/**
  * Generates a random nonce value (8 bytes). Thread-safe.
+ *
+ * @param b pointer to a 8-bytes buffer [OUT]
+ * @param critical true if the random value has to be unpredictible
+ * for security reasons. If false, the function will not block, otherwise
+ * it might have to wait until enough randomness entropy was gathered by the
+ * system.
+ * @return false on error, true on success
  */
-bool GenerateNonce (unsigned char *b, bool critical = false);
+bool GenerateNonce (unsigned char *b, bool critical);
 
+# ifdef __cplusplus
+}
+# endif
 #endif

@@ -24,7 +24,7 @@ Features:
 (*) peers list garbage collection,
 (?) "automatic sunset" / "exit strategy",
 (!) Metric support on BSD,
-( ) support for UPnP GID to open an UDP port on supporting NATs
+( ) support for UPnP IGD to open an UDP port on supporting NATs
 ( ) support for detecting networking changes with either /proc
     or Netlink
 

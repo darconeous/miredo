@@ -155,7 +155,7 @@ TeredoRelay::PingPeer (peer *p) const
 {
 	if (!p->flags.flags.nonce)
 	{
-		if (!GenerateNonce (p->nonce))
+		if (!GenerateNonce (p->nonce, false))
 			return -1;
 
 		p->flags.flags.nonce = 1;
@@ -560,10 +560,11 @@ int TeredoRelay::ReceivePacket (void)
 			if (p == NULL)
 			{
 				/*
-				 * Relays are explicitly allowed to drop
-				 * packets from unknown peers and it is surely
-				 * much better. It prevents routing of packet
-				 * through the wrong relay.
+				 * Relays are explicitly allowed to drop packets from
+				 * unknown peers. It prevents routing of packet through the
+				 * wrong relay. If the peer is known, with the current
+				 * libteredo implementation, it will be able to use a relay to
+				 * reach any destination. Not too good (FIXME).
 				 */
 				if (IsRelay ())
 					return 0;

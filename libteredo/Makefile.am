@@ -32,7 +32,7 @@ libteredo_la_SOURCES =	$(common_SOURCES) \
 			packets.cpp packets.h queue.cpp queue.h \
 			peerlist.cpp peerlist.h
 if TEREDO_CLIENT
-libteredo_la_SOURCES += security.cpp security.h maintain.cpp
+libteredo_la_SOURCES += security.c security.h maintain.cpp
 endif
 
 # libteredo-server.la

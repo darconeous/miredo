@@ -1,5 +1,5 @@
 /*
- * security.cpp - helpers for security-related stuff
+ * security.c - helpers for security-related stuff
  * $Id$
  */
 
@@ -25,12 +25,14 @@
 
 #include <gettext.h>
 
+#include <stdbool.h>
 #include <string.h>
 
 #include <sys/types.h>
-#include <fcntl.h> // open()
-#include <unistd.h> // read(), close()
+#include <fcntl.h> /* open() */
+#include <unistd.h> /* read(), close() */
 #include <syslog.h>
+#include <pthread.h>
 
 #include "security.h"
 
@@ -40,7 +42,11 @@ static const char *randfile = "/dev/random";
 static const char *randfile = "/dev/srandom";
 #endif
 static const char *urandfile = "/dev/urandom";
+
+
 static int devfd[2] = { -1, -1 };
+static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+static unsigned refs = 0;
 
 static int
 random_open (bool critical)
@@ -54,24 +60,36 @@ random_open (bool critical)
 }
 
 
+
 void
 InitNonceGenerator (void)
 {
+	pthread_mutex_lock(&mutex);
+
+	refs++;
 	if (devfd[0] == -1)
 		devfd[0] = random_open (true);
 	if (devfd[1] == -1)
 		devfd[1] = random_open (false);
+
+	pthread_mutex_unlock(&mutex);
 }
 
 
 void
 DeinitNonceGenerator (void)
 {
-	if (devfd[0] != -1)
-		(void)close (devfd[0]);
+	pthread_mutex_lock(&mutex);
 
-	if (devfd[1] != -1)
-		(void)close (devfd[1]);
+	if (--refs == 0)
+	{
+		if (devfd[0] != -1)
+			(void)close (devfd[0]);
+		if (devfd[1] != -1)
+			(void)close (devfd[1]);
+	}
+
+	pthread_mutex_unlock(&mutex);
 }
 
 
