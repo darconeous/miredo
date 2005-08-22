@@ -106,7 +106,7 @@ TeredoRelay::peer *TeredoRelay::AllocatePeer (const struct in6_addr *addr)
 		}
 
 		/* Puts new entry at the head of the list */
-		p->next = (peer *)p;
+		p->next = (peer *)list;
 		list = p;
 	}
 
