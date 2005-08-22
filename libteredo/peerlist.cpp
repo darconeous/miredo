@@ -46,13 +46,15 @@
 #include "peerlist.h"
 
 void
-TeredoRelay::peer::DestroyList (peer *head)
+TeredoRelay::peer::DestroyList (void *head)
 {
-	while (head != NULL)
+	peer *p = (peer *)head;
+
+	while (p != NULL)
 	{
-		peer *buf = head->next;
-		delete head;
-		head = buf;
+		peer *buf = p->next;
+		delete p;
+		p = buf;
 	}
 }
 
@@ -83,7 +85,7 @@ TeredoRelay::peer *TeredoRelay::AllocatePeer (const struct in6_addr *addr)
 	peer *p;
 
 	/* Tries to recycle a timed-out peer entry */
-	for (p = head; p != NULL; p = p->next)
+	for (p = (peer *)list; p != NULL; p = p->next)
 		if (p->IsExpired (now))
 		{
 			p->outqueue.Trash (MAXQUEUE);
@@ -104,8 +106,8 @@ TeredoRelay::peer *TeredoRelay::AllocatePeer (const struct in6_addr *addr)
 		}
 
 		/* Puts new entry at the head of the list */
-		p->next = head;
-		head = p;
+		p->next = (peer *)p;
+		list = p;
 	}
 
 	memcpy (&p->addr.ip6, addr, sizeof (struct in6_addr));
@@ -116,17 +118,19 @@ TeredoRelay::peer *TeredoRelay::AllocatePeer (const struct in6_addr *addr)
 /*
  * Returns a pointer to the first peer entry matching <addr>,
  * or NULL if none were found.
+ * TODO: avoid doing two lookups (easy with Judy, not so easy without)
  */
 TeredoRelay::peer *TeredoRelay::FindPeer (const struct in6_addr *addr)
 {
-	struct timeval now;
-
-	gettimeofday(&now, NULL);
-
-	for (peer *p = head; p != NULL; p = p->next)
+	/* Slow O(n) simplistic peer lookup */
+	for (peer *p = (peer *)list; p != NULL; p = p->next)
 		if (t6cmp (&p->addr, (const union teredo_addr *)addr) == 0)
-			if (!p->IsExpired (now))
-				return p; // found!
+		{
+			struct timeval now;
+			gettimeofday(&now, NULL);
+
+			return !p->IsExpired (now) ? p : NULL;
+		}
 
 	return NULL;
 }

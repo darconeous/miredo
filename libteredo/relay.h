@@ -46,7 +46,7 @@ class TeredoRelay
 
 		/*** Internal stuff ***/
 		union teredo_addr addr;
-		class peer *head;
+		void *list;
 
 		TeredoRelayUDP sock;
 		bool allowCone, isCone;
@@ -67,6 +67,7 @@ class TeredoRelay
 
 			unsigned state;
 			bool success;
+			bool attended;
 			bool working;
 		} maintenance;
 
@@ -76,7 +77,7 @@ class TeredoRelay
 		uint32_t server_ip2;
 		uint16_t mtu;
 
-		int PingPeer (peer *p) const;
+		int PingPeer (const struct in6_addr *addr, peer *p) const;
 		bool IsServerPacket (const TeredoPacket *packet) const;
 		int ProcessQualificationPacket (const TeredoPacket *p);
 
@@ -177,6 +178,7 @@ class TeredoRelay
 		static unsigned QualificationRetries;
 		static unsigned QualificationTimeOut;
 		static unsigned ServerNonceLifetime;
+		static unsigned RestartDelay;
 #endif
 
 		/*

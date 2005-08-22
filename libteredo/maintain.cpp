@@ -98,7 +98,7 @@ int TeredoRelay::ProcessQualificationPacket (const TeredoPacket *packet)
 	newaddr.teredo.server_ip = GetServerIP ();
  
 	pthread_mutex_lock (&maintenance.lock);
-	if (memcmp (s_nonce, maintenance.nonce, 8))
+	if (!maintenance.attended || memcmp (s_nonce, maintenance.nonce, 8))
 	{
 		pthread_mutex_unlock (&maintenance.lock);
 		return 0;
@@ -126,8 +126,6 @@ int TeredoRelay::ProcessQualificationPacket (const TeredoPacket *packet)
 			maintenance.success =
 				(addr.teredo.client_port == newaddr.teredo.client_port)
 				&& (addr.teredo.client_ip == newaddr.teredo.client_ip);
-			if (!maintenance.success)
-				syslog (LOG_ERR, _("Unsupported symmetric NAT detected."));
 			break;
 
 		case PROBE_RESTRICT:
@@ -136,6 +134,7 @@ int TeredoRelay::ProcessQualificationPacket (const TeredoPacket *packet)
 
 		case PROBE_CONE:
 			maintenance.success = true;
+			break;
 	}
 
 	memcpy (&addr, &newaddr, sizeof (addr));
@@ -152,19 +151,6 @@ int TeredoRelay::ProcessQualificationPacket (const TeredoPacket *packet)
 
 
 static void
-asyncsafe_sleep (unsigned sec)
-{
-	struct timespec ts;
-
-	ts.tv_sec = sec;
-	ts.tv_nsec = 0;
-	pthread_testcancel();
-	nanosleep (&ts, NULL);
-	pthread_testcancel ();
-}
-
-
-static void
 cleanup_unlock (void *o)
 {
 	pthread_mutex_unlock ((pthread_mutex_t *)o);
@@ -177,12 +163,17 @@ unsigned TeredoRelay::QualificationTimeOut = 4; // seconds
 unsigned TeredoRelay::QualificationRetries = 3;
 
 unsigned TeredoRelay::ServerNonceLifetime = 3600; // seconds
+unsigned TeredoRelay::RestartDelay = 30; // seconds
 
 
 void TeredoRelay::MaintenanceThread (void)
 {
 	unsigned count = 0;
-	struct timeval nonce_death = { 0, 0 };
+	struct timeval nonce_expiry;
+
+	GenerateNonce(maintenance.nonce, true);
+	gettimeofday (&nonce_expiry, NULL);
+	nonce_expiry.tv_sec += ServerNonceLifetime;
 
 	isCone = true;
 	pthread_mutex_lock (&maintenance.lock);
@@ -191,29 +182,21 @@ void TeredoRelay::MaintenanceThread (void)
 	/*
 	 * Qualification/maintenance procedure
 	 */
+	pthread_cleanup_push (cleanup_unlock, &maintenance.lock);
 	while (1)
 	{
-		if ((maintenance.state == 0) && (count == 0))
-		{
-			pthread_mutex_unlock (&maintenance.lock);
-			// TODO refresh interval optimization
-			asyncsafe_sleep (SERVER_PING_DELAY);
-			pthread_mutex_lock (&maintenance.lock);
-		}
-
 		int val;
-
-		pthread_cleanup_push (cleanup_unlock, &maintenance.lock);
 
 		struct timeval now;
 		gettimeofday (&now, NULL);
-		if (now.tv_sec > nonce_death.tv_sec)
+
+		if (now.tv_sec > nonce_expiry.tv_sec)
 		{
-			/* The lifetime of the nonce is not critical
-			 => no need to check tv_usec */
+			/* The lifetime of the nonce is not second-critical
+			 => we don't check/set tv_usec */
 			GenerateNonce (maintenance.nonce, true);
-			gettimeofday (&nonce_death, NULL);
-			nonce_death.tv_sec += ServerNonceLifetime;
+			gettimeofday (&now, NULL);
+			nonce_expiry.tv_sec = now.tv_sec + ServerNonceLifetime;
 		}
 
 		SendRS (sock, maintenance.state == PROBE_RESTRICT /* secondary */
@@ -221,18 +204,19 @@ void TeredoRelay::MaintenanceThread (void)
 		        maintenance.nonce, isCone);
 
 		struct timespec deadline;
-		gettimeofday (&now, NULL);
 		deadline.tv_sec = now.tv_sec + QualificationTimeOut;
 		deadline.tv_nsec = now.tv_usec * 1000;
 
+		maintenance.attended = true;
 		do
 		{
 			val = pthread_cond_timedwait (&maintenance.received,
 			                              &maintenance.lock, &deadline);
 		}
 		while (val && (val != ETIMEDOUT));
+		maintenance.attended = false;
 
-		pthread_cleanup_pop (0);
+		unsigned sleep = 0;
 
 		if (val)
 		{
@@ -244,46 +228,40 @@ void TeredoRelay::MaintenanceThread (void)
 
 			if (count >= QualificationRetries)
 			{
-				bool down = (maintenance.state == 0);
-
-				count = 0;
-				if (maintenance.state == PROBE_CONE)
+				if (maintenance.state == 0)
 				{
-					isCone = false;
-					maintenance.state = PROBE_RESTRICT;
-				}
-				else
-				{
-					isCone = true;
-					maintenance.state = PROBE_CONE;
-				}
-
-				if (down)
-				{
-					pthread_mutex_unlock (&maintenance.lock);
 					syslog (LOG_NOTICE, _("Lost Teredo connectivity"));
 					// FIXME: some tunnel implementations might not handle
 					// asynchronous NotifyDown properly
 					NotifyDown ();
+				}
 
-					/* Sleep some time */
-					asyncsafe_sleep (SERVER_PING_DELAY);
-					pthread_mutex_lock (&maintenance.lock);
+				count = 0;
+				if (maintenance.state == PROBE_CONE)
+				{
+					maintenance.state = PROBE_RESTRICT;
+					isCone = false;
+				}
+				else
+				{
+					maintenance.state = PROBE_CONE;
+					isCone = true;
+					sleep = RestartDelay;
 				}
 			}
 		}
 		else
 		if (maintenance.state)
 		{
+			/* packet received, not qualified yet */
 			if (maintenance.success)
 			{
-				pthread_cleanup_push (cleanup_unlock, &maintenance.lock);
 				syslog (LOG_INFO, _("Qualified (NAT type: %s)"),
 				        gettext (isCone ? N_("cone") : N_("restricted")));
-				pthread_cleanup_pop (0);
 
 				count = 0;
 				maintenance.state = 0;
+				sleep = SERVER_PING_DELAY;
 			}
 			else
 			if (maintenance.state == PROBE_RESTRICT)
@@ -292,19 +270,31 @@ void TeredoRelay::MaintenanceThread (void)
 			}
 			else
 			{
-				/* FAIL */
+				/* Symmetric NAT failure */
+				syslog (LOG_ERR, _("Unsupported symmetric NAT detected."));
+
 				count = 0;
 				maintenance.state = PROBE_CONE;
-
-				/* Sleep five minutes */
-				/* TODO: watch for new interface events
-				* (netlink on Linux, PF_ROUTE on BSD) */
-				pthread_mutex_unlock (&maintenance.lock);
-				asyncsafe_sleep (SERVER_PING_DELAY);
-				pthread_mutex_lock (&maintenance.lock);
+				isCone = true;
+				sleep = RestartDelay;
 			}
 		}
+
+		// TODO refresh interval optimization
+		/* TODO: watch for new interface events
+		 * (netlink on Linux, PF_ROUTE on BSD) */
+		if (sleep)
+		{
+			deadline.tv_sec += sleep;
+			do
+				/* we should not be signaled any way */
+				val = pthread_cond_timedwait (&maintenance.received,
+				                              &maintenance.lock, &deadline);
+			while (val != ETIMEDOUT);
+		}
 	}
+	/* dead code */
+	pthread_cleanup_pop (1);
 }
 
 

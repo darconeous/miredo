@@ -61,7 +61,7 @@
 
 TeredoRelay::TeredoRelay (uint32_t pref, uint16_t port, uint32_t ipv4,
                           bool cone)
-	:  head (NULL), allowCone (false), isCone (cone)
+	:  list (NULL), allowCone (false), isCone (cone)
 {
 	addr.teredo.prefix = pref;
 	addr.teredo.server_ip = 0;
@@ -69,7 +69,7 @@ TeredoRelay::TeredoRelay (uint32_t pref, uint16_t port, uint32_t ipv4,
 	sock.ListenPort (port, ipv4);
 #ifdef MIREDO_TEREDO_CLIENT
 	maintenance.state = 0;
-	maintenance.working = false;
+	maintenance.attended = maintenance.working = false;
 #endif
 }
 
@@ -77,7 +77,7 @@ TeredoRelay::TeredoRelay (uint32_t pref, uint16_t port, uint32_t ipv4,
 #ifdef MIREDO_TEREDO_CLIENT
 TeredoRelay::TeredoRelay (uint32_t ip, uint32_t ip2,
                           uint16_t port, uint32_t ipv4)
-	: head (NULL), allowCone (false), mtu (1280)
+	: list (NULL), allowCone (false), mtu (1280)
 {
 	if (!is_ipv4_global_unicast (ip) || !is_ipv4_global_unicast (ip2))
 		syslog (LOG_WARNING, _("Server has a non global IPv4 address. "
@@ -91,7 +91,7 @@ TeredoRelay::TeredoRelay (uint32_t ip, uint32_t ip2,
 
 	server_ip2 = ip2;
 
-	maintenance.working = false;
+	maintenance.attended = maintenance.working = false;
 	maintenance.state = (unsigned)(-1);
 
 	if (sock.ListenPort (port, ipv4) == 0)
@@ -116,7 +116,7 @@ TeredoRelay::~TeredoRelay (void)
 #ifdef MIREDO_TEREDO_CLIENT
 	if (maintenance.working)
 	{
-		maintenance.working = false;
+		maintenance.attended = maintenance.working = false;
 		pthread_cancel (maintenance.thread);
 		pthread_join (maintenance.thread, NULL);
 		pthread_cond_destroy (&maintenance.received);
@@ -124,7 +124,7 @@ TeredoRelay::~TeredoRelay (void)
 	}
 #endif
 
-	TeredoRelay::peer::DestroyList (head);
+	TeredoRelay::peer::DestroyList (list);
 }
 
 
@@ -151,7 +151,7 @@ TeredoRelay::SendUnreach (int code, const void *in, size_t inlen)
 
 #ifdef MIREDO_TEREDO_CLIENT
 int
-TeredoRelay::PingPeer (peer *p) const
+TeredoRelay::PingPeer (const struct in6_addr *a, peer *p) const
 {
 	if (p->flags.flags.pings < 3)
 	{
@@ -163,13 +163,13 @@ TeredoRelay::PingPeer (peer *p) const
 			p->flags.flags.nonce = 1;
 		}
 
-	// FIXME: re-send echo request later if no response
+		// FIXME: re-send echo request later if no response
 
-	// FIXME FIXME FIXME:
-	// - sending of pings should be done in a separate thread
-	// - we don't check for the 2 seconds delay between pings
+		// FIXME FIXME FIXME:
+		// - sending of pings should be done in a separate thread
+		// - we don't check for the 2 seconds delay between pings
 		p->flags.flags.pings++;
-		return SendPing (sock, &addr, p->GetIPv6Address (), p->nonce);
+		return SendPing (sock, &addr, a, p->nonce);
 	}
 	return 0;
 }
@@ -277,7 +277,7 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 		}
 
 		p->outqueue.Queue (packet, length);
-		return PingPeer (p);
+		return PingPeer (&dst->ip6, p);
 	}
 #endif
 
@@ -387,7 +387,8 @@ int TeredoRelay::ReceivePacket (void)
 		if (s_nonce != NULL)
 		{
 			pthread_mutex_lock (&maintenance.lock);
-			if (memcmp (s_nonce, maintenance.nonce, 8))
+			if (!maintenance.attended /* we don't expect an advert */
+			 || memcmp (s_nonce, maintenance.nonce, 8))
 			{
 				pthread_mutex_unlock (&maintenance.lock);
 				return 0; // server authentication failure
@@ -636,7 +637,7 @@ int TeredoRelay::ReceivePacket (void)
 	p->inqueue.Queue (buf, length);
 	p->TouchReceive ();
 
-	return PingPeer (p);
+	return PingPeer (&ip6.ip6_src, p);
 #else /* ifdef MIREDO_TEREDO_CLIENT */
 	return 0;
 #endif

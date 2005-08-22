@@ -22,6 +22,7 @@ Features:
     (TUNSLMODE on NetBSD)
 (!) interval determination procedure,
 (*) peers list garbage collection,
+( ) distinguish (Teredo) peers from (IPv6) nodes (1-n)
 (?) "automatic sunset" / "exit strategy",
 (!) Metric support on BSD,
 ( ) support for UPnP IGD to open an UDP port on supporting NATs
@@ -34,6 +35,8 @@ Security:
 (*) relay IPv6 access control lists,
 (*) relay/server IPv4 *modifiable* access control lists
     (currently hard-coded to reject private IPv4 space),
+( ) automatic/dynamic relay access control list
+    (stateful firewall-like)
 (*) peers list size limit
 
 Conformance:

@@ -62,6 +62,8 @@ class TeredoRelay::peer : public PacketsQueueCallback
 
 	public:
 		union teredo_addr addr;
+		peer *next;
+
 		PacketsQueue outqueue;
 #ifdef MIREDO_TEREDO_CLIENT
 		PacketsQueue inqueue;
@@ -70,12 +72,6 @@ class TeredoRelay::peer : public PacketsQueueCallback
 		peer (TeredoRelayUDP *sock, TeredoRelay *r)
 			: udp (sock), outqueue (MAXQUEUE), inqueue (MAXQUEUE)
 		{
-		}
-		
-		peer *next;
-		const struct in6_addr *GetIPv6Address (void) const
-		{
-			return &addr.ip6;
 		}
 
 		uint32_t mapped_addr;
@@ -134,7 +130,7 @@ class TeredoRelay::peer : public PacketsQueueCallback
 			      && (now.tv_usec >= expiry.tv_usec));
 		}
 
-		static void DestroyList (peer *head);
+		static void DestroyList (void *head);
 };
 
 #endif /* ifndef LIBTEREDO_PEERLIST_H */
