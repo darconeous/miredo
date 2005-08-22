@@ -244,6 +244,7 @@ void TeredoRelay::MaintenanceThread (void)
 				}
 				else
 				{
+					/* Wait some time before retrying */
 					maintenance.state = PROBE_CONE;
 					isCone = true;
 					sleep = RestartDelay;
@@ -261,6 +262,7 @@ void TeredoRelay::MaintenanceThread (void)
 
 				count = 0;
 				maintenance.state = 0;
+				/* Success: schedule NAT binding maintenance */
 				sleep = SERVER_PING_DELAY;
 			}
 			else
@@ -271,6 +273,7 @@ void TeredoRelay::MaintenanceThread (void)
 			else
 			{
 				/* Symmetric NAT failure */
+				/* Wait some time before retrying */
 				syslog (LOG_ERR, _("Unsupported symmetric NAT detected."));
 
 				count = 0;
@@ -278,6 +281,12 @@ void TeredoRelay::MaintenanceThread (void)
 				isCone = true;
 				sleep = RestartDelay;
 			}
+		}
+		else
+		{
+			count = 0;
+			/* Success: schedule next NAT binding maintenance */
+			sleep = SERVER_PING_DELAY;
 		}
 
 		// TODO refresh interval optimization
