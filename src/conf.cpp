@@ -320,15 +320,16 @@ ParseIPv4 (MiredoConf& conf, const char *name, uint32_t *ipv4)
 		return true;
 
 	int check = GetIPv4ByName (val, ipv4);
-	free (val);
 
 	if (check)
 	{
 		syslog (LOG_ERR, _("Invalid hostname \"%s\" at line %u: %s"),
 			val, line, gai_strerror (check));
+		free (val);
 		return false;
 	}
 
+	free (val);
 	return true;
 }
 
