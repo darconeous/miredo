@@ -70,7 +70,10 @@ class TeredoRelay::peer : public PacketsQueueCallback
 #endif
 
 		peer (TeredoRelayUDP *sock, TeredoRelay *r)
-			: udp (sock), outqueue (MAXQUEUE), inqueue (MAXQUEUE)
+			: udp (sock), outqueue (MAXQUEUE)
+#ifdef MIREDO_TEREDO_CLIENT
+			, inqueue (MAXQUEUE)
+#endif
 		{
 		}
 
