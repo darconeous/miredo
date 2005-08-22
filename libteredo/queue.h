@@ -29,6 +29,7 @@ class PacketsQueueCallback
 {
 	public:
 		virtual void SendPacket(const void *data, size_t len);
+		virtual ~PacketsQueueCallback (void) { }
 };
 
 class PacketsQueue
