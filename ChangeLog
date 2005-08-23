@@ -1,4 +1,68 @@
 ------------------------------------------------------------------------
+r664 | remi | 2005-08-23 20:04:10 +0300 (Tue, 23 Aug 2005) | 3 lines
+Changed paths:
+   M /trunk/NEWS
+   M /trunk/po/fr.po
+   M /trunk/po/miredo.pot
+
+- one last minute news
+- PO sync *again*
+
+------------------------------------------------------------------------
+r663 | remi | 2005-08-23 20:02:56 +0300 (Tue, 23 Aug 2005) | 2 lines
+Changed paths:
+   M /trunk/configure.ac
+
+Cosmetic
+
+------------------------------------------------------------------------
+r662 | remi | 2005-08-23 19:32:13 +0300 (Tue, 23 Aug 2005) | 2 lines
+Changed paths:
+   M /trunk/src/Makefile.am
+
+Fix install-sh path
+
+------------------------------------------------------------------------
+r661 | remi | 2005-08-23 19:28:54 +0300 (Tue, 23 Aug 2005) | 2 lines
+Changed paths:
+   M /trunk/src/Makefile.am
+
+Use documented install-sh -d instead of $(mkdir_p)
+
+------------------------------------------------------------------------
+r660 | remi | 2005-08-23 18:41:26 +0300 (Tue, 23 Aug 2005) | 2 lines
+Changed paths:
+   M /trunk/TODO
+   M /trunk/libteredo/peerlist.cpp
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/relay.h
+
+Implement peer list size limit
+
+------------------------------------------------------------------------
+r659 | remi | 2005-08-23 18:34:33 +0300 (Tue, 23 Aug 2005) | 4 lines
+Changed paths:
+   M /trunk/libteredo/maintain.cpp
+   M /trunk/libteredo/relay.h
+   M /trunk/src/relay.cpp
+
+Remove return value from NotifyUp and NotifyDown because there is no way
+to handle errors there. These are informative callbacks, so they just can't
+fail.
+
+------------------------------------------------------------------------
+r658 | remi | 2005-08-23 18:26:18 +0300 (Tue, 23 Aug 2005) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog
+   M /trunk/NEWS
+   M /trunk/TODO
+   M /trunk/po/POTFILES.in
+   M /trunk/po/fr.po
+   M /trunk/po/miredo.pot
+
+Documentation updates
+
+------------------------------------------------------------------------
 r657 | remi | 2005-08-22 22:37:57 +0300 (Mon, 22 Aug 2005) | 6 lines
 Changed paths:
    M /trunk/libteredo/maintain.cpp
