@@ -151,11 +151,8 @@ unsigned TeredoRelay::RestartDelay = 30; // seconds
 void TeredoRelay::MaintenanceThread (void)
 {
 	unsigned count = 0;
-	struct timeval nonce_expiry;
-
-	GenerateNonce(maintenance.nonce, true);
-	gettimeofday (&nonce_expiry, NULL);
-	nonce_expiry.tv_sec += ServerNonceLifetime;
+	struct timeval nonce_expiry = { 0, 0 };
+	struct timespec deadline = { 0, 0 };
 
 	isCone = true;
 	pthread_mutex_lock (&maintenance.lock);
@@ -167,29 +164,30 @@ void TeredoRelay::MaintenanceThread (void)
 	pthread_cleanup_push (cleanup_unlock, &maintenance.lock);
 	while (1)
 	{
-		int val;
-
-		struct timeval now;
-		gettimeofday (&now, NULL);
-
-		if (now.tv_sec > nonce_expiry.tv_sec)
+		if (deadline.tv_sec >= nonce_expiry.tv_sec)
 		{
 			/* The lifetime of the nonce is not second-critical
 			 => we don't check/set tv_usec */
 			GenerateNonce (maintenance.nonce, true);
-			gettimeofday (&now, NULL);
-			nonce_expiry.tv_sec = now.tv_sec + ServerNonceLifetime;
+
+			/* avoid lost connectivity and RS flood if nonce generation has
+			 * been blocking for a long time -> resync timer */
+			gettimeofday (&nonce_expiry, NULL);
+
+			deadline.tv_sec = nonce_expiry.tv_sec;
+			deadline.tv_nsec = nonce_expiry.tv_usec * 1000;
+
+			nonce_expiry.tv_sec += ServerNonceLifetime;
 		}
 
 		SendRS (sock, maintenance.state == PROBE_RESTRICT /* secondary */
 		              ? GetServerIP2 () : GetServerIP (),
 		        maintenance.nonce, isCone);
 
-		struct timespec deadline;
-		deadline.tv_sec = now.tv_sec + QualificationTimeOut;
-		deadline.tv_nsec = now.tv_usec * 1000;
-
+		deadline.tv_sec += QualificationTimeOut;
 		maintenance.attended = true;
+
+		int val;
 		do
 		{
 			val = pthread_cond_timedwait (&maintenance.received,
@@ -276,6 +274,7 @@ void TeredoRelay::MaintenanceThread (void)
 		 * (netlink on Linux, PF_ROUTE on BSD) */
 		if (sleep)
 		{
+			deadline.tv_sec -= QualificationTimeOut;
 			deadline.tv_sec += sleep;
 			do
 				/* we should not be signaled any way */
