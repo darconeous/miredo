@@ -75,9 +75,9 @@ inline int t6cmp (const union teredo_addr *a1, const union teredo_addr *a2)
 /* 
  * Allocates a peer entry. It is up to the caller to fill informations
  * correctly.
- *
- * FIXME: number of entry should be bound
  */
+unsigned TeredoRelay::MaxPeers = 1024;
+
 TeredoRelay::peer *TeredoRelay::AllocatePeer (const struct in6_addr *addr)
 {
 	struct timeval now;
@@ -95,6 +95,9 @@ TeredoRelay::peer *TeredoRelay::AllocatePeer (const struct in6_addr *addr)
 			break;
 		}
 
+	if (peerNumber >= MaxPeers)
+		return NULL;
+
 	/* Otherwise allocates a new peer entry */
 	if (p == NULL)
 	{
@@ -110,6 +113,7 @@ TeredoRelay::peer *TeredoRelay::AllocatePeer (const struct in6_addr *addr)
 		/* Puts new entry at the head of the list */
 		p->next = (peer *)list;
 		list = p;
+		peerNumber++;
 	}
 
 	memcpy (&p->addr.ip6, addr, sizeof (struct in6_addr));

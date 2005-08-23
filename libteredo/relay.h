@@ -47,6 +47,7 @@ class TeredoRelay
 		/*** Internal stuff ***/
 		union teredo_addr addr;
 		void *list;
+		unsigned peerNumber;
 
 		TeredoRelayUDP sock;
 		bool allowCone, isCone;
@@ -181,6 +182,7 @@ class TeredoRelay
 		static unsigned ServerNonceLifetime;
 		static unsigned RestartDelay;
 #endif
+		static unsigned MaxPeers;
 
 		/*
 		 * Returns true if the relay/client is behind a cone NAT.

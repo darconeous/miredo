@@ -61,7 +61,7 @@
 
 TeredoRelay::TeredoRelay (uint32_t pref, uint16_t port, uint32_t ipv4,
                           bool cone)
-	:  list (NULL), allowCone (false), isCone (cone)
+	:  list (NULL), peerNumber (0), allowCone (false), isCone (cone)
 {
 	addr.teredo.prefix = pref;
 	addr.teredo.server_ip = 0;
@@ -77,7 +77,7 @@ TeredoRelay::TeredoRelay (uint32_t pref, uint16_t port, uint32_t ipv4,
 #ifdef MIREDO_TEREDO_CLIENT
 TeredoRelay::TeredoRelay (uint32_t ip, uint32_t ip2,
                           uint16_t port, uint32_t ipv4)
-	: list (NULL), allowCone (false), mtu (1280)
+	: list (NULL), peerNumber (0), allowCone (false), mtu (1280)
 {
 	if (!is_ipv4_global_unicast (ip) || !is_ipv4_global_unicast (ip2))
 		syslog (LOG_WARNING, _("Server has a non global IPv4 address. "

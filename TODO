@@ -38,8 +38,7 @@ Security:
 ( ) relay/server IPv4 *modifiable* access control lists
     (currently hard-coded to reject private IPv4 space),
 ( ) automatic/dynamic relay access control list
-    (stateful firewall-like),
-(*) peers list size limit
+    (stateful firewall-like)
 
 Conformance:
 -------------
