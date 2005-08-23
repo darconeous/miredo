@@ -42,10 +42,10 @@ AC_PROG_CXX
 AC_DISABLE_STATIC
 AC_PROG_LIBTOOL
 AM_INIT_AUTOMAKE([check-news dist-bzip2 std-options])
-AM_BINRELOC
 
 
 # Checks for libraries.
+AM_BINRELOC
 AM_GNU_GETTEXT([external])
 AH_TEMPLATE(HAVE_LINUX,
 		[Define to 1 if the host kernel is Linux.])
