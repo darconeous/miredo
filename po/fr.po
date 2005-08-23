@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: miredo 0.5.1\n"
 "Report-Msgid-Bugs-To: rdenis@simphalempin.com\n"
-"POT-Creation-Date: 2005-08-23 18:00+0300\n"
+"POT-Creation-Date: 2005-08-23 19:20+0300\n"
 "PO-Revision-Date: 2005-07-20 19:10+0300\n"
 "Last-Translator: Rémi Denis-Courmont <rdenis (at) simphalempin (dot) com>\n"
 "Language-Team: N/A\n"
@@ -77,33 +77,28 @@ msgstr "Plusieurs préfixes Teredo reçus"
 msgid "Invalid Teredo prefix received"
 msgstr "Préfixe Teredo reçu invalide"
 
-#: libteredo/maintain.cpp:110
+#: libteredo/maintain.cpp:98
 msgid "Authentication refused by server."
 msgstr "Authentification refusée par le serveur."
 
-#: libteredo/maintain.cpp:144 src/relay.cpp:351 src/relay.cpp:371
-#: src/relay.cpp:387 src/relay.cpp:426 src/relay.cpp:432
-msgid "Teredo tunnel fatal error"
-msgstr "Erreur fatal du tunnel Teredo"
-
-#: libteredo/maintain.cpp:233
+#: libteredo/maintain.cpp:215
 msgid "Lost Teredo connectivity"
 msgstr "Connectivité Teredo perdue"
 
-#: libteredo/maintain.cpp:260
+#: libteredo/maintain.cpp:240
 #, c-format
 msgid "Qualified (NAT type: %s)"
 msgstr "Qualifié (type de NAT : %s)"
 
-#: libteredo/maintain.cpp:261
+#: libteredo/maintain.cpp:241
 msgid "cone"
 msgstr "cône"
 
-#: libteredo/maintain.cpp:261
+#: libteredo/maintain.cpp:241
 msgid "restricted"
 msgstr "restreint"
 
-#: libteredo/maintain.cpp:277
+#: libteredo/maintain.cpp:259
 msgid "Unsupported symmetric NAT detected."
 msgstr "NAT symmétrique non supporté détecté."
 
@@ -506,6 +501,11 @@ msgstr "Adresse du serveur non indiquée"
 #: src/relay.cpp:292
 msgid "Unsupported Teredo client mode"
 msgstr "Mode client Teredo non supporté"
+
+#: src/relay.cpp:351 src/relay.cpp:371 src/relay.cpp:387 src/relay.cpp:426
+#: src/relay.cpp:432
+msgid "Teredo tunnel fatal error"
+msgstr "Erreur fatal du tunnel Teredo"
 
 #: src/relay.cpp:434
 #, c-format

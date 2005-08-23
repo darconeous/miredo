@@ -32,6 +32,7 @@ BETA RELEASE 0.5.2 : Major bugfixes
 # Ignore unexpected Router Advertisment.
 # Fix use of freed memory in configuration parser error handling.
 # Some more optimization and clean up.
+# Peers list size limit.
 # Multi-threaded Teredo server implementation.
 # Build libteredo as a shared library (warning: API is not stabilized yet).
 
