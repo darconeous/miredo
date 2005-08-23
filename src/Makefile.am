@@ -58,7 +58,7 @@ miredo_server_LDADD = $(LIBINTL) libmiredo.a ../libteredo/libteredo-server.la
 # so we always create the directory
 install-exec-local:
 	test -z "$(DESTDIR)$(localstatedir)/run/miredo" || \
-	install-sh -d "$(DESTDIR)$(localstatedir)/run/miredo"
+	$(install_sh) -d "$(DESTDIR)$(localstatedir)/run/miredo"
 
 uninstall-local:
 	-rmdir "$(DESTDIR)$(localstatedir)/run/miredo"
