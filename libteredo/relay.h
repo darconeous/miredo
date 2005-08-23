@@ -87,19 +87,20 @@ class TeredoRelay
 		 * The default implementation in base class TeredoRelay does
 		 * nothing.
 		 *
-		 * Returns 0 on success, -1 on error.
-		 * TODO: handle error in calling function.
+		 * This function might be called from a separate thread.
 		 */
-		virtual int NotifyUp (const struct in6_addr *addr,
-		                      uint16_t mtu = 1280);
+		virtual void NotifyUp (const struct in6_addr *addr,
+		                      uint16_t mtu = 1280) { }
 
 		/*
 		 * Indicates that the Teredo tunneling interface is no longer
 		 * ready to process packets.
 		 * Any packet sent when the relay/client is down will be
 		 * ignored.
+		 *
+		 * This function might be called from a separate thread.
 		 */
-		virtual int NotifyDown (void);
+		virtual void NotifyDown (void) { }
 #endif
 
 		/*** Callbacks ***/

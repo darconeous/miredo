@@ -103,15 +103,15 @@ class MiredoRelay : public TeredoRelay
 		}
 
 	private:
-		virtual int NotifyUp (const struct in6_addr *addr,
+		virtual void NotifyUp (const struct in6_addr *addr,
 		                      uint16_t mtu = 1280)
 		{
-			return miredo_configure_tunnel (priv_fd, addr, mtu);
+			miredo_configure_tunnel (priv_fd, addr, mtu);
 		}
 
-		virtual int NotifyDown (void)
+		virtual void NotifyDown (void)
 		{
-			return NotifyUp (&in6addr_any);
+			NotifyUp (&in6addr_any);
 		}
 #endif /* ifdef MIREDO_TEREDO_CLIENT */
 };

@@ -58,18 +58,6 @@
 #define QUALIFIED	0
 
 
-int TeredoRelay::NotifyUp (const struct in6_addr *, uint16_t)
-{
-	return 0;
-}
-
-
-int TeredoRelay::NotifyDown (void)
-{
-	return 0;
-}
-
-
 bool TeredoRelay::IsServerPacket (const TeredoPacket *packet) const
 {
 	uint32_t ip = packet->GetClientIP ();
@@ -138,12 +126,6 @@ int TeredoRelay::ProcessQualificationPacket (const TeredoPacket *packet)
 	}
 
 	memcpy (&addr, &newaddr, sizeof (addr));
-
-	if (maintenance.success && NotifyUp (&addr.ip6, mtu))
-	{
-		syslog (LOG_ERR, _("Teredo tunnel fatal error"));
-		maintenance.success = false;
-	}
 	pthread_mutex_unlock (&maintenance.lock);
 
 	return 0;
@@ -231,8 +213,6 @@ void TeredoRelay::MaintenanceThread (void)
 				if (maintenance.state == 0)
 				{
 					syslog (LOG_NOTICE, _("Lost Teredo connectivity"));
-					// FIXME: some tunnel implementations might not handle
-					// asynchronous NotifyDown properly
 					NotifyDown ();
 				}
 
@@ -262,6 +242,8 @@ void TeredoRelay::MaintenanceThread (void)
 
 				count = 0;
 				maintenance.state = 0;
+				NotifyUp (&addr.ip6, mtu);
+
 				/* Success: schedule NAT binding maintenance */
 				sleep = SERVER_PING_DELAY;
 			}
