@@ -1,7 +1,7 @@
 libteredo/teredo-udp.cpp
 libteredo/server-udp.cpp
 libteredo/relay.cpp
-libteredo/security.cpp
+libteredo/security.c
 libteredo/packets.cpp
 libteredo/maintain.cpp
 libtun6/ipv6-tunnel.cpp

@@ -1,11 +1,12 @@
 RELEASE NOTES for Miredo
-version 0.5.1 (beta version)
+version 0.5.2 (beta version)
 =============================
 $Id$
 
-  This is an early release of the program. It is not finished and might not
-work properly. It is not suited for use in production environment.
-Users of previous releases are encouraged to upgrade, as some issues were
+  This is an early release of the program. It underwent some tests and is
+believed to work fine. However, there are still some outstanding issues
+(ie. missing features), though they don't affect core functionnality.
+  Users of previous releases are encouraged to upgrade, as some issues were
 addressed in this new release.
 
 IMPORTANT NOTE for old users:
@@ -14,8 +15,8 @@ IMPORTANT NOTE for old users:
 command line options. You cannot install the newer version and expect it to
 work without further configuration.
 
-  There are no known issues at the moment, but missing features. Please
-report any problem by email at address :
+  There are no known major issues at the moment, but missing features.
+Please report any problem by email at address :
 rdenis (at) simphalempin (dot) com
 Thanks for your help.
 
@@ -23,6 +24,16 @@ Thanks for your help.
 informations on this program, see README. For syntax details and
 changes, run 'miredo -h' to get help. For detailled internal changes, see
 ChangeLog.
+
+=============================================================================
+BETA RELEASE 0.5.2 : Major bugfixes
+
+# Fix sending of Router Solicitation in case of transient packet loss.
+# Ignore unexpected Router Advertisment.
+# Fix use of freed memory in configuration parser error handling.
+# Some more optimization and clean up.
+# Multi-threaded Teredo server implementation.
+# Build libteredo as a shared library (warning: API is not stabilized yet).
 
 =============================================================================
 BETA RELEASE 0.5.1 : Minor bugfixes

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: rdenis@simphalempin.com\n"
-"POT-Creation-Date: 2005-07-20 19:09+0300\n"
+"POT-Creation-Date: 2005-08-23 18:00+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -45,29 +45,29 @@ msgstr ""
 msgid "pthread_create failure: %m"
 msgstr ""
 
-#: libteredo/relay.cpp:411
+#: libteredo/relay.cpp:412
 msgid "Teredo address/MTU changed"
 msgstr ""
 
-#: libteredo/relay.cpp:442
+#: libteredo/relay.cpp:443
 msgid "Ignoring invalid bubble: your Teredo server is probably buggy."
 msgstr ""
 
-#: libteredo/security.cpp:50
+#: libteredo/security.c:56
 #, c-format
 msgid "Error opening %s: %m"
 msgstr ""
 
-#: libteredo/security.cpp:96
+#: libteredo/security.c:114
 #, c-format
 msgid "Error reading random data: %m"
 msgstr ""
 
-#: libteredo/packets.cpp:305
+#: libteredo/packets.cpp:307
 msgid "Multiple Teredo prefixes received"
 msgstr ""
 
-#: libteredo/packets.cpp:347
+#: libteredo/packets.cpp:349
 msgid "Invalid Teredo prefix received"
 msgstr ""
 
@@ -75,30 +75,30 @@ msgstr ""
 msgid "Authentication refused by server."
 msgstr ""
 
-#: libteredo/maintain.cpp:130
-msgid "Unsupported symmetric NAT detected."
-msgstr ""
-
-#: libteredo/maintain.cpp:145 src/relay.cpp:351 src/relay.cpp:371
+#: libteredo/maintain.cpp:144 src/relay.cpp:351 src/relay.cpp:371
 #: src/relay.cpp:387 src/relay.cpp:426 src/relay.cpp:432
 msgid "Teredo tunnel fatal error"
 msgstr ""
 
-#: libteredo/maintain.cpp:264
+#: libteredo/maintain.cpp:233
 msgid "Lost Teredo connectivity"
 msgstr ""
 
-#: libteredo/maintain.cpp:281
+#: libteredo/maintain.cpp:260
 #, c-format
 msgid "Qualified (NAT type: %s)"
 msgstr ""
 
-#: libteredo/maintain.cpp:282
+#: libteredo/maintain.cpp:261
 msgid "cone"
 msgstr ""
 
-#: libteredo/maintain.cpp:282
+#: libteredo/maintain.cpp:261
 msgid "restricted"
+msgstr ""
+
+#: libteredo/maintain.cpp:277
+msgid "Unsupported symmetric NAT detected."
 msgstr ""
 
 #: libtun6/ipv6-tunnel.cpp:148
@@ -505,17 +505,17 @@ msgstr ""
 msgid "Invalid boolean value \"%s\" for %s"
 msgstr ""
 
-#: src/conf.cpp:327 src/conf.cpp:356
+#: src/conf.cpp:326 src/conf.cpp:357
 #, c-format
 msgid "Invalid hostname \"%s\" at line %u: %s"
 msgstr ""
 
-#: src/conf.cpp:382
+#: src/conf.cpp:383
 #, c-format
 msgid "Invalid Teredo IPv6 prefix: %x::/32"
 msgstr ""
 
-#: src/conf.cpp:464
+#: src/conf.cpp:465
 #, c-format
 msgid "Unknown syslog facility \"%s\" at line %u"
 msgstr ""

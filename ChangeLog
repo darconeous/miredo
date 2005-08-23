@@ -1,4 +1,307 @@
 ------------------------------------------------------------------------
+r657 | remi | 2005-08-22 22:37:57 +0300 (Mon, 22 Aug 2005) | 6 lines
+Changed paths:
+   M /trunk/libteredo/maintain.cpp
+
+Fix Router Solicitation sending madness in maintenance procedure
+when a single maintenance packet failed to obtain an answer from the Teredo
+server
+
+--> I think I will have to make a bugfix release for that one
+
+------------------------------------------------------------------------
+r656 | remi | 2005-08-22 22:34:39 +0300 (Mon, 22 Aug 2005) | 2 lines
+Changed paths:
+   M /trunk/libteredo/peerlist.cpp
+   M /trunk/libteredo/peerlist.h
+
+Compile fix for --disable-teredo-client
+
+------------------------------------------------------------------------
+r655 | remi | 2005-08-22 21:12:11 +0300 (Mon, 22 Aug 2005) | 2 lines
+Changed paths:
+   M /trunk/libteredo/peerlist.cpp
+
+Fix obvious fatal regression in previous commit
+
+------------------------------------------------------------------------
+r654 | remi | 2005-08-22 20:59:32 +0300 (Mon, 22 Aug 2005) | 5 lines
+Changed paths:
+   M /trunk/TODO
+   M /trunk/libteredo/maintain.cpp
+   M /trunk/libteredo/peerlist.cpp
+   M /trunk/libteredo/peerlist.h
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/relay.h
+
+- Fix handling of unattended server Router Solicitation
+- Fix and clean up maintenance procedure
+- Clean up to prepare for new peer list lookups
+  (probably based on Judy)
+
+------------------------------------------------------------------------
+r653 | remi | 2005-08-22 20:56:49 +0300 (Mon, 22 Aug 2005) | 2 lines
+Changed paths:
+   M /trunk/libteredo/queue.h
+
+Fix compiler warning
+
+------------------------------------------------------------------------
+r652 | remi | 2005-08-22 20:56:27 +0300 (Mon, 22 Aug 2005) | 2 lines
+Changed paths:
+   M /trunk/src/conf.cpp
+
+Fix invalid use of free'd pointer
+
+------------------------------------------------------------------------
+r651 | remi | 2005-08-21 19:54:41 +0300 (Sun, 21 Aug 2005) | 3 lines
+Changed paths:
+   M /trunk/libteredo/packets.cpp
+
+Some code optimization
+(in particular, remove the router solicitation memcpy)
+
+------------------------------------------------------------------------
+r650 | remi | 2005-08-21 13:13:56 +0300 (Sun, 21 Aug 2005) | 2 lines
+Changed paths:
+   M /trunk/libteredo/peerlist.cpp
+   M /trunk/libteredo/peerlist.h
+   M /trunk/libteredo/queue.cpp
+   M /trunk/libteredo/queue.h
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/relay.h
+
+Smaller memory footprint, more efficient and cleaned up packet queueing
+
+------------------------------------------------------------------------
+r649 | remi | 2005-08-21 10:42:18 +0300 (Sun, 21 Aug 2005) | 2 lines
+Changed paths:
+   M /trunk/TODO
+   M /trunk/libteredo/Makefile.am
+   M /trunk/libteredo/relay.cpp
+   A /trunk/libteredo/security.c (from /trunk/libteredo/security.cpp:647)
+   D /trunk/libteredo/security.cpp
+   M /trunk/libteredo/security.h
+
+Convert security.cpp to pure C99
+
+------------------------------------------------------------------------
+r648 | remi | 2005-08-20 14:48:34 +0300 (Sat, 20 Aug 2005) | 2 lines
+Changed paths:
+   M /trunk/configure.ac
+
+Don't build static libraries
+
+------------------------------------------------------------------------
+r647 | remi | 2005-07-20 19:11:30 +0300 (Wed, 20 Jul 2005) | 3 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/relay.h
+   M /trunk/libtun6/ipv6-tunnel.cpp
+   M /trunk/po/fr.po
+   M /trunk/po/miredo.pot
+   M /trunk/src/main.c
+
+- Fix French quotes spacing
+- Fix American and French semi-colon spacing
+
+------------------------------------------------------------------------
+r646 | remi | 2005-07-14 21:37:22 +0300 (Thu, 14 Jul 2005) | 2 lines
+Changed paths:
+   M /trunk/admin
+   M /trunk/bootstrap
+
+Support for libtool
+
+------------------------------------------------------------------------
+r645 | remi | 2005-07-14 21:36:21 +0300 (Thu, 14 Jul 2005) | 2 lines
+Changed paths:
+   M /trunk
+   M /trunk/libteredo
+   M /trunk/src
+
+svn:ignore updates for libtool
+
+------------------------------------------------------------------------
+r644 | remi | 2005-07-14 21:33:27 +0300 (Thu, 14 Jul 2005) | 2 lines
+Changed paths:
+   M /trunk/src/Makefile.am
+
+Compile fix
+
+------------------------------------------------------------------------
+r643 | remi | 2005-07-14 21:25:05 +0300 (Thu, 14 Jul 2005) | 2 lines
+Changed paths:
+   M /trunk/TODO
+   M /trunk/configure.ac
+   M /trunk/libteredo/Makefile.am
+   D /trunk/libteredo/teredo-udp.h
+   M /trunk/src/Makefile.am
+
+Provide libteredo as a shared library
+
+------------------------------------------------------------------------
+r642 | remi | 2005-07-14 21:15:39 +0300 (Thu, 14 Jul 2005) | 2 lines
+Changed paths:
+   M /trunk/libteredo/teredo.c
+
+Forgot this file
+
+------------------------------------------------------------------------
+r641 | remi | 2005-07-14 21:15:08 +0300 (Thu, 14 Jul 2005) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay-udp.cpp
+   M /trunk/libteredo/relay-udp.h
+   M /trunk/libteredo/server-udp.cpp
+   M /trunk/libteredo/server-udp.h
+   M /trunk/libteredo/teredo-udp.cpp
+   M /trunk/libteredo/teredo.h
+
+Another bunch of optimization/inlining
+
+------------------------------------------------------------------------
+r640 | remi | 2005-07-14 20:45:14 +0300 (Thu, 14 Jul 2005) | 2 lines
+Changed paths:
+   M /trunk/libteredo/teredo.h
+
+Oops. This time it seems to work
+
+------------------------------------------------------------------------
+r639 | remi | 2005-07-14 20:43:55 +0300 (Thu, 14 Jul 2005) | 2 lines
+Changed paths:
+   M /trunk/libteredo/teredo.h
+
+Type-o
+
+------------------------------------------------------------------------
+r638 | remi | 2005-07-14 20:42:13 +0300 (Thu, 14 Jul 2005) | 2 lines
+Changed paths:
+   M /trunk/libteredo/teredo.h
+
+Attempt to fix, this time with my brain switched on
+
+------------------------------------------------------------------------
+r637 | remi | 2005-07-14 20:38:36 +0300 (Thu, 14 Jul 2005) | 2 lines
+Changed paths:
+   M /trunk/libteredo/teredo.h
+
+Try to fix previous commit
+
+------------------------------------------------------------------------
+r636 | remi | 2005-07-14 20:31:29 +0300 (Thu, 14 Jul 2005) | 2 lines
+Changed paths:
+   M /trunk/libteredo/teredo.c
+   M /trunk/libteredo/teredo.h
+
+Use static inline when macro not safe
+
+------------------------------------------------------------------------
+r635 | remi | 2005-07-14 20:11:03 +0300 (Thu, 14 Jul 2005) | 2 lines
+Changed paths:
+   M /trunk/libteredo/teredo.c
+   M /trunk/libteredo/teredo.h
+
+Use macro rather than tiny functions when it is safe
+
+------------------------------------------------------------------------
+r634 | remi | 2005-07-14 18:45:01 +0300 (Thu, 14 Jul 2005) | 4 lines
+Changed paths:
+   M /trunk/libteredo/maintain.cpp
+   M /trunk/libteredo/relay.h
+
+- Don't use asynchronous cancellation - it was not safe
+- Use shorter restart delay in case of failure
+  (so that miredo goes up sooner when the connectivity is acquired)
+
+------------------------------------------------------------------------
+r633 | remi | 2005-07-07 20:48:41 +0300 (Thu, 07 Jul 2005) | 2 lines
+Changed paths:
+   M /trunk/configure.ac
+   M /trunk/libteredo/Makefile.am
+   M /trunk/libtun6/Makefile.am
+   M /trunk/src/Makefile.am
+
+pthread compilation parameters cleanup
+
+------------------------------------------------------------------------
+r632 | remi | 2005-07-01 21:11:02 +0300 (Fri, 01 Jul 2005) | 2 lines
+Changed paths:
+   M /trunk/TODO
+   M /trunk/libteredo/server.cpp
+   M /trunk/libteredo/teredo-udp.cpp
+   M /trunk/libtun6/ipv6-tunnel.cpp
+   M /trunk/src/conf.cpp
+   M /trunk/src/privproc.cpp
+
+PF_* -> AF_*
+
+------------------------------------------------------------------------
+r631 | remi | 2005-06-25 10:26:56 +0300 (Sat, 25 Jun 2005) | 2 lines
+Changed paths:
+   M /trunk/src/main.c
+   M /trunk/src/miredo.cpp
+   M /trunk/src/miredo.h
+
+Don't leak pidfile descriptor to non-privileged processes
+
+------------------------------------------------------------------------
+r630 | remi | 2005-06-25 10:13:07 +0300 (Sat, 25 Jun 2005) | 2 lines
+Changed paths:
+   M /trunk/TODO
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/server-udp.h
+   M /trunk/libteredo/teredo-udp.cpp
+   M /trunk/libteredo/teredo-udp.h
+
+Fix busy waiting problem in miredo-server
+
+------------------------------------------------------------------------
+r629 | remi | 2005-06-18 21:03:06 +0300 (Sat, 18 Jun 2005) | 3 lines
+Changed paths:
+   M /trunk/libteredo/server.cpp
+
+Fix bug whereby only secondary server socket would be used
+Does NOT fix 100% CPU usage bug
+
+------------------------------------------------------------------------
+r628 | remi | 2005-06-18 13:45:57 +0300 (Sat, 18 Jun 2005) | 2 lines
+Changed paths:
+   M /trunk/libteredo/server.cpp
+   M /trunk/libteredo/server.h
+   M /trunk/src/server.cpp
+
+Multithreaded and cleaned up miredo-server
+
+------------------------------------------------------------------------
+r627 | remi | 2005-06-17 20:48:55 +0300 (Fri, 17 Jun 2005) | 2 lines
+Changed paths:
+   M /trunk/configure.ac
+
+Bump version number
+
+------------------------------------------------------------------------
+r626 | remi | 2005-06-17 20:47:16 +0300 (Fri, 17 Jun 2005) | 3 lines
+Changed paths:
+   M /trunk/src/server.cpp
+
+Fix caching of select()'s readset in miredo-server as was done a
+while ago in miredo
+
+------------------------------------------------------------------------
+r625 | remi | 2005-06-17 20:40:56 +0300 (Fri, 17 Jun 2005) | 2 lines
+Changed paths:
+   M /trunk/src/server.cpp
+
+Apply r572 to miredo-server
+
+------------------------------------------------------------------------
+r623 | remi | 2005-06-17 18:55:41 +0300 (Fri, 17 Jun 2005) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog
+
+Update ChangeLog
+
+------------------------------------------------------------------------
 r622 | remi | 2005-06-17 17:54:17 +0200 (ven, 17 jun 2005) | 2 lines
 Chemins modifiés :
    M /trunk/TODO
