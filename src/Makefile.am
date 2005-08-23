@@ -37,17 +37,7 @@ endif
 sbin_PROGRAMS = miredo miredo-server
 noinst_LIBRARIES = libmiredo.a
 
-#BUILT_SOURCES = svnversion.c
-#CLEANFILES = $(BUILT_SOURCES)
-#
-#svnversion.c:
-#	{ \
-#		echo -n 'const char *const svn_version = "' ; \
-#		svnversion -n $(top_srcdir) 2>/dev/null; \
-#		echo '";' ; \
-#	} > $@
-#
-#.PHONY: svnversion.c
+#BUILT_SOURCES = $(srcdir)/svnversion.stamp
 
 libmiredo_a_SOURCES = main.c miredo.cpp miredo.h \
 			conf.cpp conf.h prefix.c prefix.h
@@ -68,9 +58,24 @@ miredo_server_LDADD = $(LIBINTL) libmiredo.a ../libteredo/libteredo-server.la
 # so we always create the directory
 install-exec-local:
 	test -z "$(DESTDIR)$(localstatedir)/run/miredo" || \
-	$(mkdir_p) "$(DESTDIR)$(localstatedir)/run/miredo"
+	install-sh -d "$(DESTDIR)$(localstatedir)/run/miredo"
 
 uninstall-local:
 	-rmdir "$(DESTDIR)$(localstatedir)/run/miredo"
 	-rmdir "$(DESTDIR)$(localstatedir)/run"
 	-rmdir "$(DESTDIR)$(localstatedir)"
+
+# SVN version
+#$(srcdir)/svnversion.stamp:
+#	{ \
+#		echo -n 'const char *const svn_version = "' ; \
+#		LANG=C svnversion -n "$(top_srcdir)" 2>/dev/null || \
+#		echo -n exported ; \
+#		echo '";' ; \
+#	} > $(srcdir)/svnversion.stamp
+#	if ! diff svnversion.stamp svnversion.c 2>/dev/null; then \
+#		cat $(srcdir)/svnversion.stamp > $(srcdir)/svnversion.c ; \
+#	fi
+#
+#.PHONY: $(srcdir)/svnversion.stamp
+
