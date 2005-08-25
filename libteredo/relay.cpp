@@ -66,7 +66,6 @@ TeredoRelay::TeredoRelay (uint32_t pref, uint16_t port, uint32_t ipv4,
 {
 	addr.teredo.prefix = pref;
 	addr.teredo.server_ip = 0;
-	server_ip2 = 0;
 	addr.teredo.flags = isCone ? htons (TEREDO_FLAG_CONE) : 0;
 	/* that doesn't really need to match our mapping - the address is only used
 	 * to send Unreachable message */
@@ -79,6 +78,7 @@ TeredoRelay::TeredoRelay (uint32_t pref, uint16_t port, uint32_t ipv4,
 	list.peerNumber = 0;
 
 #ifdef MIREDO_TEREDO_CLIENT
+	server_ip2 = 0;
 	maintenance.state = 0;
 	maintenance.attended = maintenance.working = false;
 #endif
