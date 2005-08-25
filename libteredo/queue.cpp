@@ -52,9 +52,12 @@ PacketsQueue::Queue (const void *p, size_t len)
 
 	left -= len;
 
+	/* Ahem, well, it's no longer a queue here, it's become a stack.
+	 * That saves one pointer per queue, so 2 pointers per peer and there is
+	 * no requirement to preserve IP packets ordering anyway. */
 	/* lock */
-	*tail = e;
-	tail = &e->next;
+	e->next = head;
+	head = e;
 	/* unlock */
 
 	return 0;
@@ -70,7 +73,6 @@ PacketsQueue::Flush (PacketsQueueCallback& cb, size_t totalbytes)
 	left = totalbytes;
 	ptr = head;
 	head = NULL;
-	tail = &head;
 	/* unlock */
 
 	while (ptr != NULL)

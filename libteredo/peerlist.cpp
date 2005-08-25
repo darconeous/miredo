@@ -36,7 +36,6 @@
 #endif
 
 #include <sys/types.h>
-#include <sys/time.h>
 #include <netinet/in.h>
 
 #include <libteredo/relay-udp.h>
@@ -80,12 +79,13 @@ unsigned TeredoRelay::MaxPeers = 1024;
 
 TeredoRelay::peer *TeredoRelay::AllocatePeer (const struct in6_addr *addr)
 {
-	struct timeval now;
-	gettimeofday (&now, NULL);
+	time_t now;
 	peer *p;
 
+	time (&now);
+
 	/* Tries to recycle a timed-out peer entry */
-	for (p = (peer *)list; p != NULL; p = p->next)
+	for (p = (peer *)list.ptr; p != NULL; p = p->next)
 		if (p->IsExpired (now))
 		{
 			p->outqueue.Trash (MAXQUEUE);
@@ -95,7 +95,7 @@ TeredoRelay::peer *TeredoRelay::AllocatePeer (const struct in6_addr *addr)
 			break;
 		}
 
-	if (peerNumber >= MaxPeers)
+	if (list.peerNumber >= MaxPeers)
 		return NULL;
 
 	/* Otherwise allocates a new peer entry */
@@ -103,7 +103,7 @@ TeredoRelay::peer *TeredoRelay::AllocatePeer (const struct in6_addr *addr)
 	{
 		try
 		{
-			p = new peer (&sock, this);
+			p = new peer;
 		}
 		catch (...)
 		{
@@ -111,9 +111,9 @@ TeredoRelay::peer *TeredoRelay::AllocatePeer (const struct in6_addr *addr)
 		}
 
 		/* Puts new entry at the head of the list */
-		p->next = (peer *)list;
-		list = p;
-		peerNumber++;
+		p->next = (peer *)list.ptr;
+		list.ptr = p;
+		list.peerNumber++;
 	}
 
 	memcpy (&p->addr.ip6, addr, sizeof (struct in6_addr));
@@ -129,11 +129,11 @@ TeredoRelay::peer *TeredoRelay::AllocatePeer (const struct in6_addr *addr)
 TeredoRelay::peer *TeredoRelay::FindPeer (const struct in6_addr *addr)
 {
 	/* Slow O(n) simplistic peer lookup */
-	for (peer *p = (peer *)list; p != NULL; p = p->next)
+	for (peer *p = (peer *)list.ptr; p != NULL; p = p->next)
 		if (t6cmp (&p->addr, (const union teredo_addr *)addr) == 0)
 		{
-			struct timeval now;
-			gettimeofday(&now, NULL);
+			time_t now;
+			time (&now);
 
 			return !p->IsExpired (now) ? p : NULL;
 		}

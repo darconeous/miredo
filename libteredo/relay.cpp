@@ -30,6 +30,7 @@
 
 #include <string.h>
 #include <time.h>
+#include <assert.h>
 
 #if HAVE_STDINT_H
 # include <stdint.h>
@@ -61,12 +62,22 @@
 
 TeredoRelay::TeredoRelay (uint32_t pref, uint16_t port, uint32_t ipv4,
                           bool cone)
-	:  list (NULL), peerNumber (0), allowCone (false), isCone (cone)
+	:  allowCone (false), isCone (cone)
 {
 	addr.teredo.prefix = pref;
 	addr.teredo.server_ip = 0;
+	server_ip2 = 0;
+	addr.teredo.flags = isCone ? htons (TEREDO_FLAG_CONE) : 0;
+	/* that doesn't really need to match our mapping - the address is only used
+	 * to send Unreachable message */
+	addr.teredo.client_port = ~port;
+	addr.teredo.client_ip = ~ipv4;
 
 	sock.ListenPort (port, ipv4);
+
+	list.ptr = NULL;
+	list.peerNumber = 0;
+
 #ifdef MIREDO_TEREDO_CLIENT
 	maintenance.state = 0;
 	maintenance.attended = maintenance.working = false;
@@ -77,7 +88,7 @@ TeredoRelay::TeredoRelay (uint32_t pref, uint16_t port, uint32_t ipv4,
 #ifdef MIREDO_TEREDO_CLIENT
 TeredoRelay::TeredoRelay (uint32_t ip, uint32_t ip2,
                           uint16_t port, uint32_t ipv4)
-	: list (NULL), peerNumber (0), allowCone (false), mtu (1280)
+	: allowCone (false), mtu (1280)
 {
 	if (!is_ipv4_global_unicast (ip) || !is_ipv4_global_unicast (ip2))
 		syslog (LOG_WARNING, _("Server has a non global IPv4 address. "
@@ -90,6 +101,9 @@ TeredoRelay::TeredoRelay (uint32_t ip, uint32_t ip2,
 	addr.teredo.client_port = 0;
 
 	server_ip2 = ip2;
+
+	list.ptr = NULL;
+	list.peerNumber = 0;
 
 	maintenance.attended = maintenance.working = false;
 	maintenance.state = (unsigned)(-1);
@@ -124,7 +138,7 @@ TeredoRelay::~TeredoRelay (void)
 	}
 #endif
 
-	TeredoRelay::peer::DestroyList (list);
+	TeredoRelay::peer::DestroyList (list.ptr);
 }
 
 
@@ -143,7 +157,7 @@ TeredoRelay::SendUnreach (int code, const void *in, size_t inlen)
 	} buf;
 
 	/* FIXME: implement ICMP rate limit */
-	size_t outlen = BuildICMPv6Error (&buf.hdr, &teredo_cone, 1, code,
+	size_t outlen = BuildICMPv6Error (&buf.hdr, &addr.ip6, 1, code,
 						in, inlen);
 	return outlen ? SendIPv6Packet (&buf, outlen) : 0;
 }
@@ -157,7 +171,7 @@ TeredoRelay::PingPeer (const struct in6_addr *a, peer *p) const
 	{
 		if (!p->flags.flags.nonce)
 		{
-			if (!GenerateNonce (p->nonce, false))
+			if (!GenerateNonce (p->u1.nonce, false))
 				return -1;
 
 			p->flags.flags.nonce = 1;
@@ -169,7 +183,7 @@ TeredoRelay::PingPeer (const struct in6_addr *a, peer *p) const
 		// - sending of pings should be done in a separate thread
 		// - we don't check for the 2 seconds delay between pings
 		p->flags.flags.pings++;
-		return SendPing (sock, &addr, a, p->nonce);
+		return SendPing (sock, &addr, a, p->u1.nonce);
 	}
 	return 0;
 }
@@ -204,14 +218,21 @@ inline bool IsBubble (const struct ip6_hdr *hdr)
  */
 int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 {
-	/* Makes sure we are qualified properly */
-	if (!IsRunning ())
-		return SendUnreach (3, packet, length);
-
 	const union teredo_addr *dst = (union teredo_addr *)&packet->ip6_dst,
 				*src = (union teredo_addr *)&packet->ip6_src;
 
-	if (dst->teredo.prefix != GetPrefix ())
+	/* Drops multicast destination, we cannot handle these */
+	if ((dst->ip6.s6_addr[0] == 0xff)
+	/* Drops multicast source, these are invalid */
+	 || (src->ip6.s6_addr[0] == 0xff))
+		return 0;
+
+	assert (src->teredo.prefix != PREFIX_UNSET);
+	assert (dst->teredo.prefix != PREFIX_UNSET);
+
+	uint32_t prefix = GetPrefix ();
+
+	if (dst->teredo.prefix != prefix)
 	{
 		/*
 		 * If we are not a qualified client, ie. we have no server
@@ -229,7 +250,7 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 		if (IsRelay ())
 			return SendUnreach (0, packet, length);
 
-		if (src->teredo.prefix != GetPrefix ())
+		if (src->teredo.prefix != prefix)
 			/*
 			* Routing packets not from a Teredo client,
 			* neither toward a Teredo client is NOT allowed through a
@@ -241,6 +262,10 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 			return SendUnreach (1, packet, length);
 	}
 
+	/* We might no longer be qualified, but we at least have a valid (would-be
+	 * expired) Teredo address in addr */
+	assert (prefix != PREFIX_UNSET);
+
 	peer *p = FindPeer (&dst->ip6);
 
 	if (p != NULL)
@@ -250,17 +275,17 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 		{
 			/* Already known -valid- peer */
 			p->TouchTransmit ();
-			return sock.SendPacket (packet, length, p->mapped_addr,
-			                        p->mapped_port);
+			return sock.SendPacket (packet, length, p->u1.mapping.mapped_addr,
+			                        p->u1.mapping.mapped_port);
 		}
 	}
 
 #ifdef MIREDO_TEREDO_CLIENT
 	/* Unknown or untrusted peer */
-	if (dst->teredo.prefix != GetPrefix ())
+	if (dst->teredo.prefix != prefix)
 	{
-		/* ASSERT(IsClient ()) */
 		/* Unkown or untrusted non-Teredo node */
+		assert (IsClient ());
 
 		/* Client case 2: direct IPv6 connectivity test */
 		// TODO: avoid code duplication
@@ -270,8 +295,8 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 			if (p == NULL)
 				return -1; // memory error
 
-			p->mapped_port = 0;
-			p->mapped_addr = 0;
+			p->u1.mapping.mapped_port = 0;
+			p->u1.mapping.mapped_addr = 0;
 			p->flags.all_flags = 0;
 			p->TouchTransmit ();
 		}
@@ -310,8 +335,8 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 		if (allowCone && IN6_IS_TEREDO_ADDR_CONE (dst))
 		{
 			p->flags.flags.trusted = 1;
-			return sock.SendPacket (packet, length, p->mapped_addr,
-			                        p->mapped_port);
+			return sock.SendPacket (packet, length, p->u1.mapping.mapped_addr,
+			                        p->u1.mapping.mapped_port);
 		}
 	}
 
@@ -372,16 +397,13 @@ int TeredoRelay::ReceivePacket (void)
 		return 0; // malformatted IPv6 packet
 
 #ifdef MIREDO_TEREDO_CLIENT
-	if (!IsRunning ())
+	/* FIXME race condition */
+	if (maintenance.state)
 		return ProcessQualificationPacket (&packet);
 
 	/* Maintenance */
 	if (IsClient () && IsServerPacket (&packet))
 	{
-		/*
-		 * Server IP not checked because it might be the server's
-		 * secondary IP. We use the authentication header instead.
-		 */
 		const uint8_t *s_nonce = packet.GetAuthNonce ();
 
 		if (s_nonce != NULL)
@@ -521,8 +543,8 @@ int TeredoRelay::ReceivePacket (void)
 	{
 		// Client case 1 (trusted node or (trusted) Teredo client):
 		if (p->flags.flags.trusted
-		 && (packet.GetClientIP () == p->mapped_addr)
-		 && (packet.GetClientPort () == p->mapped_port))
+		 && (packet.GetClientIP () == p->u1.mapping.mapped_addr)
+		 && (packet.GetClientPort () == p->u1.mapping.mapped_port))
 		{
 			p->TouchReceive ();
 			return SendIPv6Packet (buf, length);
@@ -531,18 +553,14 @@ int TeredoRelay::ReceivePacket (void)
 #ifdef MIREDO_TEREDO_CLIENT
 		// Client case 2 (untrusted non-Teredo node):
 		if ((!p->flags.flags.trusted) && p->flags.flags.nonce
-		 && CheckPing (packet, p->nonce))
+		 && CheckPing (packet, p->u1.nonce))
 		{
 			p->flags.flags.trusted = 1;
 			p->flags.flags.nonce = 0;
 
 			p->SetMappingFromPacket (packet);
 			p->TouchReceive ();
-
-			InDequeue cb (this);
-			p->inqueue.Flush (cb, MAXQUEUE);
-			p->outqueue.Flush (*p, MAXQUEUE);
-
+			p->Flush (this);
 			return 0;
 		}
 #endif /* ifdef MIREDO_TEREDO_CLIENT */
@@ -586,13 +604,7 @@ int TeredoRelay::ReceivePacket (void)
 
 			}
 			else
-			{
-#ifdef MIREDO_TEREDO_CLIENT
-				InDequeue cb (this);
-				p->inqueue.Flush (cb, MAXQUEUE);
-#endif
-				p->outqueue.Flush (*p, MAXQUEUE);
-			}
+				p->Flush (this);
 
 			p->flags.flags.trusted = 1;
 			p->TouchReceive ();
@@ -629,10 +641,28 @@ int TeredoRelay::ReceivePacket (void)
 		if (p == NULL)
 			return -1; // memory error
 
-		p->mapped_port = 0;
-		p->mapped_addr = 0;
+		p->u1.mapping.mapped_port = 0;
+		p->u1.mapping.mapped_addr = 0;
 		p->flags.all_flags = 0;
 	}
+	else
+	if (p->flags.flags.trusted)
+		/*
+		 * Trusted node, but mismatch. That can only happen if:
+		 *  - someone is spoofing the node,
+		 *  - the node has changed relay (very unlikely),
+		 *  - unfortunate node has multiple relay doing load-balancing
+		 *    (that is not supposed to work with the Teredo protocol).
+		 * In pre-0.6.0 versions, miredo would perform the direct connectivity
+		 * ping check in this case. As of 0.6.0, the (ip, port) mapping is
+		 * union'ed with the nonce value (saves 6/8 bytes per peer), so doing
+		 * the ping check would cause reseting the mapping. That would allow
+		 * a trivial DoS by the "spoofing the node" case. As it is very
+		 * unlikely to happen for legitimate traffic, we do no longer do it.
+		 * When that happens, ie. some node has changed its Teredo relay, we
+		 * can afford to wait (at most) 30 seconds until the mapping expires.
+		 */
+		return 0;
 
 	p->inqueue.Queue (buf, length);
 	p->TouchReceive ();

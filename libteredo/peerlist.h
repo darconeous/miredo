@@ -46,39 +46,58 @@ class TeredoRelay::InDequeue : public PacketsQueueCallback
 };
 
 
-class TeredoRelay::peer : public PacketsQueueCallback
+/*
+ * Queueing of packets from IPv6 toward local Teredo client
+ */
+class OutDequeue : public PacketsQueueCallback
 {
 	private:
-		struct timeval expiry;
-
-		/*
-		 * Queuing of packets from the IPv6 toward Teredo
-		 */
 		TeredoRelayUDP *udp;
+		uint32_t ipv4;
+		uint16_t port;
+
 		virtual void SendPacket (const void *p, size_t len)
 		{
-			udp->SendPacket (p, len, mapped_addr, mapped_port);
+			udp->SendPacket (p, len, ipv4, port);
 		}
 
 	public:
+		OutDequeue (TeredoRelayUDP *u, uint32_t ip, uint16_t p)
+			: udp (u), ipv4 (ip), port (p)
+		{
+		}
+};
+
+
+class TeredoRelay::peer
+{
+	public:
 		union teredo_addr addr;
+		union
+		{
+			struct
+			{
+				uint32_t mapped_addr;
+				uint16_t mapped_port;
+			} mapping;
+			uint8_t nonce[8]; /* only for client toward non-client */
+		} u1;
+	
 		peer *next;
 
 		PacketsQueue outqueue;
 #ifdef MIREDO_TEREDO_CLIENT
+		/* TODO: merge both queues */
 		PacketsQueue inqueue;
 #endif
 
-		peer (TeredoRelayUDP *sock, TeredoRelay *r)
-			: udp (sock), outqueue (MAXQUEUE)
+		peer () : outqueue (MAXQUEUE)
 #ifdef MIREDO_TEREDO_CLIENT
 			, inqueue (MAXQUEUE)
 #endif
 		{
 		}
 
-		uint32_t mapped_addr;
-		uint16_t mapped_port;
 		union
 		{
 			struct
@@ -92,21 +111,21 @@ class TeredoRelay::peer : public PacketsQueueCallback
 			} flags;
 			uint16_t all_flags;
 		} flags;
-		// TODO: nonce and mapped_* could be union-ed
-		uint8_t nonce[8]; /* only for client toward non-client */
 
 	private:
+		time_t expiry;
+
 		void Touch (void)
 		{
-			gettimeofday (&expiry, NULL);
-			expiry.tv_sec += TEREDO_TIMEOUT;
+			time (&expiry);
+			expiry += TEREDO_TIMEOUT;
 		}
 
 	public:
 		void SetMapping (uint32_t ip, uint16_t port)
 		{
-			mapped_addr = ip;
-			mapped_port = port;
+			u1.mapping.mapped_addr = ip;
+			u1.mapping.mapped_port = port;
 		}
 
 		void SetMappingFromPacket (const TeredoPacket& p)
@@ -126,11 +145,21 @@ class TeredoRelay::peer : public PacketsQueueCallback
 				Touch ();
 		}
 
-		bool IsExpired (const struct timeval& now) const
+		void Flush (TeredoRelay *r)
 		{
-			return ((signed)(now.tv_sec - expiry.tv_sec) > 0)
-			     || ((now.tv_sec == expiry.tv_sec)
-			      && (now.tv_usec >= expiry.tv_usec));
+#ifdef MIREDO_TEREDO_CLIENT
+			InDequeue icb (r);
+			inqueue.Flush (icb, MAXQUEUE);
+#endif
+			OutDequeue ocb (&r->sock, u1.mapping.mapped_addr,
+			                u1.mapping.mapped_port);
+			outqueue.Flush (ocb, MAXQUEUE);
+		}
+
+
+		bool IsExpired (const time_t now) const
+		{
+			return ((signed)(now - expiry)) > 0;
 		}
 
 		static void DestroyList (void *head);

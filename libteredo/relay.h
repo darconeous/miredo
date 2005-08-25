@@ -46,8 +46,11 @@ class TeredoRelay
 
 		/*** Internal stuff ***/
 		union teredo_addr addr;
-		void *list;
-		unsigned peerNumber;
+		struct
+		{
+			void *ptr;
+			unsigned peerNumber;
+		} list;
 
 		TeredoRelayUDP sock;
 		bool allowCone, isCone;
@@ -184,29 +187,19 @@ class TeredoRelay
 #endif
 		static unsigned MaxPeers;
 
-		/*
-		 * Returns true if the relay/client is behind a cone NAT.
-		 * The result is not meaningful if the client is not fully
-		 * qualified.
-		 */
 		uint32_t GetPrefix (void) const
 		{
 			return addr.teredo.prefix;
 		}
 
+		/*
+		 * Returns true if the relay/client is behind a cone NAT.
+		 * The result is not meaningful if the client is not fully
+		 * qualified.
+		 */
 		bool IsCone (void) const
 		{
 			return isCone;
-		}
-
-		uint16_t GetMappedPort (void) const
-		{
-			return IN6_TEREDO_PORT (&addr);
-		}
-
-		uint32_t GetMappedIP (void) const
-		{
-			return IN6_TEREDO_IPV4 (&addr);
 		}
 
 		bool IsRelay (void) const
@@ -221,15 +214,6 @@ class TeredoRelay
 		bool IsClient (void) const
 		{
 			return !IsRelay ();
-		}
-
-		bool IsRunning (void) const
-		{
-			return is_valid_teredo_prefix (GetPrefix ())
-#ifdef MIREDO_TEREDO_CLIENT
-				&& (maintenance.state == 0)
-#endif
-			;
 		}
 
 		void SetConeIgnore (bool ignore = true)

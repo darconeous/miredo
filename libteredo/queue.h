@@ -35,16 +35,16 @@ class PacketsQueueCallback
 class PacketsQueue
 {
 	private:
-		size_t left;
 		struct packet_list
 		{
 			struct packet_list *next;
 			size_t len;
 			uint8_t data[0];
-		} *head, **tail;
+		} *head;
+		size_t left;
 
 	public:
-		PacketsQueue (size_t max) : left (max), head (NULL), tail (&head)
+		PacketsQueue (size_t max) : head (NULL), left (max)
 		{
 		}
 
@@ -60,7 +60,7 @@ class PacketsQueue
 		int Queue (const void *p, size_t len);
 
 		/*
-		 * Flushes the packets queue through SendPacket()
+		 * Flushes the packets queue through the callback
 		 */
 		void Flush (PacketsQueueCallback& cb, size_t newmax);
 
