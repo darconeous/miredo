@@ -36,6 +36,9 @@ endif
 
 sbin_PROGRAMS = miredo miredo-server
 noinst_LIBRARIES = libmiredo.a
+check_PROGRAMS = miredo-checkconf
+check_SCRIPTS = test_conf.sh
+TESTS = test_conf.sh
 
 #BUILT_SOURCES = $(srcdir)/svnversion.stamp
 
@@ -53,6 +56,9 @@ miredo_LDADD = $(LIBINTL) libmiredo.a \
 # miredo-server
 miredo_server_SOURCES = server.cpp
 miredo_server_LDADD = $(LIBINTL) libmiredo.a ../libteredo/libteredo-server.la
+
+# miredo-checkconf
+miredo_checkconf_SOURCES = test_conf.cpp conf.cpp
 
 # Automake does not support checking for MIREDO_CHROOT || MIREDO_PIDFILE
 # so we always create the directory
