@@ -50,7 +50,7 @@ supporte pas IPv6, ni même le proto-41 forwarding (6to4).
 # so there's no issue in linking to it statically
 # (ie no need to give out source code on my own)
 export APBUILD_STATIC="cap"
-prepareBuild --localstatedir=/var --sysconfdir=/etc
+prepareBuild --localstatedir=/var --sysconfdir=/etc --enable-binreloc
 mkdir -p -- "${build_root}/etc"
 cp -v misc/miredo.conf-dist "${build_root}/etc/miredo.conf"
 
