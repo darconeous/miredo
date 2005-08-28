@@ -87,7 +87,7 @@ AC_DEFINE_UNQUOTED(PACKAGE_HOST, "$host",
                    [Define to the canonical host-system name])
 
 # Checks for header files.
-AC_CHECK_HEADERS(sys/capability.h)
+AC_CHECK_HEADERS([sys/capability.h libintl.h])
 
 
 # Checks for typedefs, structures, and compiler characteristics.
