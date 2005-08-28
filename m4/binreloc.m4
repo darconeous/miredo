@@ -8,7 +8,7 @@ AC_DEFUN([AM_BINRELOC],
 [
 	AC_ARG_ENABLE(binreloc,
 		[  --enable-binreloc       compile with binary relocation support
-                          (default=enable when available)],
+                          (default disabled)],
 		enable_binreloc=$enableval,enable_binreloc=no)
 
 	BINRELOC_CFLAGS=
