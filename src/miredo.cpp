@@ -153,8 +153,9 @@ InitSignals (void)
 	// We check for EPIPE in errno instead:
 	sigaction (SIGPIPE, &sa, NULL);
 	// might use these for other purpose in later versions:
-	sigaction (SIGUSR1, &sa, NULL);
-	sigaction (SIGUSR2, &sa, NULL);
+	// or maybe not, GNU/kFreeBSD use these for pthread
+	//sigaction (SIGUSR1, &sa, NULL);
+	//sigaction (SIGUSR2, &sa, NULL);
 	
 	sa.sa_handler = reload_handler;
 	sigaction (SIGHUP, &sa, NULL);
