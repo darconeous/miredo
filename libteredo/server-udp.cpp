@@ -65,13 +65,6 @@ int TeredoServerUDP::ListenIP (uint32_t ip1, uint32_t ip2)
 		return -1;
 	}
 
-	if (ip1 == INADDR_ANY || ip2 == INADDR_ANY)
-	{
-		syslog (LOG_ERR, _("Teredo server UDP socket error: "
-			"Server IPv4 addresses must not be wildcard."));
-		return -1;
-	}
-
 	if (fd_primary != -1)
 	{
 		close (fd_primary);
