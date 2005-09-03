@@ -190,7 +190,7 @@ IPv6Tunnel::IPv6Tunnel (const char *req_name) : fd (-1), ifname (NULL)
 
 	if (ioctl (fd, TUNSETIFF, (void *)&req))
 	{
-		syslog (LOG_ERR, _("Tunnel error (TUNSETIFF): %m"));
+		syslog (LOG_ERR, _("Tunneling driver error (%s): %m"), "TUNSETIFF");
 		close (fd);
 		fd = -1;
 	}
@@ -226,7 +226,7 @@ IPv6Tunnel::IPv6Tunnel (const char *req_name) : fd (-1), ifname (NULL)
 			if (ioctl (reqfd, SIOCSIFNAME, &req))
 			{
 				syslog (LOG_ERR,
-					_("Tunnel error (SIOCSIFNAME): %m"));
+				        _("Tunneling driver error (%s): %m"), "SIOCSIFNAME");
 				close (fd);
 				fd = -1;
 				continue;
@@ -241,8 +241,8 @@ IPv6Tunnel::IPv6Tunnel (const char *req_name) : fd (-1), ifname (NULL)
 			if (ioctl (fd, TUNSIFHEAD, &dummy))
 			{
 				syslog (LOG_ERR,
-					_("%s tunnel error (TUNSIFHEAD): %m"),
-					ifname);
+				        _("%s tunneling driver error (%s): %m"),
+				        "TUNSIFHEAD", ifname);
 				close (fd);
 				fd = -1;
 			}
