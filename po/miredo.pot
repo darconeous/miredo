@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: rdenis@simphalempin.com\n"
-"POT-Creation-Date: 2005-08-23 19:20+0300\n"
+"POT-Creation-Date: 2005-09-02 17:41+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -21,35 +21,30 @@ msgid ""
 "Teredo server UDP socket error: Server IPv4 addresses must be global unicast."
 msgstr ""
 
-#: libteredo/server-udp.cpp:70
-msgid ""
-"Teredo server UDP socket error: Server IPv4 addresses must not be wildcard."
-msgstr ""
-
-#: libteredo/server-udp.cpp:84
+#: libteredo/server-udp.cpp:77
 #, c-format
 msgid "Primary socket: %m"
 msgstr ""
 
-#: libteredo/server-udp.cpp:92
+#: libteredo/server-udp.cpp:85
 #, c-format
 msgid "Secondary socket: %m"
 msgstr ""
 
-#: libteredo/relay.cpp:83
+#: libteredo/relay.cpp:94
 msgid "Server has a non global IPv4 address. It will most likely not work."
 msgstr ""
 
-#: libteredo/relay.cpp:103
+#: libteredo/relay.cpp:117
 #, c-format
 msgid "pthread_create failure: %m"
 msgstr ""
 
-#: libteredo/relay.cpp:412
+#: libteredo/relay.cpp:434
 msgid "Teredo address/MTU changed"
 msgstr ""
 
-#: libteredo/relay.cpp:443
+#: libteredo/relay.cpp:465
 msgid "Ignoring invalid bubble: your Teredo server is probably buggy."
 msgstr ""
 
@@ -75,24 +70,24 @@ msgstr ""
 msgid "Authentication refused by server."
 msgstr ""
 
-#: libteredo/maintain.cpp:215
+#: libteredo/maintain.cpp:213
 msgid "Lost Teredo connectivity"
 msgstr ""
 
-#: libteredo/maintain.cpp:240
+#: libteredo/maintain.cpp:238
 #, c-format
 msgid "Qualified (NAT type: %s)"
 msgstr ""
 
-#: libteredo/maintain.cpp:241
+#: libteredo/maintain.cpp:239
 msgid "cone"
 msgstr ""
 
-#: libteredo/maintain.cpp:241
+#: libteredo/maintain.cpp:239
 msgid "restricted"
 msgstr ""
 
-#: libteredo/maintain.cpp:259
+#: libteredo/maintain.cpp:257
 msgid "Unsupported symmetric NAT detected."
 msgstr ""
 
@@ -101,24 +96,15 @@ msgstr ""
 msgid "IPv6 stack not available: %m"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:179
+#: libtun6/ipv6-tunnel.cpp:179 libtun6/ipv6-tunnel.cpp:193
+#: libtun6/ipv6-tunnel.cpp:229
 #, c-format
 msgid "Tunneling driver error (%s): %m"
 msgstr ""
 
-#: libtun6/ipv6-tunnel.cpp:193
-#, c-format
-msgid "Tunnel error (TUNSETIFF): %m"
-msgstr ""
-
-#: libtun6/ipv6-tunnel.cpp:229
-#, c-format
-msgid "Tunnel error (SIOCSIFNAME): %m"
-msgstr ""
-
 #: libtun6/ipv6-tunnel.cpp:244
 #, c-format
-msgid "%s tunnel error (TUNSIFHEAD): %m"
+msgid "%s tunneling driver error (%s): %m"
 msgstr ""
 
 #: libtun6/ipv6-tunnel.cpp:258
@@ -380,41 +366,41 @@ msgstr ""
 msgid "pipe failed: %m"
 msgstr ""
 
-#: src/miredo.cpp:210
+#: src/miredo.cpp:211
 #, c-format
 msgid "Loading configuration from %s failed"
 msgstr ""
 
-#: src/miredo.cpp:231
+#: src/miredo.cpp:232
 #, c-format
 msgid "fork failed: %m"
 msgstr ""
 
-#: src/miredo.cpp:255
+#: src/miredo.cpp:256
 #, c-format
 msgid "Exiting on signal %d (%s)"
 msgstr ""
 
-#: src/miredo.cpp:263
+#: src/miredo.cpp:264
 #, c-format
 msgid "Reloading configuration on signal %d (%s)"
 msgstr ""
 
-#: src/miredo.cpp:271
+#: src/miredo.cpp:272
 #, c-format
 msgid "Terminated (exit code: %d)"
 msgstr ""
 
-#: src/miredo.cpp:279
+#: src/miredo.cpp:280
 #, c-format
 msgid "Child %d killed by signal %d (%s)"
 msgstr ""
 
-#: src/miredo.cpp:290
+#: src/miredo.cpp:291
 msgid "Terminated with error(s)."
 msgstr ""
 
-#: src/miredo.cpp:292
+#: src/miredo.cpp:293
 msgid "Terminated with no error."
 msgstr ""
 

@@ -1,14 +1,14 @@
 # Miredo french translation.
-# Copyright (C) 2004-2005 Remi Denis-Courmont
+# Copyright (C) 2004-2005 Rémi Denis-Courmont
 # This file is distributed under the same license as the miredo package.
-# Remi Denis-Courmont <rdenis@simphalempin.com>, 2004.
+# Rémi Denis-Courmont <rdenis@simphalempin.com>, 2004.
 # $Id$
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: miredo 0.5.1\n"
 "Report-Msgid-Bugs-To: rdenis@simphalempin.com\n"
-"POT-Creation-Date: 2005-08-23 19:20+0300\n"
+"POT-Creation-Date: 2005-09-02 17:41+0200\n"
 "PO-Revision-Date: 2005-07-20 19:10+0300\n"
 "Last-Translator: Rémi Denis-Courmont <rdenis (at) simphalempin (dot) com>\n"
 "Language-Team: N/A\n"
@@ -23,39 +23,32 @@ msgstr ""
 "Erreur de socket UDP de serveur Teredo : l'adresse IPv4 de serveur doit être "
 "globale unicast."
 
-#: libteredo/server-udp.cpp:70
-msgid ""
-"Teredo server UDP socket error: Server IPv4 addresses must not be wildcard."
-msgstr ""
-"Erreur de socket UDP du server Teredo : les adresses IPv4 de serveur ne "
-"doivent pas être génériques."
-
-#: libteredo/server-udp.cpp:84
+#: libteredo/server-udp.cpp:77
 #, c-format
 msgid "Primary socket: %m"
 msgstr "Socket primaire : %m"
 
-#: libteredo/server-udp.cpp:92
+#: libteredo/server-udp.cpp:85
 #, c-format
 msgid "Secondary socket: %m"
 msgstr "Socket secondaire : %m"
 
-#: libteredo/relay.cpp:83
+#: libteredo/relay.cpp:94
 msgid "Server has a non global IPv4 address. It will most likely not work."
 msgstr ""
 "Le serveur a une adresse IPv4 non globale. Ça ne fonctionnera "
 "vraisemblablement pas."
 
-#: libteredo/relay.cpp:103
+#: libteredo/relay.cpp:117
 #, c-format
 msgid "pthread_create failure: %m"
 msgstr "Échec de pthread_create : %m"
 
-#: libteredo/relay.cpp:412
+#: libteredo/relay.cpp:434
 msgid "Teredo address/MTU changed"
 msgstr "Adresse/MTU Teredo changée"
 
-#: libteredo/relay.cpp:443
+#: libteredo/relay.cpp:465
 msgid "Ignoring invalid bubble: your Teredo server is probably buggy."
 msgstr "Bulle invalide ignorée : votre serveur Teredo est probablement bogué."
 
@@ -81,24 +74,24 @@ msgstr "Préfixe Teredo reçu invalide"
 msgid "Authentication refused by server."
 msgstr "Authentification refusée par le serveur."
 
-#: libteredo/maintain.cpp:215
+#: libteredo/maintain.cpp:213
 msgid "Lost Teredo connectivity"
 msgstr "Connectivité Teredo perdue"
 
-#: libteredo/maintain.cpp:240
+#: libteredo/maintain.cpp:238
 #, c-format
 msgid "Qualified (NAT type: %s)"
 msgstr "Qualifié (type de NAT : %s)"
 
-#: libteredo/maintain.cpp:241
+#: libteredo/maintain.cpp:239
 msgid "cone"
 msgstr "cône"
 
-#: libteredo/maintain.cpp:241
+#: libteredo/maintain.cpp:239
 msgid "restricted"
 msgstr "restreint"
 
-#: libteredo/maintain.cpp:259
+#: libteredo/maintain.cpp:257
 msgid "Unsupported symmetric NAT detected."
 msgstr "NAT symmétrique non supporté détecté."
 
@@ -107,25 +100,16 @@ msgstr "NAT symmétrique non supporté détecté."
 msgid "IPv6 stack not available: %m"
 msgstr "Pile IPv6 non disponible : %m"
 
-#: libtun6/ipv6-tunnel.cpp:179
+#: libtun6/ipv6-tunnel.cpp:179 libtun6/ipv6-tunnel.cpp:193
+#: libtun6/ipv6-tunnel.cpp:229
 #, c-format
 msgid "Tunneling driver error (%s): %m"
 msgstr "Erreur du pilote de tunneling (%s) : %m"
 
-#: libtun6/ipv6-tunnel.cpp:193
-#, c-format
-msgid "Tunnel error (TUNSETIFF): %m"
-msgstr "Erreur de tunnel (TUNSETIFF) : %m"
-
-#: libtun6/ipv6-tunnel.cpp:229
-#, c-format
-msgid "Tunnel error (SIOCSIFNAME): %m"
-msgstr "Erreur de tunnel (SIOCSIFNAME) : %m"
-
 #: libtun6/ipv6-tunnel.cpp:244
-#, c-format
-msgid "%s tunnel error (TUNSIFHEAD): %m"
-msgstr "Erreur du tunnel %s (TUNSIFHEAD) : %m"
+#, fuzzy, c-format
+msgid "%s tunneling driver error (%s): %m"
+msgstr "Erreur du pilote de tunneling (%s) : %m"
 
 #: libtun6/ipv6-tunnel.cpp:258
 #, c-format
@@ -440,41 +424,41 @@ msgstr "Réglage de l'UID impossible : %m"
 msgid "pipe failed: %m"
 msgstr "Échec de pipe : %m"
 
-#: src/miredo.cpp:210
+#: src/miredo.cpp:211
 #, c-format
 msgid "Loading configuration from %s failed"
 msgstr "Échec du chargement de la configuration depuis %s"
 
-#: src/miredo.cpp:231
+#: src/miredo.cpp:232
 #, c-format
 msgid "fork failed: %m"
 msgstr "Échec de fork : %m"
 
-#: src/miredo.cpp:255
+#: src/miredo.cpp:256
 #, c-format
 msgid "Exiting on signal %d (%s)"
 msgstr "Arrêt suite au signal %d (%s)"
 
-#: src/miredo.cpp:263
+#: src/miredo.cpp:264
 #, c-format
 msgid "Reloading configuration on signal %d (%s)"
 msgstr "Rechargement de la configuration suite au signal %d (%s)"
 
-#: src/miredo.cpp:271
+#: src/miredo.cpp:272
 #, c-format
 msgid "Terminated (exit code: %d)"
 msgstr "Terminé (code de retour : %d)"
 
-#: src/miredo.cpp:279
+#: src/miredo.cpp:280
 #, c-format
 msgid "Child %d killed by signal %d (%s)"
 msgstr "Fils %d tué par le signal %d (%s)"
 
-#: src/miredo.cpp:290
+#: src/miredo.cpp:291
 msgid "Terminated with error(s)."
 msgstr "Terminé avec une/des erreur(s)."
 
-#: src/miredo.cpp:292
+#: src/miredo.cpp:293
 msgid "Terminated with no error."
 msgstr "Terminé sans erreur."
 
@@ -583,3 +567,19 @@ msgstr "Préfixe Teredo IPv6 invalide : %x::/32"
 #, c-format
 msgid "Unknown syslog facility \"%s\" at line %u"
 msgstr "Catégorie syslog « %s » inconnue à la ligne %u"
+
+#~ msgid "Tunnel error (SIOCSIFNAME): %m"
+#~ msgstr "Erreur de tunnel (SIOCSIFNAME) : %m"
+
+#~ msgid "Tunnel error (TUNSETIFF): %m"
+#~ msgstr "Erreur de tunnel (TUNSETIFF) : %m"
+
+#~ msgid "%s tunnel error (TUNSIFHEAD): %m"
+#~ msgstr "Erreur du tunnel %s (TUNSIFHEAD) : %m"
+
+#~ msgid ""
+#~ "Teredo server UDP socket error: Server IPv4 addresses must not be "
+#~ "wildcard."
+#~ msgstr ""
+#~ "Erreur de socket UDP du server Teredo : les adresses IPv4 de serveur ne "
+#~ "doivent pas être génériques."
