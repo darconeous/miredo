@@ -463,7 +463,8 @@ CheckPing (const TeredoPacket& packet, const uint8_t *nonce)
 
 /*
  * Builds an ICMPv6 error message with specified type and code from an IPv6
- * packet. The output buffer should be at least 1280 bytes long.
+ * packet. The output buffer must be at least 1280 bytes long and have
+ * adequate IPv6 packet alignment.
  * Returns the actual size of the generated error message, or zero if no
  * ICMPv6 packet should be sent. Never fails.
  *
@@ -475,15 +476,27 @@ BuildICMPv6Error (struct ip6_hdr *out, const struct in6_addr *src,
 			const void *in, uint16_t inlen)
 {
 	// don't reply if the packet is too small
-	if ((inlen < 40)
-	// don't reply to multicast
-	 || ((*(uint8_t *)(&((const struct ip6_hdr *)in)->ip6_dst)) == 0xff)
-	// don't reply to ICMPv6 error
-	 || ((((const struct ip6_hdr *)in)->ip6_nxt == IPPROTO_ICMPV6)
-	  && ((((const struct icmp6_hdr *)(((const struct ip6_hdr *)in) + 1))
-						->icmp6_type & 0x80) == 0)))
+	if (inlen < 40)
 		return 0;
 
+	// don't reply to ICMPv6 error
+	if ((((const struct ip6_hdr *)in)->ip6_nxt == IPPROTO_ICMPV6)
+	  && ((((const struct icmp6_hdr *)(((const struct ip6_hdr *)in) + 1))
+						->icmp6_type & 0x80) == 0))
+		return 0;
+
+	// don't reply to multicast
+	if (((const struct ip6_hdr *)in)->ip6_dst.s6_addr[0] == 0xff)
+		return 0;
+
+	const struct in6_addr *p = &((const struct ip6_hdr *)in)->ip6_src;
+	// don't reply to incorrect source address (multicast, undefined)
+	if ((p->s6_addr[0] == 0xff) /* multicast */
+	 || (memcmp (p, &in6addr_any, sizeof (*p)) == 0))
+		return 0;
+
+	/* TODO/FIXME: rate limit */
+	/* then TODO: configurable rate limit (as per RFC2463) */
 	if (inlen + sizeof (struct ip6_hdr) + sizeof (icmp6_hdr) > 1280)
 		inlen = 1280 - (sizeof (struct ip6_hdr) + sizeof (icmp6_hdr));
 	uint16_t len = sizeof (icmp6_hdr) + inlen;
@@ -492,9 +505,8 @@ BuildICMPv6Error (struct ip6_hdr *out, const struct in6_addr *src,
 	out->ip6_plen = htons (len);
 	out->ip6_nxt = IPPROTO_ICMPV6;
 	out->ip6_hlim = 255;
-	memcpy (&out->ip6_src, src, sizeof (struct in6_addr));
-	memcpy (&out->ip6_dst, &((const struct ip6_hdr *)in)->ip6_src,
-		sizeof (struct in6_addr));
+	memcpy (&out->ip6_src, src, sizeof (out->ip6_src));
+	memcpy (&out->ip6_dst, p, sizeof (out->ip6_dst));
 	
 	struct icmp6_hdr *h = (struct icmp6_hdr *)(out + 1);
 	h->icmp6_type = type;
