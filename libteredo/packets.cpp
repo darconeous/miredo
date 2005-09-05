@@ -292,8 +292,10 @@ ParseRA (const TeredoPacket& packet, union teredo_addr *newaddr, bool cone,
 	     hdr = (const struct nd_opt_hdr *)
 				(((const uint8_t *)hdr) + (hdr->nd_opt_len << 3)))
 	{
-		if ((length < (size_t)(hdr->nd_opt_len << 3)) /* too short */
-		 || (hdr->nd_opt_len == 0) /* invalid */)
+		size_t optlen = (size_t)(hdr->nd_opt_len << 3);
+
+		if ((length < optlen) /* too short */
+		 || (optlen == 0) /* invalid */)
 			return false;
 
 		switch (hdr->nd_opt_type)
@@ -301,21 +303,19 @@ ParseRA (const TeredoPacket& packet, union teredo_addr *newaddr, bool cone,
 		/* Prefix information option */
 		 case ND_OPT_PREFIX_INFORMATION:
 		 {
+			const struct nd_opt_prefix_info *pi = 
+				(const struct nd_opt_prefix_info *)hdr;
+
+			if ((optlen < sizeof (*pi)) /* option too short */
+			 || (pi->nd_opt_pi_prefix_len != 64) /* unsupp. prefix size */)
+				return false;
+
 			if (ip != INADDR_ANY)
 			{
 				/* The Teredo specification excludes multiple prefixes */
 				syslog (LOG_ERR, _("Multiple Teredo prefixes received"));
 				return false;
 			}
-
-			const struct nd_opt_prefix_info *pi = 
-				(const struct nd_opt_prefix_info *)hdr;
-
-			if (length < sizeof (*pi))
-				return false; // too short
-
-			if (pi->nd_opt_pi_prefix_len != 64)
-				return false;
 
 			memcpy (&prefix, &pi->nd_opt_pi_prefix, sizeof (prefix));
 			memcpy (&ip, ((uint8_t *)&pi->nd_opt_pi_prefix) + 4, sizeof (ip));
@@ -327,8 +327,8 @@ ParseRA (const TeredoPacket& packet, union teredo_addr *newaddr, bool cone,
 		 {
 			const struct nd_opt_mtu *mo = (const struct nd_opt_mtu *)hdr;
 
-			if (length < sizeof (*mo))
-				return false;
+			/*if (optlen < sizeof (*mo)) -- not possible (optlen >= 8)
+				return false;*/
 
 			memcpy (&net_mtu, &mo->nd_opt_mtu_mtu, sizeof (net_mtu));
 			net_mtu = ntohl (net_mtu);
@@ -340,7 +340,7 @@ ParseRA (const TeredoPacket& packet, union teredo_addr *newaddr, bool cone,
 		 }
 		}
 
-		length -= hdr->nd_opt_len << 3;
+		length -= optlen;
 	}
 
 	if (!is_valid_teredo_prefix (prefix)
