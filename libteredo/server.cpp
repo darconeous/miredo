@@ -47,57 +47,8 @@
 
 #include <libteredo/server-udp.h>
 #include <libteredo/server.h>
-#include <libteredo/v4global.h>
-
-static uint16_t
-sum16 (const uint8_t *data, size_t length, uint32_t sum32 = 0)
-{
-	size_t wordc = length / 2;
-
-	for (size_t i = 0; i < wordc; i++)
-		sum32 += ((uint16_t *)data)[i];
-	if (length & 1) // trailing byte if length is odd
-		sum32 += ntohs(((uint16_t)(data[length - 1])) << 8);
-
-	while (sum32 > 0xffff)
-		sum32 = (sum32 & 0xffff) + (sum32 >> 16);
-	
-	return sum32;
-}
-
-/*
- * Computes an IPv6 Pseudo-header 16-bits checksum
- */
-static uint16_t 
-ipv6_sum (const struct ip6_hdr *ip6)
-{
-	uint32_t sum32 = 0;
-
-	/* Pseudo-header sum */
-	for (size_t i = 0; i < 16; i += 2)
-		sum32 += *(uint16_t *)(&ip6->ip6_src.s6_addr[i]);
-	for (size_t i = 0; i < 16; i += 2)
-		sum32 += *(uint16_t *)(&ip6->ip6_dst.s6_addr[i]);
-
-	sum32 += ip6->ip6_plen + ntohs (ip6->ip6_nxt);
-
-	while (sum32 > 0xffff)
-		sum32 = (sum32 & 0xffff) + (sum32 >> 16);
-
-	return sum32;
-}
-
-
-/*
- * Computes an ICMPv6 over IPv6 packet checksum
- */
-static uint16_t
-icmp6_checksum (const struct ip6_hdr *ip6, const struct icmp6_hdr *icmp6)
-{
-	return ~sum16 ((uint8_t *)icmp6, ntohs (ip6->ip6_plen),
-			ipv6_sum (ip6));
-}
-
+#include "v4global.h"
+#include "checksum.h"
 
 /*
  * Sends a Teredo-encapsulated Router Advertisement.
