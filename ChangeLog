@@ -1,4 +1,164 @@
 ------------------------------------------------------------------------
+r684 | remi | 2005-10-09 18:12:25 +0200 (Sun, 09 Oct 2005) | 2 lines
+Changed paths:
+   M /trunk/po/fr.po
+   M /trunk/po/miredo.pot
+
+PO files sync
+
+------------------------------------------------------------------------
+r683 | remi | 2005-10-09 18:12:08 +0200 (Sun, 09 Oct 2005) | 2 lines
+Changed paths:
+   M /trunk/src/Makefile.am
+
+Include test_conf.sh in tarball
+
+------------------------------------------------------------------------
+r682 | remi | 2005-10-09 18:06:17 +0200 (Sun, 09 Oct 2005) | 2 lines
+Changed paths:
+   M /trunk/NEWS
+   M /trunk/TODO
+   M /trunk/libteredo/peerlist.cpp
+
+Prepare 0.5.3 release
+
+------------------------------------------------------------------------
+r681 | remi | 2005-09-09 16:50:35 +0200 (Fri, 09 Sep 2005) | 2 lines
+Changed paths:
+   M /trunk/libteredo/Makefile.am
+   A /trunk/libteredo/checksum.h
+   M /trunk/libteredo/packets.cpp
+   M /trunk/libteredo/server.cpp
+
+Commoditize ICMPv6 checksumming
+
+------------------------------------------------------------------------
+r680 | remi | 2005-09-05 21:21:55 +0200 (Mon, 05 Sep 2005) | 4 lines
+Changed paths:
+   M /trunk/libteredo/packets.cpp
+
+Ignore malformatted prefix option in received Router Advertisement
+(contrary to the fix in 0.5.0 and 0.4.3, this one cannot result in any
+ malicious use, not even reading "undefined" memory)
+
+------------------------------------------------------------------------
+r679 | remi | 2005-09-03 08:44:08 +0200 (Sat, 03 Sep 2005) | 2 lines
+Changed paths:
+   M /trunk/po/fr.po
+   M /trunk/po/miredo.pot
+
+PO Updates
+
+------------------------------------------------------------------------
+r678 | remi | 2005-09-03 08:43:36 +0200 (Sat, 03 Sep 2005) | 2 lines
+Changed paths:
+   M /trunk/libtun6/ipv6-tunnel.cpp
+
+Partial strings rationalization
+
+------------------------------------------------------------------------
+r677 | remi | 2005-09-03 08:43:10 +0200 (Sat, 03 Sep 2005) | 2 lines
+Changed paths:
+   M /trunk/libteredo/packets.cpp
+
+Improved ICMPv6 error generation rules
+
+------------------------------------------------------------------------
+r676 | remi | 2005-09-03 08:42:40 +0200 (Sat, 03 Sep 2005) | 2 lines
+Changed paths:
+   M /trunk/libteredo/server-udp.cpp
+
+Remove useless (=never trigerred) check
+
+------------------------------------------------------------------------
+r675 | remi | 2005-08-28 16:56:18 +0200 (Sun, 28 Aug 2005) | 2 lines
+Changed paths:
+   M /trunk/m4/binreloc.m4
+
+Fix text - binreloc is disabled by default
+
+------------------------------------------------------------------------
+r674 | remi | 2005-08-28 16:29:37 +0200 (Sun, 28 Aug 2005) | 2 lines
+Changed paths:
+   M /trunk/bootstrap
+   M /trunk/configure.ac
+   A /trunk/include/gettext.h
+
+Fix gettext.h - it's a pity we can't use the official one as is
+
+------------------------------------------------------------------------
+r673 | remi | 2005-08-28 16:19:16 +0200 (Sun, 28 Aug 2005) | 5 lines
+Changed paths:
+   M /trunk/autopackage/default.apspec.in
+   M /trunk/m4/binreloc.m4
+
+Disable binreloc by default because it breaks cross-compilation
+(complaints should be addressed to the binreloc maintainer
+ for using AC_CHECK_FILE without checking whether cross-compilation is
+ in effect)
+
+------------------------------------------------------------------------
+r672 | remi | 2005-08-28 09:23:47 +0200 (Sun, 28 Aug 2005) | 2 lines
+Changed paths:
+   M /trunk/src/miredo.cpp
+
+Untested kFreeBSD fix
+
+------------------------------------------------------------------------
+r671 | remi | 2005-08-27 09:45:16 +0200 (Sat, 27 Aug 2005) | 3 lines
+Changed paths:
+   M /trunk/src/Makefile.am
+   A /trunk/src/test_conf.cpp
+   A /trunk/src/test_conf.sh
+
+Basic regression test for config parsing
+should be improved
+
+------------------------------------------------------------------------
+r670 | remi | 2005-08-25 17:39:05 +0200 (Thu, 25 Aug 2005) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+
+--disable-teredo-client compile fix
+
+------------------------------------------------------------------------
+r669 | remi | 2005-08-25 17:38:15 +0200 (Thu, 25 Aug 2005) | 3 lines
+Changed paths:
+   M /trunk/libteredo/peerlist.cpp
+   M /trunk/libteredo/peerlist.h
+   M /trunk/libteredo/queue.cpp
+   M /trunk/libteredo/queue.h
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/relay.h
+
+Various optimization and some clean up.
+Most noticeable change : per-peer structure is down from 80 to 52 bytes
+
+------------------------------------------------------------------------
+r668 | remi | 2005-08-25 17:36:27 +0200 (Thu, 25 Aug 2005) | 2 lines
+Changed paths:
+   M /trunk/configure.ac
+
+Bump version number
+
+------------------------------------------------------------------------
+r667 | remi | 2005-08-23 20:27:26 +0200 (Tue, 23 Aug 2005) | 5 lines
+Changed paths:
+   M /trunk/libteredo/maintain.cpp
+
+- Suppressed a bunch of gettimeofday
+- Really finally almost clean initial nonce generation
+- Suppressed (minor) timer drift (except when generating nonce - that
+  could break)
+
+------------------------------------------------------------------------
+r665 | remi | 2005-08-23 19:05:38 +0200 (Tue, 23 Aug 2005) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog
+
+ChangeLog for 0.5.2
+
+------------------------------------------------------------------------
 r664 | remi | 2005-08-23 20:04:10 +0300 (Tue, 23 Aug 2005) | 3 lines
 Changed paths:
    M /trunk/NEWS
