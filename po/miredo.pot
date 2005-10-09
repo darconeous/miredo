@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: rdenis@simphalempin.com\n"
-"POT-Creation-Date: 2005-09-02 17:41+0200\n"
+"POT-Creation-Date: 2005-10-09 18:07+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -58,11 +58,11 @@ msgstr ""
 msgid "Error reading random data: %m"
 msgstr ""
 
-#: libteredo/packets.cpp:307
+#: libteredo/packets.cpp:269
 msgid "Multiple Teredo prefixes received"
 msgstr ""
 
-#: libteredo/packets.cpp:349
+#: libteredo/packets.cpp:302
 msgid "Invalid Teredo prefix received"
 msgstr ""
 
