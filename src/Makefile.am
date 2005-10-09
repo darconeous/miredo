@@ -37,7 +37,7 @@ endif
 sbin_PROGRAMS = miredo miredo-server
 noinst_LIBRARIES = libmiredo.a
 check_PROGRAMS = miredo-checkconf
-check_SCRIPTS = test_conf.sh
+dist_check_SCRIPTS = test_conf.sh
 TESTS = test_conf.sh
 
 #BUILT_SOURCES = $(srcdir)/svnversion.stamp
