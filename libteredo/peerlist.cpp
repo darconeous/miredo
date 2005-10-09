@@ -125,6 +125,7 @@ TeredoRelay::peer *TeredoRelay::AllocatePeer (const struct in6_addr *addr)
  * Returns a pointer to the first peer entry matching <addr>,
  * or NULL if none were found.
  * TODO: avoid doing two lookups (easy with Judy, not so easy without)
+ * when inserting a new item
  */
 TeredoRelay::peer *TeredoRelay::FindPeer (const struct in6_addr *addr)
 {

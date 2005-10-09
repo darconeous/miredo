@@ -16,8 +16,8 @@ Important features:
 --------------------
 ( ) fixed TODOs and FIXMEs in source code,
 ( ) local Teredo discovery,
-(!) interval determination procedure,
-(!) Metric support on BSD
+(*) interval determination procedure,
+(*) Metric support on BSD
 
 Not so important features:
 ---------------------------
@@ -48,7 +48,7 @@ Performance/scalibility:
 -------------------------
 (!) faster peer lists lookups/updates,
 ( ) distinguish (Teredo) peers from (IPv6) nodes (1-n),
-(*) peers list garbage collection,
+(!) peers list garbage collection,
 ( ) multi-threading in relay/client
 
 Portability:
@@ -71,4 +71,4 @@ Re-usability:
 (?) thread-safety in libteredo,
 (F) libteredo C bindings,
 (*) external control program for scripting,
-(!) don't use a callback to receive packets
+(*) don't use a callback to receive packets

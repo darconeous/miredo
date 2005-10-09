@@ -1,5 +1,5 @@
 RELEASE NOTES for Miredo
-version 0.5.2 (beta version)
+version 0.5.3 (beta version)
 =============================
 $Id$
 
@@ -24,6 +24,14 @@ Thanks for your help.
 informations on this program, see README. For syntax details and
 changes, run 'miredo -h' to get help. For detailled internal changes, see
 ChangeLog.
+
+=============================================================================
+BETA RELEASE 0.5.3 : Minor bugfixes
+
+# Some portability fixes.
+# Minor fix to Router Advertisement parsing (not an exploitable bug).
+# Some code optimization.
+# Smaller memory footprint per peers.
 
 =============================================================================
 BETA RELEASE 0.5.2 : Major bugfixes
