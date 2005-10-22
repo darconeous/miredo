@@ -418,11 +418,10 @@ int TeredoRelay::ReceivePacket (void)
 
 			// Checks if our Teredo address changed:
 			union teredo_addr newaddr;
-			newaddr.teredo.server_ip = GetServerIP ();
-
 			uint16_t new_mtu = mtu;
 
-			if (ParseRA (packet, &newaddr, IsCone (), &new_mtu))
+			if (ParseRA (packet, &newaddr, IsCone (), &new_mtu)
+			 && (newaddr.teredo.server_ip == GetServerIP ()))
 			{
 				pthread_cond_signal (&maintenance.received);
 				if (memcmp (&addr, &newaddr, sizeof (addr))

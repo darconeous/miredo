@@ -82,9 +82,6 @@ int TeredoRelay::ProcessQualificationPacket (const TeredoPacket *packet)
 	if (s_nonce == NULL)
 		return 0;
 
-	union teredo_addr newaddr;
-	newaddr.teredo.server_ip = GetServerIP ();
- 
 	pthread_mutex_lock (&maintenance.lock);
 	if (!maintenance.attended || memcmp (s_nonce, maintenance.nonce, 8))
 	{
@@ -95,11 +92,15 @@ int TeredoRelay::ProcessQualificationPacket (const TeredoPacket *packet)
 	if (packet->GetConfByte ())
 	{
 		pthread_mutex_unlock (&maintenance.lock);
-		syslog (LOG_ERR, _("Authentication refused by server."));
+		syslog (LOG_ERR, _("Authentication with server failed."));
 		return 0;
 	}
 
-	if (!ParseRA (*packet, &newaddr, maintenance.state == PROBE_CONE, &mtu))
+	union teredo_addr newaddr;
+ 
+	if ((!ParseRA (*packet, &newaddr, maintenance.state == PROBE_CONE, &mtu))
+	/* TODO: try to work-around incorrect server IP */
+	 || (newaddr.teredo.server_ip != GetServerIP ()))
 	{
 		pthread_mutex_unlock (&maintenance.lock);
 		return 0;
@@ -145,7 +146,7 @@ unsigned TeredoRelay::QualificationTimeOut = 4; // seconds
 unsigned TeredoRelay::QualificationRetries = 3;
 
 unsigned TeredoRelay::ServerNonceLifetime = 3600; // seconds
-unsigned TeredoRelay::RestartDelay = 30; // seconds
+unsigned TeredoRelay::RestartDelay = 100; // seconds
 
 
 void TeredoRelay::MaintenanceThread (void)
@@ -222,6 +223,8 @@ void TeredoRelay::MaintenanceThread (void)
 				}
 				else
 				{
+					/* No response from server */
+					syslog (LOG_INFO, _("No reply from Teredo server"));
 					/* Wait some time before retrying */
 					maintenance.state = PROBE_CONE;
 					isCone = true;
