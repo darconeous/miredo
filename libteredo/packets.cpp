@@ -237,7 +237,7 @@ ParseRA (const TeredoPacket& packet, union teredo_addr *newaddr, bool cone,
 	 */
 		return false;
 
-	uint32_t prefix, ip = INADDR_ANY, net_mtu = 0;
+	uint32_t prefix[2] = { 0, 0 }, net_mtu = 0;
 
 	// Looks for a prefix information option
 	for (const struct nd_opt_hdr *hdr = (const struct nd_opt_hdr *)(ra + 1);
@@ -263,15 +263,14 @@ ParseRA (const TeredoPacket& packet, union teredo_addr *newaddr, bool cone,
 			 || (pi->nd_opt_pi_prefix_len != 64) /* unsupp. prefix size */)
 				return false;
 
-			if (ip != INADDR_ANY)
+			if (prefix[1] != 0)
 			{
 				/* The Teredo specification excludes multiple prefixes */
 				syslog (LOG_ERR, _("Multiple Teredo prefixes received"));
 				return false;
 			}
 
-			memcpy (&prefix, &pi->nd_opt_pi_prefix, sizeof (prefix));
-			memcpy (&ip, ((uint8_t *)&pi->nd_opt_pi_prefix) + 4, sizeof (ip));
+			memcpy (prefix, &pi->nd_opt_pi_prefix, sizeof (prefix));
 			break;
 		 }
 
@@ -296,14 +295,14 @@ ParseRA (const TeredoPacket& packet, union teredo_addr *newaddr, bool cone,
 		length -= optlen;
 	}
 
-	if (!is_valid_teredo_prefix (prefix)
-	 || (ip != newaddr->teredo.server_ip))
+	if (!is_valid_teredo_prefix (prefix[0])
+	 || (prefix[1] != newaddr->teredo.server_ip))
 	{
 		syslog (LOG_WARNING, _("Invalid Teredo prefix received"));
 		return false;
 	}
 
-	newaddr->teredo.prefix = prefix;
+	newaddr->teredo.prefix = prefix[0];
 	// only accept the cone flag:
 	newaddr->teredo.flags = cone ? htons (TEREDO_FLAG_CONE) : 0;
 	// ip and port obscured on both sides:
