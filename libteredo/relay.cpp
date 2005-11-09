@@ -582,12 +582,12 @@ int TeredoRelay::ReceivePacket (void)
 				if (IsClient ())
 				{
 					// TODO: do not duplicate this code
-					p = AllocatePeer (&ip6.ip6_dst);
+					p = AllocatePeer (&ip6.ip6_src);
 					if (p == NULL)
 						return -1; // insufficient memory
 
-					p->SetMapping (IN6_TEREDO_IPV4 (&ip6.ip6_dst),
-				    	           IN6_TEREDO_PORT (&ip6.ip6_dst));
+					p->SetMapping (IN6_TEREDO_IPV4 (&ip6.ip6_src),
+				    	           IN6_TEREDO_PORT (&ip6.ip6_src));
 					p->flags.all_flags = 0;
 				}
 				else

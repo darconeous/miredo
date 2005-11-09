@@ -18,3 +18,6 @@ Michael H. Warfield
 Vladimir Kotal
 	Compilation fix on FreeBSD.
 
+Guy Thornley
+	Bug fix for clients to clients communication.
+
