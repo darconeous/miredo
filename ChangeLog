@@ -1,4 +1,175 @@
 ------------------------------------------------------------------------
+r695 | remi | 2005-11-10 18:48:48 +0100 (Thu, 10 Nov 2005) | 3 lines
+Changed paths:
+   M /trunk/po/en.po
+   M /trunk/po/fr.po
+   M /trunk/po/miredo.pot
+
+- Resync PO files
+- Nice quotes for English language
+
+------------------------------------------------------------------------
+r694 | remi | 2005-11-10 18:47:29 +0100 (Thu, 10 Nov 2005) | 2 lines
+Changed paths:
+   M /trunk/libtun6/ipv6-tunnel.cpp
+
+Fix error message
+
+------------------------------------------------------------------------
+r693 | remi | 2005-11-10 18:23:57 +0100 (Thu, 10 Nov 2005) | 3 lines
+Changed paths:
+   M /trunk/po/LINGUAS
+   M /trunk/po/Makevars
+   A /trunk/po/en.po
+   M /trunk/po/fr.po
+   M /trunk/po/miredo.pot
+
+- Update French PO
+- Add English PO for non-ASCII characters support
+
+------------------------------------------------------------------------
+r692 | remi | 2005-11-10 18:23:07 +0100 (Thu, 10 Nov 2005) | 2 lines
+Changed paths:
+   M /trunk/src/main.c
+
+Translate anything that can be in --version
+
+------------------------------------------------------------------------
+r691 | remi | 2005-11-10 18:22:28 +0100 (Thu, 10 Nov 2005) | 2 lines
+Changed paths:
+   M /trunk/NEWS
+   M /trunk/TODO
+
+Update documentation for 0.5.4
+
+------------------------------------------------------------------------
+r690 | remi | 2005-11-09 13:33:44 +0100 (Wed, 09 Nov 2005) | 2 lines
+Changed paths:
+   M /trunk/THANKS
+   M /trunk/libteredo/relay.cpp
+
+Fix client to client peer listing
+
+------------------------------------------------------------------------
+r689 | remi | 2005-10-22 18:58:50 +0200 (Sat, 22 Oct 2005) | 5 lines
+Changed paths:
+   M /trunk/libteredo/maintain.cpp
+   M /trunk/libteredo/packets.cpp
+   M /trunk/libteredo/relay.cpp
+
+- Minor clean up
+- Fix gallicism
+- Retry qualification every 2 minutes rather than 50 seconds
+  when the server is completely unreachable
+
+------------------------------------------------------------------------
+r688 | remi | 2005-10-22 17:27:00 +0200 (Sat, 22 Oct 2005) | 2 lines
+Changed paths:
+   M /trunk/configure.ac
+
+Increment version number
+
+------------------------------------------------------------------------
+r686 | remi | 2005-10-22 17:24:50 +0200 (Sat, 22 Oct 2005) | 2 lines
+Changed paths:
+   M /trunk/libteredo/packets.cpp
+
+two memcpy()s become one
+
+------------------------------------------------------------------------
+r685 | remi | 2005-10-09 18:13:24 +0200 (Sun, 09 Oct 2005) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog
+
+ChangeLog for 0.5.3
+
+-----------------------------------------------------------------------
+r695 | remi | 2005-11-10 18:48:48 +0100 (Thu, 10 Nov 2005) | 3 lines
+Changed paths:
+   M /trunk/po/en.po
+   M /trunk/po/fr.po
+   M /trunk/po/miredo.pot
+
+- Resync PO files
+- Nice quotes for English language
+
+------------------------------------------------------------------------
+r694 | remi | 2005-11-10 18:47:29 +0100 (Thu, 10 Nov 2005) | 2 lines
+Changed paths:
+   M /trunk/libtun6/ipv6-tunnel.cpp
+
+Fix error message
+
+------------------------------------------------------------------------
+r693 | remi | 2005-11-10 18:23:57 +0100 (Thu, 10 Nov 2005) | 3 lines
+Changed paths:
+   M /trunk/po/LINGUAS
+   M /trunk/po/Makevars
+   A /trunk/po/en.po
+   M /trunk/po/fr.po
+   M /trunk/po/miredo.pot
+
+- Update French PO
+- Add English PO for non-ASCII characters support
+
+------------------------------------------------------------------------
+r692 | remi | 2005-11-10 18:23:07 +0100 (Thu, 10 Nov 2005) | 2 lines
+Changed paths:
+   M /trunk/src/main.c
+
+Translate anything that can be in --version
+
+------------------------------------------------------------------------
+r691 | remi | 2005-11-10 18:22:28 +0100 (Thu, 10 Nov 2005) | 2 lines
+Changed paths:
+   M /trunk/NEWS
+   M /trunk/TODO
+
+Update documentation for 0.5.4
+
+------------------------------------------------------------------------
+r690 | remi | 2005-11-09 13:33:44 +0100 (Wed, 09 Nov 2005) | 2 lines
+Changed paths:
+   M /trunk/THANKS
+   M /trunk/libteredo/relay.cpp
+
+Fix client to client peer listing
+
+------------------------------------------------------------------------
+r689 | remi | 2005-10-22 18:58:50 +0200 (Sat, 22 Oct 2005) | 5 lines
+Changed paths:
+   M /trunk/libteredo/maintain.cpp
+   M /trunk/libteredo/packets.cpp
+   M /trunk/libteredo/relay.cpp
+
+- Minor clean up
+- Fix gallicism
+- Retry qualification every 2 minutes rather than 50 seconds
+  when the server is completely unreachable
+
+------------------------------------------------------------------------
+r688 | remi | 2005-10-22 17:27:00 +0200 (Sat, 22 Oct 2005) | 2 lines
+Changed paths:
+   M /trunk/configure.ac
+
+Increment version number
+
+------------------------------------------------------------------------
+r686 | remi | 2005-10-22 17:24:50 +0200 (Sat, 22 Oct 2005) | 2 lines
+Changed paths:
+   M /trunk/libteredo/packets.cpp
+
+two memcpy()s become one
+
+------------------------------------------------------------------------
+r685 | remi | 2005-10-09 18:13:24 +0200 (Sun, 09 Oct 2005) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog
+
+ChangeLog for 0.5.3
+
+
+------------------------------------------------------------------------
 r684 | remi | 2005-10-09 18:12:25 +0200 (Sun, 09 Oct 2005) | 2 lines
 Changed paths:
    M /trunk/po/fr.po
