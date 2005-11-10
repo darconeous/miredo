@@ -63,7 +63,8 @@ Compatibility:
 Documentation & support:
 -------------------------
 ( ) custom INSTALL file,
-( ) RPM and Debian packaging,
+( ) RPM packaging,
+    Debian packaging : see ITP http://bugs.debian.org/338128
 
 Re-usability:
 --------------

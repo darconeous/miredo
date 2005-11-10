@@ -1,13 +1,13 @@
 RELEASE NOTES for Miredo
-version 0.5.3 (beta version)
+version 0.5.4 (beta version)
 =============================
 $Id$
 
   This is an early release of the program. It underwent some tests and is
 believed to work fine. However, there are still some outstanding issues
 (ie. missing features), though they don't affect core functionnality.
-  Users of previous releases are encouraged to upgrade, as some issues were
-addressed in this new release.
+  Users of previous releases are encouraged to upgrade, as some major
+issues were addressed in this new release.
 
 IMPORTANT NOTE for old users:
 ------------------------------
@@ -26,6 +26,11 @@ changes, run 'miredo -h' to get help. For detailled internal changes, see
 ChangeLog.
 
 =============================================================================
+BETA RELEASE 0.5.4 : Major bugfixes
+
+# Fix Teredo client connectivity toward Teredo clients.
+
+=============================================================================
 BETA RELEASE 0.5.3 : Minor bugfixes
 
 # Some portability fixes.
@@ -41,7 +46,7 @@ BETA RELEASE 0.5.2 : Major bugfixes
 # Fix use of freed memory in configuration parser error handling.
 # Some more optimization and clean up.
 # Peers list size limit.
-# Multi-threaded Teredo server implementation.
+# Multi-thread Teredo server implementation.
 # Build libteredo as a shared library (warning: API is not stabilized yet).
 
 =============================================================================
