@@ -93,16 +93,17 @@ version (void)
 #ifndef VERSION
 # define VERSION "unknown version"
 #endif
- 	puts (
-"Miredo: Teredo IPv6 tunneling software "VERSION" ("PACKAGE_HOST")\n"
-" built "__DATE__" on "PACKAGE_BUILD_HOSTNAME" ("PACKAGE_BUILD")\n"
-"Copyright (C) 2004-2005 Remi Denis-Courmont");
-	puts (_(
+	printf (_("Miredo: Teredo IPv6 tunneling software %s (%s)\n"
+	          " built %s on %s (%s)\n"),
+	        VERSION, PACKAGE_HOST, __DATE__,
+	        PACKAGE_BUILD_HOSTNAME, PACKAGE_BUILD);
+	printf (_("Configured with: %s\n"), PACKAGE_CONFIGURE_INVOCATION);
+	puts (_("Written by Remi Denis-Courmont.\n"));
+
+	puts (_("Copyright (C) 2004-2005 Remi Denis-Courmont\n"
 "This is free software; see the source for copying conditions.\n"
 "There is NO warranty; not even for MERCHANTABILITY or\n"
-"FITNESS FOR A PARTICULAR PURPOSE.\n"));
-	printf (_("Written by %s.\nConfigured with: %s\n"),
-		"Remi Denis-Courmont", PACKAGE_CONFIGURE_INVOCATION);
+"FITNESS FOR A PARTICULAR PURPOSE."));
         return 0;
 }
 
@@ -371,8 +372,7 @@ init_daemon (const char *username, const char *pidfile, int nodetach)
 	}
 
 	/* 
-	 * Detaches. This is not really a security thing, but it is simpler to
-	 * do it now.
+	 * Detaches. While not security-related, it fits well here.
 	 */
 	if (!nodetach && daemon (0, 0))
 	{
