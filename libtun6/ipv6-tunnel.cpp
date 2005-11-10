@@ -241,8 +241,8 @@ IPv6Tunnel::IPv6Tunnel (const char *req_name) : fd (-1), ifname (NULL)
 			if (ioctl (fd, TUNSIFHEAD, &dummy))
 			{
 				syslog (LOG_ERR,
-				        _("%s tunneling driver error (%s): %m"),
-				        "TUNSIFHEAD", ifname);
+				        _("Tunneling driver error (%s): %m"),
+				        "TUNSIFHEAD");
 				close (fd);
 				fd = -1;
 			}
