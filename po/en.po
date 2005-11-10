@@ -1,19 +1,19 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR Remi Denis-Courmont
-# This file is distributed under the same license as the PACKAGE package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# Miredo french translation.
+# Copyright (C) 2004-2005 Rémi Denis-Courmont
+# This file is distributed under the same license as the miredo package.
+# Rémi Denis-Courmont <rdenis@simphalempin.com>, 2004.
+# $Id: fr.po 684 2005-10-09 16:12:25Z remi $
 #
-#, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
+"Project-Id-Version: miredo 0.5.4\n"
 "Report-Msgid-Bugs-To: rdenis@simphalempin.com\n"
 "POT-Creation-Date: 2005-11-10 18:13+0100\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"PO-Revision-Date: 2005-11-09 22:20+0100\n"
+"Last-Translator: Rémi Denis-Courmont <rdenis (at) simphalempin (dot) com>\n"
+"Language-Team: N/A\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
 #: libteredo/server-udp.cpp:63
@@ -241,7 +241,7 @@ msgstr ""
 
 #: src/main.c:101
 msgid "Written by Remi Denis-Courmont.\n"
-msgstr ""
+msgstr "Written by Rémi Denis-Courmont.\n"
 
 #: src/main.c:103
 msgid ""
@@ -250,6 +250,10 @@ msgid ""
 "There is NO warranty; not even for MERCHANTABILITY or\n"
 "FITNESS FOR A PARTICULAR PURPOSE."
 msgstr ""
+"Copyright © 2004-2005 Rémi Denis-Courmont\n"
+"This is free software; see the source for copying conditions.\n"
+"There is NO warranty; not even for MERCHANTABILITY or\n"
+"FITNESS FOR A PARTICULAR PURPOSE."
 
 #: src/main.c:115
 #, c-format
