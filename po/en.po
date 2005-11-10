@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: miredo 0.5.4\n"
 "Report-Msgid-Bugs-To: rdenis@simphalempin.com\n"
-"POT-Creation-Date: 2005-11-10 18:13+0100\n"
+"POT-Creation-Date: 2005-11-10 18:34+0100\n"
 "PO-Revision-Date: 2005-11-09 22:20+0100\n"
 "Last-Translator: Rémi Denis-Courmont <rdenis (at) simphalempin (dot) com>\n"
 "Language-Team: N/A\n"
@@ -192,6 +192,8 @@ msgid ""
 "Make sure your Linux kernel includes the \"Universal TUNTAP driver\"\n"
 "(CONFIG_TUN option), possibly as a module.\n"
 msgstr ""
+"Make sure your Linux kernel includes the “Universal TUNTAP driver”\n"
+"(CONFIG_TUN option), possibly as a module.\n"
 
 #: libtun6/ipv6-tunnel.cpp:904
 #, c-format
@@ -211,7 +213,7 @@ msgstr ""
 #: src/main.c:67
 #, c-format
 msgid "Try \"%s -h | more\" for more information.\n"
-msgstr ""
+msgstr "Try “%s -h | more” for more information.\n"
 
 #: src/main.c:77
 #, c-format
@@ -261,11 +263,13 @@ msgid ""
 "Duplicate parameter \"%s\" for option -%c\n"
 "would override previous value \"%s\".\n"
 msgstr ""
+"Duplicate parameter “%s” for option -%c\n"
+"would override previous value “%s”.\n"
 
 #: src/main.c:127
 #, c-format
 msgid "Invalid number (or capacity exceeded) \"%s\" for option -%c\n"
-msgstr ""
+msgstr "Invalid number (or capacity exceeded) “%s” for option -%c\n"
 
 #: src/main.c:136
 #, c-format
@@ -298,6 +302,13 @@ msgid ""
 "this program in the security context of another\n"
 "user.\n"
 msgstr ""
+"Error: This program was asked to run in the\n"
+"security context of system user “%s”, but it\n"
+"does not seem to exist on your system.\n"
+"\n"
+"Use command line option “-u <username>” to run\n"
+"this program in the security context of another\n"
+"user.\n"
 
 #: src/main.c:278
 msgid ""
@@ -420,7 +431,7 @@ msgstr ""
 #: src/relay.cpp:197
 #, c-format
 msgid "Invalid relay type \"%s\" at line %u"
-msgstr ""
+msgstr "Invalid relay type “%s” at line %u"
 
 #: src/relay.cpp:241 src/relay.cpp:250 src/relay.cpp:261 src/relay.cpp:270
 #: src/relay.cpp:278 src/relay.cpp:293 src/relay.cpp:304 src/relay.cpp:313
@@ -431,7 +442,7 @@ msgstr ""
 #: src/relay.cpp:259 src/server.cpp:84
 #, c-format
 msgid "Invalid server hostname \"%s\": %s"
-msgstr ""
+msgstr "Invalid server hostname “%s”: %s"
 
 #: src/relay.cpp:277 src/server.cpp:101
 msgid "Server address not specified"
@@ -497,17 +508,17 @@ msgstr ""
 #: src/conf.cpp:230
 #, c-format
 msgid "Invalid integer value \"%s\" for %s: %m"
-msgstr ""
+msgstr "Invalid integer value “%s” for %s: %m"
 
 #: src/conf.cpp:285
 #, c-format
 msgid "Invalid boolean value \"%s\" for %s"
-msgstr ""
+msgstr "Invalid boolean value “%s” for %s"
 
 #: src/conf.cpp:326 src/conf.cpp:357
 #, c-format
 msgid "Invalid hostname \"%s\" at line %u: %s"
-msgstr ""
+msgstr "Invalid hostname “%s” at line %u: %s"
 
 #: src/conf.cpp:383
 #, c-format
@@ -517,4 +528,4 @@ msgstr ""
 #: src/conf.cpp:465
 #, c-format
 msgid "Unknown syslog facility \"%s\" at line %u"
-msgstr ""
+msgstr "Unknown syslog facility “%s” at line %u"
