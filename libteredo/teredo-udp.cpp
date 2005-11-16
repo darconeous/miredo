@@ -46,7 +46,8 @@
 /*** TeredoPacket implementation ***/
 
 /*
- * Parses a Teredo packet header. Blocking function.
+ * Parses a Teredo packet header.
+ * Supports either blocking and non-blocking file descriptors.
  */
 int
 TeredoPacket::Receive (int fd)
