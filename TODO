@@ -14,6 +14,7 @@ authoritative.
 
 Important features:
 --------------------
+(!) recover properly from software suspend, SIGSTOP et al,
 ( ) fixed TODOs and FIXMEs in source code,
 ( ) local Teredo discovery,
 (*) interval determination procedure,
