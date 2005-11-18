@@ -41,7 +41,7 @@
 # include <sys/capability.h>
 #endif
 
-#include <libtun6/ipv6-tunnel.h>
+#include <libtun6/tun6.h>
 #include <libteredo/teredo.h>
 
 #include "privproc.h"
@@ -54,7 +54,7 @@ struct miredo_tunnel_settings
 
 
 int
-miredo_privileged_process (IPv6Tunnel& tunnel, bool default_route)
+miredo_privileged_process (tun6 *tunnel, bool default_route)
 {
 	int fd[2];
 	if (socketpair (AF_LOCAL, SOCK_STREAM, 0, fd))
@@ -102,7 +102,7 @@ miredo_privileged_process (IPv6Tunnel& tunnel, bool default_route)
 	memcpy (&oldcfg.addr, &in6addr_any, sizeof (oldcfg.addr));
 	oldcfg.mtu = 0;
 
-	tunnel.BringUp ();
+	tun6_bringUp (tunnel);
 
 	while (1)
 	{
@@ -121,8 +121,8 @@ miredo_privileged_process (IPv6Tunnel& tunnel, bool default_route)
 			if (memcmp (&oldcfg.addr, &in6addr_any, 16))
 			{
 				if (default_route)
-					tunnel.DelRoute (&in6addr_any, 0, +5);
-				tunnel.DelAddress (&oldcfg.addr, 32);
+					tun6_delRoute (tunnel, &in6addr_any, 0, +5);
+				tun6_delAddress (tunnel, &oldcfg.addr, 32);
 			}
 
 			/* Adds new addresses */
@@ -135,14 +135,14 @@ miredo_privileged_process (IPv6Tunnel& tunnel, bool default_route)
 				if (p_newloc != p_oldloc)
 				{
 					if (p_oldloc != NULL)
-						tunnel.DelAddress (p_oldloc, 64);
-					tunnel.AddAddress (p_newloc, 64);
+						tun6_delAddress (tunnel, p_oldloc, 64);
+					tun6_addAddress (tunnel, p_newloc, 64);
 					p_oldloc = p_newloc;
 				}
 	
-				tunnel.AddAddress (&newcfg.addr, 32);
+				tun6_addAddress (tunnel, &newcfg.addr, 32);
 				if (default_route)
-					tunnel.AddRoute (&in6addr_any, 0, +5);
+					tun6_addRoute (tunnel, &in6addr_any, 0, +5);
 			}
 
 			/* Saves address */
@@ -151,7 +151,7 @@ miredo_privileged_process (IPv6Tunnel& tunnel, bool default_route)
 
 		/* Updates MTU if needed */
 		if (oldcfg.mtu != newcfg.mtu)
-			tunnel.SetMTU (oldcfg.mtu = newcfg.mtu);
+			tun6_setMTU (tunnel, oldcfg.mtu = newcfg.mtu);
 
 		if (send (fd[0], &res, sizeof (res), 0) != sizeof (res))
 			break;
@@ -163,15 +163,15 @@ miredo_privileged_process (IPv6Tunnel& tunnel, bool default_route)
 	if (memcmp (&oldcfg.addr, &in6addr_any, 16))
 	{
 		if (default_route)
-			tunnel.DelRoute (&in6addr_any, 0, +5);
-		tunnel.DelAddress (&oldcfg.addr, 32);
+			tun6_delRoute (tunnel, &in6addr_any, 0, +5);
+		tun6_delAddress (tunnel, &oldcfg.addr, 32);
 	}
 
 	if (p_oldloc != NULL)
-		tunnel.DelAddress (p_oldloc, 64);
+		tun6_delAddress (tunnel, p_oldloc, 64);
 
-	tunnel.BringDown ();
-	tunnel.CleanUp ();
+	tun6_bringDown (tunnel);
+	tun6_destroy (tunnel);
 	exit (0);
 }
 

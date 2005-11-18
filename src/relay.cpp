@@ -43,7 +43,7 @@
 #include <string.h>
 #include <netdb.h> // gai_strerror()
 
-#include <libtun6/ipv6-tunnel.h>
+#include <libtun6/tun6.h>
 
 #include <libteredo/relay.h>
 #include <libteredo/security.h>
@@ -60,7 +60,7 @@ extern "C" int
 miredo_diagnose (void)
 {
 	char errbuf[LIBTUN6_ERRBUF_SIZE];
-	if (libtun6_driver_diagnose (errbuf))
+	if (tun6_driver_diagnose (errbuf))
 	{
 		fputs (errbuf, stderr);
 		return -1;
@@ -74,16 +74,16 @@ miredo_diagnose (void)
 class MiredoRelay : public TeredoRelay
 {
 	private:
-		const IPv6Tunnel *tunnel;
+		const tun6 *tunnel;
 		int priv_fd;
 
 		virtual int SendIPv6Packet (const void *packet, size_t length)
 		{
-			return tunnel->SendPacket (packet, length);
+			return tun6_send (tunnel, packet, length);
 		}
 
 	public:
-		MiredoRelay (const IPv6Tunnel *tun, uint32_t prefix,
+		MiredoRelay (const tun6 *tun, uint32_t prefix,
 		             uint16_t port = 0, uint32_t ipv4 = 0,
 		             bool cone = true)
 			: TeredoRelay (prefix, port, ipv4, cone), tunnel (tun),
@@ -94,7 +94,7 @@ class MiredoRelay : public TeredoRelay
 		//virtual void ~MiredoRelay (void);
 
 #ifdef MIREDO_TEREDO_CLIENT
-		MiredoRelay (int fd, const IPv6Tunnel *tun,
+		MiredoRelay (int fd, const tun6 *tun,
 		             uint32_t server_ip, uint32_t server_ip2,
 		             uint16_t port = 0, uint32_t ipv4 = 0)
 			: TeredoRelay (server_ip, server_ip2, port, ipv4), tunnel (tun),
@@ -121,14 +121,14 @@ class MiredoRelay : public TeredoRelay
  * Main server function, with UDP datagrams receive loop.
  */
 static void
-teredo_relay (int sigfd, IPv6Tunnel& tunnel, TeredoRelay *relay = NULL)
+teredo_relay (int sigfd, tun6 *tunnel, TeredoRelay *relay = NULL)
 {
 	fd_set refset;
 
 	FD_ZERO (&refset);
 	FD_SET (sigfd, &refset);
 	int maxfd = sigfd;
-	int val = tunnel.RegisterReadSet (&refset);
+	int val = tun6_registerReadSet (tunnel, &refset);
 	if (val > maxfd)
 		maxfd = val;
 
@@ -161,7 +161,7 @@ teredo_relay (int sigfd, IPv6Tunnel& tunnel, TeredoRelay *relay = NULL)
 
 		/* Forwards IPv6 packet to Teredo
 		 * (Packet transmission) */
-		val = tunnel.ReceivePacket (&readset, &pbuf.ip6, sizeof (pbuf));
+		val = tun6_recv (tunnel, &readset, &pbuf.ip6, sizeof (pbuf));
 		if (val >= 40)
 			relay->SendPacket (&pbuf.ip6, val);
 
@@ -342,11 +342,11 @@ miredo_run (int sigfd, MiredoConf& conf, const char *server_name)
 	 * Must likely be root (unless the user was granted access to the
 	 * device file).
 	 */
-	IPv6Tunnel tunnel (ifname);
+	tun6 *tunnel = tun6_create (ifname);
 	if (ifname != NULL)
 		free (ifname);
 
-	if (!tunnel)
+	if (tunnel == NULL)
 	{
 		syslog (LOG_ALERT, _("Teredo tunnel fatal error"));
 		syslog (LOG_NOTICE, _("Make sure another instance of the program is "
@@ -379,10 +379,10 @@ miredo_run (int sigfd, MiredoConf& conf, const char *server_name)
 		 * FIXME: breaks on NetBSD whereby tunnel is always preserved
 		 * on exit.
 		 */
-		if (tunnel.SetMTU (mtu) || tunnel.BringUp ()
-		 || tunnel.AddAddress (mode == TEREDO_RESTRICT
-		 			? &teredo_restrict : &teredo_cone)
-		 || tunnel.AddRoute (&prefix.ip6, 32))
+		if (tun6_setMTU (tunnel, mtu) || tun6_bringUp (tunnel)
+		 || tun6_addAddress (tunnel, (mode == TEREDO_RESTRICT
+				 ? &teredo_restrict : &teredo_cone), 64)
+		 || tun6_addRoute (tunnel, &prefix.ip6, 32, 0))
 		{
 			syslog (LOG_ALERT, _("Teredo tunnel fatal error"));
 			goto abort;
@@ -398,7 +398,7 @@ miredo_run (int sigfd, MiredoConf& conf, const char *server_name)
 		// Sets up client
 		try
 		{
-			relay = new MiredoRelay (fd, &tunnel, server_ip, server_ip2,
+			relay = new MiredoRelay (fd, tunnel, server_ip, server_ip2,
 			                         bind_port, bind_ip);
 		}
 		catch (...)
@@ -412,7 +412,7 @@ miredo_run (int sigfd, MiredoConf& conf, const char *server_name)
 		// Sets up relay
 		try
 		{
-			relay = new MiredoRelay (&tunnel, prefix.teredo.prefix,
+			relay = new MiredoRelay (tunnel, prefix.teredo.prefix,
 			                         bind_port, bind_ip, mode == TEREDO_CONE);
 		}
 		catch (...)
@@ -450,7 +450,7 @@ abort:
 	if (relay != NULL)
 		delete relay;
 
-	tunnel.CleanUp ();
+	tun6_destroy (tunnel);
 
 #ifdef MIREDO_TEREDO_CLIENT
 	if (fd != -1)

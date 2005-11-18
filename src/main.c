@@ -52,7 +52,6 @@
 #endif
 
 #include "miredo.h"
-#include <libtun6/ipv6-tunnel.h>
 
 /*
  * RETURN VALUES:

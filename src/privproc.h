@@ -26,12 +26,13 @@
 #  error C++ header
 # endif
 
-struct in6_addr;
+/* FIXME: port to C */
 
-# include <libtun6/ipv6-tunnel.h>
+struct in6_addr;
+typedef struct tun6 tun6;
 
 int
-miredo_privileged_process (IPv6Tunnel& tunnel, bool default_route);
+miredo_privileged_process (tun6 *tunnel, bool default_route);
 
 int
 miredo_configure_tunnel (int fd, const struct in6_addr *addr, unsigned mtu);
