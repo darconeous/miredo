@@ -161,6 +161,7 @@ tun6 *tun6_create (const char *req_name)
 	static const char tundev[] = "/dev/net/tun";
 	struct ifreq req;
 #elif defined (HAVE_BSD)
+	unsigned i;
 	char tundev[12];
 #endif
 	tun6 *t;
@@ -210,8 +211,10 @@ tun6 *tun6_create (const char *req_name)
 	/*
 	 * BSD tunnel driver initialization
 	 */
-	for (unsigned i = 0; (i < 256) && (fd == -1); i++)
+	for (i = 0; (i < 256) && (fd == -1); i++)
 	{
+		const int dummy = 1;
+
 		snprintf (tundev, sizeof (tundev), "/dev/tun%u", i);
 		tundev[sizeof (tundev) - 1] = '\0';
 
@@ -240,8 +243,7 @@ tun6 *tun6_create (const char *req_name)
 # endif /* SIOCSIFNAME */
 
 # ifdef TUNSIFHEAD
-		// Enables TUNSIFHEAD
-		const int dummy = 1;
+		/* Enables TUNSIFHEAD */
 		if (ioctl (fd, TUNSIFHEAD, &dummy))
 		{
 			syslog (LOG_ERR, _("Tunneling driver error (%s): %m"),
@@ -324,14 +326,14 @@ tun6_setState (tun6 *t, bool up)
 
 	ifname = t->name;
 
-	// Sets up the interface
+	/* Sets up the interface */
 	memset (&req, 0, sizeof (req));	
 	secure_strncpy (req.ifr_name, ifname, IFNAMSIZ);
 	if (ioctl (t->reqfd, SIOCGIFFLAGS, &req))
 		return -1;
 
 	secure_strncpy (req.ifr_name, ifname, IFNAMSIZ);
-	// settings we want/don't want:
+	/* settings we want/don't want: */
 	req.ifr_flags |= IFF_NOARP | IFF_POINTOPOINT;
 	if (up)
 		req.ifr_flags |= IFF_UP | IFF_RUNNING;
@@ -391,8 +393,8 @@ plen_to_sin6 (unsigned plen, struct sockaddr_in6 *sin6)
 {
 	memset (sin6, 0, sizeof (struct sockaddr_in6));
 
-	// NetBSD kernel strangeness:
-	//sin6->sin6_family = AF_INET6;
+	/* NetBSD kernel strangeness:
+	 sin6->sin6_family = AF_INET6;*/
 # if HAVE_SA_LEN
 	sin6->sin6_len = sizeof (struct sockaddr_in6);
 # endif
@@ -540,7 +542,7 @@ _iface_route (int reqfd, const char *ifname, bool add,
 	/*
 	 * Linux ioctl interface
 	 */
-	// Adds/deletes route
+	/* Adds/deletes route */
 	memset (&req6, 0, sizeof (req6));
 	req6.rtmsg_flags = RTF_UP;
 	req6.rtmsg_ifindex = if_nametoindex (ifname);
@@ -551,7 +553,7 @@ _iface_route (int reqfd, const char *ifname, bool add,
 	req6.rtmsg_metric = 1024 + rel_metric;
 	if (prefix_len == 128)
 		req6.rtmsg_flags |= RTF_HOST;
-	// no gateway
+	/* no gateway */
 
 	if (ioctl (reqfd, add ? SIOCADDRT : SIOCDELRT, &req6) == 0)
 		retval = 0;
@@ -778,7 +780,7 @@ tun6_recv (const tun6 *t, const fd_set *readset, void *buffer, size_t maxlen)
 #if defined (HAVE_LINUX)
 	/* TUNTAP driver */
 	if (head.proto != htons (ETH_P_IPV6))
-		return -1; // only accept IPv6 packets
+		return -1; /* only accept IPv6 packets */
 #elif defined (HAVE_FREEBSD) || defined (HAVE_OPENBSD)
 	/* FreeBSD driver */
 	if (head != htonl (AF_INET6))
@@ -814,7 +816,7 @@ tun6_send (const tun6 *t, const void *packet, size_t len)
 	struct iovec vect[2];
 	vect[0].iov_base = (char *)&head;
 	vect[0].iov_len = sizeof (head);
-	vect[1].iov_base = (char *)packet; // necessary cast to non-const
+	vect[1].iov_base = (char *)packet; /* necessary cast to non-const */
 	vect[1].iov_len = len;
 
 	int val = writev (t->fd, vect, 2);
