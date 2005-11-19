@@ -1,5 +1,5 @@
 RELEASE NOTES for Miredo
-version 0.5.4 (beta version)
+version 0.5.6 (beta version)
 =============================
 $Id$
 
@@ -24,6 +24,13 @@ Thanks for your help.
 informations on this program, see README. For syntax details and
 changes, run 'miredo -h' to get help. For detailled internal changes, see
 ChangeLog.
+
+=============================================================================
+BETA RELEASE 0.5.6 : Minor features enhancement
+
+# Partially rewritten IPv6 tunneling driver; now supports Darwin (Mac OS X).
+# Emit ICMPv6 Address unreachable error packets when a destination cannot
+  be reached via Teredo tunneling.
 
 =============================================================================
 BETA RELEASE 0.5.4 : Major bugfixes
@@ -67,7 +74,7 @@ BETA RELEASE 0.5.1 : Minor bugfixes
 # Would-be support for NetBSD operating system.
 
 =============================================================================
-BETA RELEASE 0.5.0 : Major feature enhancement
+BETA RELEASE 0.5.0 : Major features enhancement
 
 # Fix for infinite loop in client when processing advertisement from server
   (also backported in release 0.4.3).
@@ -92,7 +99,7 @@ BETA RELEASE 0.5.0 : Major feature enhancement
 # Rudimentary Autopackage support (autopackage being still buggy).
 
 =============================================================================
-BETA RELEASE 0.4.2 : Major bugfixes, minor feature enhancement
+BETA RELEASE 0.4.2 : Major bugfixes, minor features enhancement
 
 # Fixed connectivity issue with restricted Teredo clients/relays.
 # Re-implemented connectivity loss detection. The older version was removed
@@ -113,7 +120,7 @@ BETA RELEASE 0.4.1 : Minor bugfixes
 # Complain when no sever was specified in client mode.
 
 =============================================================================
-BETA RELEASE 0.4.0 : Major feature enhancement
+BETA RELEASE 0.4.0 : Major features enhancement
 
 # Configuration file :
   Miredo now reads its settings from a configuration file, miredo.conf,
@@ -160,7 +167,7 @@ BETA RELEASE 0.3.2 : Minor bugfixes
 # FreeBSD compilation fixes.
 
 =============================================================================
-BETA RELEASE 0.3.1 : Minor feature enhancement
+BETA RELEASE 0.3.1 : Minor features enhancement
 
 # POSIX.1e capabilities support :
   If you have libcap on your system, miredo will now use POSIX.1e
@@ -177,7 +184,7 @@ BETA RELEASE 0.3.1 : Minor feature enhancement
   be useful to make initscripts.
 
 =============================================================================
-BETA RELEASE 0.3.0 : Major feature enhancement
+BETA RELEASE 0.3.0 : Major features enhancement
 
 # Proper queueing of packets :
   That should speed up connectivity a bit, and fix various connectivity
@@ -215,7 +222,7 @@ BETA RELEASE 0.2.1 : Major bugfixes
 # Various minor client timing problem fixed.
 
 =============================================================================
-BETA RELEASE 0.2.0 : Major feature enhancement
+BETA RELEASE 0.2.0 : Major features enhancement
 
 # Ability to run as a Teredo client:
     Miredo can now server as a Teredo client. It will set up its Teredo
@@ -232,7 +239,7 @@ BETA RELEASE 0.2.0 : Major feature enhancement
   option "-C" for optimization.
 
 =============================================================================
-ALPHA RELEASE 0.1.1 : Major feature enhancement
+ALPHA RELEASE 0.1.1 : Major features enhancement
 
 # Partial support for FreeBSD:
     Miredo should compile fine on FreeBSD, however it was not yet tested on
