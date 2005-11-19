@@ -480,7 +480,7 @@ main (int argc, char *argv[])
 	else
 	{
 		struct stat s;
-		const char *path = MIREDO_CHROOT;
+		const char path[] = MIREDO_CHROOT;
 
 		errno = 0;
 
