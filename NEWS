@@ -1,5 +1,5 @@
 RELEASE NOTES for Miredo
-version 0.5.4 (beta version)
+version 0.5.5 (beta version)
 =============================
 $Id$
 
@@ -24,6 +24,11 @@ Thanks for your help.
 informations on this program, see README. For syntax details and
 changes, run 'miredo -h' to get help. For detailled internal changes, see
 ChangeLog.
+
+=============================================================================
+BETA RELEASE 0.5.5 : Minor compatibility fix
+
+# Fix compilation on Darwin (Mac OS X).
 
 =============================================================================
 BETA RELEASE 0.5.4 : Major bugfixes

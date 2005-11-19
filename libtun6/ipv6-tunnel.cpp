@@ -117,8 +117,14 @@ static const char *os_driver = "NetBSD";
 #elif defined (HAVE_DARWIN)
 /*
  * Darwin tunneling driver
- * TODO: Darwin routing support
  */
+# include <net/if_dl.h> // struct sockaddr_dl
+# include <net/route.h> // AF_ROUTE things
+# include <errno.h> // errno
+
+# include <netinet6/in6_var.h> // struct in6_aliasreq, struct in6_ifreq
+# define ND6_INFINITE_LIFETIME 0xffffffff
+
 # define HAVE_BSD
 static const char *os_driver = "Darwin";
 

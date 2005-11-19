@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: miredo 0.5.4\n"
 "Report-Msgid-Bugs-To: rdenis@simphalempin.com\n"
-"POT-Creation-Date: 2005-11-10 18:34+0100\n"
+"POT-Creation-Date: 2005-11-19 12:22+0100\n"
 "PO-Revision-Date: 2005-11-09 22:20+0100\n"
 "Last-Translator: Rémi Denis-Courmont <rdenis (at) simphalempin (dot) com>\n"
 "Language-Team: N/A\n"
@@ -99,78 +99,78 @@ msgstr "restreint"
 msgid "Unsupported symmetric NAT detected."
 msgstr "NAT symmétrique non supporté détecté."
 
-#: libtun6/ipv6-tunnel.cpp:148
+#: libtun6/ipv6-tunnel.cpp:154
 #, c-format
 msgid "IPv6 stack not available: %m"
 msgstr "Pile IPv6 non disponible : %m"
 
-#: libtun6/ipv6-tunnel.cpp:179 libtun6/ipv6-tunnel.cpp:193
-#: libtun6/ipv6-tunnel.cpp:229 libtun6/ipv6-tunnel.cpp:244
+#: libtun6/ipv6-tunnel.cpp:185 libtun6/ipv6-tunnel.cpp:199
+#: libtun6/ipv6-tunnel.cpp:235 libtun6/ipv6-tunnel.cpp:250
 #, c-format
 msgid "Tunneling driver error (%s): %m"
 msgstr "Erreur du pilote de tunneling (%s) : %m"
 
-#: libtun6/ipv6-tunnel.cpp:258
+#: libtun6/ipv6-tunnel.cpp:264
 #, c-format
 msgid "%s tunneling interface %s created"
 msgstr "Interface %1$s de tunneling %2$s créée"
 
-#: libtun6/ipv6-tunnel.cpp:261
+#: libtun6/ipv6-tunnel.cpp:267
 #, c-format
 msgid "%s tunneling interface creation failure"
 msgstr "Échec de création de l'interface de tunneling %s"
 
-#: libtun6/ipv6-tunnel.cpp:274
+#: libtun6/ipv6-tunnel.cpp:280
 #, c-format
 msgid "Tunneling interface %s removed"
 msgstr "Interface %s de tunneling supprimée"
 
-#: libtun6/ipv6-tunnel.cpp:512
+#: libtun6/ipv6-tunnel.cpp:518
 #, c-format
 msgid "%s tunnel address %s/%u setup error: %m"
 msgstr "Erreur de réglage de l'adresse %2$s/%3$u pour le tunnel %1$s : %m"
 
-#: libtun6/ipv6-tunnel.cpp:514
+#: libtun6/ipv6-tunnel.cpp:520
 #, c-format
 msgid "%s tunnel address %s/%u removal error: %m"
 msgstr "Erreur de suppression de l'adresse %2$s/%3$u pour le tunnel %1$s : %m"
 
-#: libtun6/ipv6-tunnel.cpp:521
+#: libtun6/ipv6-tunnel.cpp:527
 #, c-format
 msgid "%s tunnel address added: %s/%u"
 msgstr "Adresse ajoutée au tunnel %s : %s/%u"
 
-#: libtun6/ipv6-tunnel.cpp:523
+#: libtun6/ipv6-tunnel.cpp:529
 #, c-format
 msgid "%s tunnel address deleted: %s/%u"
 msgstr "Adresse du tunnel %s supprimée : %s/%u"
 
-#: libtun6/ipv6-tunnel.cpp:644
+#: libtun6/ipv6-tunnel.cpp:650
 #, c-format
 msgid "%s tunnel route %s/%u setup error: %m"
 msgstr "Erreur de réglage de la route %2$s/%3$u pour le tunnel %1$s : %m"
 
-#: libtun6/ipv6-tunnel.cpp:646
+#: libtun6/ipv6-tunnel.cpp:652
 #, c-format
 msgid "%s tunnel route %s/%u removal error: %m"
 msgstr "Erreur de suppression de la route %2$s/%3$u pour le tunnel %1$s : %m"
 
-#: libtun6/ipv6-tunnel.cpp:653
+#: libtun6/ipv6-tunnel.cpp:659
 #, c-format
 msgid "%s tunnel route set: %s/%u"
 msgstr "Route définie sur le tunnel %s : %s/%u"
 
-#: libtun6/ipv6-tunnel.cpp:655
+#: libtun6/ipv6-tunnel.cpp:661
 #, c-format
 msgid "%s tunnel route removed: %s/%u"
 msgstr "Route retirée du tunnel %s : %s/%u"
 
-#: libtun6/ipv6-tunnel.cpp:714
+#: libtun6/ipv6-tunnel.cpp:720
 #, c-format
 msgid "%s tunnel MTU (%u bytes) change failed: %m"
 msgstr "Échec du changement du MTU du tunnel %s (%u octets) : %m"
 
-#: libtun6/ipv6-tunnel.cpp:866
+#: libtun6/ipv6-tunnel.cpp:872
 msgid ""
 "You should run these commands to create it:\n"
 "# mkdir -p /dev/net\n"
@@ -182,7 +182,7 @@ msgstr ""
 "# mknod /dev/net/tun c 10 200\n"
 "(vous devez être root pour cela).\n"
 
-#: libtun6/ipv6-tunnel.cpp:871 libtun6/ipv6-tunnel.cpp:896
+#: libtun6/ipv6-tunnel.cpp:877 libtun6/ipv6-tunnel.cpp:902
 msgid ""
 "You can obtain a tunnel driver for the Darwin kernel (Mac OS X) from:\n"
 "http://chrisp.de/en/projects/tunnel.html\n"
@@ -190,7 +190,7 @@ msgstr ""
 "Vous pouvez obtenir un pilote de tunnel pour le noyau Darwin (Mac OS X) à :\n"
 "http://chrisp.de/en/projects/tunnel.html\n"
 
-#: libtun6/ipv6-tunnel.cpp:879
+#: libtun6/ipv6-tunnel.cpp:885
 #, c-format
 msgid ""
 "Error: %s character device not found or unavailable.\n"
@@ -199,7 +199,7 @@ msgstr ""
 "Erreur : périphérique %s non trouvé ou non disponible.\n"
 "%s"
 
-#: libtun6/ipv6-tunnel.cpp:892
+#: libtun6/ipv6-tunnel.cpp:898
 msgid ""
 "Make sure your Linux kernel includes the \"Universal TUNTAP driver\"\n"
 "(CONFIG_TUN option), possibly as a module.\n"
@@ -207,7 +207,7 @@ msgstr ""
 "Vérifiez que votre noyau Linux comporte « l'Universal TUNTAP driver »\n"
 "(option CONFIG_TUN), éventuellement sous forme de module.\n"
 
-#: libtun6/ipv6-tunnel.cpp:904
+#: libtun6/ipv6-tunnel.cpp:910
 #, c-format
 msgid ""
 "Error: your operating system does not seem to provide a network tunnneling\n"
@@ -218,7 +218,7 @@ msgstr ""
 "périphérique de tunnel réseau, ce qui est indispensable.\n"
 "%s"
 
-#: libtun6/ipv6-tunnel.cpp:913
+#: libtun6/ipv6-tunnel.cpp:919
 #, c-format
 msgid ""
 "Error: cannot open device file %s (%s)\n"
