@@ -306,7 +306,8 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 
 		p->outqueue.Queue (packet, length);
 		if (PingPeer (&dst->ip6, p))
-			return SendUnreach (ICMP6_DST_UNREACH_ADDR, packet, length);
+			SendUnreach (ICMP6_DST_UNREACH_ADDR, packet, length);
+		return 0;
 	}
 #endif
 
@@ -370,6 +371,7 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 	}
 
 	// Too many bubbles already sent
+	SendUnreach (ICMP6_DST_UNREACH_ADDR, packet, length);
 	return 0;
 }
 

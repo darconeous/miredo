@@ -22,7 +22,6 @@ Important features:
 
 Not so important features:
 ---------------------------
-(!) generate ICMPv6 Unreachable errors when appropriate,
 ( ) relay IPv6 access control lists:
     can be done with the OS firewall
 ( ) support for reading kernel's gatewayed route through the tunnel
