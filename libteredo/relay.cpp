@@ -42,6 +42,7 @@
 #include <sys/time.h>
 #include <netinet/in.h>
 #include <netinet/ip6.h> // struct ip6_hdr
+#include <netinet/icmp6.h> // ICMP6_DST_UNREACH_*
 #include <syslog.h>
 
 #include <libteredo/teredo.h>
@@ -157,8 +158,8 @@ TeredoRelay::SendUnreach (int code, const void *in, size_t inlen)
 	} buf;
 
 	/* FIXME: implement ICMP rate limit */
-	size_t outlen = BuildICMPv6Error (&buf.hdr, &addr.ip6, 1, code,
-						in, inlen);
+	size_t outlen = BuildICMPv6Error (&buf.hdr, &addr.ip6, ICMP6_DST_UNREACH,
+	                                  code, in, inlen);
 	return outlen ? SendIPv6Packet (&buf, outlen) : 0;
 }
 
@@ -185,7 +186,7 @@ TeredoRelay::PingPeer (const struct in6_addr *a, peer *p) const
 		p->flags.flags.pings++;
 		return SendPing (sock, &addr, a, p->u1.nonce);
 	}
-	return 0;
+	return -1;
 }
 #endif
 
@@ -221,50 +222,52 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 	const union teredo_addr *dst = (union teredo_addr *)&packet->ip6_dst,
 				*src = (union teredo_addr *)&packet->ip6_src;
 
+	/* FIXME: race condition with maintenance procedure */
+	uint32_t prefix = GetPrefix ();
+
 	/* Drops multicast destination, we cannot handle these */
 	if ((dst->ip6.s6_addr[0] == 0xff)
 	/* Drops multicast source, these are invalid */
 	 || (src->ip6.s6_addr[0] == 0xff))
 		return 0;
 
-	assert (src->teredo.prefix != PREFIX_UNSET);
-	assert (dst->teredo.prefix != PREFIX_UNSET);
-
-	uint32_t prefix = GetPrefix ();
-
-	if (dst->teredo.prefix != prefix)
+	if (IsRelay ())
 	{
-		/*
-		 * If we are not a qualified client, ie. we have no server
-		 * IPv4 address to contact for direct IPv6 connectivity, we
-		 * cannot route packets toward non-Teredo IPv6 addresses, and
-		 * we are not allowed to do it by the specification either.
-		 *
-		 * NOTE:
-		 * The specification mandates silently ignoring such
-		 * packets. However, this only happens in case of
-		 * misconfiguration, so I believe it could be better to
-		 * notify the user. An alternative is to send an ICMPv6 error
-		 * back to the kernel.
-		 */
-		if (IsRelay ())
-			return SendUnreach (0, packet, length);
-
-		if (src->teredo.prefix != prefix)
+		if (dst->teredo.prefix != prefix)
 			/*
-			* Routing packets not from a Teredo client,
-			* neither toward a Teredo client is NOT allowed through a
-			* Teredo tunnel. The Teredo server will reject the packet.
-			*
-			* We also drop link-local unicast and multicast packets as
-			* they can't be routed through Teredo properly.
-			*/
-			return SendUnreach (1, packet, length);
+			 * If we are not a qualified client, ie. we have no server
+			 * IPv4 address to contact for direct IPv6 connectivity, we
+			 * cannot route packets toward non-Teredo IPv6 addresses, and
+			 * we are not allowed to do it by the specification either.
+			 *
+			 * NOTE:
+			 * The specification mandates silently ignoring such
+			 * packets. However, this only happens in case of
+			 * misconfiguration, so I believe it could be better to
+			 * notify the user. An alternative is to send an ICMPv6 error
+			 * back to the kernel.
+			 */
+				return SendUnreach (ICMP6_DST_UNREACH_ADDR, packet, length);
 	}
+#ifdef MIREDO_TEREDO_CLIENT
+	else
+	{
+		if (prefix == PREFIX_UNSET) /* not qualified */
+			return SendUnreach (ICMP6_DST_UNREACH_ADDR, packet, length);
 
-	/* We might no longer be qualified, but we at least have a valid (would-be
-	 * expired) Teredo address in addr */
-	assert (prefix != PREFIX_UNSET);
+		if ((dst->teredo.prefix != prefix)
+		 && (src->teredo.prefix != prefix))
+			/*
+			 * Routing packets not from a Teredo client,
+			 * neither toward a Teredo client is NOT allowed through a
+			 * Teredo tunnel. The Teredo server will reject the packet.
+			 *
+			 * We also drop link-local unicast and multicast packets as
+			 * they can't be routed through Teredo properly.
+			 */
+			return SendUnreach (ICMP6_DST_UNREACH_ADMIN, packet, length);
+	}
+#endif
 
 	peer *p = FindPeer (&dst->ip6);
 
@@ -302,7 +305,8 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 		}
 
 		p->outqueue.Queue (packet, length);
-		return PingPeer (&dst->ip6, p);
+		if (PingPeer (&dst->ip6, p))
+			return SendUnreach (ICMP6_DST_UNREACH_ADDR, packet, length);
 	}
 #endif
 
