@@ -4,7 +4,7 @@ libteredo/relay.cpp
 libteredo/security.c
 libteredo/packets.cpp
 libteredo/maintain.cpp
-libtun6/ipv6-tunnel.cpp
+libtun6/tun6.c
 src/main.c
 src/miredo.cpp
 src/relay.cpp
