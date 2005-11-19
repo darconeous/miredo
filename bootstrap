@@ -82,10 +82,10 @@ echo "Generating \`configure' script with autoconf ..."
 autoconf || exit 1
 echo "Done."
 
-test -z $gettext_h && {
-echo "Error: can't find <gettext.h> convenience C header."
-echo "Please put a link to it by hand in src/gettext.h"
-}
+#test -z $gettext_h && {
+#echo "Error: can't find <gettext.h> convenience C header."
+#echo "Please put a link to it by hand in src/gettext.h"
+#}
 
 echo ""
 echo "Type \`./configure' to configure the package for your system"
