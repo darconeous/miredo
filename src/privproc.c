@@ -24,7 +24,7 @@
 #endif
 
 #include <string.h>
-#include <stdlib.h> // exit()
+#include <stdlib.h> /* exit() */
 #include <errno.h>
 
 #if HAVE_STDINT_H
@@ -108,7 +108,7 @@ miredo_privileged_process (struct tun6 *tunnel, bool default_route)
 	{
 		struct miredo_tunnel_settings newcfg;
 		const struct in6_addr *p_newloc;
-		// TODO: set res to -1 in case of error
+		/* TODO: set res to -1 in case of error */
 		int res = 0;
 
 		/* Waits until new (changed) settings arrive */

@@ -22,7 +22,7 @@
 #ifndef LIBTUN6_TUN6_H
 # define LIBTUN6_TUN6_H
 
-# include <stddef.h> // we need a definition for NULL
+# include <stddef.h> /* NULL */
 # include <stdbool.h>
 # include <sys/types.h>
 # include <sys/select.h>
