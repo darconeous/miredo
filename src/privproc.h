@@ -22,19 +22,21 @@
 #ifndef __MIREDO_PRIVPROC_H
 # define __MIREDO_PRIVPROC_H
 
-# ifndef __cplusplus
-#  error C++ header
+struct in6_addr;
+struct tun6;
+
+# ifdef __cplusplus
+extern "C" {
 # endif
 
-/* FIXME: port to C */
-
-struct in6_addr;
-typedef struct tun6 tun6;
-
 int
-miredo_privileged_process (tun6 *tunnel, bool default_route);
+miredo_privileged_process (struct tun6 *tunnel, bool default_route);
 
 int
 miredo_configure_tunnel (int fd, const struct in6_addr *addr, unsigned mtu);
+
+# ifdef __cplusplus
+}
+# endif
 
 #endif

@@ -48,7 +48,7 @@ libmiredo_a_SOURCES = main.c miredo.cpp miredo.h \
 # miredo
 miredo_SOURCES = relay.cpp
 if TEREDO_CLIENT
-miredo_SOURCES += privproc.cpp privproc.h
+miredo_SOURCES += privproc.c privproc.h
 endif
 miredo_LDADD = $(LIBINTL) libmiredo.a \
 		../libtun6/libtun6.a ../libteredo/libteredo.la

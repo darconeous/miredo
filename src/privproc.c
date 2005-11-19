@@ -54,7 +54,7 @@ struct miredo_tunnel_settings
 
 
 int
-miredo_privileged_process (tun6 *tunnel, bool default_route)
+miredo_privileged_process (struct tun6 *tunnel, bool default_route)
 {
 	int fd[2];
 	if (socketpair (AF_LOCAL, SOCK_STREAM, 0, fd))
