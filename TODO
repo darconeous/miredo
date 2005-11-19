@@ -22,6 +22,7 @@ Important features:
 
 Not so important features:
 ---------------------------
+(!) generate ICMPv6 Unreachable errors when appropriate,
 ( ) relay IPv6 access control lists:
     can be done with the OS firewall
 ( ) support for reading kernel's gatewayed route through the tunnel
@@ -55,7 +56,8 @@ Performance/scalibility:
 Portability:
 -------------
 (H) big-endianess/byte-alignment compatibility tests,
-(H) Darwin/Solaris compilation,
+(H) Solaris support & tests,
+(H) Darwin tests
 
 Compatibility:
 ---------------
