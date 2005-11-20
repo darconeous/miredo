@@ -51,7 +51,6 @@
 
 #include "packets.h"
 #include "security.h"
-#include "queue.h"
 #include <libteredo/relay.h>
 #include "peerlist.h"
 
@@ -91,6 +90,7 @@ TeredoRelay::TeredoRelay (uint32_t ip, uint32_t ip2,
                           uint16_t port, uint32_t ipv4)
 	: allowCone (false), mtu (1280)
 {
+	/*syslog (LOG_DEBUG, "Peer size: %u bytes", sizeof (peer));*/
 	if (!is_ipv4_global_unicast (ip) || !is_ipv4_global_unicast (ip2))
 		syslog (LOG_WARNING, _("Server has a non global IPv4 address. "
 		                       "It will most likely not work."));
@@ -332,7 +332,7 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 			p->TouchTransmit ();
 		}
 
-		p->outqueue.Queue (packet, length);
+		p->QueueOutgoing (packet, length);
 		if (PingPeer (&dst->ip6, p))
 			SendUnreach (ICMP6_DST_UNREACH_ADDR, packet, length);
 		return 0;
@@ -374,7 +374,7 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 	}
 
 	/* Client case 5 & relay case 3: untrusted non-cone peer */
-	p->outqueue.Queue (packet, length);
+	p->QueueOutgoing (packet, length);
 
 	// FIXME FIXME FIXME:
 	// - sending of bubbles should be done in a separate thread
@@ -593,7 +593,7 @@ int TeredoRelay::ReceivePacket (void)
 
 			p->SetMappingFromPacket (packet);
 			p->TouchReceive ();
-			p->Flush (this);
+			p->Dequeue (this);
 			return 0;
 		}
 #endif /* ifdef MIREDO_TEREDO_CLIENT */
@@ -637,7 +637,7 @@ int TeredoRelay::ReceivePacket (void)
 
 			}
 			else
-				p->Flush (this);
+				p->Dequeue (this);
 
 			p->flags.flags.trusted = 1;
 			p->TouchReceive ();
@@ -697,7 +697,7 @@ int TeredoRelay::ReceivePacket (void)
 		 */
 		return 0;
 
-	p->inqueue.Queue (buf, length);
+	p->QueueIncoming (buf, length);
 	p->TouchReceive ();
 
 	return PingPeer (&ip6.ip6_src, p);

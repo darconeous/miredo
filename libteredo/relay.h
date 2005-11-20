@@ -42,7 +42,6 @@ class TeredoRelay
 {
 	private:
 		class peer;
-		class InDequeue;
 
 		/*** Internal stuff ***/
 		union teredo_addr addr;
@@ -186,6 +185,7 @@ class TeredoRelay
 		static unsigned RestartDelay;
 #endif
 		static unsigned MaxPeers;
+		static unsigned MaxQueueBytes;
 		static unsigned IcmpRateLimitMs;
 
 		uint32_t GetPrefix (void) const

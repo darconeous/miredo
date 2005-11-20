@@ -28,6 +28,7 @@
 
 #include <string.h>
 #include <time.h>
+#include <stdlib.h> /* malloc() / free() */
 
 #if HAVE_STDINT_H
 # include <stdint.h>
@@ -40,7 +41,6 @@
 
 #include <libteredo/relay-udp.h>
 
-#include "queue.h"
 #include <libteredo/relay.h>
 #include "peerlist.h"
 
@@ -88,10 +88,7 @@ TeredoRelay::peer *TeredoRelay::AllocatePeer (const struct in6_addr *addr)
 	for (p = (peer *)list.ptr; p != NULL; p = p->next)
 		if (p->IsExpired (now))
 		{
-			p->outqueue.Trash (MAXQUEUE);
-#ifdef MIREDO_TEREDO_CLIENT
-			p->inqueue.Trash (MAXQUEUE);
-#endif
+			p->Reset ();
 			break;
 		}
 
@@ -140,4 +137,83 @@ TeredoRelay::peer *TeredoRelay::FindPeer (const struct in6_addr *addr)
 		}
 
 	return NULL;
+}
+
+
+/*
+ * Packets queueing
+ */
+typedef struct TeredoRelay::peer::packet
+{
+	packet *next;
+	size_t length;
+	bool incoming;
+	uint8_t data[];
+} packet;
+
+unsigned TeredoRelay::MaxQueueBytes = 1280;
+
+void TeredoRelay::peer::Reset (void)
+{
+	packet *ptr;
+
+	/* lock peer */
+	ptr = queue;
+	queue = NULL;
+	queue_left = TeredoRelay::MaxQueueBytes;
+	/* unlock */
+
+	while (ptr != NULL)
+	{
+		packet *buf;
+
+		buf = ptr->next;
+		free (ptr);
+		ptr = buf;
+	}
+}
+
+
+void TeredoRelay::peer::Queue (const void *data, size_t len, bool incoming)
+{
+	packet *p;
+
+	if (len > queue_left)
+		return;
+	queue_left -= len;
+
+	p = (packet *)malloc (sizeof (*p) + len);
+	p->length = len;
+	memcpy (p->data, data, len);
+	p->incoming = incoming;
+
+	p->next = queue;
+	queue = p;
+}
+
+
+void TeredoRelay::peer::Dequeue (TeredoRelay *r)
+{
+	packet *ptr;
+
+	/* lock peer */
+	ptr = queue;
+	queue = NULL;
+	queue_left = TeredoRelay::MaxQueueBytes;
+	/* unlock */
+
+	while (ptr != NULL)
+	{
+		packet *buf;
+
+		buf = ptr->next;
+		if (ptr->incoming)
+			r->SendIPv6Packet (ptr->data, ptr->length);
+		else
+			r->sock.SendPacket (ptr->data, ptr->length,
+			                    u1.mapping.mapped_addr,
+								u1.mapping.mapped_port);
+		free (ptr);
+		ptr = buf;
+	}
 }

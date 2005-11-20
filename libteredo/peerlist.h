@@ -26,49 +26,6 @@
 # define MAXQUEUE 1280u // bytes
 
 
-/*
- * Queueing of packets from Teredo toward the IPv6
- */
-class TeredoRelay::InDequeue : public PacketsQueueCallback
-{
-	private:
-		TeredoRelay *relay;
-
-		virtual void SendPacket (const void *p, size_t len)
-		{
-			relay->SendIPv6Packet (p, len);
-		}
-
-	public:
-		InDequeue (TeredoRelay *r) : relay (r)
-		{
-		}
-};
-
-
-/*
- * Queueing of packets from IPv6 toward local Teredo client
- */
-class OutDequeue : public PacketsQueueCallback
-{
-	private:
-		TeredoRelayUDP *udp;
-		uint32_t ipv4;
-		uint16_t port;
-
-		virtual void SendPacket (const void *p, size_t len)
-		{
-			udp->SendPacket (p, len, ipv4, port);
-		}
-
-	public:
-		OutDequeue (TeredoRelayUDP *u, uint32_t ip, uint16_t p)
-			: udp (u), ipv4 (ip), port (p)
-		{
-		}
-};
-
-
 class TeredoRelay::peer
 {
 	public:
@@ -80,21 +37,21 @@ class TeredoRelay::peer
 				uint32_t mapped_addr;
 				uint16_t mapped_port;
 			} mapping;
+			/* TODO: use some kind of hashing, instead */
 			uint8_t nonce[8]; /* only for client toward non-client */
 		} u1;
-	
+
 		peer *next;
 
-		PacketsQueue outqueue;
-#ifdef MIREDO_TEREDO_CLIENT
-		/* TODO: merge both queues */
-		PacketsQueue inqueue;
-#endif
+	private:
+		struct packet;
+		packet *queue;
+		size_t queue_left;
+		void Queue (const void *data, size_t len, bool incoming);
+		time_t expiry;
 
-		peer () : outqueue (MAXQUEUE)
-#ifdef MIREDO_TEREDO_CLIENT
-			, inqueue (MAXQUEUE)
-#endif
+	public:
+		peer (void) : queue (NULL), queue_left (TeredoRelay::MaxQueueBytes)
 		{
 		}
 
@@ -113,8 +70,6 @@ class TeredoRelay::peer
 		} flags;
 
 	private:
-		time_t expiry;
-
 		void Touch (void)
 		{
 			time (&expiry);
@@ -145,17 +100,23 @@ class TeredoRelay::peer
 				Touch ();
 		}
 
-		void Flush (TeredoRelay *r)
+		void QueueIncoming (const void *data, size_t len)
 		{
-#ifdef MIREDO_TEREDO_CLIENT
-			InDequeue icb (r);
-			inqueue.Flush (icb, MAXQUEUE);
-#endif
-			OutDequeue ocb (&r->sock, u1.mapping.mapped_addr,
-			                u1.mapping.mapped_port);
-			outqueue.Flush (ocb, MAXQUEUE);
+			Queue (data, len, true);
 		}
 
+		void QueueOutgoing (const void *data, size_t len)
+		{
+			Queue (data, len, false);
+		}
+
+		void Dequeue (TeredoRelay *r);
+		void Reset (void);
+
+		~peer (void)
+		{
+			Reset ();
+		}
 
 		bool IsExpired (const time_t now) const
 		{
