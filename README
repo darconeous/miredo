@@ -56,7 +56,7 @@ Microsoft IPv6 : Teredo overview.
 System requirements
 ====================
 
-  Miredo runs fine on Linux kernel 2.6.x, FreeBSD 5.x and OpenBSD 3.7;
+  Miredo runs fine on Linux kernel 2.6.9, FreeBSD 5.x and OpenBSD 3.7;
 it should also work with Linux 2.4.x, and older releases of FreeBSD
 (4.x) and OpenBSD, provided they support IPv6, but these configurations
 were not tested.
