@@ -148,16 +148,44 @@ TeredoRelay::~TeredoRelay (void)
  * Unfortunately, this will use a local-scope address as source, which is not
  * quite good.
  */
+unsigned TeredoRelay::IcmpRateLimitMs = 100;
+
 int
 TeredoRelay::SendUnreach (int code, const void *in, size_t inlen)
 {
+	static struct
+	{
+		pthread_mutex_t lock;
+		int count;
+		time_t last;
+	} ratelimit = { PTHREAD_MUTEX_INITIALIZER, 1, 0 };
 	struct
 	{
 		struct ip6_hdr hdr;
 		uint8_t fill[1280 - sizeof (struct ip6_hdr)];
 	} buf;
+	time_t now;
 
-	/* FIXME: implement ICMP rate limit */
+	/* ICMPv6 rate limit */
+	time (&now);
+	pthread_mutex_lock (&ratelimit.lock);
+	if (memcmp (&now, &ratelimit.last, sizeof (now)))
+	{
+		memcpy (&ratelimit.last, &now, sizeof (now));
+		ratelimit.count =
+			IcmpRateLimitMs ? (int)(1000 / IcmpRateLimitMs) : -1;
+	}
+
+	if (ratelimit.count == 0)
+	{
+		/* rate limit exceeded */
+		pthread_mutex_unlock (&ratelimit.lock);
+		return 0;
+	}
+	if (ratelimit.count > 0)
+		ratelimit.count--;
+	pthread_mutex_unlock (&ratelimit.lock);
+
 	size_t outlen = BuildICMPv6Error (&buf.hdr, &addr.ip6, ICMP6_DST_UNREACH,
 	                                  code, in, inlen);
 	return outlen ? SendIPv6Packet (&buf, outlen) : 0;

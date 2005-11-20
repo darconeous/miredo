@@ -428,8 +428,7 @@ CheckPing (const TeredoPacket& packet, const uint8_t *nonce)
  */
 int
 BuildICMPv6Error (struct ip6_hdr *out, const struct in6_addr *src,
-			uint8_t type, uint8_t code,
-			const void *in, uint16_t inlen)
+                  uint8_t type, uint8_t code, const void *in, uint16_t inlen)
 {
 	// don't reply if the packet is too small
 	if (inlen < 40)
@@ -451,8 +450,6 @@ BuildICMPv6Error (struct ip6_hdr *out, const struct in6_addr *src,
 	 || (memcmp (p, &in6addr_any, sizeof (*p)) == 0))
 		return 0;
 
-	/* TODO/FIXME: rate limit */
-	/* then TODO: configurable rate limit (as per RFC2463) */
 	if (inlen + sizeof (struct ip6_hdr) + sizeof (icmp6_hdr) > 1280)
 		inlen = 1280 - (sizeof (struct ip6_hdr) + sizeof (icmp6_hdr));
 	uint16_t len = sizeof (icmp6_hdr) + inlen;

@@ -186,6 +186,7 @@ class TeredoRelay
 		static unsigned RestartDelay;
 #endif
 		static unsigned MaxPeers;
+		static unsigned IcmpRateLimitMs;
 
 		uint32_t GetPrefix (void) const
 		{
