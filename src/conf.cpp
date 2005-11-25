@@ -24,6 +24,7 @@
 #endif
 
 #include <gettext.h>
+#include <assert.h>
 
 #include <stdio.h>
 #include <stdlib.h> // malloc(), free()
@@ -43,7 +44,7 @@
 
 #include "conf.h"
 
-MiredoConf::MiredoConf (void) : head (NULL)
+MiredoConf::MiredoConf (void) : head (NULL), tail (NULL)
 {
 }
 
@@ -100,7 +101,10 @@ MiredoConf::Set (const char *name, const char *value, unsigned line)
 				if (head == NULL)
 					head = parm;
 				else
+				{
+					assert (tail != NULL);
 					tail->next = parm;
+				}
 				tail = parm;
 				/* unlock here */
 

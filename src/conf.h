@@ -40,6 +40,9 @@ class MiredoConf
 	public:
 		MiredoConf (void);
 		~MiredoConf (void);
+		MiredoConf (const MiredoConf& src); /* not implemented */
+		MiredoConf& operator= (const MiredoConf& src); /* not implemented */
+
 		void Clear (unsigned show = 5);
 
 		/* Adds a setting. Returns false if memory is missing. */
