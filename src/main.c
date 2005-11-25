@@ -180,7 +180,7 @@ write_pid (int fd)
 	(void)snprintf (buf, sizeof (buf), "%d", (int)getpid ());
 	buf[sizeof (buf) - 1] = '\0';
 	len = strlen (buf);
-	return write (fd, buf, len) == len ? 0 : -1;
+	return write (fd, buf, len) == (int)len ? 0 : -1;
 }
 
 
@@ -238,7 +238,7 @@ init_daemon (const char *username, const char *pidfile, int nodetach)
 	if (getrlimit (RLIMIT_NOFILE, &lim))
 		return -1;
 
-	for (fd = 3; fd < lim.rlim_cur; fd++)
+	for (fd = 3; (unsigned)fd < lim.rlim_cur; fd++)
 		(void)close (fd);
 
 	/*
