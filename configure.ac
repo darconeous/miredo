@@ -39,7 +39,7 @@ RDC_BUILD_HOSTNAME
 AS_MESSAGE(checking required programs...)
 AC_PROG_CC
 AC_PROG_CXX
-AC_DISABLE_STATIC
+AC_DISABLE_SHARED
 AC_PROG_LIBTOOL
 AM_INIT_AUTOMAKE([check-news dist-bzip2 std-options])
 
