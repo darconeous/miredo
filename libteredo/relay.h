@@ -28,12 +28,38 @@
 # include <sys/time.h> // struct timeval
 # include <pthread.h>
 
+
+# ifdef __cplusplus
 # include <libteredo/relay-udp.h> // FIXME: remove?
 //-> when local discovery is implemented?
 
 struct ip6_hdr;
 struct in6_addr;
 class TeredoPacket;
+class TeredoRelay;
+
+
+typedef struct teredo_state
+{
+	bool up;
+	bool cone;
+	uint16_t mtu;
+	union teredo_addr addr;
+} teredo_state;
+
+typedef struct teredo_maintenance
+{
+#ifdef MIREDO_TEREDO_CLIENT
+	pthread_t thread;
+	pthread_mutex_t lock;
+	pthread_cond_t received;
+	const TeredoPacket *incoming;
+	pthread_barrier_t processed;
+	TeredoRelay *relay; /* FIXME: provisional */
+#endif
+
+	teredo_state state;
+} teredo_maintenance;
 
 
 // big TODO: make all functions re-entrant safe
@@ -44,46 +70,32 @@ class TeredoRelay
 		class peer;
 
 		/*** Internal stuff ***/
-		union teredo_addr addr;
 		struct
 		{
 			void *ptr;
 			unsigned peerNumber;
 		} list;
 
+	public: /* FIXME: temporarily public */
 		TeredoRelayUDP sock;
-		bool allowCone, isCone;
+	private:
+		bool allowCone;
 
 		peer *AllocatePeer (const struct in6_addr *addr);
 		peer *FindPeer (const struct in6_addr *addr);
 
 		int SendUnreach (int code, const void *in, size_t inlen);
 
+		teredo_maintenance maintenance;
 #ifdef MIREDO_TEREDO_CLIENT
-		struct
-		{
-			pthread_t thread;
-			pthread_mutex_t lock;
-			pthread_cond_t received;
-
-			uint8_t nonce[8];
-
-			unsigned state;
-			bool success;
-			bool attended;
-			bool working;
-		} maintenance;
-
-		static void *do_maintenance (void *object);
-		void MaintenanceThread (void);
-
 		uint32_t server_ip2;
-		uint16_t mtu;
 
 		int PingPeer (const struct in6_addr *addr, peer *p) const;
 		bool IsServerPacket (const TeredoPacket *packet) const;
-		int ProcessQualificationPacket (const TeredoPacket *p);
+		void ProcessQualificationPacket (const TeredoPacket *p);
+		bool ProcessMaintenancePacket (const TeredoPacket *p);
 
+	public: /* FIXME: temporary */
 		/*
 		 * Tries to define the Teredo client IPv6 address. This is an
 		 * indication that the Teredo tunneling interface is ready.
@@ -104,6 +116,7 @@ class TeredoRelay
 		 * This function might be called from a separate thread.
 		 */
 		virtual void NotifyDown (void) { }
+	private:
 #endif
 
 		/*** Callbacks ***/
@@ -145,7 +158,7 @@ class TeredoRelay
 		{
 			return !sock
 #ifdef MIREDO_TEREDO_CLIENT
-				|| (IsClient () && !maintenance.working)
+				|| (IsClient () && (maintenance.relay == NULL));
 #endif
 			;
 		}
@@ -171,7 +184,7 @@ class TeredoRelay
 #ifdef MIREDO_TEREDO_CLIENT
 		uint32_t GetServerIP (void) const
 		{
-			return addr.teredo.server_ip;
+			return maintenance.state.addr.teredo.server_ip;
 		}
 
 		uint32_t GetServerIP2 (void) const
@@ -190,7 +203,7 @@ class TeredoRelay
 
 		uint32_t GetPrefix (void) const
 		{
-			return addr.teredo.prefix;
+			return maintenance.state.addr.teredo.prefix;
 		}
 
 		/*
@@ -200,7 +213,7 @@ class TeredoRelay
 		 */
 		bool IsCone (void) const
 		{
-			return isCone;
+			return maintenance.state.cone;
 		}
 
 		bool IsRelay (void) const
@@ -228,5 +241,6 @@ class TeredoRelay
 		}
 };
 
+# endif /* ifdef __cplusplus */
 #endif /* ifndef MIREDO_RELAY_H */
 

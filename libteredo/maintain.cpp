@@ -29,6 +29,7 @@
 #include <gettext.h>
 
 #include <string.h> /* memcmp() */
+#include <assert.h>
 
 #if HAVE_STDINT_H
 # include <stdint.h>
@@ -39,9 +40,9 @@
 #include <sys/types.h>
 #include <time.h>
 #include <sys/time.h>
-#include <netinet/in.h> // struct in6_addr
+#include <netinet/in.h> /* struct in6_addr */
 #include <syslog.h>
-#include <errno.h> // ETIMEDOUT
+#include <errno.h> /* ETIMEDOUT */
 
 #include <libteredo/teredo.h>
 
@@ -51,11 +52,11 @@
 #include "security.h"
 #include <libteredo/relay.h>
 
+#define QUALIFIED	0
 #define PROBE_CONE	1
 #define PROBE_RESTRICT	2
 #define PROBE_SYMMETRIC	3
-
-#define QUALIFIED	0
+#define NOT_RUNNING	(-1)
 
 
 bool TeredoRelay::IsServerPacket (const TeredoPacket *packet) const
@@ -67,76 +68,41 @@ bool TeredoRelay::IsServerPacket (const TeredoPacket *packet) const
 }
 
 
-/* Handle router advertisement for qualification */
-int TeredoRelay::ProcessQualificationPacket (const TeredoPacket *packet)
+/* It is assumed that the calling thread holds the maintenance lock */
+static bool
+maintenance_recv (const TeredoPacket *packet, uint32_t server_ip, uint8_t *nonce,
+                  bool cone, uint16_t *mtu, union teredo_addr *newaddr)
 {
-	if (!IsServerPacket (packet))
-		return 0;
+	assert (packet->GetAuthNonce () != NULL);
 
-	/*
-	 * We don't accept router advertisement without nonce.
-	 * It is far too easy to spoof such packets.
-	 */
-	const uint8_t *s_nonce = packet->GetAuthNonce ();
-
-	if (s_nonce == NULL)
-		return 0;
-
-	pthread_mutex_lock (&maintenance.lock);
-	if (!maintenance.attended || memcmp (s_nonce, maintenance.nonce, 8))
-	{
-		pthread_mutex_unlock (&maintenance.lock);
-		return 0;
-	}
+	if (memcmp (packet->GetAuthNonce (), nonce, 8))
+		return false;
 
 	if (packet->GetConfByte ())
 	{
-		pthread_mutex_unlock (&maintenance.lock);
 		syslog (LOG_ERR, _("Authentication with server failed."));
-		return 0;
+		return false;
 	}
 
-	union teredo_addr newaddr;
- 
-	if ((!ParseRA (*packet, &newaddr, maintenance.state == PROBE_CONE, &mtu))
+	if ((!ParseRA (*packet, newaddr, cone, mtu))
 	/* TODO: try to work-around incorrect server IP */
-	 || (newaddr.teredo.server_ip != GetServerIP ()))
-	{
-		pthread_mutex_unlock (&maintenance.lock);
-		return 0;
-	}
+	 || (newaddr->teredo.server_ip != server_ip /*GetServerIP ()*/))
+		return false;
 
 	/* Valid router advertisement received! */
-	pthread_cond_signal (&maintenance.received);
-
-	switch (maintenance.state)
-	{
-		case PROBE_SYMMETRIC:
-			maintenance.success =
-				(addr.teredo.client_port == newaddr.teredo.client_port)
-				&& (addr.teredo.client_ip == newaddr.teredo.client_ip);
-			break;
-
-		case PROBE_RESTRICT:
-			maintenance.success = false;
-			break;
-
-		case PROBE_CONE:
-			maintenance.success = true;
-			break;
-	}
-
-	memcpy (&addr, &newaddr, sizeof (addr));
-	pthread_mutex_unlock (&maintenance.lock);
-
-	return 0;
+	return true;
 }
+
+
+#if 0
+
+#endif
 
 
 static void
 cleanup_unlock (void *o)
 {
-	pthread_mutex_unlock ((pthread_mutex_t *)o);
+	(void)pthread_mutex_unlock ((pthread_mutex_t *)o);
 }
 
 
@@ -149,140 +115,183 @@ unsigned TeredoRelay::ServerNonceLifetime = 3600; // seconds
 unsigned TeredoRelay::RestartDelay = 100; // seconds
 
 
-void TeredoRelay::MaintenanceThread (void)
+static inline void maintenance_thread (teredo_maintenance *m)
 {
-	unsigned count = 0;
-	struct timeval nonce_expiry = { 0, 0 };
+	struct
+	{
+		uint8_t value[8];
+		struct timeval expiry;
+	} nonce = { { 0, 0 } };
 	struct timespec deadline = { 0, 0 };
+	unsigned count = 0;
+	int state = PROBE_CONE;
 
-	isCone = true;
-	pthread_mutex_lock (&maintenance.lock);
-	maintenance.state = PROBE_CONE;
+	pthread_mutex_lock (&m->lock);
+	m->state.cone = true;
 
 	/*
 	 * Qualification/maintenance procedure
 	 */
-	pthread_cleanup_push (cleanup_unlock, &maintenance.lock);
+	pthread_cleanup_push (cleanup_unlock, &m->lock);
 	while (1)
 	{
-		if (deadline.tv_sec >= nonce_expiry.tv_sec)
+		if (deadline.tv_sec >= nonce.expiry.tv_sec)
 		{
 			/* The lifetime of the nonce is not second-critical
 			 => we don't check/set tv_usec */
-			GenerateNonce (maintenance.nonce, true);
+			GenerateNonce (nonce.value, true);
 
 			/* avoid lost connectivity and RS flood if nonce generation has
 			 * been blocking for a long time -> resync timer */
-			gettimeofday (&nonce_expiry, NULL);
+			gettimeofday (&nonce.expiry, NULL);
 
-			deadline.tv_sec = nonce_expiry.tv_sec;
-			deadline.tv_nsec = nonce_expiry.tv_usec * 1000;
+			deadline.tv_sec = nonce.expiry.tv_sec;
+			deadline.tv_nsec = nonce.expiry.tv_usec * 1000;
 
-			nonce_expiry.tv_sec += ServerNonceLifetime;
+			nonce.expiry.tv_sec += TeredoRelay::ServerNonceLifetime;
 		}
 
-		SendRS (sock, maintenance.state == PROBE_RESTRICT /* secondary */
-		              ? GetServerIP2 () : GetServerIP (),
-		        maintenance.nonce, isCone);
+		/* SEND ROUTER SOLICATION */
+		SendRS (m->relay->sock, state == PROBE_RESTRICT /* secondary */
+		              ? m->relay->GetServerIP2 () : m->relay->GetServerIP (),
+		        nonce.value, m->state.cone);
 
-		deadline.tv_sec += QualificationTimeOut;
-		maintenance.attended = true;
+		deadline.tv_sec += TeredoRelay::QualificationTimeOut;
 
+		/* RECEIVE ROUTER ADVERTISEMENT */
+		union teredo_addr newaddr;
 		int val;
+		uint16_t mtu = 1280;
 		do
 		{
-			val = pthread_cond_timedwait (&maintenance.received,
-			                              &maintenance.lock, &deadline);
+			val = pthread_cond_timedwait (&m->received, &m->lock, &deadline);
+
+			if (val == 0)
+			{
+				bool accept;
+				/* check received packet */
+				accept = maintenance_recv (m->incoming,
+				                           m->relay->GetServerIP (),
+				                           nonce.value, m->state.cone, &mtu,
+				                           &newaddr);
+
+				(void)pthread_barrier_wait (&m->processed);
+				if (accept)
+					break;
+			}
 		}
-		while (val && (val != ETIMEDOUT));
-		maintenance.attended = false;
+		while (val == EINTR);
 
 		unsigned sleep = 0;
 
+		/* UPDATE FINITE STATE MACHINE */
 		if (val)
 		{
 			/* no response */
-			if (maintenance.state == PROBE_SYMMETRIC)
-				maintenance.state = PROBE_RESTRICT;
+			if (state == PROBE_SYMMETRIC)
+				state = PROBE_RESTRICT;
 			else
 				count++;
 
-			if (count >= QualificationRetries)
+			if (count >= TeredoRelay::QualificationRetries)
 			{
-				if (maintenance.state == 0)
+				if (state == QUALIFIED)
 				{
 					syslog (LOG_NOTICE, _("Lost Teredo connectivity"));
-					NotifyDown ();
+					m->state.up = false;
+					m->relay->NotifyDown ();
 				}
 
 				count = 0;
-				if (maintenance.state == PROBE_CONE)
+				if (state == PROBE_CONE)
 				{
-					maintenance.state = PROBE_RESTRICT;
-					isCone = false;
+					state = PROBE_RESTRICT;
+					m->state.cone = false;
 				}
-				else
+				else /* PROBE_(RESTRICT|SYMMETRIC) or QUALIFIED */
 				{
 					/* No response from server */
 					syslog (LOG_INFO, _("No reply from Teredo server"));
 					/* Wait some time before retrying */
-					maintenance.state = PROBE_CONE;
-					isCone = true;
-					sleep = RestartDelay;
+					state = PROBE_CONE;
+					m->state.cone = true;
+					sleep = TeredoRelay::RestartDelay;
 				}
 			}
 		}
 		else
-		if (maintenance.state)
+		switch (state)
 		{
-			/* packet received, not qualified yet */
-			if (maintenance.success)
-			{
+			case QUALIFIED:
+				/* packet received, already qualified */
+				count = 0;
+				/* Success: schedule next NAT binding maintenance */
+				sleep = SERVER_PING_DELAY;
+				if (memcmp (&m->state.addr, &newaddr, sizeof (newaddr))
+				|| (m->state.mtu != mtu))
+				{
+					memcpy (&m->state.addr, &newaddr, sizeof (newaddr));
+					m->state.mtu = mtu;
+		
+					syslog (LOG_NOTICE, _("Teredo address/MTU changed"));
+					m->relay->NotifyUp (&newaddr.ip6, mtu);
+					m->state.up = true;
+				}
+				break;
+
+			case PROBE_RESTRICT:
+				state = PROBE_SYMMETRIC;
+				memcpy (&m->state.addr, &newaddr, sizeof (m->state.addr));
+				break;
+
+			case PROBE_SYMMETRIC:
+				if ((m->state.addr.teredo.client_port != newaddr.teredo.client_port)
+				 || (m->state.addr.teredo.client_ip != newaddr.teredo.client_ip))
+				{
+					/* Symmetric NAT failure */
+					/* Wait some time before retrying */
+					syslog (LOG_ERR,
+					        _("Unsupported symmetric NAT detected."));
+					count = 0;
+					state = PROBE_CONE;
+					m->state.cone = true;
+					sleep = TeredoRelay::RestartDelay;
+					break;
+				}
+			case PROBE_CONE:
 				syslog (LOG_INFO, _("Qualified (NAT type: %s)"),
-				        gettext (isCone ? N_("cone") : N_("restricted")));
+				        gettext (m->state.cone
+			                      ? N_("cone") : N_("restricted")));
 
 				count = 0;
-				maintenance.state = 0;
-				NotifyUp (&addr.ip6, mtu);
+				state = QUALIFIED;
+				memcpy (&m->state.addr, &newaddr, sizeof (m->state.addr));
+				m->state.mtu = mtu;
+				m->relay->NotifyUp (&newaddr.ip6, mtu);
+				m->state.up = true;
 
 				/* Success: schedule NAT binding maintenance */
 				sleep = SERVER_PING_DELAY;
-			}
-			else
-			if (maintenance.state == PROBE_RESTRICT)
-			{
-				maintenance.state = PROBE_SYMMETRIC;
-			}
-			else
-			{
-				/* Symmetric NAT failure */
-				/* Wait some time before retrying */
-				syslog (LOG_ERR, _("Unsupported symmetric NAT detected."));
-
-				count = 0;
-				maintenance.state = PROBE_CONE;
-				isCone = true;
-				sleep = RestartDelay;
-			}
-		}
-		else
-		{
-			count = 0;
-			/* Success: schedule next NAT binding maintenance */
-			sleep = SERVER_PING_DELAY;
+				break;
 		}
 
-		// TODO refresh interval optimization
+		/* WAIT UNTIL NEXT SOLICITATION */
+		/* TODO refresh interval optimization */
 		/* TODO: watch for new interface events
 		 * (netlink on Linux, PF_ROUTE on BSD) */
 		if (sleep)
 		{
-			deadline.tv_sec -= QualificationTimeOut;
+			deadline.tv_sec -= TeredoRelay::QualificationTimeOut;
 			deadline.tv_sec += sleep;
 			do
+			{
 				/* we should not be signaled any way */
-				val = pthread_cond_timedwait (&maintenance.received,
-				                              &maintenance.lock, &deadline);
+				val = pthread_cond_timedwait (&m->received,
+				                              &m->lock, &deadline);
+				if (val == 0)
+					/* ignore unexpected packet */
+					(void)pthread_barrier_wait (&m->processed);
+			}
 			while (val != ETIMEDOUT);
 		}
 	}
@@ -291,9 +300,84 @@ void TeredoRelay::MaintenanceThread (void)
 }
 
 
-void *
-TeredoRelay::do_maintenance (void *data)
+static void *do_maintenance (void *opaque)
 {
-	((TeredoRelay *)data)->MaintenanceThread ();
+	maintenance_thread ((teredo_maintenance *)opaque);
 	return NULL;
+}
+
+
+extern "C"
+int teredo_maintenance_start (struct teredo_maintenance *m)
+{
+	int err;
+
+	err = pthread_mutex_init (&m->lock, NULL);
+	if (err == 0)
+	{
+		err = pthread_cond_init (&m->received, NULL);
+		if (err == 0)
+		{
+			err = pthread_barrier_init (&m->processed, NULL, 2);
+			if (err == 0)
+			{
+				err = pthread_create (&m->thread, NULL, do_maintenance, m);
+				if (err == 0)
+					return 0;
+
+				pthread_barrier_destroy (&m->processed);
+			}
+			pthread_cond_destroy (&m->received);
+		}
+		pthread_mutex_destroy (&m->lock);
+	}
+	syslog (LOG_ALERT, _("pthread_create failure: %s"), strerror (err));
+	return 0;
+}
+
+
+extern "C"
+void teredo_maintenance_stop (struct teredo_maintenance *m)
+{
+	pthread_cancel (m->thread);
+	pthread_join (m->thread, NULL);
+	pthread_cond_destroy (&m->received);
+	pthread_mutex_destroy (&m->lock);
+}
+
+
+/* Handle router advertisement for qualification */
+static void
+maintenance_process (const TeredoPacket *packet, teredo_maintenance *m)
+{
+	(void)pthread_mutex_lock (&m->lock);
+	m->incoming = packet;
+	(void)pthread_cond_signal (&m->received);
+	(void)pthread_mutex_unlock (&m->lock);
+	(void)pthread_barrier_wait (&m->processed);
+}
+
+
+void TeredoRelay::ProcessQualificationPacket (const TeredoPacket *packet)
+{
+	/*
+	 * We don't accept router advertisement without nonce.
+	 * It is far too easy to spoof such packets.
+	 */
+	if ((IsServerPacket (packet)) && (packet->GetAuthNonce () != NULL))
+		maintenance_process (packet, &maintenance);
+}
+
+
+bool TeredoRelay::ProcessMaintenancePacket (const TeredoPacket *packet)
+{
+	union teredo_addr newaddr;
+	uint16_t new_mtu;
+
+	if ((packet->GetAuthNonce () == NULL)
+	 || !ParseRA (*packet, &newaddr, IsCone (), &new_mtu))
+		return false;
+
+	maintenance_process (packet, &maintenance);
+	return true;
 }

@@ -50,9 +50,12 @@
 #include <libteredo/relay-udp.h>
 
 #include "packets.h"
-#include "security.h"
 #include <libteredo/relay.h>
 #include "peerlist.h"
+#ifdef MIREDO_TEREDO_CLIENT
+# include "security.h"
+# include "maintain.h"
+#endif
 
 #define TEREDO_TIMEOUT 30 // seconds
 
@@ -62,81 +65,76 @@
 
 TeredoRelay::TeredoRelay (uint32_t pref, uint16_t port, uint32_t ipv4,
                           bool cone)
-	:  allowCone (false), isCone (cone)
+	:  allowCone (false)
 {
-	addr.teredo.prefix = pref;
-	addr.teredo.server_ip = 0;
-	addr.teredo.flags = isCone ? htons (TEREDO_FLAG_CONE) : 0;
+	maintenance.state.addr.teredo.prefix = pref;
+	maintenance.state.addr.teredo.server_ip = 0;
+	if (cone)
+	{
+		maintenance.state.cone = true;
+		maintenance.state.addr.teredo.flags = htons (TEREDO_FLAG_CONE);
+	}
+	else
+	{
+		maintenance.state.cone = false;
+		maintenance.state.addr.teredo.flags = 0;
+	}
 	/* that doesn't really need to match our mapping - the address is only used
 	 * to send Unreachable message */
-	addr.teredo.client_port = ~port;
-	addr.teredo.client_ip = ~ipv4;
+	maintenance.state.addr.teredo.client_port = ~port;
+	maintenance.state.addr.teredo.client_ip = ~ipv4;
 
 	sock.ListenPort (port, ipv4);
 
 	list.ptr = NULL;
 	list.peerNumber = 0;
 
+	maintenance.state.up = true;
+
 #ifdef MIREDO_TEREDO_CLIENT
 	server_ip2 = 0;
-	maintenance.state = 0;
-	maintenance.attended = maintenance.working = false;
-#endif
+	maintenance.relay = NULL;
 }
 
 
-#ifdef MIREDO_TEREDO_CLIENT
 TeredoRelay::TeredoRelay (uint32_t ip, uint32_t ip2,
                           uint16_t port, uint32_t ipv4)
-	: allowCone (false), mtu (1280)
+	: allowCone (false)
 {
 	/*syslog (LOG_DEBUG, "Peer size: %u bytes", sizeof (peer));*/
 	if (!is_ipv4_global_unicast (ip) || !is_ipv4_global_unicast (ip2))
 		syslog (LOG_WARNING, _("Server has a non global IPv4 address. "
 		                       "It will most likely not work."));
 
-	addr.teredo.prefix = PREFIX_UNSET;
-	addr.teredo.server_ip = ip;
-	addr.teredo.flags = htons (TEREDO_FLAG_CONE);
-	addr.teredo.client_ip = 0;
-	addr.teredo.client_port = 0;
+	maintenance.state.mtu = 1280;
+	maintenance.state.addr.teredo.prefix = PREFIX_UNSET;
+	maintenance.state.addr.teredo.server_ip = ip;
+	maintenance.state.addr.teredo.flags = htons (TEREDO_FLAG_CONE);
+	maintenance.state.addr.teredo.client_ip = 0;
+	maintenance.state.addr.teredo.client_port = 0;
+	maintenance.state.up = false;
 
 	server_ip2 = ip2;
 
 	list.ptr = NULL;
 	list.peerNumber = 0;
 
-	maintenance.attended = maintenance.working = false;
-	maintenance.state = (unsigned)(-1);
-
+	maintenance.relay = NULL;
 	if (sock.ListenPort (port, ipv4) == 0)
 	{
-		pthread_mutex_init (&maintenance.lock, NULL);
-		pthread_cond_init (&maintenance.received, NULL);
-		if (pthread_create (&maintenance.thread, NULL, do_maintenance, this))
-		{
-			syslog (LOG_ALERT, _("pthread_create failure: %m"));
-			pthread_cond_destroy (&maintenance.received);
-			pthread_mutex_destroy (&maintenance.lock);
-		}
-		else
-			maintenance.working = true;
+		maintenance.relay = this;
+		if (teredo_maintenance_start (&maintenance))
+			maintenance.relay = NULL;
 	}
-}
 #endif /* ifdef MIREDO_TEREDO_CLIENT */
+}
 
 /* Releases peers list entries */
 TeredoRelay::~TeredoRelay (void)
 {
 #ifdef MIREDO_TEREDO_CLIENT
-	if (maintenance.working)
-	{
-		maintenance.attended = maintenance.working = false;
-		pthread_cancel (maintenance.thread);
-		pthread_join (maintenance.thread, NULL);
-		pthread_cond_destroy (&maintenance.received);
-		pthread_mutex_destroy (&maintenance.lock);
-	}
+	if (maintenance.relay != NULL)
+		teredo_maintenance_stop (&maintenance);
 #endif
 
 	TeredoRelay::peer::DestroyList (list.ptr);
@@ -186,8 +184,8 @@ TeredoRelay::SendUnreach (int code, const void *in, size_t inlen)
 		ratelimit.count--;
 	pthread_mutex_unlock (&ratelimit.lock);
 
-	size_t outlen = BuildICMPv6Error (&buf.hdr, &addr.ip6, ICMP6_DST_UNREACH,
-	                                  code, in, inlen);
+	size_t outlen = BuildICMPv6Error (&buf.hdr, &maintenance.state.addr.ip6,
+	                                  ICMP6_DST_UNREACH, code, in, inlen);
 	return outlen ? SendIPv6Packet (&buf, outlen) : 0;
 }
 
@@ -212,7 +210,7 @@ TeredoRelay::PingPeer (const struct in6_addr *a, peer *p) const
 		// - sending of pings should be done in a separate thread
 		// - we don't check for the 2 seconds delay between pings
 		p->flags.flags.pings++;
-		return SendPing (sock, &addr, a, p->u1.nonce);
+		return SendPing (sock, &maintenance.state.addr, a, p->u1.nonce);
 	}
 	return -1;
 }
@@ -432,46 +430,18 @@ int TeredoRelay::ReceivePacket (void)
 
 #ifdef MIREDO_TEREDO_CLIENT
 	/* FIXME race condition */
-	if (maintenance.state)
-		return ProcessQualificationPacket (&packet);
+	if (IsClient () && !maintenance.state.up)
+	{
+		ProcessQualificationPacket (&packet);
+		return 0;
+	}
 
 	/* Maintenance */
+	/* FIXME race condition */
 	if (IsClient () && IsServerPacket (&packet))
 	{
-		const uint8_t *s_nonce = packet.GetAuthNonce ();
-
-		if (s_nonce != NULL)
-		{
-			pthread_mutex_lock (&maintenance.lock);
-			if (!maintenance.attended /* we don't expect an advert */
-			 || memcmp (s_nonce, maintenance.nonce, 8))
-			{
-				pthread_mutex_unlock (&maintenance.lock);
-				return 0; // server authentication failure
-			}
-
-			// Checks if our Teredo address changed:
-			union teredo_addr newaddr;
-			uint16_t new_mtu = mtu;
-
-			if (ParseRA (packet, &newaddr, IsCone (), &new_mtu)
-			 && (newaddr.teredo.server_ip == GetServerIP ()))
-			{
-				pthread_cond_signal (&maintenance.received);
-				if (memcmp (&addr, &newaddr, sizeof (addr))
-				 || (mtu != new_mtu))
-				{
-					memcpy (&addr, &newaddr, sizeof (addr));
-					mtu = new_mtu;
-
-					syslog (LOG_NOTICE, _("Teredo address/MTU changed"));
-					NotifyUp (&newaddr.ip6, new_mtu);
-				}
-				pthread_mutex_unlock (&maintenance.lock);
-				return 0;
-			}
-			pthread_mutex_unlock (&maintenance.lock);
-		}
+		if (ProcessMaintenancePacket (&packet))
+			return 0;
 
 		const struct teredo_orig_ind *ind = packet.GetOrigInd ();
 		if (ind != NULL)
