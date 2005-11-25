@@ -19,8 +19,8 @@
 
 AM_CPPFLAGS = -I@top_srcdir@/include -I@top_srcdir@ -D_REENTRANT
 
-noinst_LIBRARIES = libtun6.a
+lib_LTLIBRARIES = libtun6.la
 
 # libtun6.a
-libtun6_a_SOURCES = tun6.c
+libtun6_la_SOURCES = tun6.c
 include_HEADERS = tun6.h

@@ -1,5 +1,5 @@
 /*
- * tun6.c - IPv6 interface definition
+ * tun6.c - IPv6 tunnel interface definition
  * $Id$
  */
 

@@ -1,5 +1,5 @@
 /*
- * tun6.h - IPv6 interface class declaration
+ * tun6.h - IPv6 tunnel interface declaration
  * $Id$
  */
 
