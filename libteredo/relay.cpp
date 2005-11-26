@@ -101,7 +101,7 @@ TeredoRelay::TeredoRelay (uint32_t ip, uint32_t ip2,
                           uint16_t port, uint32_t ipv4)
 	: allowCone (false)
 {
-	/*syslog (LOG_DEBUG, "Peer size: %u bytes", sizeof (peer));*/
+	syslog (LOG_DEBUG, "Peer size: %u bytes", sizeof (peer));
 	if (!is_ipv4_global_unicast (ip) || !is_ipv4_global_unicast (ip2))
 		syslog (LOG_WARNING, _("Server has a non global IPv4 address. "
 		                       "It will most likely not work."));
@@ -201,14 +201,14 @@ TeredoRelay::SendUnreach (int code, const void *in, size_t inlen)
 int
 TeredoRelay::PingPeer (const struct in6_addr *a, peer *p) const
 {
-	if (p->flags.flags.pings < 3)
+	if (p->pings < 3)
 	{
 		// FIXME: re-send echo request later if no response
 
 		// FIXME FIXME FIXME:
 		// - sending of pings should be done in a separate thread
 		// - we don't check for the 2 seconds delay between pings
-		p->flags.flags.pings++;
+		p->pings++;
 		return SendPing (sock, &maintenance.state.addr, a) ? 0 : -1;
 	}
 	return -1;
@@ -299,12 +299,12 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 	if (p != NULL)
 	{
 		/* Case 1 (paragraphs 5.2.4 & 5.4.1): trusted peer */
-		if (p->flags.flags.trusted)
+		if (p->trusted)
 		{
 			/* Already known -valid- peer */
 			p->TouchTransmit ();
-			return sock.SendPacket (packet, length, p->mapping.addr,
-			                        p->mapping.port);
+			return sock.SendPacket (packet, length, p->mapped_addr,
+			                        p->mapped_port);
 		}
 	}
 
@@ -323,9 +323,9 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 			if (p == NULL)
 				return -1; // memory error
 
-			p->mapping.port = 0;
-			p->mapping.addr = 0;
-			p->flags.all_flags = 0;
+			p->mapped_port = 0;
+			p->mapped_addr = 0;
+			p->trusted = p->replied = p->bubbles = p->pings = 0;
 			p->TouchTransmit ();
 		}
 
@@ -355,7 +355,7 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 			return -1; // insufficient memory
 
 		p->SetMapping (IN6_TEREDO_IPV4 (dst), IN6_TEREDO_PORT (dst));
-		p->flags.all_flags = 0;
+		p->trusted = p->replied = p->bubbles = p->pings = 0;
 
 		// NOTE: we call TouchTransmit() but if the peer is non-cone, and
 		// we are cone, we don't actually send a packet
@@ -364,9 +364,9 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 		/* Client case 4 & relay case 2: new cone peer */
 		if (allowCone && IN6_IS_TEREDO_ADDR_CONE (dst))
 		{
-			p->flags.flags.trusted = 1;
-			return sock.SendPacket (packet, length, p->mapping.addr,
-			                        p->mapping.port);
+			p->trusted = 1;
+			return sock.SendPacket (packet, length, p->mapped_addr,
+			                        p->mapped_port);
 		}
 	}
 
@@ -380,10 +380,10 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 
 	// Sends no more than one bubble every 2 seconds,
 	// and 3 bubbles every 30 secondes
-	if (p->flags.flags.bubbles < 3)
+	if (p->bubbles < 3)
 	{
-		//if (!p->flags.flags.bubbles || ((now - p->last_xmit) >= 2))
-		p->flags.flags.bubbles ++;
+		//if (!p->bubbles || ((now - p->last_xmit) >= 2))
+		p->bubbles ++;
 
 		/*
 		 * Open the return path if we are behind a
@@ -544,9 +544,9 @@ int TeredoRelay::ReceivePacket (void)
 	if (p != NULL)
 	{
 		// Client case 1 (trusted node or (trusted) Teredo client):
-		if (p->flags.flags.trusted
-		 && (packet.GetClientIP () == p->mapping.addr)
-		 && (packet.GetClientPort () == p->mapping.port))
+		if (p->trusted
+		 && (packet.GetClientIP () == p->mapped_addr)
+		 && (packet.GetClientPort () == p->mapped_port))
 		{
 			p->TouchReceive ();
 			return SendIPv6Packet (buf, length);
@@ -554,9 +554,9 @@ int TeredoRelay::ReceivePacket (void)
 
 #ifdef MIREDO_TEREDO_CLIENT
 		// Client case 2 (untrusted non-Teredo node):
-		if ((!p->flags.flags.trusted) && CheckPing (packet))
+		if ((!p->trusted) && CheckPing (packet))
 		{
-			p->flags.flags.trusted = 1;
+			p->trusted = 1;
 
 			p->SetMappingFromPacket (packet);
 			p->TouchReceive ();
@@ -589,7 +589,7 @@ int TeredoRelay::ReceivePacket (void)
 
 					p->SetMapping (IN6_TEREDO_IPV4 (&ip6.ip6_src),
 				    	           IN6_TEREDO_PORT (&ip6.ip6_src));
-					p->flags.all_flags = 0;
+					p->trusted = p->replied = p->bubbles = p->pings = 0;
 				}
 				else
 #endif
@@ -606,7 +606,7 @@ int TeredoRelay::ReceivePacket (void)
 			else
 				p->Dequeue (this);
 
-			p->flags.flags.trusted = 1;
+			p->trusted = 1;
 			p->TouchReceive ();
 
 			if (IsBubble (&ip6))
@@ -641,13 +641,13 @@ int TeredoRelay::ReceivePacket (void)
 		if (p == NULL)
 			return -1; // memory error
 
-		p->mapping.port = 0;
-		p->mapping.addr = 0;
-		p->flags.all_flags = 0;
+		p->mapped_port = 0;
+		p->mapped_addr = 0;
+		p->trusted = p->replied = p->bubbles = p->pings = 0;
 	}
 #if 0
 	else
-	if (p->flags.flags.trusted)
+	if (p->trusted)
 		/*
 		 * Trusted node, but mismatch. That can only happen if:
 		 *  - someone is spoofing the node,

@@ -30,11 +30,13 @@ class TeredoRelay::peer
 {
 	public:
 		union teredo_addr addr;
-		struct
-		{
-			uint32_t addr;
-			uint16_t port;
-		} mapping;
+		unsigned trusted:1;
+		unsigned replied:1;
+		unsigned bubbles:2;
+		unsigned pings:2;
+		unsigned dummy:10;
+		uint16_t mapped_port;
+		uint32_t mapped_addr;
 
 		peer *next;
 
@@ -50,19 +52,6 @@ class TeredoRelay::peer
 		{
 		}
 
-		union
-		{
-			struct
-			{
-				unsigned trusted:1;
-				unsigned replied:1;
-				unsigned bubbles:2;
-				unsigned pings:2;
-				unsigned dummy:10;
-			} flags;
-			uint16_t all_flags;
-		} flags;
-
 	private:
 		void Touch (void)
 		{
@@ -73,8 +62,8 @@ class TeredoRelay::peer
 	public:
 		void SetMapping (uint32_t ip, uint16_t port)
 		{
-			mapping.addr = ip;
-			mapping.port = port;
+			mapped_addr = ip;
+			mapped_port = port;
 		}
 
 		void SetMappingFromPacket (const TeredoPacket& p)
@@ -84,13 +73,13 @@ class TeredoRelay::peer
 
 		void TouchReceive (void)
 		{
-			flags.flags.replied = 1;
+			replied = 1;
 			Touch ();
 		}
 
 		void TouchTransmit (void)
 		{
-			if (flags.flags.replied == 0)
+			if (replied == 0)
 				Touch ();
 		}
 
