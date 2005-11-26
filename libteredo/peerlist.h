@@ -30,11 +30,12 @@ class TeredoRelay::peer
 {
 	public:
 		union teredo_addr addr;
-		unsigned trusted:1;
-		unsigned replied:1;
-		unsigned bubbles:2;
 		unsigned pings:2;
-		unsigned dummy:10;
+		unsigned next_ping:5;
+		unsigned trusted:1;
+		unsigned bubbles:2;
+		unsigned next_bubble:5;
+		unsigned replied:1;
 		uint16_t mapped_port;
 		uint32_t mapped_addr;
 
@@ -105,6 +106,9 @@ class TeredoRelay::peer
 		{
 			return ((signed)(now - expiry)) > 0;
 		}
+
+		bool CountBubble (void);
+		bool CountPing (void);
 
 		static void DestroyList (void *head);
 };

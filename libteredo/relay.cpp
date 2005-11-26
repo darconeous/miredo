@@ -101,7 +101,7 @@ TeredoRelay::TeredoRelay (uint32_t ip, uint32_t ip2,
                           uint16_t port, uint32_t ipv4)
 	: allowCone (false)
 {
-	/*syslog (LOG_DEBUG, "Peer size: %u bytes", sizeof (peer));*/
+	syslog (LOG_DEBUG, "Peer size: %u bytes", sizeof (peer));
 	if (!is_ipv4_global_unicast (ip) || !is_ipv4_global_unicast (ip2))
 		syslog (LOG_WARNING, _("Server has a non global IPv4 address. "
 		                       "It will most likely not work."));
@@ -198,19 +198,45 @@ TeredoRelay::SendUnreach (int code, const void *in, size_t inlen)
 
 
 #ifdef MIREDO_TEREDO_CLIENT
+bool TeredoRelay::peer::CountPing (void)
+{
+	time_t now;
+	bool res;
+
+	time (&now);
+
+	if (pings == 0)
+		res = true;
+	else if (pings == 3)
+		res = false;
+	else
+	/*
+	 * NOTE/FIXME:
+	 * We hereby assume that expiry does not change.
+	 * In practice, the value may increase. In that case,
+	 * It will increase the delay of 2 seconds between pings
+	 * to something longer, which is allowed (2 seconds is a
+	 * minimum).
+	 */
+		res = ((unsigned)now > expiry - next_ping);
+
+	if (res)
+	{
+		int next;
+
+		next = expiry - (now + 2);
+		pings ++;
+		next_ping = next < 31 ? next : 30;
+	}
+	return res;
+}
+
+
 int
 TeredoRelay::PingPeer (const struct in6_addr *a, peer *p) const
 {
-	if (p->pings < 3)
-	{
-		// FIXME: re-send echo request later if no response
-
-		// FIXME FIXME FIXME:
-		// - sending of pings should be done in a separate thread
-		// - we don't check for the 2 seconds delay between pings
-		p->pings++;
+	if (p->CountPing ())
 		return SendPing (sock, &maintenance.state.addr, a) ? 0 : -1;
-	}
 	return -1;
 }
 #endif
@@ -223,6 +249,33 @@ TeredoRelay::PingPeer (const struct in6_addr *a, peer *p) const
 inline bool IsBubble (const struct ip6_hdr *hdr)
 {
 	return (hdr->ip6_plen == 0) && (hdr->ip6_nxt == IPPROTO_NONE);
+}
+
+
+bool TeredoRelay::peer::CountBubble (void)
+{
+	/* Same code as CountPing above */
+	time_t now;
+	bool res;
+
+	time (&now);
+
+	if (bubbles == 0)
+		res = true;
+	else if (bubbles == 3)
+		res = false;
+	else
+		res = ((unsigned)now > expiry - next_bubble);
+
+	if (res)
+	{
+		int next;
+
+		next = expiry - (now + 2);
+		bubbles ++;
+		next_bubble = next < 31 ? next : 30;
+	}
+	return res;
 }
 
 
@@ -373,18 +426,10 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 	/* Client case 5 & relay case 3: untrusted non-cone peer */
 	p->QueueOutgoing (packet, length);
 
-	// FIXME FIXME FIXME:
-	// - sending of bubbles should be done in a separate thread
-	// - we do no longer check for the 2 seconds delay between bubbles
-	//   which really sucks
-
 	// Sends no more than one bubble every 2 seconds,
 	// and 3 bubbles every 30 secondes
-	if (p->bubbles < 3)
+	if (p->CountBubble ())
 	{
-		//if (!p->bubbles || ((now - p->last_xmit) >= 2))
-		p->bubbles ++;
-
 		/*
 		 * Open the return path if we are behind a
 		 * restricted NAT.

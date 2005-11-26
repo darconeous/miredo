@@ -40,10 +40,6 @@ Security:
 ( ) automatic/dynamic relay access control list
     (stateful firewall-like)
 
-Conformance:
--------------
-(*) fix bubbles & pings retransmit and timing
-
 Performance/scalibility:
 -------------------------
 (!) faster peer lists lookups/updates,
