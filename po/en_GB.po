@@ -1,6 +1,6 @@
-# Miredo american english localization.
+# Miredo english/british english localisation.
 # Copyright (C) 2004-2005 Rémi Denis-Courmont
-# This file is distributed under the same license as the miredo package.
+# This file is distributed under the same licence as the miredo package.
 # Rémi Denis-Courmont <rdenis@simphalempin.com>, 2004.
 # $Id: fr.po 684 2005-10-09 16:12:25Z remi $
 #
@@ -63,7 +63,7 @@ msgstr ""
 
 #: libteredo/maintain.cpp:109
 msgid "Too much time drift. Resynchronizing."
-msgstr ""
+msgstr "Too much time drift. Resynchronising."
 
 #: libteredo/maintain.cpp:218
 msgid "Lost Teredo connectivity"
