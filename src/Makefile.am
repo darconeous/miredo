@@ -51,7 +51,7 @@ if TEREDO_CLIENT
 miredo_SOURCES += privproc.c privproc.h
 endif
 miredo_LDADD = $(LIBINTL) libmiredo.a \
-		../libtun6/libtun6.a ../libteredo/libteredo.la
+		../libtun6/libtun6.la ../libteredo/libteredo.la
 
 # miredo-server
 miredo_server_SOURCES = server.cpp
