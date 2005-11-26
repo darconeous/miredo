@@ -101,7 +101,7 @@ TeredoRelay::TeredoRelay (uint32_t ip, uint32_t ip2,
                           uint16_t port, uint32_t ipv4)
 	: allowCone (false)
 {
-	syslog (LOG_DEBUG, "Peer size: %u bytes", sizeof (peer));
+	/*syslog (LOG_DEBUG, "Peer size: %u bytes", sizeof (peer));*/
 	if (!is_ipv4_global_unicast (ip) || !is_ipv4_global_unicast (ip2))
 		syslog (LOG_WARNING, _("Server has a non global IPv4 address. "
 		                       "It will most likely not work."));
