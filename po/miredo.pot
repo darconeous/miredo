@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: rdenis@simphalempin.com\n"
-"POT-Creation-Date: 2005-11-26 11:48+0100\n"
+"POT-Creation-Date: 2005-11-26 21:41+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -35,25 +35,29 @@ msgstr ""
 msgid "Server has a non global IPv4 address. It will most likely not work."
 msgstr ""
 
-#: libteredo/relay.cpp:468
+#: libteredo/relay.cpp:512
 msgid "Ignoring invalid bubble: your Teredo server is probably buggy."
 msgstr ""
 
-#: libteredo/security.c:56
+#: libteredo/security.c:62
 #, c-format
 msgid "Error opening %s: %m"
 msgstr ""
 
-#: libteredo/security.c:114
+#: libteredo/security.c:120
 #, c-format
 msgid "Error reading random data: %m"
 msgstr ""
 
-#: libteredo/packets.cpp:270
+#: libteredo/security.c:144
+msgid "Libgcrypt version mismatch."
+msgstr ""
+
+#: libteredo/packets.cpp:271
 msgid "Multiple Teredo prefixes received"
 msgstr ""
 
-#: libteredo/packets.cpp:306
+#: libteredo/packets.cpp:307
 msgid "Invalid Teredo prefix received"
 msgstr ""
 

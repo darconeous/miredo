@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: miredo 0.5.4\n"
 "Report-Msgid-Bugs-To: rdenis@simphalempin.com\n"
-"POT-Creation-Date: 2005-11-26 11:48+0100\n"
+"POT-Creation-Date: 2005-11-26 21:41+0100\n"
 "PO-Revision-Date: 2005-11-09 22:20+0100\n"
 "Last-Translator: Rémi Denis-Courmont <rdenis (at) simphalempin (dot) com>\n"
 "Language-Team: N/A\n"
@@ -39,25 +39,29 @@ msgstr ""
 "Le serveur a une adresse IPv4 non globale. Ça ne fonctionnera "
 "vraisemblablement pas."
 
-#: libteredo/relay.cpp:468
+#: libteredo/relay.cpp:512
 msgid "Ignoring invalid bubble: your Teredo server is probably buggy."
 msgstr "Bulle invalide ignorée : votre serveur Teredo est probablement bogué."
 
-#: libteredo/security.c:56
+#: libteredo/security.c:62
 #, c-format
 msgid "Error opening %s: %m"
 msgstr "Erreur d'ouverture de %s : %m"
 
-#: libteredo/security.c:114
+#: libteredo/security.c:120
 #, c-format
 msgid "Error reading random data: %m"
 msgstr "Erreur de lecture de données aléatoires : %m"
 
-#: libteredo/packets.cpp:270
+#: libteredo/security.c:144
+msgid "Libgcrypt version mismatch."
+msgstr "Erreur de version de Libgcrypt"
+
+#: libteredo/packets.cpp:271
 msgid "Multiple Teredo prefixes received"
 msgstr "Plusieurs préfixes Teredo reçus"
 
-#: libteredo/packets.cpp:306
+#: libteredo/packets.cpp:307
 msgid "Invalid Teredo prefix received"
 msgstr "Préfixe Teredo reçu invalide"
 
