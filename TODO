@@ -43,7 +43,6 @@ Security:
 Performance/scalibility:
 -------------------------
 (!) faster peer lists lookups/updates,
-( ) distinguish (Teredo) peers from (IPv6) nodes (1-n),
 (!) peers list garbage collection,
 ( ) multi-threading in relay/client
 

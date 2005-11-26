@@ -31,6 +31,12 @@ BETA RELEASE 0.5.6 : Minor features enhancement
 # Partially rewritten IPv6 tunneling driver; now supports Darwin (Mac OS X).
 # Emit ICMPv6 Address unreachable error packets when a destination cannot
   be reached via Teredo tunneling.
+# Force 2-seconds delay between multiple Echo Requests and Teredo bubbles.
+# Use HMAC-MD5 for Echo Requests "nonce", rather than kernel entropy pool
+  (heavily reduce kernel entropy pool usage).
+# Fix Teredo client maintenance in case of system clock drift (could be
+  caused by SIGSTOP, APM/ACPI/software suspend, debugger, or system load).
+# Define Linux kernel 2.6.9 as the minimum supported Linux kernel version.
 
 =============================================================================
 BETA RELEASE 0.5.4 : Major bugfixes
