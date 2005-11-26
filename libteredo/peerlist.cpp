@@ -211,8 +211,7 @@ void TeredoRelay::peer::Dequeue (TeredoRelay *r)
 			r->SendIPv6Packet (ptr->data, ptr->length);
 		else
 			r->sock.SendPacket (ptr->data, ptr->length,
-			                    u1.mapping.mapped_addr,
-								u1.mapping.mapped_port);
+			                    mapping.addr, mapping.port);
 		free (ptr);
 		ptr = buf;
 	}

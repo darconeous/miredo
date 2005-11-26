@@ -30,16 +30,11 @@ class TeredoRelay::peer
 {
 	public:
 		union teredo_addr addr;
-		union
+		struct
 		{
-			struct
-			{
-				uint32_t mapped_addr;
-				uint16_t mapped_port;
-			} mapping;
-			/* TODO: use some kind of hashing, instead */
-			uint8_t nonce[8]; /* only for client toward non-client */
-		} u1;
+			uint32_t addr;
+			uint16_t port;
+		} mapping;
 
 		peer *next;
 
@@ -63,8 +58,7 @@ class TeredoRelay::peer
 				unsigned replied:1;
 				unsigned bubbles:2;
 				unsigned pings:2;
-				unsigned nonce:1; // mapped_* unset, nonce set
-				unsigned dummy:9;
+				unsigned dummy:10;
 			} flags;
 			uint16_t all_flags;
 		} flags;
@@ -79,8 +73,8 @@ class TeredoRelay::peer
 	public:
 		void SetMapping (uint32_t ip, uint16_t port)
 		{
-			u1.mapping.mapped_addr = ip;
-			u1.mapping.mapped_port = port;
+			mapping.addr = ip;
+			mapping.port = port;
 		}
 
 		void SetMappingFromPacket (const TeredoPacket& p)

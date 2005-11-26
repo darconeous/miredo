@@ -45,6 +45,7 @@
 #include <libteredo/v4global.h> // is_ipv4_global_unicast()
 #include <libteredo/relay-udp.h>
 
+#include "security.h"
 #include "packets.h"
 #include "checksum.h"
 
@@ -319,22 +320,22 @@ ParseRA (const TeredoPacket& packet, union teredo_addr *newaddr, bool cone,
 	return true;
 }
 
-
+#define PING_PAYLOAD (LIBTEREDO_HMAC_LEN - 4)
 /*
  * Sends an ICMPv6 Echo request toward an IPv6 node through the Teredo server.
  */
-int SendPing (const TeredoRelayUDP& sock, const union teredo_addr *src,
-		const struct in6_addr *dst, const uint8_t *nonce)
+bool SendPing (const TeredoRelayUDP& sock, const union teredo_addr *src,
+               const struct in6_addr *dst)
 {
 	struct
 	{
 		struct ip6_hdr ip6;
 		struct icmp6_hdr icmp6;
-                uint32_t payload;
+		uint8_t payload[PING_PAYLOAD];
 	} ping;
 
 	ping.ip6.ip6_flow = htonl (0x60000000);
-	ping.ip6.ip6_plen = htons (sizeof (ping.icmp6) + 4);
+	ping.ip6.ip6_plen = htons (sizeof (ping.icmp6) + PING_PAYLOAD);
 	ping.ip6.ip6_nxt = IPPROTO_ICMPV6;
 	ping.ip6.ip6_hlim = 21;
 	memcpy (&ping.ip6.ip6_src, src, sizeof (ping.ip6.ip6_src));
@@ -347,12 +348,14 @@ int SendPing (const TeredoRelayUDP& sock, const union teredo_addr *src,
 	ping.icmp6.icmp6_id = 0;
 	ping.icmp6.icmp6_seq = 0;
 	 */
-	memcpy (&ping.icmp6.icmp6_id, nonce, 8);
+	if (!GenerateHMAC (&ping.ip6.ip6_src, &ping.ip6.ip6_dst,
+	                   &ping.icmp6.icmp6_id))
+		return false;
 
 	ping.icmp6.icmp6_cksum = icmp6_checksum (&ping.ip6, &ping.icmp6);
 
-	return sock.SendPacket (&ping, sizeof (ping), IN6_TEREDO_SERVER (src),
-				htons (IPPORT_TEREDO));
+	return !sock.SendPacket (&ping, sizeof (ping),
+	                         IN6_TEREDO_SERVER (src), htons (IPPORT_TEREDO));
 }
 
 
@@ -361,7 +364,7 @@ int SendPing (const TeredoRelayUDP& sock, const union teredo_addr *src,
  * specified nonce value. Returns true if that is the case, false otherwise.
  */
 bool
-CheckPing (const TeredoPacket& packet, const uint8_t *nonce)
+CheckPing (const TeredoPacket& packet)
 {
 	size_t length;
 	const struct ip6_hdr *ip6 =
@@ -369,7 +372,7 @@ CheckPing (const TeredoPacket& packet, const uint8_t *nonce)
 
 	// Only read bytes, so no need to align
 	if ((ip6->ip6_nxt != IPPROTO_ICMPV6)
-	 || (length < (sizeof (*ip6) + sizeof (struct icmp6_hdr) + 4)))
+	 || (length < (sizeof (*ip6) + sizeof (struct icmp6_hdr) + PING_PAYLOAD)))
 		return false;
 
 	const struct icmp6_hdr *icmp6 = (const struct icmp6_hdr *)(ip6 + 1);
@@ -391,13 +394,13 @@ CheckPing (const TeredoPacket& packet, const uint8_t *nonce)
 		length -= sizeof (*ip6) + sizeof (*icmp6);
 		ip6 = (const struct ip6_hdr *)(icmp6 + 1);
 
-		if ((length < (sizeof (*ip6) + sizeof (*icmp6) + 4))
+		if ((length < (sizeof (*ip6) + sizeof (*icmp6) + PING_PAYLOAD))
 		 || (ip6->ip6_nxt != IPPROTO_ICMPV6))
 			return false;
 
 		uint16_t plen;
 		memcpy (&plen, &ip6->ip6_plen, sizeof (plen));
-		if (ntohs (plen) != (sizeof (*icmp6) + 4))
+		if (ntohs (plen) != (sizeof (*icmp6) + PING_PAYLOAD))
 			return false; // not a ping from us
 
 		icmp6 = (const struct icmp6_hdr *)(ip6 + 1);
@@ -410,9 +413,9 @@ CheckPing (const TeredoPacket& packet, const uint8_t *nonce)
 	if ((icmp6->icmp6_type != ICMP6_ECHO_REPLY)
 	 || (icmp6->icmp6_code != 0))
 		return false;
-	
+
+	return CompareHMAC (&ip6->ip6_dst, &ip6->ip6_src, &icmp6->icmp6_id);
 	/* TODO: check the sum(?) */
-	return !memcmp (&icmp6->icmp6_id, nonce, 8);
 }
 #endif
 

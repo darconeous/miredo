@@ -120,12 +120,16 @@ TeredoRelay::TeredoRelay (uint32_t ip, uint32_t ip2,
 	list.peerNumber = 0;
 
 	maintenance.relay = NULL;
-	if (sock.ListenPort (port, ipv4) == 0)
+	if (InitHMAC () && (sock.ListenPort (port, ipv4) == 0))
 	{
 		maintenance.relay = this;
 		if (teredo_maintenance_start (&maintenance))
+		{
 			maintenance.relay = NULL;
+			DeinitHMAC ();
+		}
 	}
+
 #endif /* ifdef MIREDO_TEREDO_CLIENT */
 }
 
@@ -134,7 +138,10 @@ TeredoRelay::~TeredoRelay (void)
 {
 #ifdef MIREDO_TEREDO_CLIENT
 	if (maintenance.relay != NULL)
+	{
 		teredo_maintenance_stop (&maintenance);
+		DeinitHMAC ();
+	}
 #endif
 
 	TeredoRelay::peer::DestroyList (list.ptr);
@@ -196,21 +203,13 @@ TeredoRelay::PingPeer (const struct in6_addr *a, peer *p) const
 {
 	if (p->flags.flags.pings < 3)
 	{
-		if (!p->flags.flags.nonce)
-		{
-			if (!GenerateNonce (p->u1.nonce, false))
-				return -1;
-
-			p->flags.flags.nonce = 1;
-		}
-
 		// FIXME: re-send echo request later if no response
 
 		// FIXME FIXME FIXME:
 		// - sending of pings should be done in a separate thread
 		// - we don't check for the 2 seconds delay between pings
 		p->flags.flags.pings++;
-		return SendPing (sock, &maintenance.state.addr, a, p->u1.nonce);
+		return SendPing (sock, &maintenance.state.addr, a) ? 0 : -1;
 	}
 	return -1;
 }
@@ -304,8 +303,8 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 		{
 			/* Already known -valid- peer */
 			p->TouchTransmit ();
-			return sock.SendPacket (packet, length, p->u1.mapping.mapped_addr,
-			                        p->u1.mapping.mapped_port);
+			return sock.SendPacket (packet, length, p->mapping.addr,
+			                        p->mapping.port);
 		}
 	}
 
@@ -324,8 +323,8 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 			if (p == NULL)
 				return -1; // memory error
 
-			p->u1.mapping.mapped_port = 0;
-			p->u1.mapping.mapped_addr = 0;
+			p->mapping.port = 0;
+			p->mapping.addr = 0;
 			p->flags.all_flags = 0;
 			p->TouchTransmit ();
 		}
@@ -366,8 +365,8 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 		if (allowCone && IN6_IS_TEREDO_ADDR_CONE (dst))
 		{
 			p->flags.flags.trusted = 1;
-			return sock.SendPacket (packet, length, p->u1.mapping.mapped_addr,
-			                        p->u1.mapping.mapped_port);
+			return sock.SendPacket (packet, length, p->mapping.addr,
+			                        p->mapping.port);
 		}
 	}
 
@@ -546,8 +545,8 @@ int TeredoRelay::ReceivePacket (void)
 	{
 		// Client case 1 (trusted node or (trusted) Teredo client):
 		if (p->flags.flags.trusted
-		 && (packet.GetClientIP () == p->u1.mapping.mapped_addr)
-		 && (packet.GetClientPort () == p->u1.mapping.mapped_port))
+		 && (packet.GetClientIP () == p->mapping.addr)
+		 && (packet.GetClientPort () == p->mapping.port))
 		{
 			p->TouchReceive ();
 			return SendIPv6Packet (buf, length);
@@ -555,11 +554,9 @@ int TeredoRelay::ReceivePacket (void)
 
 #ifdef MIREDO_TEREDO_CLIENT
 		// Client case 2 (untrusted non-Teredo node):
-		if ((!p->flags.flags.trusted) && p->flags.flags.nonce
-		 && CheckPing (packet, p->u1.nonce))
+		if ((!p->flags.flags.trusted) && CheckPing (packet))
 		{
 			p->flags.flags.trusted = 1;
-			p->flags.flags.nonce = 0;
 
 			p->SetMappingFromPacket (packet);
 			p->TouchReceive ();
@@ -644,10 +641,11 @@ int TeredoRelay::ReceivePacket (void)
 		if (p == NULL)
 			return -1; // memory error
 
-		p->u1.mapping.mapped_port = 0;
-		p->u1.mapping.mapped_addr = 0;
+		p->mapping.port = 0;
+		p->mapping.addr = 0;
 		p->flags.all_flags = 0;
 	}
+#if 0
 	else
 	if (p->flags.flags.trusted)
 		/*
@@ -656,16 +654,9 @@ int TeredoRelay::ReceivePacket (void)
 		 *  - the node has changed relay (very unlikely),
 		 *  - unfortunate node has multiple relay doing load-balancing
 		 *    (that is not supposed to work with the Teredo protocol).
-		 * In pre-0.6.0 versions, miredo would perform the direct connectivity
-		 * ping check in this case. As of 0.6.0, the (ip, port) mapping is
-		 * union'ed with the nonce value (saves 6/8 bytes per peer), so doing
-		 * the ping check would cause reseting the mapping. That would allow
-		 * a trivial DoS by the "spoofing the node" case. As it is very
-		 * unlikely to happen for legitimate traffic, we do no longer do it.
-		 * When that happens, ie. some node has changed its Teredo relay, we
-		 * can afford to wait (at most) 30 seconds until the mapping expires.
 		 */
 		return 0;
+#endif
 
 	p->QueueIncoming (buf, length);
 	p->TouchReceive ();

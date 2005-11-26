@@ -70,12 +70,11 @@ bool
 ParseRA (const TeredoPacket& packet, union teredo_addr *newaddr, bool cone,
          uint16_t *mtu);
 
-int
-SendPing (const TeredoRelayUDP& sock, const union teredo_addr *src,
-          const struct in6_addr *dst, const uint8_t *nonce);
-
 bool
-CheckPing (const TeredoPacket& packet, const uint8_t *nonce);
+SendPing (const TeredoRelayUDP& sock, const union teredo_addr *src,
+          const struct in6_addr *dst);
+
+bool CheckPing (const TeredoPacket& packet);
 
 
 int

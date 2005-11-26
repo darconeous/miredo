@@ -22,9 +22,14 @@
 #ifndef __LIBTEREDO_SECURITY_H
 # define __LIBTEREDO_SECURITY_H
 
+struct in6_addr;
+
 # ifdef __cplusplus
 extern "C" {
 # endif
+
+#define LIBTEREDO_NONCE_LEN 8
+#define LIBTEREDO_HMAC_LEN 20
 
 /**
  * Has to be called before any call to GenerateNonce() can succeed.
@@ -50,6 +55,13 @@ void DeinitNonceGenerator (void);
  * @return false on error, true on success
  */
 bool GenerateNonce (unsigned char *b, bool critical);
+
+bool InitHMAC (void);
+void DeinitHMAC (void);
+bool GenerateHMAC (const struct in6_addr *src, const struct in6_addr *dst,
+                   void *hash);
+bool CompareHMAC (const struct in6_addr *src, const struct in6_addr *dst,
+                  const void *hash);
 
 # ifdef __cplusplus
 }
