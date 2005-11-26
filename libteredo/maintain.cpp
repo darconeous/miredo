@@ -42,7 +42,7 @@
 #include <sys/time.h>
 #include <netinet/in.h> /* struct in6_addr */
 #include <syslog.h>
-#include <errno.h> /* ETIMEDOUT */
+#include <errno.h> /* EINTR */
 
 #include <libteredo/teredo.h>
 
@@ -94,9 +94,25 @@ maintenance_recv (const TeredoPacket *packet, uint32_t server_ip, uint8_t *nonce
 }
 
 
-#if 0
+/* Make sure tv is in the future. If not set it to the current time.
+ * Returns false if *tv was changed. */
+static bool
+checkTimeDrift (struct timespec *tv)
+{
+	struct timeval now;
 
-#endif
+	(void)gettimeofday (&now, NULL);
+	if ((now.tv_sec > tv->tv_sec)
+	 || ((now.tv_sec == tv->tv_sec) && (now.tv_sec >= (tv->tv_nsec / 1000))))
+	{
+		/* process stopped, CPU starved, or (ACPI, APM, etc) suspend */
+		syslog (LOG_WARNING, _("Too much time drift. Resynchronizing."));
+		tv->tv_sec = now.tv_sec;
+		tv->tv_nsec = now.tv_usec * 1000;
+		return false;
+	}
+	return true;
+}
 
 
 static void
@@ -152,11 +168,13 @@ static inline void maintenance_thread (teredo_maintenance *m)
 		}
 
 		/* SEND ROUTER SOLICATION */
+		do
+			deadline.tv_sec += TeredoRelay::QualificationTimeOut;
+		while (!checkTimeDrift (&deadline));
+
 		SendRS (m->relay->sock, state == PROBE_RESTRICT /* secondary */
 		              ? m->relay->GetServerIP2 () : m->relay->GetServerIP (),
 		        nonce.value, m->state.cone);
-
-		deadline.tv_sec += TeredoRelay::QualificationTimeOut;
 
 		/* RECEIVE ROUTER ADVERTISEMENT */
 		union teredo_addr newaddr;
