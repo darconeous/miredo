@@ -230,7 +230,7 @@ static bool
 SendIPv6Packet (int fd, const void *p, size_t plen)
 {
 	struct sockaddr_in6 dst = { };
-	int res;
+	int tries, res;
 
 	dst.sin6_family = AF_INET6;
 #ifdef HAVE_SA_LEN
@@ -240,7 +240,7 @@ SendIPv6Packet (int fd, const void *p, size_t plen)
 	        sizeof (dst.sin6_addr));
 	plen += sizeof (struct ip6_hdr);
 
-	do
+	for (tries = 0; tries < 10; tries++)
 	{
 		res = sendto (fd, p, plen, 0, (struct sockaddr *)&dst, sizeof (dst));
 
@@ -260,7 +260,6 @@ SendIPv6Packet (int fd, const void *p, size_t plen)
 					return false;
 			}
 	}
-	while (res == -1);
 
 	return res == (int)plen;
 }

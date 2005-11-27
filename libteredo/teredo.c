@@ -102,7 +102,7 @@ int teredo_send (int fd, const void *packet, size_t plen,
                  uint32_t dest_ip, uint16_t dest_port)
 {
 	struct sockaddr_in addr;
-	int res;
+	int res, tries;
 
 	if (plen > 65507)
 	{
@@ -117,7 +117,7 @@ int teredo_send (int fd, const void *packet, size_t plen,
 	addr.sin_len = sizeof (addr);
 #endif
 
-	do
+	for (tries = 0; tries < 10; tries++)
 	{
 		res = sendto (fd, packet, plen, 0,
 					  (struct sockaddr *)&addr, sizeof (addr));
@@ -131,6 +131,11 @@ int teredo_send (int fd, const void *packet, size_t plen,
 		 * while it would have been a good idea to handle that case properly,
 		 * it's never been implemented in Miredo, and it turns out the ICMP
 		 * errors issue prevents any future implementation.
+		 *
+		 * NOTE 2:
+		 * To prevent an infinite loop in case of a really unreachable
+		 * destination, we must have a limit on the number of sendto()
+		 * attempts.
 		 */
 		if (res == -1)
 			switch (errno)
@@ -152,5 +157,6 @@ int teredo_send (int fd, const void *packet, size_t plen,
 			}
 	}
 	while (res == -1);
+
 	return res;
 }
