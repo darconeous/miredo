@@ -230,6 +230,7 @@ static bool
 SendIPv6Packet (int fd, const void *p, size_t plen)
 {
 	struct sockaddr_in6 dst = { };
+	int res;
 
 	dst.sin6_family = AF_INET6;
 #ifdef HAVE_SA_LEN
@@ -239,8 +240,29 @@ SendIPv6Packet (int fd, const void *p, size_t plen)
 	        sizeof (dst.sin6_addr));
 	plen += sizeof (struct ip6_hdr);
 
-	return sendto (fd, p, plen, 0, (struct sockaddr *)&dst, sizeof (dst))
-			== (int)plen;
+	do
+	{
+		res = sendto (fd, p, plen, 0, (struct sockaddr *)&dst, sizeof (dst));
+
+		if (res == -1)
+			switch (errno)
+			{
+				case ENETUNREACH: /* ICMPv6 unreach no route */
+				case EACCES: /* ICMPv6 unreach administravely prohibited */
+				case EHOSTUNREACH: /* ICMPv6 unreach addres unreachable */
+					               /* ICMPv6 time exceeded */
+				case ECONNREFUSED: /* ICMPv6 unreach port unreachable */
+				case EMSGSIZE: /* ICMPv6 packet too big */
+				case EPROTO: /* ICMPv6 param prob (and other errors) */
+					break;
+
+				default:
+					return false;
+			}
+	}
+	while (res == -1);
+
+	return res == (int)plen;
 }
 
 
