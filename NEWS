@@ -26,8 +26,9 @@ changes, run 'miredo -h' to get help. For detailled internal changes, see
 ChangeLog.
 
 =============================================================================
-BETA RELEASE 0.5.6 : Minor features enhancement
+BETA RELEASE 0.5.6 : Minor features enhancement, security/bugs fixes
 
+# Make efforts to retry sending UDP packets in case of ICMP failure.
 # Partially rewritten IPv6 tunneling driver; now supports Darwin (Mac OS X).
 # Emit ICMPv6 Address unreachable error packets when a destination cannot
   be reached via Teredo tunneling.
