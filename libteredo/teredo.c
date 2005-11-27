@@ -121,6 +121,9 @@ int teredo_send (int fd, const void *packet, size_t plen,
 	{
 		res = sendto (fd, packet, plen, 0,
 					  (struct sockaddr *)&addr, sizeof (addr));
+		if (res != -1)
+			return res;
+
 		/*
 		 * NOTE:
 		 * We must ignore ICMP errors returned by sendto() because they are
@@ -137,25 +140,24 @@ int teredo_send (int fd, const void *packet, size_t plen,
 		 * destination, we must have a limit on the number of sendto()
 		 * attempts.
 		 */
-		if (res == -1)
-			switch (errno)
-			{
-				case EMSGSIZE: /* ICMP fragmentation needed
+		switch (errno)
+		{
+			case EMSGSIZE: /* ICMP fragmentation needed
 					- should not happen */
-				case ENETUNREACH: /* ICMP address unreachable */
-				case EHOSTUNREACH: /* ICMP destination unreachable */
-				case ENOPROTOOPT: /* ICMP protocol unreachable */
-				case ECONNREFUSED: /* ICMP port unreachable */
-				case EOPNOTSUPP: /* ICMP source route failed
+			case ENETUNREACH: /* ICMP address unreachable */
+			case EHOSTUNREACH: /* ICMP destination unreachable */
+			case ENOPROTOOPT: /* ICMP protocol unreachable */
+			case ECONNREFUSED: /* ICMP port unreachable */
+			case EOPNOTSUPP: /* ICMP source route failed
 								- should not happen */
-				case EHOSTDOWN: /* ICMP host unknown */
-				case ENONET: /* ICMP host isolated */
-					continue;
+			case EHOSTDOWN: /* ICMP host unknown */
+			case ENONET: /* ICMP host isolated */
+				continue;
 
-				default:
+			default:
 					return -1; /* hard error */
-			}
+		}
 	}
 
-	return res;
+	return -1;
 }

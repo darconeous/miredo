@@ -243,25 +243,26 @@ SendIPv6Packet (int fd, const void *p, size_t plen)
 	for (tries = 0; tries < 10; tries++)
 	{
 		res = sendto (fd, p, plen, 0, (struct sockaddr *)&dst, sizeof (dst));
+		if (res != -1)
+			return res == (int)plen;
 
-		if (res == -1)
-			switch (errno)
-			{
-				case ENETUNREACH: /* ICMPv6 unreach no route */
-				case EACCES: /* ICMPv6 unreach administravely prohibited */
-				case EHOSTUNREACH: /* ICMPv6 unreach addres unreachable */
-					               /* ICMPv6 time exceeded */
-				case ECONNREFUSED: /* ICMPv6 unreach port unreachable */
-				case EMSGSIZE: /* ICMPv6 packet too big */
-				case EPROTO: /* ICMPv6 param prob (and other errors) */
-					break;
+		switch (errno)
+		{
+			case ENETUNREACH: /* ICMPv6 unreach no route */
+			case EACCES: /* ICMPv6 unreach administravely prohibited */
+			case EHOSTUNREACH: /* ICMPv6 unreach addres unreachable */
+				               /* ICMPv6 time exceeded */
+			case ECONNREFUSED: /* ICMPv6 unreach port unreachable */
+			case EMSGSIZE: /* ICMPv6 packet too big */
+			case EPROTO: /* ICMPv6 param prob (and other errors) */
+				break;
 
-				default:
-					return false;
-			}
+			default:
+				return false;
+		}
 	}
 
-	return res == (int)plen;
+	return false;
 }
 
 
