@@ -156,7 +156,6 @@ int teredo_send (int fd, const void *packet, size_t plen,
 					return -1; /* hard error */
 			}
 	}
-	while (res == -1);
 
 	return res;
 }
