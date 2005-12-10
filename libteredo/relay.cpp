@@ -185,8 +185,8 @@ TeredoRelay::SendUnreach (int code, const void *in, size_t inlen)
 		ratelimit.count--;
 	pthread_mutex_unlock (&ratelimit.lock);
 
-	size_t outlen = BuildICMPv6Error (&buf.hdr, &maintenance.state.addr.ip6,
-	                                  ICMP6_DST_UNREACH, code, in, inlen);
+	size_t outlen = BuildIPv6Error (&buf.hdr, &maintenance.state.addr.ip6,
+	                                ICMP6_DST_UNREACH, code, in, inlen);
 	return outlen ? SendIPv6Packet (&buf, outlen) : 0;
 }
 

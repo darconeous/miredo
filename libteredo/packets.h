@@ -78,9 +78,12 @@ bool CheckPing (const TeredoPacket& packet);
 
 
 int
-BuildICMPv6Error (struct ip6_hdr *out, const struct in6_addr *src,
-                  uint8_t type, uint8_t code,
+BuildICMPv6Error (struct icmp6_hdr *out, uint8_t type, uint8_t code,
                   const void *in, uint16_t inlen);
+
+int
+BuildIPv6Error (struct ip6_hdr *out, const struct in6_addr *src,
+                uint8_t type, uint8_t code, const void *in, uint16_t len);
 
 
 #endif

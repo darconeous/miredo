@@ -420,58 +420,102 @@ CheckPing (const TeredoPacket& packet)
 #endif
 
 
-/*
+/**
  * Builds an ICMPv6 error message with specified type and code from an IPv6
- * packet. The output buffer must be at least 1280 bytes long and have
- * adequate IPv6 packet alignment.
- * Returns the actual size of the generated error message, or zero if no
- * ICMPv6 packet should be sent. Never fails.
+ * packet. The output buffer must be at least 1240 bytes long and have
+ * adequate IPv6 packet alignment. The ICMPv6 checksum is not set as they are
+ * not enough information for its computation.
  *
- * It is assumed that the output buffer is properly aligned.
+ * It is assumed that the output buffer is properly aligned. The input
+ * buffer does not need to be aligned.
+ *
+ * @param out output buffer
+ * @param type ICMPv6 error type
+ * @param code ICMPv6 error code
+ * @param in original IPv6 packet
+ * @param inlen original IPv6 packet length (including IPv6 header)
+ *
+ * @return the actual size of the generated error message, or zero if no
+ * ICMPv6 packet should be generated. Never fails.
  */
 int
-BuildICMPv6Error (struct ip6_hdr *out, const struct in6_addr *src,
-                  uint8_t type, uint8_t code, const void *in, uint16_t inlen)
+BuildICMPv6Error (struct icmp6_hdr *out, uint8_t type, uint8_t code,
+                  const void *in, uint16_t inlen)
 {
-	// don't reply if the packet is too small
-	if (inlen < 40)
+	const struct in6_addr *p;
+
+	/* don't reply if the packet is too small */
+	if (inlen < sizeof (struct ip6_hdr))
 		return 0;
 
-	// don't reply to ICMPv6 error
+	/* don't reply to ICMPv6 error */
 	if ((((const struct ip6_hdr *)in)->ip6_nxt == IPPROTO_ICMPV6)
 	  && ((((const struct icmp6_hdr *)(((const struct ip6_hdr *)in) + 1))
 						->icmp6_type & 0x80) == 0))
 		return 0;
 
-	// don't reply to multicast
+	/* don't reply to multicast */
 	if (((const struct ip6_hdr *)in)->ip6_dst.s6_addr[0] == 0xff)
 		return 0;
 
-	const struct in6_addr *p = &((const struct ip6_hdr *)in)->ip6_src;
-	// don't reply to incorrect source address (multicast, undefined)
+	p = &((const struct ip6_hdr *)in)->ip6_src;
+	/* don't reply to incorrect source address (multicast, undefined) */
 	if ((p->s6_addr[0] == 0xff) /* multicast */
 	 || (memcmp (p, &in6addr_any, sizeof (*p)) == 0))
 		return 0;
 
-	if (inlen + sizeof (struct ip6_hdr) + sizeof (icmp6_hdr) > 1280)
+	out->icmp6_type = type;
+	out->icmp6_code = code;
+	out->icmp6_cksum = 0;
+	out->icmp6_data32[0] = 0;
+
+	if (inlen > 1280 - (sizeof (struct ip6_hdr) + sizeof (icmp6_hdr)))
 		inlen = 1280 - (sizeof (struct ip6_hdr) + sizeof (icmp6_hdr));
-	uint16_t len = sizeof (icmp6_hdr) + inlen;
+
+	memcpy (out + 1, in, inlen);
+
+	return sizeof (struct icmp6_hdr) + inlen;
+}
+
+
+/**
+ * Builds an ICMPv6/IPv6 error message with specified type and code from an
+ * IPv6 packet. The output buffer must be at least 1280 bytes long and have
+ * adequate IPv6 packet alignment.
+ *
+ * It is assumed that the output buffer is properly aligned. The input
+ * buffer does not need to be aligned.
+ *
+ * @param out output buffer
+ * @param type ICMPv6 error type
+ * @param code ICMPv6 error code
+ * @param src source IPv6 address for ICMPv6 message
+ * @param in original IPv6 packet
+ * @param len original IPv6 packet length (including IPv6 header)
+ *
+ * @return the actual size of the generated error message, or zero if no
+ * ICMPv6/IPv6 packet should be sent. Never fails.
+ */
+int
+BuildIPv6Error (struct ip6_hdr *out, const struct in6_addr *src,
+                uint8_t type, uint8_t code, const void *in, uint16_t len)
+{
+	struct icmp6_hdr *h;
+
+	h = (struct icmp6_hdr *)(out + 1);
+	len = BuildICMPv6Error (h, type, code, in, len);
+	if (len == 0)
+		return 0;
 
 	out->ip6_flow = htonl (0x60000000);
 	out->ip6_plen = htons (len);
 	out->ip6_nxt = IPPROTO_ICMPV6;
 	out->ip6_hlim = 255;
 	memcpy (&out->ip6_src, src, sizeof (out->ip6_src));
-	memcpy (&out->ip6_dst, p, sizeof (out->ip6_dst));
+	memcpy (&out->ip6_dst, &((const struct ip6_hdr *)in)->ip6_src,
+	        sizeof (out->ip6_dst));
 	
-	struct icmp6_hdr *h = (struct icmp6_hdr *)(out + 1);
-	h->icmp6_type = type;
-	h->icmp6_code = code;
-	h->icmp6_cksum = 0;
-	h->icmp6_data32[0] = 0;
-
 	len += sizeof (struct ip6_hdr);
-	memcpy (h + 1, in, len);
 
 	h->icmp6_cksum = icmp6_checksum (out, h);
 	return len;
