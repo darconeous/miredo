@@ -28,8 +28,17 @@
 # include <sys/time.h> // struct timeval
 # include <pthread.h>
 
+# ifdef __cplusplus
+extern "C" {
+# endif
+
+int libteredo_preinit (void);
+int libteredo_client_preinit (void);
+void libteredo_terminate (void);
 
 # ifdef __cplusplus
+}
+
 # include <libteredo/relay-udp.h> // FIXME: remove?
 //-> when local discovery is implemented?
 

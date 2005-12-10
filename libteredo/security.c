@@ -66,11 +66,12 @@ random_open (bool critical)
 }
 
 
-
-void
+bool
 InitNonceGenerator (void)
 {
-	pthread_mutex_lock(&nonce_mutex);
+	bool res;
+
+	pthread_mutex_lock (&nonce_mutex);
 
 	refs++;
 	if (devfd[0] == -1)
@@ -78,14 +79,17 @@ InitNonceGenerator (void)
 	if (devfd[1] == -1)
 		devfd[1] = random_open (false);
 
-	pthread_mutex_unlock(&nonce_mutex);
+	res = (devfd[0] != -1) && (devfd[1] != -1);
+	pthread_mutex_unlock (&nonce_mutex);
+
+	return res;
 }
 
 
 void
 DeinitNonceGenerator (void)
 {
-	pthread_mutex_lock(&nonce_mutex);
+	pthread_mutex_lock (&nonce_mutex);
 
 	if (--refs == 0)
 	{
@@ -95,7 +99,7 @@ DeinitNonceGenerator (void)
 			(void)close (devfd[1]);
 	}
 
-	pthread_mutex_unlock(&nonce_mutex);
+	pthread_mutex_unlock (&nonce_mutex);
 }
 
 

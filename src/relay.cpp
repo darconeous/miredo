@@ -324,11 +324,6 @@ miredo_run (int sigfd, MiredoConf& conf, const char *server_name)
 	 * SETUP
 	 */
 
-#ifdef MIREDO_TEREDO_CLIENT
-	if (mode == TEREDO_CLIENT)
-		InitNonceGenerator ();
-#endif
-
 	/*
 	 * Tunneling interface initialization
 	 *
@@ -387,6 +382,13 @@ miredo_run (int sigfd, MiredoConf& conf, const char *server_name)
 			syslog (LOG_ALERT, _("Teredo tunnel fatal error"));
 			goto abort;
 		}
+	}
+
+	if (libteredo_preinit ()
+		   || ((mode == TEREDO_CLIENT) && libteredo_client_preinit ()))
+	{
+		syslog (LOG_ALERT, _("libteredo cannot be initialized"));
+		return -1;
 	}
 
 	if (drop_privileges ())
@@ -458,10 +460,8 @@ abort:
 		close (fd);
 		wait (NULL); // wait for privsep process
 	}
-
-	if (mode == TEREDO_CLIENT)
-		DeinitNonceGenerator ();
 #endif
+	libteredo_terminate ();
 
 	return retval;
 }

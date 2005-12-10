@@ -27,7 +27,7 @@ common_SOURCES =	teredo.c teredo-udp.cpp teredo.h \
 			v4global.c v4global.h checksum.h
 
 # libteredo.la
-libteredo_la_SOURCES =	$(common_SOURCES) \
+libteredo_la_SOURCES =	$(common_SOURCES) init.c \
 			relay-udp.cpp relay-udp.h relay.cpp relay.h \
 			packets.cpp packets.h peerlist.cpp peerlist.h
 libteredo_la_CFLAGS =

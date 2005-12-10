@@ -36,7 +36,7 @@ extern "C" {
  * It should additionnaly be called before calling chroot().
  * Thread-safe. Can be called multiple times with no side effect.
  */
-void InitNonceGenerator (void);
+bool InitNonceGenerator (void);
 
 /**
  * Should be called after use of GenerateNonce().
