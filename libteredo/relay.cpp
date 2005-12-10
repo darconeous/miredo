@@ -120,14 +120,11 @@ TeredoRelay::TeredoRelay (uint32_t ip, uint32_t ip2,
 	list.peerNumber = 0;
 
 	maintenance.relay = NULL;
-	if (InitHMAC () && (sock.ListenPort (port, ipv4) == 0))
+	if (sock.ListenPort (port, ipv4) == 0)
 	{
 		maintenance.relay = this;
 		if (teredo_maintenance_start (&maintenance))
-		{
 			maintenance.relay = NULL;
-			DeinitHMAC ();
-		}
 	}
 
 #endif /* ifdef MIREDO_TEREDO_CLIENT */
@@ -138,10 +135,7 @@ TeredoRelay::~TeredoRelay (void)
 {
 #ifdef MIREDO_TEREDO_CLIENT
 	if (maintenance.relay != NULL)
-	{
 		teredo_maintenance_stop (&maintenance);
-		DeinitHMAC ();
-	}
 #endif
 
 	TeredoRelay::peer::DestroyList (list.ptr);
