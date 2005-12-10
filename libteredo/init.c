@@ -28,7 +28,6 @@
 #ifdef MIREDO_TEREDO_CLIENT
 # include "security.h"
 #endif
-#include "relay.h"
 
 /**
  * Initializes libteredo. That function must be called before any other

@@ -25,8 +25,8 @@
 #ifndef __LIBTEREDO_TEREDO_PACKETS_H
 # define __LIBTEREDO_TEREDO_PACKETS_H
 
-# include <sys/types.h>
-# include <netinet/in.h>
+struct in6_addr;
+struct ip6_hdr;
 
 /*
  * Sends a Teredo Bubble to the server (if indirect is true) or the client (if
@@ -77,11 +77,11 @@ SendPing (const TeredoRelayUDP& sock, const union teredo_addr *src,
 bool CheckPing (const TeredoPacket& packet);
 
 
-int
+extern "C" int
 BuildICMPv6Error (struct icmp6_hdr *out, uint8_t type, uint8_t code,
                   const void *in, uint16_t inlen);
 
-int
+extern "C" int
 BuildIPv6Error (struct ip6_hdr *out, const struct in6_addr *src,
                 uint8_t type, uint8_t code, const void *in, uint16_t len);
 

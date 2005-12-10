@@ -438,7 +438,7 @@ CheckPing (const TeredoPacket& packet)
  * @return the actual size of the generated error message, or zero if no
  * ICMPv6 packet should be generated. Never fails.
  */
-int
+extern "C" int
 BuildICMPv6Error (struct icmp6_hdr *out, uint8_t type, uint8_t code,
                   const void *in, uint16_t inlen)
 {
@@ -496,7 +496,7 @@ BuildICMPv6Error (struct icmp6_hdr *out, uint8_t type, uint8_t code,
  * @return the actual size of the generated error message, or zero if no
  * ICMPv6/IPv6 packet should be sent. Never fails.
  */
-int
+extern "C" int
 BuildIPv6Error (struct ip6_hdr *out, const struct in6_addr *src,
                 uint8_t type, uint8_t code, const void *in, uint16_t len)
 {

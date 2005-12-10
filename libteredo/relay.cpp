@@ -149,7 +149,7 @@ TeredoRelay::~TeredoRelay (void)
  */
 unsigned TeredoRelay::IcmpRateLimitMs = 100;
 
-int
+void
 TeredoRelay::SendUnreach (int code, const void *in, size_t inlen)
 {
 	static struct
@@ -179,7 +179,7 @@ TeredoRelay::SendUnreach (int code, const void *in, size_t inlen)
 	{
 		/* rate limit exceeded */
 		pthread_mutex_unlock (&ratelimit.lock);
-		return 0;
+		return;
 	}
 	if (ratelimit.count > 0)
 		ratelimit.count--;
@@ -187,8 +187,12 @@ TeredoRelay::SendUnreach (int code, const void *in, size_t inlen)
 
 	size_t outlen = BuildIPv6Error (&buf.hdr, &maintenance.state.addr.ip6,
 	                                ICMP6_DST_UNREACH, code, in, inlen);
-	return outlen ? SendIPv6Packet (&buf, outlen) : 0;
+	(void)SendIPv6Packet (&buf, outlen);
 }
+
+/*void TeredoRelay::EmitICMPv6Error (const void *packet, size_t length)
+{
+}*/
 
 
 #ifdef MIREDO_TEREDO_CLIENT
@@ -306,6 +310,7 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 	if (IsRelay ())
 	{
 		if (dst->teredo.prefix != prefix)
+		{
 			/*
 			 * If we are not a qualified client, ie. we have no server
 			 * IPv4 address to contact for direct IPv6 connectivity, we
@@ -319,16 +324,22 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 			 * notify the user. An alternative is to send an ICMPv6 error
 			 * back to the kernel.
 			 */
-				return SendUnreach (ICMP6_DST_UNREACH_ADDR, packet, length);
+			SendUnreach (ICMP6_DST_UNREACH_ADDR, packet, length);
+			return 0;
+		}
 	}
 #ifdef MIREDO_TEREDO_CLIENT
 	else
 	{
 		if (prefix == PREFIX_UNSET) /* not qualified */
-			return SendUnreach (ICMP6_DST_UNREACH_ADDR, packet, length);
+		{
+			SendUnreach (ICMP6_DST_UNREACH_ADDR, packet, length);
+			return 0;
+		}
 
 		if ((dst->teredo.prefix != prefix)
 		 && (src->teredo.prefix != prefix))
+		{
 			/*
 			 * Routing packets not from a Teredo client,
 			 * neither toward a Teredo client is NOT allowed through a
@@ -337,7 +348,9 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 			 * We also drop link-local unicast and multicast packets as
 			 * they can't be routed through Teredo properly.
 			 */
-			return SendUnreach (ICMP6_DST_UNREACH_ADMIN, packet, length);
+			SendUnreach (ICMP6_DST_UNREACH_ADMIN, packet, length);
+			return 0;
+		}
 	}
 #endif
 
