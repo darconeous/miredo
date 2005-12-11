@@ -1,13 +1,13 @@
 RELEASE NOTES for Miredo
-version 0.5.5 (beta version)
+version 0.5.6 (beta version)
 =============================
 $Id$
 
   This is an early release of the program. It underwent some tests and is
 believed to work fine. However, there are still some outstanding issues
 (ie. missing features), though they don't affect core functionnality.
-  Users of previous releases are encouraged to upgrade, as some major
-issues were addressed in this new release.
+  Users of previous releases are encouraged to upgrade, as a major ssue
+(affecting all versions from 0.5.1) was addressed in this new release.
 
 IMPORTANT NOTE for old users:
 ------------------------------
@@ -24,6 +24,11 @@ Thanks for your help.
 informations on this program, see README. For syntax details and
 changes, run 'miredo -h' to get help. For detailled internal changes, see
 ChangeLog.
+
+=============================================================================
+BETA RELEASE 0.5.6 : Major bugfixes
+
+# Fix IPv6 addresses comparison in Teredo peers list lookup.
 
 =============================================================================
 BETA RELEASE 0.5.5 : Minor compatibility fix
