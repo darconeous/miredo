@@ -40,6 +40,10 @@
 #include <sys/wait.h> // wait()
 #include <syslog.h>
 
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netinet/icmp6.h>
+
 #include <string.h>
 #include <netdb.h> // gai_strerror()
 
@@ -82,6 +86,20 @@ class MiredoRelay : public TeredoRelay
 			return tun6_send (tunnel, packet, length);
 		}
 
+		virtual void EmitICMPv6Error (const void *packet, size_t length,
+		                              const struct in6_addr *dst)
+		{
+			struct sockaddr_in6 addr = { };
+
+			/* TODO: use sendmsg and don't memcpy in BuildICMPv6Error */
+			addr.sin6_family = AF_INET6;
+			memcpy (&addr.sin6_addr, dst, sizeof (addr.sin6_addr));
+			sendto (icmp6_fd, packet, length, 0,
+					(struct sockaddr *)&addr, sizeof (addr));
+		}
+
+		static int icmp6_fd;
+
 	public:
 		MiredoRelay (const tun6 *tun, uint32_t prefix,
 		             uint16_t port = 0, uint32_t ipv4 = 0,
@@ -90,6 +108,9 @@ class MiredoRelay : public TeredoRelay
 			  priv_fd (-1)
 		{
 		}
+
+		static int GlobalInit (void);
+		static void GlobalDeinit (void);
 
 		//virtual void ~MiredoRelay (void);
 
@@ -116,6 +137,32 @@ class MiredoRelay : public TeredoRelay
 #endif /* ifdef MIREDO_TEREDO_CLIENT */
 };
 
+
+int MiredoRelay::icmp6_fd = -1;
+
+int MiredoRelay::GlobalInit (void)
+{
+	struct icmp6_filter filt;
+	int val;
+
+	icmp6_fd = socket (AF_INET6, SOCK_RAW, IPPROTO_ICMPV6);
+	if (icmp6_fd == -1)
+		return -1;
+
+	val = 2;
+	setsockopt (icmp6_fd, SOL_IPV6, IPV6_CHECKSUM, &val, sizeof (val));
+
+	/* We don't use the socket for receive -> block all */
+	ICMP6_FILTER_SETBLOCKALL (&filt);
+	setsockopt (icmp6_fd, SOL_ICMPV6, ICMP6_FILTER, &filt, sizeof (filt));
+	return 0;
+}
+
+void MiredoRelay::GlobalDeinit (void)
+{
+	if (icmp6_fd != -1)
+		close (icmp6_fd);
+}
 
 /*
  * Main server function, with UDP datagrams receive loop.
@@ -385,11 +432,13 @@ miredo_run (int sigfd, MiredoConf& conf, const char *server_name)
 	}
 
 	if (libteredo_preinit ()
-		   || ((mode == TEREDO_CLIENT) && libteredo_client_preinit ()))
+	 || ((mode == TEREDO_CLIENT) && libteredo_client_preinit ()))
 	{
 		syslog (LOG_ALERT, _("libteredo cannot be initialized"));
 		return -1;
 	}
+
+	MiredoRelay::GlobalInit ();
 
 	if (drop_privileges ())
 		goto abort;
@@ -451,6 +500,7 @@ miredo_run (int sigfd, MiredoConf& conf, const char *server_name)
 abort:
 	if (relay != NULL)
 		delete relay;
+	MiredoRelay::GlobalDeinit ();
 
 	tun6_destroy (tunnel);
 

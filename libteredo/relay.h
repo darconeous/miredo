@@ -136,7 +136,8 @@ class TeredoRelay
 		 */
 		virtual int SendIPv6Packet (const void *packet, size_t length) = 0;
 
-		virtual void EmitICMPv6Error (const void *packet, size_t length);
+		virtual void EmitICMPv6Error (const void *packet, size_t length,
+		                              const struct in6_addr *dst);
 
 	protected:
 		/*

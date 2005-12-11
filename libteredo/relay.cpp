@@ -186,10 +186,13 @@ TeredoRelay::SendUnreach (int code, const void *in, size_t len)
 	pthread_mutex_unlock (&ratelimit.lock);
 
 	len = BuildICMPv6Error (&buf.hdr, ICMP6_DST_UNREACH, code, in, len);
-	(void)EmitICMPv6Error (&buf.hdr, len);
+	(void)EmitICMPv6Error (&buf.hdr, len,
+	                       &((const struct ip6_hdr *)in)->ip6_src);
 }
 
-void TeredoRelay::EmitICMPv6Error (const void *packet, size_t length)
+void
+TeredoRelay::EmitICMPv6Error (const void *packet, size_t length,
+							  const struct in6_addr *dst)
 {
 	/* TODO should be implemented with BuildIPv6Error() */
 	/* that is currently dead code */
