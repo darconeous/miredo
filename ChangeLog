@@ -1,4 +1,64 @@
 ------------------------------------------------------------------------
+r755 | remi | 2005-12-11 12:19:03 +0100 (Sun, 11 Dec 2005) | 2 lines
+Changed paths:
+   M /branches/0.5.6/configure.ac
+
+This is the maintenance release version 0.5.6
+
+------------------------------------------------------------------------
+r750 | remi | 2005-12-11 11:55:58 +0100 (Sun, 11 Dec 2005) | 2 lines
+Changed paths:
+   M /branches/0.5.6/NEWS
+
+Document 0.5.6 release
+
+------------------------------------------------------------------------
+r749 | remi | 2005-12-11 11:55:45 +0100 (Sun, 11 Dec 2005) | 6 lines
+Changed paths:
+   M /branches/0.5.6/libteredo/peerlist.cpp
+
+Backport [747] -- Severe bug
+Fix severe bug in t6cmp that would basically consider IPv6 addresses as
+equal as soon as either of their four double-words are equal
+(and in the case of Teredo tunneling... every body has the first double
+word equal)
+
+------------------------------------------------------------------------
+r748 | remi | 2005-12-11 11:54:02 +0100 (Sun, 11 Dec 2005) | 2 lines
+Changed paths:
+   A /branches/0.5.6 (from /tags/0.5.5:747)
+
+Start 0.5.6 bug fix branch
+
+------------------------------------------------------------------------
+r705 | remi | 2005-11-19 12:28:19 +0100 (Sat, 19 Nov 2005) | 2 lines
+Changed paths:
+   A /tags/0.5.5 (from /tags/0.5.4:698)
+   M /tags/0.5.5/NEWS
+   M /tags/0.5.5/bootstrap
+   M /tags/0.5.5/configure.ac
+   M /tags/0.5.5/libtun6/ipv6-tunnel.cpp
+   M /tags/0.5.5/po/en.po
+   M /tags/0.5.5/po/fr.po
+   M /tags/0.5.5/po/miredo.pot
+
+Mac OS X compile fix - release 0.5.5
+
+------------------------------------------------------------------------
+r697 | remi | 2005-11-10 20:44:23 +0100 (Thu, 10 Nov 2005) | 2 lines
+Changed paths:
+   A /tags/0.5.4 (from /trunk:696)
+
+Tagged release 0.5.4
+
+------------------------------------------------------------------------
+r696 | remi | 2005-11-10 20:43:33 +0100 (Thu, 10 Nov 2005) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog
+
+ChangeLog for 0.5.4
+
+------------------------------------------------------------------------
 r695 | remi | 2005-11-10 18:48:48 +0100 (Thu, 10 Nov 2005) | 3 lines
 Changed paths:
    M /trunk/po/en.po
