@@ -150,7 +150,7 @@ TeredoRelay::~TeredoRelay (void)
 unsigned TeredoRelay::IcmpRateLimitMs = 100;
 
 void
-TeredoRelay::SendUnreach (int code, const void *in, size_t inlen)
+TeredoRelay::SendUnreach (int code, const void *in, size_t len)
 {
 	static struct
 	{
@@ -160,8 +160,8 @@ TeredoRelay::SendUnreach (int code, const void *in, size_t inlen)
 	} ratelimit = { PTHREAD_MUTEX_INITIALIZER, 1, 0 };
 	struct
 	{
-		struct ip6_hdr hdr;
-		uint8_t fill[1280 - sizeof (struct ip6_hdr)];
+		struct icmp6_hdr hdr;
+		char fill[1280 - sizeof (struct ip6_hdr) - sizeof (struct icmp6_hdr)];
 	} buf;
 	time_t now;
 
@@ -185,14 +185,20 @@ TeredoRelay::SendUnreach (int code, const void *in, size_t inlen)
 		ratelimit.count--;
 	pthread_mutex_unlock (&ratelimit.lock);
 
+	len = BuildICMPv6Error (&buf.hdr, ICMP6_DST_UNREACH, code, in, len);
+	(void)EmitICMPv6Error (&buf.hdr, len);
+}
+
+void TeredoRelay::EmitICMPv6Error (const void *packet, size_t length)
+{
+	/* TODO should be implemented with BuildIPv6Error() */
+	/* that is currently dead code */
+#if 0
 	size_t outlen = BuildIPv6Error (&buf.hdr, &maintenance.state.addr.ip6,
 	                                ICMP6_DST_UNREACH, code, in, inlen);
 	(void)SendIPv6Packet (&buf, outlen);
+#endif
 }
-
-/*void TeredoRelay::EmitICMPv6Error (const void *packet, size_t length)
-{
-}*/
 
 
 #ifdef MIREDO_TEREDO_CLIENT

@@ -36,8 +36,6 @@ int libteredo_preinit (void);
 int libteredo_client_preinit (void);
 void libteredo_terminate (void);
 
-int BuildICMPv6Error (struct icmp6_hdr *out, uint8_t type, uint8_t code,
-                      const void *in, uint16_t inlen);
 # ifdef __cplusplus
 }
 
@@ -138,7 +136,7 @@ class TeredoRelay
 		 */
 		virtual int SendIPv6Packet (const void *packet, size_t length) = 0;
 
-		//virtual void EmitICMPv6Error (const void *packet, size_t length);
+		virtual void EmitICMPv6Error (const void *packet, size_t length);
 
 	protected:
 		/*

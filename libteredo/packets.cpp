@@ -478,6 +478,7 @@ BuildICMPv6Error (struct icmp6_hdr *out, uint8_t type, uint8_t code,
 }
 
 
+#if 0
 /**
  * Builds an ICMPv6/IPv6 error message with specified type and code from an
  * IPv6 packet. The output buffer must be at least 1280 bytes long and have
@@ -520,3 +521,4 @@ BuildIPv6Error (struct ip6_hdr *out, const struct in6_addr *src,
 	h->icmp6_cksum = icmp6_checksum (out, h);
 	return len;
 }
+#endif
