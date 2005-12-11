@@ -1,13 +1,13 @@
 RELEASE NOTES for Miredo
-version 0.5.6 (beta version)
+version 0.6.0 (beta version)
 =============================
 $Id$
 
   This is an early release of the program. It underwent some tests and is
 believed to work fine. However, there are still some outstanding issues
 (ie. missing features), though they don't affect core functionnality.
-  Users of previous releases are encouraged to upgrade, as some major
-issues were addressed in this new release.
+  Users of previous releases are encouraged to upgrade, as some issues
+were addressed in this new release.
 
 IMPORTANT NOTE for old users:
 ------------------------------
@@ -26,7 +26,7 @@ changes, run 'miredo -h' to get help. For detailled internal changes, see
 ChangeLog.
 
 =============================================================================
-BETA RELEASE 0.5.6 : Minor features enhancement, security/bugs fixes
+BETA RELEASE 0.6.0 : Minor features enhancement, security/bugs fixes
 
 # Make efforts to retry sending UDP packets in case of ICMP failure.
 # Partially rewritten IPv6 tunneling driver; now supports Darwin (Mac OS X).
@@ -38,6 +38,9 @@ BETA RELEASE 0.5.6 : Minor features enhancement, security/bugs fixes
 # Fix Teredo client maintenance in case of system clock drift (could be
   caused by SIGSTOP, APM/ACPI/software suspend, debugger, or system load).
 # Define Linux kernel 2.6.9 as the minimum supported Linux kernel version.
+# Use kernel IPv6 stack to generate IPv6 headers for ICMPv6 errors
+  (allow proper source address selection, and use of optimized checksum).
+# Fix Teredo peers list lookup (major bugfix also backported in 0.5.6)
 
 =============================================================================
 BETA RELEASE 0.5.4 : Major bugfixes
