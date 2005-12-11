@@ -96,6 +96,20 @@ in6_matches_teredo_client (const union teredo_addr *ip6, uint32_t ip,
 	((prefix & 0xff000000) != 0xff000000)
 
 /*
+ * It's pretty much the same as memcmp(), but it is optimized to
+ * compare Teredo addresses (the first bytes tend to be always the same,
+ * while the last ones are most often different).
+ */
+static inline int t6cmp (const union teredo_addr *a1,
+                         const union teredo_addr *a2)
+{
+	return (a1->t6_addr32[3] - a2->t6_addr32[3])
+	    || (a1->t6_addr32[2] - a2->t6_addr32[2])
+	    || (a1->t6_addr32[1] - a2->t6_addr32[1])
+	    || (a1->t6_addr32[0] - a2->t6_addr32[0]);
+}
+
+/*
  * Teredo headers
  */
 enum

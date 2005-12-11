@@ -58,19 +58,6 @@ TeredoRelay::peer::DestroyList (void *head)
 }
 
 
-/*
- * It's pretty much the same as memcmp(), but it is optimized to
- * compare Teredo addresses (the first bytes tend to be always the same,
- * while the last ones are most often different).
- */
-inline int t6cmp (const union teredo_addr *a1, const union teredo_addr *a2)
-{
-	return (a1->t6_addr32[3] - a2->t6_addr32[3])
-	    || (a1->t6_addr32[2] - a2->t6_addr32[2])
-	    || (a1->t6_addr32[1] - a2->t6_addr32[1])
-	    || (a1->t6_addr32[0] - a2->t6_addr32[0]);
-}
-
 /* 
  * Allocates a peer entry. It is up to the caller to fill informations
  * correctly.
