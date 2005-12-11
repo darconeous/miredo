@@ -316,8 +316,7 @@ init_daemon (const char *username, const char *pidfile, int nodetach)
 #ifdef HAVE_LIBCAP
 	{
 		cap_t s;
-		// TODO: keep CAP_NET_ADMIN in miredo only
-		//   and keep CAP_NET_RAW in miredo-server only
+		/* TODO: keep CAP_NET_ADMIN in miredo only */
 		cap_value_t v[] =
 		{
 			CAP_SYS_CHROOT,
