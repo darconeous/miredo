@@ -37,8 +37,8 @@
 
 #include <sys/types.h>
 #include <netinet/in.h>
-#include <netinet/ip6.h> // struct ip6_hdr
-#include <netinet/icmp6.h> // router solicication
+#include <netinet/ip6.h> /* struct ip6_hdr */
+#include <netinet/icmp6.h> /* router solicication */
 #include <syslog.h>
 
 #include <libteredo/teredo.h>
@@ -321,7 +321,7 @@ ParseRA (const TeredoPacket& packet, union teredo_addr *newaddr, bool cone,
 }
 
 #define PING_PAYLOAD (LIBTEREDO_HMAC_LEN - 4)
-/*
+/**
  * Sends an ICMPv6 Echo request toward an IPv6 node through the Teredo server.
  */
 bool SendPing (const TeredoRelayUDP& sock, const union teredo_addr *src,
@@ -349,36 +349,40 @@ bool SendPing (const TeredoRelayUDP& sock, const union teredo_addr *src,
 	ping.icmp6.icmp6_seq = 0;
 	 */
 	if (!GenerateHMAC (&ping.ip6.ip6_src, &ping.ip6.ip6_dst,
-	                   &ping.icmp6.icmp6_id))
+	                   (uint8_t *)&ping.icmp6.icmp6_id))
 		return false;
 
 	ping.icmp6.icmp6_cksum = icmp6_checksum (&ping.ip6, &ping.icmp6);
 
-	return !sock.SendPacket (&ping, sizeof (ping),
+	return !sock.SendPacket (&ping, sizeof (ping.ip6) + sizeof (ping.icmp6) + PING_PAYLOAD,
 	                         IN6_TEREDO_SERVER (src), htons (IPPORT_TEREDO));
 }
 
 
-/*
+/**
  * Checks that the packet is an ICMPv6 Echo reply and that it matches the
  * specified nonce value. Returns true if that is the case, false otherwise.
  */
 bool
 CheckPing (const TeredoPacket& packet)
 {
+	const struct ip6_hdr *ip6;
+	const struct icmp6_hdr *icmp6;
 	size_t length;
-	const struct ip6_hdr *ip6 =
-		(const struct ip6_hdr *)packet.GetIPv6Packet (length);
+
+	ip6 = (const struct ip6_hdr *)packet.GetIPv6Packet (length);
 
 	// Only read bytes, so no need to align
 	if ((ip6->ip6_nxt != IPPROTO_ICMPV6)
 	 || (length < (sizeof (*ip6) + sizeof (struct icmp6_hdr) + PING_PAYLOAD)))
 		return false;
 
-	const struct icmp6_hdr *icmp6 = (const struct icmp6_hdr *)(ip6 + 1);
+	icmp6 = (const struct icmp6_hdr *)(ip6 + 1);
 
 	if (icmp6->icmp6_type == ICMP6_DST_UNREACH)
 	{
+		uint16_t plen;
+
 		/*
 		 * NOTE:
 		 * Some brain-dead IPv6 nodes/firewalls don't reply to pings (which is
@@ -398,23 +402,24 @@ CheckPing (const TeredoPacket& packet)
 		 || (ip6->ip6_nxt != IPPROTO_ICMPV6))
 			return false;
 
-		uint16_t plen;
 		memcpy (&plen, &ip6->ip6_plen, sizeof (plen));
 		if (ntohs (plen) != (sizeof (*icmp6) + PING_PAYLOAD))
 			return false; // not a ping from us
 
 		icmp6 = (const struct icmp6_hdr *)(ip6 + 1);
 
-		if ((icmp6->icmp6_type != ICMP6_ECHO_REQUEST)
-		 || (icmp6->icmp6_code != 0))
+		if (icmp6->icmp6_type != ICMP6_ECHO_REQUEST)
 			return false;
 	}
 	else
-	if ((icmp6->icmp6_type != ICMP6_ECHO_REPLY)
-	 || (icmp6->icmp6_code != 0))
+	if (icmp6->icmp6_type != ICMP6_ECHO_REPLY)
 		return false;
 
-	return CompareHMAC (&ip6->ip6_dst, &ip6->ip6_src, &icmp6->icmp6_id);
+	if (icmp6->icmp6_code != 0)
+		return false;
+	
+	return CompareHMAC (&ip6->ip6_dst, &ip6->ip6_src,
+	                    (uint8_t *)&icmp6->icmp6_id);
 	/* TODO: check the sum(?) */
 }
 #endif
