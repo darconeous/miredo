@@ -21,9 +21,9 @@ AM_CPPFLAGS = -I@top_srcdir@/include -I@top_srcdir@ -D_REENTRANT
 
 noinst_LTLIBRARIES = libteredo-server.la
 lib_LTLIBRARIES = libteredo.la
-check_PROGRAMS = libteredo-regress
+check_PROGRAMS = libteredo-unit libteredo-regress
 
-TESTS = libteredo-regress
+TESTS = libteredo-unit libteredo-regress
 
 include_libteredodir = $(includedir)/libteredo
 include_libteredo_HEADERS = teredo.h relay-udp.h relay.h
@@ -46,6 +46,12 @@ endif
 libteredo_server_la_SOURCES =	$(common_SOURCES) \
 				server-udp.cpp server-udp.h \
 				server.cpp server.h
+
+# libteredo-unit
+libteredo_unit_SOURCES = unit.c
+libteredo_unit_CFLAGS = $(libteredo_la_CFLAGS)
+libteredo_unit_LDFLAGS = $(libteredo_la_LDFLAGS)
+libteredo_unit_LDADD = libteredo.la
 
 # libteredo-regress
 libteredo_regress_SOURCES = regress.c
