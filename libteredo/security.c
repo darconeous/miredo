@@ -169,45 +169,78 @@ void DeinitHMAC (void)
 }
 
 
+#define LIBTEREDO_HASH_LEN 16
+#if 0
+typedef struct libteredo_hmac
+{
+	uint16_t pid;  /* ICMPv6 Echo id */
+	uint16_t time; /* ICMPv6 Echo sequence */
+	unint8_t hash[LIBTEREDO_HASH_LEN]; /* ICMPv6 Echo payload */
+} libteredo_hmac;
+#endif
+
+#if (LIBTEREDO_HASH_LEN + 4) != LIBTEREDO_HMAC_LEN
+# error Inconsistent hash and HMAC length
+#endif
+
+static pid_t hmac_pid = -1;
+
 bool
 GenerateHMAC (const struct in6_addr *src, const struct in6_addr *dst,
-              void *hash)
+              uint8_t *hash)
 {
 	gcry_md_hd_t hd;
-	uint32_t t;
+	uint16_t v16;
 
 	/* create HMAC handle */
 	(void)gcry_md_open (&hd, GCRY_MD_MD5, GCRY_MD_FLAG_HMAC);
 	if ((hd == NULL) || (gcry_md_setkey (hd, key, LIBTEREDO_KEY_LEN)))
 		return false;
 
+	/* save hash-protected data */
+	if (hmac_pid == -1)
+		hmac_pid = getpid ();
+	v16 = hmac_pid;
+	memcpy (hash, &v16, 2);
+	hash += 2;
+
+	v16 = time (NULL);
+	memcpy (hash, &v16, 2);
+	hash += 2;
+
 	/* compute hash */
 	gcry_md_write (hd, src, sizeof (*src));
 	gcry_md_write (hd, dst, sizeof (*dst));
-	t = (uint32_t)time (NULL);
-	gcry_md_write (hd, &t, sizeof (t));
+	gcry_md_write (hd, &hmac_pid, sizeof (hmac_pid));
+	gcry_md_write (hd, &v16, sizeof (v16));
 	gcry_md_final (hd);
 
 	/* write hash */
-	memcpy (hash, gcry_md_read (hd, 0), LIBTEREDO_HMAC_LEN - 1);
-	memcpy (((uint8_t *)hash) + 16, &t, 4);
+	memcpy (hash, gcry_md_read (hd, 0), LIBTEREDO_HASH_LEN);
 	gcry_md_close (hd);
 	return true;
 }
 
-
 bool
 CompareHMAC (const struct in6_addr *src, const struct in6_addr *dst,
-             const void *hash)
+             const uint8_t *hash)
 {
 	gcry_md_hd_t hd;
-	uint32_t t;
+	uint16_t v16, t16;
 	bool res;
 
-	memcpy (&t, ((uint8_t *)hash) + 16, 4);
-	t = (uint32_t)time (NULL) - t;
-	if (t >= 30)
+	/* Check ICMPv6 ID */
+	memcpy (&v16, hash, 2);
+	if (v16 != (uint16_t)hmac_pid)
+		return false;
+	hash += 2;
+
+	/* Check ICMPv6 sequence */
+	memcpy (&t16, hash, 2);
+	v16 = (((uint32_t)time (NULL)) & 0xffff) - t16;
+	if (v16 >= 30)
 		return false; /* replay attack */
+	hash += 2;
 
 	/* create HMAC */
 	(void)gcry_md_open (&hd, GCRY_MD_MD5, GCRY_MD_FLAG_HMAC);
@@ -217,11 +250,12 @@ CompareHMAC (const struct in6_addr *src, const struct in6_addr *dst,
 	/* compute HMAC */
 	gcry_md_write (hd, src, sizeof (*src));
 	gcry_md_write (hd, dst, sizeof (*dst));
-	gcry_md_write (hd, &t, sizeof (t));
+	gcry_md_write (hd, &hmac_pid, sizeof (hmac_pid));
+	gcry_md_write (hd, &t16, sizeof (t16));
 	gcry_md_final (hd);
 
 	/* compare hash */
-	res = !!memcmp (gcry_md_read (hd, 0), hash, LIBTEREDO_HMAC_LEN);
+	res = !memcmp (gcry_md_read (hd, 0), hash, LIBTEREDO_HASH_LEN);
 	gcry_md_close (hd);
 	return res;
 }

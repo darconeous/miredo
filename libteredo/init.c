@@ -25,6 +25,12 @@
 
 #include <stdbool.h>
 
+#ifdef HAVE_STDINT_H
+# include <stdint.h>
+#else
+# include <inttypes.h>
+#endif
+
 #ifdef MIREDO_TEREDO_CLIENT
 # include "security.h"
 #endif
