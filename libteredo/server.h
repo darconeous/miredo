@@ -22,82 +22,33 @@
  *  http://www.gnu.org/copyleft/gpl.html                               *
  ***********************************************************************/
 
-#ifndef __cplusplus
-# error C++ only header
-#endif
-
 #ifndef LIBTEREDO_SERVER_H
 # define LIBTEREDO_SERVER_H
 
-# include <libteredo/server-udp.h>
 
+typedef struct libteredo_server libteredo_server;
 
-/*
- * Checks and handles an Teredo-encapsulated packet.
- */
-class /*sealed*/ TeredoServer
-{
-	private:
-		pthread_t t1, t2;
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-		/* These are all in network byte order (including MTU!!) */
-		uint32_t server_ip, prefix, advLinkMTU;
+int libteredo_server_check (char *errmsg, size_t len);
 
-		TeredoServerUDP sock;
-		int fd; // raw IPv6 socket
+libteredo_server *libteredo_server_create (uint32_t ip1, uint32_t ip2);
 
-		bool SendRA (const struct teredo_packet *p,
-		             const struct in6_addr *dest_ip6,
-		             bool use_secondary_ip) const;
-		bool ProcessPacket (bool secondary);
-		static void *Thread (void *o);
+int libteredo_server_set_prefix (libteredo_server *s, uint32_t prefix);
+uint32_t libteredo_server_get_prefix (const libteredo_server *s);
+int libteredo_server_set_MTU (libteredo_server *s, uint16_t mtu);
+uint16_t libteredo_server_get_MTU (const libteredo_server *s);
 
-	public:
-		TeredoServer (uint32_t ip1, uint32_t ip2);
-		~TeredoServer (void);
+int libteredo_server_start (libteredo_server *s);
+void libteredo_server_stop (libteredo_server *s);
 
-		bool Start (void);
-		/*
-		 * Stop() shall only be called after a successful call to Start().
-		 * Start() can then be re-called to restart, and so on.
-		 */
-		void Stop (void);
+void libteredo_server_destroy (libteredo_server *s);
 
-		/* Prefix can be changed asynchronously */
-		void SetPrefix (uint32_t pref)
-		{
-			prefix = pref;
-		}
-
-		void SetPrefix (const union teredo_addr *pref)
-		{
-			SetPrefix (pref->teredo.prefix);
-		}
-
-		/* AdvLinkMTU can be changed asynchronously */
-		void SetAdvLinkMTU (uint16_t mtu = 1280)
-		{
-			advLinkMTU = htonl (mtu);
-		}
-
-		uint32_t GetServerIP (void) const
-		{
-			return server_ip;
-		}
-
-		int operator! (void) const
-		{
-			return (fd == -1) || !sock;
-		}
-
-		operator int (void) const
-		{
-			return (fd != -1) && !!sock;
-		}
-
-		static bool CheckSystem (char *errmsg, size_t len);
-};
-
+#ifdef __cplusplus
+}
+# endif
 
 #endif /* ifndef MIREDO_SERVER_H */
 

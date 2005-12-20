@@ -57,19 +57,20 @@ extern "C" int
 miredo_diagnose (void)
 {
 	char buf[1024];
-	bool check = TeredoServer::CheckSystem (buf, sizeof (buf));
-	if (!check)
+	int check = libteredo_server_check (buf, sizeof (buf));
+	if (check)
 	{
 		buf[sizeof (buf) - 1] = '\0';
 		fputs (buf, stderr);
 	}
-	return check ? 0 : -1;
+	return check;
 }
 
 
 extern int
 miredo_run (int fd, MiredoConf& conf, const char *server_name)
 {
+	libteredo_server *server;
 	union teredo_addr prefix = { 0 };
 	uint32_t server_ip = INADDR_ANY, server_ip2 = INADDR_ANY;
 	uint16_t mtu = 1280;
@@ -123,23 +124,28 @@ miredo_run (int fd, MiredoConf& conf, const char *server_name)
 	conf.Clear (5);
 
 	// Sets up server (needs privileges to create raw socket)
-	TeredoServer server (server_ip, server_ip2);
-
-	server.SetPrefix (&prefix);
-	server.SetAdvLinkMTU (mtu);
+	server = libteredo_server_create (server_ip, server_ip2);
 
 	if (drop_privileges ())
 		return -1;
 
-	if (server && server.Start ())
+	if (server != NULL)
 	{
-		int dummy;
+		if ((libteredo_server_set_prefix (server, *(uint32_t *)&prefix) == 0)
+		 && (libteredo_server_set_MTU (server, mtu) == 0)
+		 && (libteredo_server_start (server) == 0))
+		{
+			int dummy;
+	
+			while (read (fd, &dummy, sizeof (dummy)) < 0);
 
-		while (read (fd, &dummy, sizeof (dummy)) < 0);
-		server.Stop ();
+			libteredo_server_stop (server);
+			libteredo_server_destroy (server);
 
-		// parent's been signaled or died
-		return 0;
+			// parent's been signaled or died
+			return 0;
+		}
+		libteredo_server_destroy (server);
 	}
 
 	syslog (LOG_ALERT, _("Teredo server fatal error"));

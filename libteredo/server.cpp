@@ -35,6 +35,7 @@
 
 #include <errno.h> // errno
 #include <stdio.h> // snprintf()
+#include <stdlib.h>
 
 #include <sys/types.h>
 #include <unistd.h> // close()
@@ -44,20 +45,34 @@
 #include <netinet/icmp6.h>
 #include <fcntl.h>
 #include <pthread.h>
+#include <syslog.h>
 
 #include <libteredo/server-udp.h>
 #include <libteredo/server.h>
 #include "v4global.h"
 #include "checksum.h"
 
+static pthread_mutex_t raw_mutex = PTHREAD_MUTEX_INITIALIZER;
+static int raw_fd; // raw IPv6 socket
+static unsigned raw_users = 0;
+
+struct libteredo_server
+{
+	pthread_t t1, t2;
+
+	int fd_primary, fd_secondary; // UDP/IPv4 sockets
+
+	/* These are all in network byte order (including MTU!!) */
+	uint32_t server_ip, prefix, advLinkMTU;
+};
+
 /*
  * Sends a Teredo-encapsulated Router Advertisement.
  * Returns -1 on error, 0 on success.
  */
-bool
-TeredoServer::SendRA (const struct teredo_packet *p,
-                      const struct in6_addr *dest_ip6,
-                      bool use_secondary_ip) const
+static bool
+SendRA (const libteredo_server *s, const struct teredo_packet *p,
+        const struct in6_addr *dest_ip6, bool secondary)
 {
 	uint8_t packet[13 + 8 + sizeof (struct ip6_hdr)
 	                  + sizeof (struct nd_router_advert)
@@ -118,7 +133,7 @@ TeredoServer::SendRA (const struct teredo_packet *p,
 			src.teredo.server_ip = 0;
 			src.teredo.flags = htons (TEREDO_FLAG_CONE);
 			src.teredo.client_port = htons (IPPORT_TEREDO);
-			src.teredo.client_ip = ~GetServerIP ();
+			src.teredo.client_ip = ~s->server_ip;
 
 			memcpy (&ra.ip6.ip6_src, &src,
 				sizeof (ra.ip6.ip6_src));
@@ -147,8 +162,8 @@ TeredoServer::SendRA (const struct teredo_packet *p,
 		{
 			union teredo_addr pref;
 
-			pref.teredo.prefix = prefix;
-			pref.teredo.server_ip = GetServerIP ();
+			pref.teredo.prefix = s->prefix;
+			pref.teredo.server_ip = s->server_ip;
 			memset (pref.ip6.s6_addr + 8, 0, 8);
 			memcpy (&ra.pi.nd_opt_pi_prefix, &pref.ip6,
 				sizeof (ra.pi.nd_opt_pi_prefix));
@@ -158,7 +173,7 @@ TeredoServer::SendRA (const struct teredo_packet *p,
 		ra.mtu.nd_opt_mtu_type = ND_OPT_MTU;
 		ra.mtu.nd_opt_mtu_len = sizeof (ra.mtu) >> 3;
 		ra.mtu.nd_opt_mtu_reserved = 0;
-		ra.mtu.nd_opt_mtu_mtu = advLinkMTU;
+		ra.mtu.nd_opt_mtu_mtu = s->advLinkMTU;
 
 		// ICMPv6 checksum computation
 		ra.ra.nd_ra_cksum = icmp6_checksum (&ra.ip6,
@@ -168,22 +183,23 @@ TeredoServer::SendRA (const struct teredo_packet *p,
 	}
 
 	if (IN6_IS_TEREDO_ADDR_CONE (dest_ip6))
-		use_secondary_ip = !use_secondary_ip;
+		secondary = !secondary;
 
-	return sock.SendPacket (packet, ptr - packet, p->source_ipv4,
-	                        p->source_port, use_secondary_ip) == 0;
+	return teredo_send (secondary ? s->fd_secondary : s->fd_primary,
+	                    packet, ptr - packet, p->source_ipv4,
+	                    p->source_port) == (ptr - packet);
 }
 
 /*
  * Forwards a Teredo packet to a client
  */
 static bool
-ForwardUDPPacket (const TeredoServerUDP& sock,
-                  const struct teredo_packet *packet, bool insert_orig = true)
+libteredo_forward_udp (int fd, const struct teredo_packet *packet,
+                       bool insert_orig)
 {
 	union teredo_addr dst;
 	const struct ip6_hdr *ip6;
-	size_t length;
+	int length;
 	uint32_t dest_ipv4;
 
 	/* might not be aligned */
@@ -220,8 +236,10 @@ ForwardUDPPacket (const TeredoServerUDP& sock,
 		offset = 0;
 
 	memcpy (buf + offset, ip6, length);
-	return sock.SendPacket (buf, length + offset, dest_ipv4,
-	                        ~dst.teredo.client_port) == 0;
+	length += offset;
+
+	return teredo_send (fd, buf, length + offset,
+	                    dest_ipv4, ~dst.teredo.client_port) == length;
 }
 
 
@@ -230,7 +248,7 @@ ForwardUDPPacket (const TeredoServerUDP& sock,
  * Returns 0 on success, -1 on error.
  */
 static bool
-SendIPv6Packet (int fd, const void *p, size_t plen)
+libteredo_send_ipv6 (const void *p, size_t len)
 {
 	struct sockaddr_in6 dst = { };
 	int tries, res;
@@ -244,9 +262,10 @@ SendIPv6Packet (int fd, const void *p, size_t plen)
 
 	for (tries = 0; tries < 10; tries++)
 	{
-		res = sendto (fd, p, plen, 0, (struct sockaddr *)&dst, sizeof (dst));
+		res = sendto (raw_fd, p, len, 0,
+		              (struct sockaddr *)&dst, sizeof (dst));
 		if (res != -1)
-			return res == (int)plen;
+			return res == (int)len;
 
 		switch (errno)
 		{
@@ -273,11 +292,11 @@ static const struct in6_addr in6addr_allrouters =
 
 /*
  * Checks and handles an Teredo-encapsulated packet.
- * Thread-safety note: Prefix and AdvLinkMTU might be changed by another
+ * Thread-safety note: prefix and advLinkMTU might be changed by another
  * thread
  */
-bool
-TeredoServer::ProcessPacket (bool secondary)
+static bool
+libteredo_process_packet (const libteredo_server *s, bool sec)
 {
 	const uint8_t *ptr;
 	struct teredo_packet packet;
@@ -286,8 +305,7 @@ TeredoServer::ProcessPacket (bool secondary)
 	uint32_t myprefix;
 	uint8_t proto;
 
-	if (secondary ? sock.ReceivePacket2 (&packet)
-	              : sock.ReceivePacket (&packet))
+	if (teredo_wait_recv (sec ? s->fd_secondary : s->fd_primary, &packet))
 		return false;
 
 	// Teredo server case number 3
@@ -324,9 +342,9 @@ TeredoServer::ProcessPacket (bool secondary)
 	 && (ip6len > sizeof (nd_router_solicit))
 	 && (((struct icmp6_hdr *)ptr)->icmp6_type == ND_ROUTER_SOLICIT))
 		// sends a Router Advertisement
-		return SendRA (&packet, &ip6.ip6_src, secondary);
+		return SendRA (s, &packet, &ip6.ip6_src, sec);
 
-	myprefix = prefix;
+	myprefix = s->prefix;
 
 	if (IN6_TEREDO_PREFIX (&ip6.ip6_src) == myprefix)
 	{
@@ -349,7 +367,7 @@ TeredoServer::ProcessPacket (bool secondary)
 			return true; // must be discarded
 
 		if (IN6_TEREDO_PREFIX(&ip6.ip6_dst) != myprefix)
-			return SendIPv6Packet (fd, packet.ip6, packet.ip6_len);
+			return libteredo_send_ipv6 (packet.ip6, packet.ip6_len);
 
 		/*
 		 * If the IPv6 destination is a Teredo address, the packet
@@ -359,8 +377,8 @@ TeredoServer::ProcessPacket (bool secondary)
 	else
 	{
 		// Source address is not Teredo
-		if (IN6_TEREDO_PREFIX (&ip6.ip6_dst) != myprefix
-		  || IN6_TEREDO_SERVER (&ip6.ip6_dst) != GetServerIP ())
+		if ((IN6_TEREDO_PREFIX (&ip6.ip6_dst) != myprefix)
+		 || (IN6_TEREDO_SERVER (&ip6.ip6_dst) != s->server_ip))
 			return true; // case 7
 
 		// Teredo server case number 6
@@ -368,37 +386,12 @@ TeredoServer::ProcessPacket (bool secondary)
 
 	// forwards packet over Teredo:
 	// (destination is a Teredo IPv6 address)
-	return ForwardUDPPacket (sock, &packet,
-		IN6_TEREDO_SERVER (&ip6.ip6_dst) == GetServerIP ());
+	return libteredo_forward_udp (s->fd_primary, &packet,
+		IN6_TEREDO_SERVER (&ip6.ip6_dst) == s->server_ip);
 }
 
 
-TeredoServer::TeredoServer (uint32_t ip1, uint32_t ip2)
-	: server_ip (ip1), prefix (htonl (DEFAULT_TEREDO_PREFIX)),
-	  advLinkMTU (htonl (1280))
-{
-	sock.ListenIP (ip1, ip2);
-
-	fd = socket (AF_INET6, SOCK_RAW, IPPROTO_RAW);
-	if (fd != -1)
-	{
-		int flags = fcntl (fd, F_GETFL, 0);
-		shutdown (fd, SHUT_RD);
-		if (flags != -1)
-			fcntl (fd, F_SETFL, O_NONBLOCK | flags);
-	}
-}
-
-
-TeredoServer::~TeredoServer (void)
-{
-	if (fd != -1)
-		close (fd);
-}
-
-
-bool
-TeredoServer::CheckSystem (char *errmsg, size_t len)
+int libteredo_server_check (char *errmsg, size_t len)
 {
 	int fd = socket (AF_INET6, SOCK_RAW, IPPROTO_RAW);
 
@@ -414,79 +407,222 @@ TeredoServer::CheckSystem (char *errmsg, size_t len)
 }
 
 
-typedef struct server_thread_data
+static void *thread_primary (void *data)
 {
-	TeredoServer *server;
-	bool secondary;
-	pthread_cond_t ready;
-	pthread_mutex_t mutex;
-};
+	libteredo_server *s = (libteredo_server *)data;
 
-
-void *
-TeredoServer::Thread (void *o)
-{
-	struct server_thread_data *d = (struct server_thread_data *)o;
-
-	TeredoServer *s = d->server;
-	bool secondary = d->secondary;
-
-	pthread_mutex_lock (&d->mutex);
-	pthread_cond_signal (&d->ready);
-	pthread_mutex_unlock (&d->mutex);
-
-	while (1)
+	for (;;)
 	{
 		pthread_testcancel ();
-		s->ProcessPacket (secondary);
+		libteredo_process_packet (s, false);
 	}
-
-	/* unreachable */
 }
 
 
-bool
-TeredoServer::Start (void)
+static void *thread_secondary (void *data)
 {
-	struct server_thread_data d;
+	libteredo_server *s = (libteredo_server *)data;
 
-	d.server = this;
-	pthread_mutex_init (&d.mutex, NULL);
-	pthread_cond_init (&d.ready, NULL);
-	pthread_mutex_lock (&d.mutex);
-
-	d.secondary = true;
-	if (pthread_create (&t2, NULL, Thread, &d) == 0)
+	for (;;)
 	{
-		pthread_cond_wait (&d.ready, &d.mutex);
-
-		d.secondary = false;
-		if (pthread_create (&t1, NULL, Thread, &d) == 0)
-		{
-			pthread_cond_wait (&d.ready, &d.mutex);
-			pthread_mutex_unlock (&d.mutex);
-			pthread_cond_destroy (&d.ready);
-			pthread_mutex_destroy (&d.mutex);
-			return true;
-		}
-
-		pthread_cancel (t2);
-		pthread_join (t2, NULL);
+		pthread_testcancel ();
+		libteredo_process_packet (s, true);
 	}
-
-	pthread_mutex_unlock (&d.mutex);
-	pthread_cond_destroy (&d.ready);
-	pthread_mutex_destroy (&d.mutex);
-
-	return false;
 }
 
 
-void
-TeredoServer::Stop (void)
+/**
+ * Creates a Teredo server handler. You should then drop your
+ * privileges and call libteredo_server_start().
+ *
+ * @note Only one thread should use a given server handle at a time 
+ *
+ * @param ip1 server primary IPv4 address (network byte order),
+ * @param ip2 server secondary IPv4 address (network byte order).
+ *
+ * @return NULL on error.
+ */
+libteredo_server *libteredo_server_create (uint32_t ip1, uint32_t ip2)
 {
-	pthread_cancel (t1);
-	pthread_cancel (t2);
-	pthread_join (t1, NULL);
-	pthread_join (t2, NULL);
+	libteredo_server *s;
+	int fd;
+
+	/* Initializes shared raw IPv6 socket */
+	pthread_mutex_lock (&raw_mutex);
+	if (raw_users == UINT_MAX) /* integer overflow */
+	{
+		/* piece of code that will probably never ever be executed */
+		pthread_mutex_unlock (&raw_mutex);
+		return NULL;
+	}
+	if (raw_users++ == 0)
+	{
+		raw_fd = socket (AF_INET6, SOCK_RAW, IPPROTO_RAW);
+		if (raw_fd != -1)
+		{
+			int flags = fcntl (fd, F_GETFL, 0);
+			//shutdown (fd, SHUT_RD); -- won't work
+			fcntl (fd, F_SETFL, O_NONBLOCK | ((flags != -1) ? flags : 0));
+		}
+	}
+	pthread_mutex_unlock (&raw_mutex);
+
+	if (raw_fd == -1)
+	{
+		syslog (LOG_ERR, _("Raw IPv6 socket: %m"));
+		return NULL;
+	}
+
+	/* Initializes exclusive UDP/IPv4 sockets */
+	if (!is_ipv4_global_unicast (ip1) || !is_ipv4_global_unicast (ip2))
+	{
+		syslog (LOG_ERR, _("Teredo server UDP socket error: "
+		        "Server IPv4 addresses must be global unicast."));
+		return NULL;
+	}
+
+	s = (libteredo_server *)malloc (sizeof (*s));
+
+	if (s != NULL)
+	{
+		s->server_ip = ip1;
+		s->prefix = htonl (DEFAULT_TEREDO_PREFIX);
+		s->advLinkMTU = htonl (1280);
+
+		fd = s->fd_primary = teredo_socket (ip1, htons (IPPORT_TEREDO));
+		if (fd != -1)
+		{
+			fd = s->fd_secondary = teredo_socket (ip2, htons (IPPORT_TEREDO));
+			if (fd != -1)
+				return s;
+			else
+				syslog (LOG_ERR, _("Secondary socket: %m"));
+
+			teredo_close (s->fd_primary);
+		}
+		else
+			syslog (LOG_ERR, _("Primary socket: %m"));
+
+		free (s);
+	}
+	return NULL;
+}
+
+
+/**
+ * Changes the Teredo prefix to be advertised by a Teredo server.
+ * If not set, the internal default will be used.
+ *
+ * @note The default Teredo prefix is expected to change in a future
+ * version of this library, when IANA assigns a permanent Teredo prefix.
+ *
+ * @param s server handler as returned from libteredo_server_create(),
+ * @param prefix 32-bits IPv6 address prefix (network byte order).
+ *
+ * @return 0 on success, -1 if the prefix is not acceptable.
+ */
+int libteredo_server_set_prefix (libteredo_server *s, uint32_t prefix)
+{
+	if (is_valid_teredo_prefix (prefix))
+	{
+		s->prefix = prefix;
+		return 0;
+	}
+	return -1;
+}
+
+
+/**
+ * Returns the Teredo prefix currently advertised by the server (in network
+ * byte order).
+ *
+ * @param s server handler as returned from libteredo_server_create(),
+ */
+uint32_t libteredo_server_get_prefix (libteredo_server *s)
+{
+	return s->prefix;
+}
+
+/**
+ * Changes the link MTU advertised by the Teredo server.
+ * If not set, the internal default will be used (currently 1280 bytes).
+ *
+ * @param s server handler as returned from libteredo_server_create(),
+ * @param prefix MTU (in bytes) (host byte order).
+ *
+ * @return 0 on success, -1 if the MTU is not acceptable.
+ */
+int libteredo_server_set_MTU (libteredo_server *s, uint16_t mtu)
+{
+	if (mtu < 1280)
+		return -1;
+
+	s->advLinkMTU = htonl (mtu);
+	return 0;
+}
+
+
+/**
+ * Returns the link MTU currently advertised by the server in host byte order.
+ *
+ * @param s server handler as returned from libteredo_server_create(),
+ */
+uint16_t libteredo_server_get_MTU (libteredo_server *s)
+{
+	return ntohl (s->advLinkMTU);
+}
+
+
+/**
+ * Starts a Teredo server processing.
+ *
+ * @param s server handler as returned from libteredo_server_create(),
+ *
+ * @return 0 on success, -1 on error.
+ */
+int libteredo_server_start (libteredo_server *s)
+{
+	if (pthread_create (&s->t1, NULL, thread_primary, s) == 0)
+	{
+		if (pthread_create (&s->t2, NULL, thread_secondary, s) == 0)
+			return 0;
+		pthread_cancel (s->t1);
+		pthread_join (s->t1, NULL);
+	}
+
+	return -1;
+}
+
+
+/**
+ * Stops a Teredo server. Behavior is not defined if it was not started first.
+ *
+ * @param s server handler as returned from libteredo_server_create(),
+ */
+void libteredo_server_stop (libteredo_server *s)
+{
+	pthread_cancel (s->t1);
+	pthread_cancel (s->t2);
+	pthread_join (s->t1, NULL);
+	pthread_join (s->t2, NULL);
+}
+
+
+/**
+ * Destroys a Teredo server handle. Behavior is not defined if the associated
+ * server is currently running - you must stop it with libteredo_server_stop()
+ * first, if it is running.
+ *
+ * @param s server handler as returned from libteredo_server_create(),
+ */
+void libteredo_server_destroy (libteredo_server *s)
+{
+	teredo_close (s->fd_primary);
+	teredo_close (s->fd_secondary);
+	free (s);
+
+	pthread_mutex_lock (&raw_mutex);
+	if (--raw_users == 0)
+		close (raw_fd);
+	pthread_mutex_unlock (&raw_mutex);
 }
