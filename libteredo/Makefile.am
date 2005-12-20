@@ -43,9 +43,7 @@ libteredo_la_LDFLAGS += @LIBGCRYPT_LIBS@
 endif
 
 # libteredo-server.la
-libteredo_server_la_SOURCES =	$(common_SOURCES) \
-				server-udp.cpp server-udp.h \
-				server.cpp server.h
+libteredo_server_la_SOURCES =	$(common_SOURCES) server.c server.h
 
 # libteredo-unit
 libteredo_unit_SOURCES = unit.c

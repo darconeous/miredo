@@ -33,6 +33,7 @@
 # include <inttypes.h>
 #endif
 
+#include <stdbool.h>
 #include <errno.h> // errno
 #include <stdio.h> // snprintf()
 #include <stdlib.h>
@@ -47,10 +48,11 @@
 #include <pthread.h>
 #include <syslog.h>
 
-#include <libteredo/server-udp.h>
-#include <libteredo/server.h>
+#include "server.h"
 #include "v4global.h"
 #include "checksum.h"
+#include "teredo.h"
+#include "teredo-udp.h"
 
 static pthread_mutex_t raw_mutex = PTHREAD_MUTEX_INITIALIZER;
 static int raw_fd; // raw IPv6 socket
@@ -298,7 +300,7 @@ libteredo_process_packet (const libteredo_server *s, bool sec)
 	ptr = packet.ip6;
 	ip6len = packet.ip6_len;
 
-	if (ip6len < sizeof (ip6_hdr))
+	if (ip6len < sizeof (ip6))
 		return 0; // too small
 
 	memcpy (&ip6, ptr, sizeof (ip6));
@@ -321,7 +323,7 @@ libteredo_process_packet (const libteredo_server *s, bool sec)
 	if (IN6_IS_ADDR_LINKLOCAL (&ip6.ip6_src)
 	 && IN6_ARE_ADDR_EQUAL (&in6addr_allrouters, &ip6.ip6_dst)
 	 && (proto == IPPROTO_ICMPV6)
-	 && (ip6len > sizeof (nd_router_solicit))
+	 && (ip6len > sizeof (struct nd_router_solicit))
 	 && (((struct icmp6_hdr *)ptr)->icmp6_type == ND_ROUTER_SOLICIT))
 		// sends a Router Advertisement
 		return SendRA (s, &packet, &ip6.ip6_src, sec);
@@ -523,7 +525,7 @@ int libteredo_server_set_prefix (libteredo_server *s, uint32_t prefix)
  *
  * @param s server handler as returned from libteredo_server_create(),
  */
-uint32_t libteredo_server_get_prefix (libteredo_server *s)
+uint32_t libteredo_server_get_prefix (const libteredo_server *s)
 {
 	return s->prefix;
 }
@@ -552,7 +554,7 @@ int libteredo_server_set_MTU (libteredo_server *s, uint16_t mtu)
  *
  * @param s server handler as returned from libteredo_server_create(),
  */
-uint16_t libteredo_server_get_MTU (libteredo_server *s)
+uint16_t libteredo_server_get_MTU (const libteredo_server *s)
 {
 	return ntohl (s->advLinkMTU);
 }
