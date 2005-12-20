@@ -129,6 +129,8 @@ SendRA (const libteredo_server *s, const struct teredo_packet *p,
 	memcpy (&ra.ip6.ip6_dst, dest_ip6, sizeof (ra.ip6.ip6_dst));
 
 	// ICMPv6: Router Advertisement
+	iov[2].iov_base = &ra;
+	iov[2].iov_len = sizeof (ra);
 	ra.ra.nd_ra_type = ND_ROUTER_ADVERT;
 	ra.ra.nd_ra_code = 0;
 	ra.ra.nd_ra_cksum = 0;
