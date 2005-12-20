@@ -181,49 +181,42 @@ static bool
 libteredo_forward_udp (int fd, const struct teredo_packet *packet,
                        bool insert_orig)
 {
-	union teredo_addr dst;
-	const struct ip6_hdr *ip6;
-	int length;
+	struct teredo_orig_ind orig;
+	struct iovec iov[2];
 	uint32_t dest_ipv4;
+	uint16_t dest_port;
 
-	/* might not be aligned */
-	ip6 = (const struct ip6_hdr *)packet->ip6;
-	length = packet->ip6_len;
-
-	memcpy (&dst, &ip6->ip6_dst, sizeof (dst));
-	dest_ipv4 = ~dst.teredo.client_ip;
+	/* extract the IPv4 destination directly from the Teredo IPv6 destination
+	   within the IPv6 header */
+	memcpy (&dest_ipv4, packet->ip6 + 24 + 12, 4);
+	dest_ipv4 = ~dest_ipv4;
 
 	if (!is_ipv4_global_unicast (dest_ipv4))
 		return 0; // ignore invalid client IP
 
-	uint8_t buf[65515];
-	unsigned offset;
-
-	/* TODO: use sendmsg */
+	memcpy (&dest_port, packet->ip6 + 24 + 10, 2);
+	dest_port = ~dest_port;
 
 	// Origin indication header
 	// if the Teredo server's address is ours
 	// NOTE: I wonder in which legitimate case insert_orig might be
 	// false... but the spec implies it could
+	iov[0].iov_base = &orig;
 	if (insert_orig)
 	{
-		struct teredo_orig_ind orig;
-		offset = 8;
-
+		iov[0].iov_len = sizeof (orig);
 		orig.hdr.zero = 0;
 		orig.hdr.code = teredo_orig_ind;
 		orig.orig_port = ~packet->source_port; // obfuscate
 		orig.orig_addr = ~packet->source_ipv4; // obfuscate
-		memcpy (buf, &orig, offset);
 	}
 	else
-		offset = 0;
+		iov[0].iov_len = 0;
 
-	memcpy (buf + offset, ip6, length);
-	length += offset;
+	iov[1].iov_base = packet->ip6;
+	iov[1].iov_len = packet->ip6_len;
 
-	return teredo_send (fd, buf, length + offset,
-	                    dest_ipv4, ~dst.teredo.client_port) == length;
+	return teredo_sendv (fd, iov, 2, dest_ipv4, dest_port) > 0;
 }
 
 
