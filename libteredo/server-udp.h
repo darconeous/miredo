@@ -32,7 +32,8 @@
 # include <sys/types.h>
 # include <sys/select.h> // fd_set
 
-# include <libteredo/teredo.h>
+# include "teredo.h"
+# include "teredo-udp.h"
 
 class TeredoServerUDP
 {

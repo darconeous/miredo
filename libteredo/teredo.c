@@ -43,7 +43,8 @@
 # define SOL_IP IPPROTO_IP
 #endif
 
-#include <libteredo/teredo.h>
+#include "teredo.h"
+#include "teredo-udp.h"
 
 /*
  * Teredo addresses
@@ -100,17 +101,12 @@ int teredo_socket (uint32_t bind_ip, uint16_t port)
 }
 
 
-int teredo_send (int fd, const void *packet, size_t plen,
-                 uint32_t dest_ip, uint16_t dest_port)
+int teredo_sendv (int fd, const struct iovec *iov, size_t count,
+                  uint32_t dest_ip, uint16_t dest_port)
 {
+	struct msghdr msg;
 	struct sockaddr_in addr;
 	int res, tries;
-
-	if (plen > 65507)
-	{
-		errno = EMSGSIZE;
-		return -1;
-	}
 
 	addr.sin_family = AF_INET;
 	addr.sin_port = dest_port;
@@ -119,13 +115,19 @@ int teredo_send (int fd, const void *packet, size_t plen,
 	addr.sin_len = sizeof (addr);
 #endif
 
+	msg.msg_name = &addr;
+	msg.msg_namelen = sizeof (addr);
+	msg.msg_iov = (struct iovec *)iov;
+	msg.msg_iovlen = count;
+	msg.msg_control = NULL;
+	msg.msg_controllen = 0;
+	msg.msg_flags = 0;
+
 	for (tries = 0; tries < 10; tries++)
 	{
-		res = sendto (fd, packet, plen, 0,
-					  (struct sockaddr *)&addr, sizeof (addr));
+		res = sendmsg (fd, &msg, 0);
 		if (res != -1)
 			return res;
-
 		/*
 		 * NOTE:
 		 * We must ignore ICMP errors returned by sendto() because they are
@@ -144,24 +146,33 @@ int teredo_send (int fd, const void *packet, size_t plen,
 		 */
 		switch (errno)
 		{
-			case EMSGSIZE: /* ICMP fragmentation needed
-					- should not happen */
+			/*case EMSGSIZE:*/ /* ICMP fragmentation needed *
+			 * given we don't ensure that the length is below 65507, we
+			 * must not ignore that error */
 			case ENETUNREACH: /* ICMP address unreachable */
 			case EHOSTUNREACH: /* ICMP destination unreachable */
 			case ENOPROTOOPT: /* ICMP protocol unreachable */
 			case ECONNREFUSED: /* ICMP port unreachable */
 			case EOPNOTSUPP: /* ICMP source route failed
-								- should not happen */
+							- should not happen */
 			case EHOSTDOWN: /* ICMP host unknown */
 			case ENONET: /* ICMP host isolated */
 				continue;
-
+	
 			default:
-					return -1; /* hard error */
+				return -1; /* hard error */
 		}
 	}
 
 	return -1;
+}
+
+
+int teredo_send (int fd, const void *packet, size_t plen,
+                 uint32_t dest_ip, uint16_t dest_port)
+{
+	struct iovec iov = { (void *)packet, plen };
+	return teredo_sendv (fd, &iov, 1, dest_ip, dest_port);
 }
 
 
