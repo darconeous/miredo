@@ -105,7 +105,7 @@ int teredo_sendv (int fd, const struct iovec *iov, size_t count,
                   uint32_t dest_ip, uint16_t dest_port)
 {
 	struct msghdr msg;
-	struct sockaddr_in addr;
+	struct sockaddr_in addr = { };
 	int res, tries;
 
 	addr.sin_family = AF_INET;
