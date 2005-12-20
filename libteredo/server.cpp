@@ -94,6 +94,7 @@ SendRA (const libteredo_server *s, const struct teredo_packet *p,
 	nonce = p->nonce;
 	if (nonce != NULL)
 	{
+		//memset (&auth, 0, sizeof (auth));
 		auth.hdr.hdr.zero = 0;
 		auth.hdr.hdr.code = teredo_auth_hdr;
 		auth.hdr.id_len = auth.hdr.au_len = 0;
@@ -106,6 +107,7 @@ SendRA (const libteredo_server *s, const struct teredo_packet *p,
 		iov[0].iov_len = 0;
 
 	// Origin indication header
+	//memset (&orig, 0, sizeof (orig));
 	iov[1].iov_base = &orig;
 	iov[1].iov_len = 8;
 	orig.hdr.zero = 0;
@@ -114,6 +116,10 @@ SendRA (const libteredo_server *s, const struct teredo_packet *p,
 	orig.orig_addr = ~p->source_ipv4; // obfuscate
 
 	// IPv6 header
+	memset (&ra, 0, sizeof (ra));
+	iov[2].iov_base = &ra;
+	iov[2].iov_len = sizeof (ra);
+
 	ra.ip6.ip6_flow = htonl (0x60000000);
 	ra.ip6.ip6_plen = htons (sizeof (ra) - sizeof (ra.ip6));
 	ra.ip6.ip6_nxt = IPPROTO_ICMPV6;
@@ -121,7 +127,7 @@ SendRA (const libteredo_server *s, const struct teredo_packet *p,
 
 	addr = (union teredo_addr *)&ra.ip6.ip6_src;
 	addr->teredo.prefix = htonl (0xfe800000);
-	addr->teredo.server_ip = 0;
+	//addr->teredo.server_ip = 0;
 	addr->teredo.flags = htons (TEREDO_FLAG_CONE);
 	addr->teredo.client_port = htons (IPPORT_TEREDO);
 	addr->teredo.client_ip = ~s->server_ip;
@@ -129,15 +135,13 @@ SendRA (const libteredo_server *s, const struct teredo_packet *p,
 	memcpy (&ra.ip6.ip6_dst, dest_ip6, sizeof (ra.ip6.ip6_dst));
 
 	// ICMPv6: Router Advertisement
-	iov[2].iov_base = &ra;
-	iov[2].iov_len = sizeof (ra);
 	ra.ra.nd_ra_type = ND_ROUTER_ADVERT;
-	ra.ra.nd_ra_code = 0;
-	ra.ra.nd_ra_cksum = 0;
-	ra.ra.nd_ra_curhoplimit = 0;
-	ra.ra.nd_ra_flags_reserved = 0;
-	ra.ra.nd_ra_router_lifetime = 0;
-	ra.ra.nd_ra_reachable = 0;
+	//ra.ra.nd_ra_code = 0;
+	//ra.ra.nd_ra_cksum = 0;
+	//ra.ra.nd_ra_curhoplimit = 0;
+	//ra.ra.nd_ra_flags_reserved = 0;
+	//ra.ra.nd_ra_router_lifetime = 0;
+	//ra.ra.nd_ra_reachable = 0;
 	ra.ra.nd_ra_retransmit = htonl (2000);
 
 	// ICMPv6 option: Prefix information
@@ -150,12 +154,12 @@ SendRA (const libteredo_server *s, const struct teredo_packet *p,
 	addr = (union teredo_addr *)&ra.pi.nd_opt_pi_prefix;
 	addr->teredo.prefix = s->prefix;
 	addr->teredo.server_ip = s->server_ip;
-	memset (addr->ip6.s6_addr + 8, 0, 8);
+	//memset (addr->ip6.s6_addr + 8, 0, 8);
 
 	// ICMPv6 option : MTU
 	ra.mtu.nd_opt_mtu_type = ND_OPT_MTU;
 	ra.mtu.nd_opt_mtu_len = sizeof (ra.mtu) >> 3;
-	ra.mtu.nd_opt_mtu_reserved = 0;
+	//ra.mtu.nd_opt_mtu_reserved = 0;
 	ra.mtu.nd_opt_mtu_mtu = s->advLinkMTU;
 
 	// ICMPv6 checksum computation
@@ -465,6 +469,7 @@ libteredo_server *libteredo_server_create (uint32_t ip1, uint32_t ip2)
 	{
 		int fd;
 
+		memset (s, 0, sizeof (s));
 		s->server_ip = ip1;
 		s->prefix = htonl (DEFAULT_TEREDO_PREFIX);
 		s->advLinkMTU = htonl (1280);
