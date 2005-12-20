@@ -1,5 +1,5 @@
 /*
- * server.cpp - Handling of a single Teredo datagram (server-side).
+ * server.c - Handling of a single Teredo datagram (server-side).
  * $Id$
  */
 

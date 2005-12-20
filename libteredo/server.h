@@ -1,5 +1,5 @@
 /*
- * server.h - Declarations for server.cpp
+ * server.h - Declarations for server.c
  * $Id$
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
