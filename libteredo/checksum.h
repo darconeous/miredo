@@ -26,7 +26,7 @@
 # include <netinet/in.h>
 
 static inline uint16_t
-sum16 (const uint16_t *data, size_t length, uint32_t sum32 = 0)
+sum16 (const uint16_t *data, size_t length, uint32_t sum32)
 {
 	for (; length >= 2; length -= 2)
 		sum32 += *data++;
@@ -47,11 +47,12 @@ static inline uint16_t
 ipv6_sum (const struct ip6_hdr *ip6)
 {
 	uint32_t sum32 = 0;
+	size_t i;
 
 	/* Pseudo-header sum */
-	for (size_t i = 0; i < 16; i += 2)
+	for (i = 0; i < 16; i += 2)
 		sum32 += *(uint16_t *)(&ip6->ip6_src.s6_addr[i]);
-	for (size_t i = 0; i < 16; i += 2)
+	for (i = 0; i < 16; i += 2)
 		sum32 += *(uint16_t *)(&ip6->ip6_dst.s6_addr[i]);
 
 	sum32 += ip6->ip6_plen + ntohs (ip6->ip6_nxt);
