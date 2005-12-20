@@ -7,7 +7,7 @@
  */
 
 /***********************************************************************
- *  Copyright (C) 2004 Remi Denis-Courmont.                            *
+ *  Copyright (C) 2004-2005 Remi Denis-Courmont.                       *
  *  This program is free software; you can redistribute and/or modify  *
  *  it under the terms of the GNU General Public License as published  *
  *  by the Free Software Foundation; version 2 of the license.         *
@@ -68,14 +68,14 @@ class TeredoServerUDP
 		 * Returns 0 on success, -1 if no packet were to be received
 		 * or they were not valid Terdo-encapsulated-packets.
 		 */
-		int ReceivePacket (TeredoPacket& packet) const
+		int ReceivePacket (struct teredo_packet *packet) const
 		{
-			return packet.ReceiveBlocking (fd_primary);
+			return teredo_wait_recv (fd_primary, packet);
 		}
 
-		int ReceivePacket2 (TeredoPacket& packet) const
+		int ReceivePacket2 (struct teredo_packet *packet) const
 		{
-			return packet.ReceiveBlocking (fd_secondary);
+			return teredo_wait_recv (fd_secondary, packet);
 		}
 
 		/*

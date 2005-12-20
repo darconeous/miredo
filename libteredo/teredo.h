@@ -171,7 +171,8 @@ extern "C" {
 # endif
 
 int teredo_socket (uint32_t bind_ip, uint16_t port);
-int teredo_send (int fd, const void *data, size_t len, uint32_t ip, uint16_t port);
+int teredo_send (int fd, const void *data, size_t len,
+                 uint32_t ip, uint16_t port);
 int teredo_recv (int fd, struct teredo_packet *p);
 int teredo_wait_recv (int fd, struct teredo_packet *p);
 

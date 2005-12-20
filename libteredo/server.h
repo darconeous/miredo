@@ -46,7 +46,8 @@ class /*sealed*/ TeredoServer
 		TeredoServerUDP sock;
 		int fd; // raw IPv6 socket
 
-		bool SendRA (const TeredoPacket& p, const struct in6_addr *dest_ip6,
+		bool SendRA (const struct teredo_packet *p,
+		             const struct in6_addr *dest_ip6,
 		             bool use_secondary_ip) const;
 		bool ProcessPacket (bool secondary);
 		static void *Thread (void *o);

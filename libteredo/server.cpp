@@ -55,7 +55,8 @@
  * Returns -1 on error, 0 on success.
  */
 bool
-TeredoServer::SendRA (const TeredoPacket& p, const struct in6_addr *dest_ip6,
+TeredoServer::SendRA (const struct teredo_packet *p,
+                      const struct in6_addr *dest_ip6,
                       bool use_secondary_ip) const
 {
 	uint8_t packet[13 + 8 + sizeof (struct ip6_hdr)
@@ -65,7 +66,7 @@ TeredoServer::SendRA (const TeredoPacket& p, const struct in6_addr *dest_ip6,
 
 	// Authentification header
 	// TODO: support for secure qualification
-	const uint8_t *nonce = p.GetAuthNonce ();
+	const uint8_t *nonce = p->nonce;
 	if (nonce != NULL)
 	{
 		// No particular alignment issue
@@ -88,8 +89,8 @@ TeredoServer::SendRA (const TeredoPacket& p, const struct in6_addr *dest_ip6,
 
 		orig.hdr.zero = 0;
 		orig.hdr.code = teredo_orig_ind;
-		orig.orig_port = ~p.GetClientPort (); // obfuscate
-		orig.orig_addr = ~p.GetClientIP (); // obfuscate
+		orig.orig_port = ~p->source_port; // obfuscate
+		orig.orig_addr = ~p->source_ipv4; // obfuscate
 
 		memcpy (ptr, &orig, 8);
 		ptr += 8;
@@ -169,34 +170,36 @@ TeredoServer::SendRA (const TeredoPacket& p, const struct in6_addr *dest_ip6,
 	if (IN6_IS_TEREDO_ADDR_CONE (dest_ip6))
 		use_secondary_ip = !use_secondary_ip;
 
-	return sock.SendPacket (packet, ptr - packet, p.GetClientIP (),
-	                        p.GetClientPort (), use_secondary_ip) == 0;
+	return sock.SendPacket (packet, ptr - packet, p->source_ipv4,
+	                        p->source_port, use_secondary_ip) == 0;
 }
 
 /*
  * Forwards a Teredo packet to a client
  */
 static bool
-ForwardUDPPacket (const TeredoServerUDP& sock, const TeredoPacket& packet,
-                  bool insert_orig = true)
+ForwardUDPPacket (const TeredoServerUDP& sock,
+                  const struct teredo_packet *packet, bool insert_orig = true)
 {
-	size_t length;
-	const struct ip6_hdr *p =
-		(const struct ip6_hdr *)packet.GetIPv6Packet (length);
-		/* might not be aligned */
-
-	if ((p == NULL) || (length > 65507))
-		return -1;
-
 	union teredo_addr dst;
-	memcpy (&dst, &p->ip6_dst, sizeof (dst));
-	uint32_t dest_ip = ~dst.teredo.client_ip;
+	const struct ip6_hdr *ip6;
+	size_t length;
+	uint32_t dest_ipv4;
 
-	if (!is_ipv4_global_unicast (dest_ip))
+	/* might not be aligned */
+	ip6 = (const struct ip6_hdr *)packet->ip6;
+	length = packet->ip6_len;
+
+	memcpy (&dst, &ip6->ip6_dst, sizeof (dst));
+	dest_ipv4 = ~dst.teredo.client_ip;
+
+	if (!is_ipv4_global_unicast (dest_ipv4))
 		return 0; // ignore invalid client IP
 
 	uint8_t buf[65515];
 	unsigned offset;
+
+	/* TODO: use sendmsg */
 
 	// Origin indication header
 	// if the Teredo server's address is ours
@@ -209,15 +212,15 @@ ForwardUDPPacket (const TeredoServerUDP& sock, const TeredoPacket& packet,
 
 		orig.hdr.zero = 0;
 		orig.hdr.code = teredo_orig_ind;
-		orig.orig_port = ~packet.GetClientPort (); // obfuscate
-		orig.orig_addr = ~packet.GetClientIP (); // obfuscate
+		orig.orig_port = ~packet->source_port; // obfuscate
+		orig.orig_addr = ~packet->source_ipv4; // obfuscate
 		memcpy (buf, &orig, offset);
 	}
 	else
 		offset = 0;
 
-	memcpy (buf + offset, p, length);
-	return sock.SendPacket (buf, length + offset, dest_ip,
+	memcpy (buf + offset, ip6, length);
+	return sock.SendPacket (buf, length + offset, dest_ipv4,
 	                        ~dst.teredo.client_port) == 0;
 }
 
@@ -238,7 +241,6 @@ SendIPv6Packet (int fd, const void *p, size_t plen)
 #endif
 	memcpy (&dst.sin6_addr, &((const struct ip6_hdr *)p)->ip6_dst,
 	        sizeof (dst.sin6_addr));
-	plen += sizeof (struct ip6_hdr);
 
 	for (tries = 0; tries < 10; tries++)
 	{
@@ -277,57 +279,61 @@ static const struct in6_addr in6addr_allrouters =
 bool
 TeredoServer::ProcessPacket (bool secondary)
 {
-	TeredoPacket packet;
+	const uint8_t *ptr;
+	struct teredo_packet packet;
+	size_t ip6len;
+	struct ip6_hdr ip6;
+	uint32_t myprefix;
+	uint8_t proto;
 
-	if (secondary ? sock.ReceivePacket2 (packet)
-	              : sock.ReceivePacket (packet))
+	if (secondary ? sock.ReceivePacket2 (&packet)
+	              : sock.ReceivePacket (&packet))
 		return false;
 
 	// Teredo server case number 3
-	if (!is_ipv4_global_unicast (packet.GetClientIP ()))
+	if (!is_ipv4_global_unicast (packet.source_ipv4))
 		return true;
 
 	// Check IPv6 packet (Teredo server check number 1)
-	size_t ip6len;
-	const uint8_t *buf = packet.GetIPv6Packet (ip6len);
-	struct ip6_hdr ip6;
-	
-	if (ip6len < sizeof(ip6_hdr))
+	ptr = packet.ip6;
+	ip6len = packet.ip6_len;
+
+	if (ip6len < sizeof (ip6_hdr))
 		return 0; // too small
-	memcpy(&ip6, buf, sizeof (ip6));
-	ip6len -= sizeof(ip6_hdr);
+
+	memcpy (&ip6, ptr, sizeof (ip6));
+	ip6len -= sizeof (ip6);
+	ptr += sizeof (ip6);
 
 	if (((ip6.ip6_vfc >> 4) != 6)
 	 || (ntohs (ip6.ip6_plen) != ip6len))
 		return true; // not an IPv6 packet
 
-	const uint8_t *upper = buf + sizeof (ip6);
-	// NOTE: upper is not aligned, read single bytes only
+	// NOTE: ptr is not aligned => read single bytes only
 
 	// Teredo server case number 2
-	uint8_t proto = ip6.ip6_nxt;
-	if ((proto != IPPROTO_NONE || ip6len > 0) // neither a bubble...
-	 && proto != IPPROTO_ICMPV6) // nor an ICMPv6 message
+	proto = ip6.ip6_nxt;
+	if (((proto != IPPROTO_NONE) || (ip6len > 0)) // neither a bubble...
+	 && (proto != IPPROTO_ICMPV6)) // nor an ICMPv6 message
 		return true; // packet not allowed through server
 
 	// Teredo server case number 4
-	if (IN6_IS_ADDR_LINKLOCAL(&ip6.ip6_src)
+	if (IN6_IS_ADDR_LINKLOCAL (&ip6.ip6_src)
 	 && IN6_ARE_ADDR_EQUAL (&in6addr_allrouters, &ip6.ip6_dst)
 	 && (proto == IPPROTO_ICMPV6)
 	 && (ip6len > sizeof (nd_router_solicit))
-	 && (((struct icmp6_hdr *)upper)->icmp6_type == ND_ROUTER_SOLICIT))
+	 && (((struct icmp6_hdr *)ptr)->icmp6_type == ND_ROUTER_SOLICIT))
 		// sends a Router Advertisement
-		return SendRA (packet, &ip6.ip6_src, secondary);
+		return SendRA (&packet, &ip6.ip6_src, secondary);
 
-	uint32_t myprefix = prefix;
+	myprefix = prefix;
 
 	if (IN6_TEREDO_PREFIX (&ip6.ip6_src) == myprefix)
 	{
 		// Source address is Teredo
 
-		if (!IN6_MATCHES_TEREDO_CLIENT (&ip6.ip6_src,
-						packet.GetClientIP (),
-						packet.GetClientPort ()))
+		if (!IN6_MATCHES_TEREDO_CLIENT (&ip6.ip6_src, packet.source_ipv4,
+		                                packet.source_port))
 			return true; // case 7
 
 		// Teredo server case number 5
@@ -343,7 +349,7 @@ TeredoServer::ProcessPacket (bool secondary)
 			return true; // must be discarded
 
 		if (IN6_TEREDO_PREFIX(&ip6.ip6_dst) != myprefix)
-			return SendIPv6Packet (fd, buf, ip6len);
+			return SendIPv6Packet (fd, packet.ip6, packet.ip6_len);
 
 		/*
 		 * If the IPv6 destination is a Teredo address, the packet
@@ -362,7 +368,7 @@ TeredoServer::ProcessPacket (bool secondary)
 
 	// forwards packet over Teredo:
 	// (destination is a Teredo IPv6 address)
-	return ForwardUDPPacket (sock, packet,
+	return ForwardUDPPacket (sock, &packet,
 		IN6_TEREDO_SERVER (&ip6.ip6_dst) == GetServerIP ());
 }
 
