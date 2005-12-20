@@ -91,22 +91,3 @@ int TeredoServerUDP::ListenIP (uint32_t ip1, uint32_t ip2)
 	return 0;
 }
 
-
-int TeredoServerUDP::RegisterReadSet (fd_set *readset) const
-{
-	int maxfd = -1;
-	if (fd_primary != -1)
-	{
-		FD_SET (fd_primary, readset);
-		if (fd_primary > maxfd)
-			maxfd = fd_primary;
-	}
-	
-	if (fd_secondary != -1)
-	{
-		FD_SET (fd_secondary, readset);
-		if (fd_secondary > maxfd)
-			maxfd = fd_secondary;
-	}
-	return maxfd;
-}
