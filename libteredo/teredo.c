@@ -26,6 +26,8 @@
 # include <config.h>
 #endif
 
+#include <string.h> // memcpy()
+
 #if HAVE_STDINT_H
 # include <stdint.h> /* Mac OS X needs that */
 #endif
@@ -160,4 +162,117 @@ int teredo_send (int fd, const void *packet, size_t plen,
 	}
 
 	return -1;
+}
+
+
+/**
+ * Receives and parses a Teredo packet from a socket.
+ * Blocks if the socket is blocking, don't block if not.
+ *
+ * @param fd socket file descriptor
+ * @param p teredo_packet receive buffer
+ *
+ * @return 0 on success, -1 in error.
+ * Errors might be caused by :
+ *  - lower level network I/O,
+ *  - malformatted packets,
+ *  - no data pending while using a non-blocking socket.
+ */
+int teredo_recv (int fd, struct teredo_packet *p)
+{
+	uint8_t *ptr;
+	int length;
+
+	// Receive a UDP packet
+	{
+		struct sockaddr_in ad;
+		socklen_t alen = sizeof (ad);
+
+		length = recvfrom (fd, p->buf, sizeof (p->buf), 0,
+						   (struct sockaddr *)&ad, &alen);
+
+		if (length < 0)
+			return -1;
+
+		p->source_ipv4 = ad.sin_addr.s_addr;
+		p->source_port = ad.sin_port;
+	}
+
+	// Check type of Teredo header:
+	ptr = p->buf;
+	p->orig = NULL;
+	p->nonce = NULL;
+
+	// Parse Teredo headers
+	if (length < 40)
+		return -1; // too small
+
+	// Teredo Authentication header
+	if ((ptr[0] == 0) && (ptr[1] == teredo_auth_hdr))
+	{
+		uint8_t id_len, au_len;
+
+		ptr += 2;
+		length -= 13;
+		if (length < 0)
+			return -1; // too small
+
+		/* ID and Auth */
+		id_len = *ptr++;
+		au_len = *ptr++;
+
+		length -= id_len + au_len;
+		if (length < 0)
+			return -1;
+
+		/* TODO: secure qualification */
+		ptr += id_len + au_len;
+
+		/* Nonce + confirmation byte */
+		p->nonce = ptr;
+		ptr += 9;
+	}
+
+	/* Teredo Origin Indication */
+	if ((ptr[0] == 0) && (ptr[1] == teredo_orig_ind))
+	{
+		length -= sizeof (p->orig_buf);
+		if (length < 0)
+			return -1; /* too small */
+
+		memcpy (&p->orig_buf, ptr, sizeof (p->orig_buf));
+		p->orig = &p->orig_buf;
+		ptr += sizeof (p->orig_buf);
+	}
+
+	/* length <= 65507 = sizeof(buf) */
+	p->ip6_len = length;
+	p->ip6 = ptr;
+
+	return 0;
+}
+
+
+/**
+ * Waits for, receives and parses a Teredo packet from a socket.
+ *
+ * @param fd socket file descriptor
+ * @param p teredo_packet receive buffer
+ *
+ * @return 0 on success, -1 in error.
+ * Errors might be caused by :
+ *  - lower level network I/O,
+ *  - malformatted packets,
+ *  - a race condition if two thread are waiting on the same
+ *    non-blocking socket for receiving.
+ */
+int teredo_wait_recv (int fd, struct teredo_packet *p)
+{
+	fd_set readset;
+	int val;
+
+	FD_ZERO (&readset);
+	FD_SET (fd, &readset);
+	val = select (fd + 1, &readset, NULL, NULL, NULL);
+	return (val == 1) ? teredo_recv (fd, p) : -1;
 }

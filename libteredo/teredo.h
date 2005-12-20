@@ -151,12 +151,29 @@ struct teredo_simple_auth
 	uint8_t confirmation;
 };
 
+
+struct teredo_packet
+{
+	struct teredo_orig_ind *orig;
+	uint8_t *nonce, *ip6;
+
+	uint32_t source_ipv4;
+	uint16_t source_port;
+	uint16_t ip6_len;
+
+	struct teredo_orig_ind orig_buf;
+	uint8_t buf[65507];
+};
+
+
 # ifdef __cplusplus
 extern "C" {
 # endif
 
 int teredo_socket (uint32_t bind_ip, uint16_t port);
 int teredo_send (int fd, const void *data, size_t len, uint32_t ip, uint16_t port);
+int teredo_recv (int fd, struct teredo_packet *p);
+int teredo_wait_recv (int fd, struct teredo_packet *p);
 
 # ifdef __cplusplus
 }
@@ -168,22 +185,22 @@ int teredo_send (int fd, const void *data, size_t len, uint32_t ip, uint16_t por
 class TeredoPacket
 {
 	private:
-		struct teredo_orig_ind *orig;
-		uint8_t *nonce, *ip6;
-		uint32_t last_ip;
-		int ip6len;
-		uint16_t last_port;
-
-		uint8_t buf[65507];
-		struct teredo_orig_ind orig_buf;
+		struct teredo_packet p;
 
 	public:
 		/*
 		 * Receives and parses a Teredo packet from file descriptor
 		 * fd. This is not thread-safe (the object should be locked).
 		 */
-		int Receive (int fd);
-		int ReceiveBlocking (int fd);
+		int Receive (int fd)
+		{
+			return teredo_recv (fd, &p);
+		}
+
+		int ReceiveBlocking (int fd)
+		{
+			return teredo_wait_recv (fd, &p);
+		}
 
 		/*
 		 * Returns a pointer to the IPv6 packet last received with
@@ -192,8 +209,8 @@ class TeredoPacket
 		 */
 		const uint8_t *GetIPv6Packet (size_t& len) const
 		{
-			len = ip6len;
-			return ip6;
+			len = p.ip6_len;
+			return p.ip6;
 		}
 
 		/*
@@ -204,7 +221,7 @@ class TeredoPacket
 		 */
 		const uint8_t *GetAuthNonce (void) const
 		{
-			return nonce;
+			return p.nonce;
 		}
 
 		/*
@@ -212,7 +229,7 @@ class TeredoPacket
 		 */
 		uint8_t GetConfByte (void) const
 		{
-			return nonce[8];
+			return p.nonce[8];
 		}
 
 		/*
@@ -223,7 +240,7 @@ class TeredoPacket
 		 */
 		const struct teredo_orig_ind *GetOrigInd (void) const
 		{
-			return orig;
+			return p.orig;
 		}
 
 		/*
@@ -232,7 +249,7 @@ class TeredoPacket
 		 */
 		uint32_t GetClientIP (void) const
 		{
-			return last_ip;
+			return p.source_ipv4;
 		}
 
 		/*
@@ -241,7 +258,7 @@ class TeredoPacket
 		 */
 		uint16_t GetClientPort (void) const
 		{
-			return last_port;
+			return p.source_port;
 		}
 };
 # endif
