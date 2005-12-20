@@ -27,8 +27,7 @@ TESTS = libteredo-unit libteredo-regress
 
 include_libteredodir = $(includedir)/libteredo
 include_libteredo_HEADERS = teredo.h relay-udp.h relay.h
-common_SOURCES =	teredo.c teredo-udp.cpp teredo.h \
-			v4global.c v4global.h checksum.h
+common_SOURCES =	teredo.c teredo.h v4global.c v4global.h checksum.h
 
 # libteredo.la
 libteredo_la_SOURCES =	$(common_SOURCES) init.c \
