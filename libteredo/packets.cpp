@@ -354,8 +354,9 @@ bool SendPing (const TeredoRelayUDP& sock, const union teredo_addr *src,
 
 	ping.icmp6.icmp6_cksum = icmp6_checksum (&ping.ip6, &ping.icmp6);
 
-	return !sock.SendPacket (&ping, sizeof (ping.ip6) + sizeof (ping.icmp6) + PING_PAYLOAD,
-	                         IN6_TEREDO_SERVER (src), htons (IPPORT_TEREDO));
+	return sock.SendPacket (&ping, sizeof (ping.ip6) + sizeof (ping.icmp6)
+	                        + PING_PAYLOAD, IN6_TEREDO_SERVER (src),
+	                        htons (IPPORT_TEREDO)) > 0;
 }
 
 
