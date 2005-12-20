@@ -61,7 +61,7 @@ miredo_diagnose (void)
 	if (check)
 	{
 		buf[sizeof (buf) - 1] = '\0';
-		fputs (buf, stderr);
+		fprintf (stderr, "%s\n", buf);
 	}
 	return check;
 }

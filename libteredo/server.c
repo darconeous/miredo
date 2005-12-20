@@ -378,7 +378,7 @@ int libteredo_server_check (char *errmsg, size_t len)
 		return 0;
 	}
 
-	snprintf (errmsg, len, _("Raw IPv6 socket not working: %s\n"),
+	snprintf (errmsg, len, _("Raw IPv6 socket not working: %s"),
 	          strerror (errno));
 	return -1;
 }
@@ -446,7 +446,8 @@ libteredo_server *libteredo_server_create (uint32_t ip1, uint32_t ip2)
 
 	if (raw_fd == -1)
 	{
-		syslog (LOG_ERR, _("Raw IPv6 socket not working: %m"));
+		syslog (LOG_ERR, _("Raw IPv6 socket not working: %s"),
+		        strerror (errno));
 		return NULL;
 	}
 
