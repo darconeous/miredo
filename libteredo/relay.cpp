@@ -205,17 +205,21 @@ TeredoRelay::EmitICMPv6Error (const void *packet, size_t length,
 
 
 #ifdef MIREDO_TEREDO_CLIENT
-bool TeredoRelay::peer::CountPing (void)
+/*
+ * Returns 0 if a ping may be sent, -1 if no more ping may be sent,
+ * 1 if a ping may be sent later.
+ */
+int TeredoRelay::peer::CountPing (void)
 {
 	time_t now;
-	bool res;
+	int res;
 
 	time (&now);
 
 	if (pings == 0)
-		res = true;
+		res = 0;
 	else if (pings == 3)
-		res = false;
+		res = -1;
 	else
 	/*
 	 * NOTE/FIXME:
@@ -225,9 +229,9 @@ bool TeredoRelay::peer::CountPing (void)
 	 * to something longer, which is allowed (2 seconds is a
 	 * minimum).
 	 */
-		res = ((unsigned)now > expiry - next_ping);
+		res = ((unsigned)now > expiry - next_ping) ? 0 : 1;
 
-	if (res)
+	if (res == 0)
 	{
 		int next;
 
@@ -235,6 +239,7 @@ bool TeredoRelay::peer::CountPing (void)
 		pings ++;
 		next_ping = next < 31 ? next : 30;
 	}
+	
 	return res;
 }
 
@@ -242,9 +247,10 @@ bool TeredoRelay::peer::CountPing (void)
 int
 TeredoRelay::PingPeer (const struct in6_addr *a, peer *p) const
 {
-	if (p->CountPing ())
+	int res = p->CountPing ();
+	if (res == 0)
 		return SendPing (sock, &maintenance.state.addr, a) ? 0 : -1;
-	return -1;
+	return res;
 }
 #endif
 
@@ -259,20 +265,24 @@ inline bool IsBubble (const struct ip6_hdr *hdr)
 }
 
 
-bool TeredoRelay::peer::CountBubble (void)
+/*
+ * Returns 0 if a bubble may be sent, -1 if no more bubble may be sent,
+ * 1 if a bubble may be sent later.
+ */
+int TeredoRelay::peer::CountBubble (void)
 {
-	/* Same code as CountPing above */
+	/* Pretty much the same code as CountPing above */
 	time_t now;
-	bool res;
+	int res;
 
 	time (&now);
 
 	if (bubbles == 0)
-		res = true;
+		res = 0;
 	else if (bubbles == 3)
-		res = false;
+		res = -1;
 	else
-		res = ((unsigned)now > expiry - next_bubble);
+		res = ((unsigned)now > expiry - next_bubble) ? 0 : 1;
 
 	if (res)
 	{
@@ -399,7 +409,7 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 		}
 
 		p->QueueOutgoing (packet, length);
-		if (PingPeer (&dst->ip6, p))
+		if (PingPeer (&dst->ip6, p) == -1)
 			SendUnreach (ICMP6_DST_UNREACH_ADDR, packet, length);
 		return 0;
 	}
@@ -444,20 +454,24 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 
 	// Sends no more than one bubble every 2 seconds,
 	// and 3 bubbles every 30 secondes
-	if (p->CountBubble ())
+	switch (p->CountBubble ())
 	{
-		/*
-		 * Open the return path if we are behind a
-		 * restricted NAT.
-		 */
-		if (!IsCone () && SendBubble (sock, &dst->ip6, false, false))
-			return -1;
+		case 0:
+			/*
+			* Open the return path if we are behind a
+			* restricted NAT.
+			*/
+			if (!IsCone () && SendBubble (sock, &dst->ip6, false, false))
+				return -1;
+	
+			return SendBubble (sock, &dst->ip6, IsCone ());
 
-		return SendBubble (sock, &dst->ip6, IsCone ());
+		case -1:
+			// Too many bubbles already sent
+			SendUnreach (ICMP6_DST_UNREACH_ADDR, packet, length);
+		//case 1: -- between two bubbles -- nothing to do
 	}
 
-	// Too many bubbles already sent
-	SendUnreach (ICMP6_DST_UNREACH_ADDR, packet, length);
 	return 0;
 }
 
@@ -722,7 +736,7 @@ int TeredoRelay::ReceivePacket (void)
 	p->QueueIncoming (buf, length);
 	p->TouchReceive ();
 
-	return PingPeer (&ip6.ip6_src, p);
+	return PingPeer (&ip6.ip6_src, p) ? -1 : 0;
 #else /* ifdef MIREDO_TEREDO_CLIENT */
 	return 0;
 #endif

@@ -107,8 +107,8 @@ class TeredoRelay::peer
 			return ((signed)(now - expiry)) > 0;
 		}
 
-		bool CountBubble (void);
-		bool CountPing (void);
+		int CountBubble (void);
+		int CountPing (void);
 
 		static void DestroyList (void *head);
 };
