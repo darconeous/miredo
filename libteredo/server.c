@@ -43,6 +43,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h> // struct in6_addr
 #include <netinet/ip6.h> // struct ip6_hdr
+#include <arpa/inet.h> // inet_ntop()
 #include <netinet/icmp6.h>
 #include <fcntl.h>
 #include <pthread.h>
@@ -477,12 +478,24 @@ libteredo_server *libteredo_server_create (uint32_t ip1, uint32_t ip2)
 			if (fd != -1)
 				return s;
 			else
-				syslog (LOG_ERR, _("Secondary socket: %m"));
+			{
+				char str[INET_ADDRSTRLEN];
+
+				inet_ntop (AF_INET, &ip2, str, sizeof (str));
+				syslog (LOG_ERR, _("Error (%s): %s\n"), str,
+				        strerror (errno));
+			}
 
 			teredo_close (s->fd_primary);
 		}
 		else
-			syslog (LOG_ERR, _("Primary socket: %m"));
+		{
+			char str[INET_ADDRSTRLEN];
+
+			inet_ntop (AF_INET, &ip1, str, sizeof (str));
+			syslog (LOG_ERR, _("Error (%s): %s\n"), str,
+					strerror (errno));
+		}
 
 		free (s);
 	}

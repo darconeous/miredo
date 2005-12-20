@@ -59,8 +59,9 @@ random_open (bool critical)
 {
 	int fd = open (critical ? randfile : urandfile, 0);
 	if (fd == -1)
-		syslog (LOG_ERR, _("Error opening %s: %m"),
-			critical ? randfile : urandfile);
+		syslog (LOG_ERR, _("Error (%s): %s\n"),
+			critical ? randfile : urandfile,
+		        strerror (errno));
 
 	return fd;
 }
@@ -121,7 +122,9 @@ GenerateNonce (unsigned char *b, bool critical)
 		{
 			val = read (fd, b + tot, LIBTEREDO_NONCE_LEN - tot);
 			if (val <= 0)
-				syslog (LOG_ERR, _("Error reading random data: %m"));
+				syslog (LOG_ERR, _("Error (%s): %s\n"),
+				        critical ? randfile : urandfile,
+			                strerror (errno));
 			else
 				tot += val;
 		}

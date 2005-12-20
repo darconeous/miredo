@@ -137,16 +137,6 @@ error_extra (const char *extra)
 }
 
 
-#if 0
-static int
-error_missing (void)
-{
-	fputs (_("Error: missing command line parameter\n"), stderr);
-	return 2;
-}
-#endif
-
-
 /*
  * Creates a Process-ID file.
  */
@@ -256,7 +246,7 @@ init_daemon (const char *username, const char *pidfile, int nodetach)
 	pw = getpwnam (username);
 	if (pw == NULL)
 	{
-		fprintf (stderr, "User %s: %s\n",
+		fprintf (stderr, _("User \"%s\": %s\n"),
 				username, errno ? strerror (errno)
 					: _("User not found"));
 		fprintf (stderr,
@@ -293,9 +283,6 @@ init_daemon (const char *username, const char *pidfile, int nodetach)
 	{
 		fprintf (stderr, _("SetGID to group ID %u: %s\n"),
 				(unsigned)pw->pw_gid, strerror (errno));
-		fputs (_("Error: This program tried to change its system\n"
-			"group(s) security context but it failed.\n"),
-			stderr);
 		setuid_notice ();
 		return -1;
 	}
@@ -329,7 +316,8 @@ init_daemon (const char *username, const char *pidfile, int nodetach)
 		if (s == NULL)
 		{
 			/* Unlikely */
-			perror (_("Fatal error"));
+			fprintf (stderr, _("Error (%s): %s\n"), "cap_init",
+			         strerror (errno));
 			return -1;
 		}
 
@@ -337,18 +325,17 @@ init_daemon (const char *username, const char *pidfile, int nodetach)
 		 || cap_set_flag (s, CAP_EFFECTIVE, sizeof(v)/sizeof(*v), v, CAP_SET))
 		{
 			/* Unlikely */
-			perror (_("Fatal error"));
+			fprintf (stderr, _("Error (%s): %s\n"), "cap_set_flag",
+			         strerror (errno));
 			cap_free (s);
 			return -1;
 		}
 
 		if (cap_set_proc (s))
 		{
-			perror (_("Getting required capabilities"));
+			fprintf (stderr, _("Error (%s): %s\n"), "cap_set_proc",
+			         strerror (errno));
 			cap_free (s);
-			fputs (_("Error: This program tried to obtain "
-				"required system administration\n"
-				"privileges but it failed.\n"), stderr);
 			setuid_notice ();
 			return -1;
 		}
@@ -374,7 +361,7 @@ init_daemon (const char *username, const char *pidfile, int nodetach)
 	 */
 	if (!nodetach && daemon (0, 0))
 	{
-		perror (_("Error (daemon)"));
+		fprintf (stderr, _("Error (%s): %s\n"), "daemon", strerror (errno));
 		return -1;
 	}
 
@@ -424,8 +411,6 @@ main (int argc, char *argv[])
 					NULL)) != -1)
 		switch (c)
 		{
-			case '?':
-				return quick_usage (argv[0]);
 
 			case 'c':
 				ONETIME_SETTING (conffile);
@@ -449,11 +434,9 @@ main (int argc, char *argv[])
 			case 'V':
 				return version ();
 
+			case '?':
 			default:
-				fprintf (stderr, _(
-"Read unknown option -%c:\n"
-"That is probably a bug. Please report it.\n"), c);
-				return 1;
+				return quick_usage (argv[0]);
 		}
 
 	if (optind < argc)
@@ -489,9 +472,8 @@ main (int argc, char *argv[])
 			if (errno == 0)
 				errno = ENOTDIR;
 
-			fprintf (stderr,
-				_("Chroot directory %s: %s\n"),
-				path, strerror (errno));
+			fprintf (stderr, _("Error (%s): %s\n"),
+			         path, strerror (errno));
 			return 1;
 		}
 	}

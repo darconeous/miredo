@@ -1,6 +1,6 @@
-libteredo/server-udp.cpp
 libteredo/relay.cpp
 libteredo/security.c
+libteredo/server.c
 libteredo/packets.cpp
 libteredo/maintain.cpp
 libtun6/tun6.c

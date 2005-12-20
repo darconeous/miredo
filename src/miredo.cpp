@@ -37,6 +37,7 @@
 #endif
 #include <signal.h> // sigaction()
 
+#include <errno.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <syslog.h>
@@ -104,14 +105,14 @@ drop_privileges (void)
 	 * when chrooted.
 	 */
 	if (chroot (MIREDO_CHROOT) || chdir ("/"))
-		syslog (LOG_WARNING, "chroot to %s failed: %m",
-			MIREDO_CHROOT);
+		syslog (LOG_WARNING, _("Error (%s): %s\n"),
+				"chroot(\""MIREDO_CHROOT"\")", strerror (errno));
 #endif
 
 	// Definitely drops privileges
 	if (setuid (unpriv_uid))
 	{
-		syslog (LOG_ALERT, _("Setting UID failed: %m"));
+		syslog (LOG_ALERT, _("Error (%s): %s\n"), "setuid", strerror (errno));
 		return -1;
 	}
 
@@ -135,7 +136,7 @@ InitSignals (void)
 
 	if (pipe (signalfd))
 	{
-		syslog (LOG_ALERT, _("pipe failed: %m"));
+		syslog (LOG_ALERT, _("Error (%s): %s\n"), "pipe", strerror (errno));
 		return false;
 	}
 	should_exit = 0;
@@ -229,7 +230,8 @@ miredo (const char *confpath, const char *server_name, int pidfd)
 		switch (pid)
 		{
 			case -1:
-				syslog (LOG_ALERT, _("fork failed: %m"));
+				syslog (LOG_ALERT, _("Error (%s): %s\n"), "fork",
+				        strerror (errno));
 				break;
 
 			case 0:

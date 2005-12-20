@@ -348,7 +348,8 @@ int teredo_maintenance_start (struct teredo_maintenance *m)
 		}
 		pthread_mutex_destroy (&m->lock);
 	}
-	syslog (LOG_ALERT, _("pthread_create failure: %s"), strerror (err));
+	syslog (LOG_ALERT, _("Error (%s): %s\n"), "pthread_create",
+	        strerror (err));
 	return 0;
 }
 

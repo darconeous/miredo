@@ -6,32 +6,15 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: miredo 0.5.4\n"
+"Project-Id-Version: miredo 0.6.0\n"
 "Report-Msgid-Bugs-To: rdenis@simphalempin.com\n"
-"POT-Creation-Date: 2005-11-26 21:41+0100\n"
-"PO-Revision-Date: 2005-11-09 22:20+0100\n"
+"POT-Creation-Date: 2005-12-20 21:18+0100\n"
+"PO-Revision-Date: 2005-12-20 20:42+0100\n"
 "Last-Translator: Rémi Denis-Courmont <rdenis (at) simphalempin (dot) com>\n"
 "Language-Team: N/A\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-
-#: libteredo/server-udp.cpp:63
-msgid ""
-"Teredo server UDP socket error: Server IPv4 addresses must be global unicast."
-msgstr ""
-"Erreur de socket UDP de serveur Teredo : l'adresse IPv4 de serveur doit être "
-"globale unicast."
-
-#: libteredo/server-udp.cpp:77
-#, c-format
-msgid "Primary socket: %m"
-msgstr "Socket primaire : %m"
-
-#: libteredo/server-udp.cpp:85
-#, c-format
-msgid "Secondary socket: %m"
-msgstr "Socket secondaire : %m"
 
 #: libteredo/relay.cpp:106
 msgid "Server has a non global IPv4 address. It will most likely not work."
@@ -39,73 +22,78 @@ msgstr ""
 "Le serveur a une adresse IPv4 non globale. Ça ne fonctionnera "
 "vraisemblablement pas."
 
-#: libteredo/relay.cpp:512
+#: libteredo/relay.cpp:547
 msgid "Ignoring invalid bubble: your Teredo server is probably buggy."
 msgstr "Bulle invalide ignorée : votre serveur Teredo est probablement bogué."
 
-#: libteredo/security.c:62
+#: libteredo/security.c:62 libteredo/security.c:125 libteredo/server.c:485
+#: libteredo/server.c:496 libteredo/maintain.cpp:351 src/main.c:319
+#: src/main.c:328 src/main.c:336 src/main.c:364 src/main.c:475
+#: src/miredo.cpp:108 src/miredo.cpp:115 src/miredo.cpp:139 src/miredo.cpp:233
 #, c-format
-msgid "Error opening %s: %m"
-msgstr "Erreur d'ouverture de %s : %m"
+msgid "Error (%s): %s\n"
+msgstr "Erreur (%s) : %s\n"
 
-#: libteredo/security.c:120
-#, c-format
-msgid "Error reading random data: %m"
-msgstr "Erreur de lecture de données aléatoires : %m"
-
-#: libteredo/security.c:144
+#: libteredo/security.c:151
 msgid "Libgcrypt version mismatch."
 msgstr "Erreur de version de Libgcrypt"
 
-#: libteredo/packets.cpp:271
+#: libteredo/server.c:382 libteredo/server.c:450
+#, c-format
+msgid "Raw IPv6 socket not working: %s"
+msgstr "Socket IPv6 brute (« raw ») non disponible : %s"
+
+#: libteredo/server.c:458
+msgid ""
+"Teredo server UDP socket error: Server IPv4 addresses must be global unicast."
+msgstr ""
+"Erreur de socket UDP de serveur Teredo : l'adresse IPv4 de serveur doit être "
+"globale unicast."
+
+#: libteredo/packets.cpp:267
 msgid "Multiple Teredo prefixes received"
 msgstr "Plusieurs préfixes Teredo reçus"
 
-#: libteredo/packets.cpp:307
+#: libteredo/packets.cpp:303
 msgid "Invalid Teredo prefix received"
 msgstr "Préfixe Teredo reçu invalide"
 
-#: libteredo/maintain.cpp:83
+#: libteredo/maintain.cpp:82
 msgid "Authentication with server failed."
 msgstr "Authentification refusée par le serveur."
 
-#: libteredo/maintain.cpp:109
+#: libteredo/maintain.cpp:108
 msgid "Too much time drift. Resynchronizing."
 msgstr "Décalage temporel trop important. Re-synchronisation."
 
-#: libteredo/maintain.cpp:218
+#: libteredo/maintain.cpp:217
 msgid "Lost Teredo connectivity"
 msgstr "Connectivité Teredo perdue"
 
-#: libteredo/maintain.cpp:232
+#: libteredo/maintain.cpp:231
 msgid "No reply from Teredo server"
 msgstr "Pas de réponse du serveur Teredo"
 
-#: libteredo/maintain.cpp:254
+#: libteredo/maintain.cpp:253
 msgid "Teredo address/MTU changed"
 msgstr "Adresse/MTU Teredo changée"
 
-#: libteredo/maintain.cpp:272
+#: libteredo/maintain.cpp:271
 msgid "Unsupported symmetric NAT detected."
 msgstr "NAT symmétrique non supporté détecté."
 
-#: libteredo/maintain.cpp:280
+#: libteredo/maintain.cpp:279
 #, c-format
 msgid "Qualified (NAT type: %s)"
 msgstr "Qualifié (type de NAT : %s)"
 
-#: libteredo/maintain.cpp:282
+#: libteredo/maintain.cpp:281
 msgid "cone"
 msgstr "cône"
 
-#: libteredo/maintain.cpp:282
+#: libteredo/maintain.cpp:281
 msgid "restricted"
 msgstr "restreint"
-
-#: libteredo/maintain.cpp:352
-#, c-format
-msgid "pthread_create failure: %s"
-msgstr "Échec de pthread_create : %s"
 
 #: libtun6/tun6.c:132
 #, c-format
@@ -313,11 +301,7 @@ msgstr "Nombre invalide (ou capacité dépassée) « %s » pour l'option -%c\n
 msgid "%s: unexpected extra parameter\n"
 msgstr "%s : paramètre en trop\n"
 
-#: src/main.c:144
-msgid "Error: missing command line parameter\n"
-msgstr "Erreur : paramètre de la ligne de commande manquant\n"
-
-#: src/main.c:211
+#: src/main.c:201
 msgid ""
 "That is usually an indication that you are trying to start\n"
 "the program as an user with insufficient system privileges.\n"
@@ -327,11 +311,16 @@ msgstr ""
 "en tant qu'utilisateur avec des privilèges systèmes insuffisants.\n"
 "Normalement, ce programme devrait être démarré par root.\n"
 
-#: src/main.c:261
+#: src/main.c:249
+#, c-format
+msgid "User \"%s\": %s\n"
+msgstr "Utilisateur « %s » : %s\n"
+
+#: src/main.c:251
 msgid "User not found"
 msgstr "Utilisateur non trouvé"
 
-#: src/main.c:263
+#: src/main.c:253
 #, c-format
 msgid ""
 "Error: This program was asked to run in the\n"
@@ -350,7 +339,7 @@ msgstr ""
 "ce\n"
 "programme  dans le contexte de sécurité d'un autre utilisateur.\n"
 
-#: src/main.c:277
+#: src/main.c:267
 msgid ""
 "Error: This program is not supposed to keep root\n"
 "privileges. That is potentially very dangerous\n"
@@ -362,41 +351,17 @@ msgstr ""
 "code de qualité « beta » qui n'a jamais été audité à la recherche de\n"
 "failles de sécurité).\n"
 
-#: src/main.c:294
+#: src/main.c:284
 #, c-format
 msgid "SetGID to group ID %u: %s\n"
 msgstr "SetGID vers l'ID de groupe %u : %s\n"
 
-#: src/main.c:296
-msgid ""
-"Error: This program tried to change its system\n"
-"group(s) security context but it failed.\n"
-msgstr ""
-"Erreur : Ce programme a tenté de changer son contexte de sécurité\n"
-"groupe(s) système(s), mais il a échoué.\n"
-
-#: src/main.c:310
+#: src/main.c:297
 #, c-format
 msgid "SetUID to root: %s\n"
 msgstr "SetUID vers root : %s\n"
 
-#: src/main.c:333 src/main.c:341
-msgid "Fatal error"
-msgstr "Erreur fatale"
-
-#: src/main.c:348
-msgid "Getting required capabilities"
-msgstr "Obtention des privilèges nécessaires"
-
 #: src/main.c:350
-msgid ""
-"Error: This program tried to obtain required system administration\n"
-"privileges but it failed.\n"
-msgstr ""
-"Erreur : Ce programme a tenté d'obtenir des privilèges\n"
-"systèmes indispensables mais il a échoué.\n"
-
-#: src/main.c:364
 #, c-format
 msgid ""
 "Cannot create PID file %s:\n"
@@ -405,111 +370,82 @@ msgstr ""
 "Impossible de créer le fichier de PID %s :\n"
 " %s\n"
 
-#: src/main.c:368 src/relay.cpp:352 src/relay.cpp:439 src/server.cpp:146
+#: src/main.c:354 src/relay.cpp:396 src/relay.cpp:492 src/server.cpp:152
 msgid "Make sure another instance of the program is not already running."
 msgstr "Vérifiez qu'une autre instance du programme n'est pas déjà en marche."
 
-#: src/main.c:378
-msgid "Error (daemon)"
-msgstr "Erreur (daemon)"
-
-#: src/main.c:455
-#, c-format
-msgid ""
-"Read unknown option -%c:\n"
-"That is probably a bug. Please report it.\n"
-msgstr ""
-"Option lue inconnue -%c :\n"
-"C'est probablement un bogue. Veuillez le signaler.\n"
-
-#: src/main.c:475
+#: src/main.c:457
 #, c-format
 msgid "Reading configuration from %s: %s\n"
 msgstr "Lecture de la configuration depuis %s : %s\n"
 
-#: src/main.c:494
-#, c-format
-msgid "Chroot directory %s: %s\n"
-msgstr "Répertoire de cloisement (chroot) %s : %s\n"
-
-#: src/miredo.cpp:114
-#, c-format
-msgid "Setting UID failed: %m"
-msgstr "Réglage de l'UID impossible : %m"
-
-#: src/miredo.cpp:138
-#, c-format
-msgid "pipe failed: %m"
-msgstr "Échec de pipe : %m"
-
-#: src/miredo.cpp:211
+#: src/miredo.cpp:212
 #, c-format
 msgid "Loading configuration from %s failed"
 msgstr "Échec du chargement de la configuration depuis %s"
 
-#: src/miredo.cpp:232
-#, c-format
-msgid "fork failed: %m"
-msgstr "Échec de fork : %m"
-
-#: src/miredo.cpp:256
+#: src/miredo.cpp:258
 #, c-format
 msgid "Exiting on signal %d (%s)"
 msgstr "Arrêt suite au signal %d (%s)"
 
-#: src/miredo.cpp:264
+#: src/miredo.cpp:266
 #, c-format
 msgid "Reloading configuration on signal %d (%s)"
 msgstr "Rechargement de la configuration suite au signal %d (%s)"
 
-#: src/miredo.cpp:272
+#: src/miredo.cpp:274
 #, c-format
 msgid "Terminated (exit code: %d)"
 msgstr "Terminé (code de retour : %d)"
 
-#: src/miredo.cpp:280
+#: src/miredo.cpp:282
 #, c-format
 msgid "Child %d killed by signal %d (%s)"
 msgstr "Fils %d tué par le signal %d (%s)"
 
-#: src/miredo.cpp:291
+#: src/miredo.cpp:293
 msgid "Terminated with error(s)."
 msgstr "Terminé avec une/des erreur(s)."
 
-#: src/miredo.cpp:293
+#: src/miredo.cpp:295
 msgid "Terminated with no error."
 msgstr "Terminé sans erreur."
 
-#: src/relay.cpp:197
+#: src/relay.cpp:246
 #, c-format
 msgid "Invalid relay type \"%s\" at line %u"
 msgstr "Type de relais invalide « %s » à la ligne %u"
 
-#: src/relay.cpp:241 src/relay.cpp:250 src/relay.cpp:261 src/relay.cpp:270
-#: src/relay.cpp:278 src/relay.cpp:293 src/relay.cpp:304 src/relay.cpp:313
-#: src/server.cpp:94 src/server.cpp:102 src/server.cpp:119
+#: src/relay.cpp:290 src/relay.cpp:299 src/relay.cpp:310 src/relay.cpp:319
+#: src/relay.cpp:327 src/relay.cpp:342 src/relay.cpp:353 src/relay.cpp:362
+#: src/server.cpp:95 src/server.cpp:103 src/server.cpp:120
 msgid "Fatal configuration error"
 msgstr "Erreur fatale de configuration"
 
-#: src/relay.cpp:259 src/server.cpp:84
+#: src/relay.cpp:308 src/server.cpp:85
 #, c-format
 msgid "Invalid server hostname \"%s\": %s"
 msgstr "Nom d'hôte invalide « %s » : %s"
 
-#: src/relay.cpp:277 src/server.cpp:101
+#: src/relay.cpp:326 src/server.cpp:102
 msgid "Server address not specified"
 msgstr "Adresse du serveur non indiquée"
 
-#: src/relay.cpp:292
+#: src/relay.cpp:341
 msgid "Unsupported Teredo client mode"
 msgstr "Mode client Teredo non supporté"
 
-#: src/relay.cpp:351 src/relay.cpp:371 src/relay.cpp:387 src/relay.cpp:426
-#: src/relay.cpp:432
+#: src/relay.cpp:395 src/relay.cpp:415 src/relay.cpp:431 src/relay.cpp:479
+#: src/relay.cpp:485
 msgid "Teredo tunnel fatal error"
 msgstr "Erreur fatal du tunnel Teredo"
 
-#: src/relay.cpp:434
+#: src/relay.cpp:439
+msgid "libteredo cannot be initialized"
+msgstr "Impossible d'initialiser libteredo"
+
+#: src/relay.cpp:487
 #, c-format
 msgid ""
 "%s:\n"
@@ -518,7 +454,7 @@ msgstr ""
 "%s :\n"
 " impossible d'ouvrir le port UDP %u"
 
-#: src/relay.cpp:437
+#: src/relay.cpp:490
 #, c-format
 msgid ""
 "%s:\n"
@@ -527,7 +463,7 @@ msgstr ""
 "%s :\n"
 " impossible d'ouvrir un port UDP"
 
-#: src/server.cpp:145
+#: src/server.cpp:151
 msgid "Teredo server fatal error"
 msgstr "Erreur fatale du serveur Teredo"
 
