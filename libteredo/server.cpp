@@ -445,7 +445,6 @@ static void *thread_secondary (void *data)
 libteredo_server *libteredo_server_create (uint32_t ip1, uint32_t ip2)
 {
 	libteredo_server *s;
-	int fd;
 
 	/* Initializes shared raw IPv6 socket */
 	pthread_mutex_lock (&raw_mutex);
@@ -460,9 +459,10 @@ libteredo_server *libteredo_server_create (uint32_t ip1, uint32_t ip2)
 		raw_fd = socket (AF_INET6, SOCK_RAW, IPPROTO_RAW);
 		if (raw_fd != -1)
 		{
-			int flags = fcntl (fd, F_GETFL, 0);
+			int flags = fcntl (raw_fd, F_GETFL, 0);
 			//shutdown (fd, SHUT_RD); -- won't work
-			fcntl (fd, F_SETFL, O_NONBLOCK | ((flags != -1) ? flags : 0));
+			fcntl (raw_fd, F_SETFL,
+			       O_NONBLOCK | ((flags != -1) ? flags : 0));
 		}
 	}
 	pthread_mutex_unlock (&raw_mutex);
@@ -485,6 +485,8 @@ libteredo_server *libteredo_server_create (uint32_t ip1, uint32_t ip2)
 
 	if (s != NULL)
 	{
+		int fd;
+
 		s->server_ip = ip1;
 		s->prefix = htonl (DEFAULT_TEREDO_PREFIX);
 		s->advLinkMTU = htonl (1280);
