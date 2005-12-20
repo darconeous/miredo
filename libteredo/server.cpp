@@ -398,12 +398,12 @@ int libteredo_server_check (char *errmsg, size_t len)
 	if (fd >= 0)
 	{
 		close (fd);
-		return true;
+		return 0;
 	}
 
 	snprintf (errmsg, len, _("Raw IPv6 sockets not working: %s\n"),
 	          strerror (errno));
-	return false;
+	return -1;
 }
 
 
