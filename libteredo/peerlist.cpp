@@ -39,9 +39,9 @@
 #include <sys/types.h>
 #include <netinet/in.h>
 
-#include <libteredo/relay-udp.h>
-
-#include <libteredo/relay.h>
+#include "teredo.h"
+#include "teredo-udp.h"
+#include "relay.h"
 #include "peerlist.h"
 
 void
@@ -197,8 +197,8 @@ void TeredoRelay::peer::Dequeue (TeredoRelay *r)
 		if (ptr->incoming)
 			r->SendIPv6Packet (ptr->data, ptr->length);
 		else
-			r->sock.SendPacket (ptr->data, ptr->length,
-			                    mapped_addr, mapped_port);
+			teredo_send (r->fd, ptr->data, ptr->length,
+			             mapped_addr, mapped_port);
 		free (ptr);
 		ptr = buf;
 	}

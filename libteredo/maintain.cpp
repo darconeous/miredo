@@ -44,13 +44,12 @@
 #include <syslog.h>
 #include <errno.h> /* EINTR */
 
-#include <libteredo/teredo.h>
-
-#include <libteredo/relay-udp.h> /* required for packets.h */
+#include "teredo.h"
+#include "teredo-udp.h"
 #include "packets.h"
 
 #include "security.h"
-#include <libteredo/relay.h>
+#include "relay.h"
 
 #define QUALIFIED	0
 #define PROBE_CONE	1
@@ -172,8 +171,8 @@ static inline void maintenance_thread (teredo_maintenance *m)
 			deadline.tv_sec += TeredoRelay::QualificationTimeOut;
 		while (!checkTimeDrift (&deadline));
 
-		SendRS (m->relay->sock, state == PROBE_RESTRICT /* secondary */
-		              ? m->relay->GetServerIP2 () : m->relay->GetServerIP (),
+		SendRS (m->relay->fd, state == PROBE_RESTRICT /* secondary */
+		        	? m->relay->GetServerIP2 () : m->relay->GetServerIP (),
 		        nonce.value, m->state.cone);
 
 		/* RECEIVE ROUTER ADVERTISEMENT */

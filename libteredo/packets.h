@@ -22,37 +22,12 @@
  *  http://www.gnu.org/copyleft/gpl.html                               *
  ***********************************************************************/
 
-#ifndef __LIBTEREDO_TEREDO_PACKETS_H
-# define __LIBTEREDO_TEREDO_PACKETS_H
+#ifndef LIBTEREDO_TEREDO_PACKETS_H
+# define LIBTEREDO_TEREDO_PACKETS_H
 
 struct in6_addr;
 struct ip6_hdr;
 
-/*
- * Sends a Teredo Bubble to the server (if indirect is true) or the client (if
- * indirect is false) specified in Teredo address <dst>.
- * Returns 0 on success, -1 on error.
- */
-int
-SendBubble (const TeredoRelayUDP& sock, const struct in6_addr *d,
-            bool cone, bool indirect = true);
-
-/*
- * Sends a Teredo Bubble to the specified IPv4/port tuple.
- * Returns 0 on success, -1 on error.
- */
-int
-SendBubble (const TeredoRelayUDP& sock, uint32_t ip, uint16_t port,
-            const struct in6_addr *src, const struct in6_addr *dst);
-
-/*
- * Sends a router solication with an Authentication header to the server.
- *
- * Returns 0 on success, -1 on error.
- */
-int
-SendRS (const TeredoRelayUDP& sock, uint32_t server_ip, 
-        const unsigned char *nonce, bool cone);
 
 
 /*
@@ -70,20 +45,34 @@ bool
 ParseRA (const TeredoPacket& packet, union teredo_addr *newaddr, bool cone,
          uint16_t *mtu);
 
-bool
-SendPing (const TeredoRelayUDP& sock, const union teredo_addr *src,
-          const struct in6_addr *dst);
 
 bool CheckPing (const TeredoPacket& packet);
 
+# ifdef __cplusplus
+extern "C" {
+#endif
 
-extern "C" int
-BuildICMPv6Error (struct icmp6_hdr *out, uint8_t type, uint8_t code,
-                  const void *in, uint16_t inlen);
+int SendBubbleFromDst (int fd, const struct in6_addr *dst, bool cone,
+                       bool indirect = true);
 
-extern "C" int
-BuildIPv6Error (struct ip6_hdr *out, const struct in6_addr *src,
-                uint8_t type, uint8_t code, const void *in, uint16_t len);
+int SendBubble (int fd, uint32_t ip, uint16_t port,
+                const struct in6_addr *src, const struct in6_addr *dst);
+
+int SendRS (int fd, uint32_t server_ip,
+            const unsigned char *nonce, bool cone);
+
+int SendPing (int fd, const union teredo_addr *src,
+              const struct in6_addr *dst);
+
+int BuildICMPv6Error (struct icmp6_hdr *out, uint8_t type, uint8_t code,
+                      const void *in, uint16_t inlen);
+
+int BuildIPv6Error (struct ip6_hdr *out, const struct in6_addr *src,
+                    uint8_t type, uint8_t code, const void *in, uint16_t len);
+
+# ifdef __cplusplus
+}
+#endif
 
 
 #endif

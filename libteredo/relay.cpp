@@ -45,12 +45,12 @@
 #include <netinet/icmp6.h> // ICMP6_DST_UNREACH_*
 #include <syslog.h>
 
-#include <libteredo/teredo.h>
-#include <libteredo/v4global.h> // is_ipv4_global_unicast()
-#include <libteredo/relay-udp.h>
+#include "teredo.h"
+#include "v4global.h" // is_ipv4_global_unicast()
+#include "teredo-udp.h"
 
 #include "packets.h"
-#include <libteredo/relay.h>
+#include "relay.h"
 #include "peerlist.h"
 #ifdef MIREDO_TEREDO_CLIENT
 # include "security.h"
@@ -84,7 +84,7 @@ TeredoRelay::TeredoRelay (uint32_t pref, uint16_t port, uint32_t ipv4,
 	maintenance.state.addr.teredo.client_port = ~port;
 	maintenance.state.addr.teredo.client_ip = ~ipv4;
 
-	sock.ListenPort (port, ipv4);
+	fd = teredo_socket (ipv4, port);
 
 	list.ptr = NULL;
 	list.peerNumber = 0;
@@ -120,7 +120,8 @@ TeredoRelay::TeredoRelay (uint32_t ip, uint32_t ip2,
 	list.peerNumber = 0;
 
 	maintenance.relay = NULL;
-	if (sock.ListenPort (port, ipv4) == 0)
+	fd = teredo_socket (ipv4, port);
+	if (fd != -1)
 	{
 		maintenance.relay = this;
 		if (teredo_maintenance_start (&maintenance))
@@ -137,6 +138,9 @@ TeredoRelay::~TeredoRelay (void)
 	if (maintenance.relay != NULL)
 		teredo_maintenance_stop (&maintenance);
 #endif
+
+	if (fd != -1)
+		teredo_close (fd);
 
 	TeredoRelay::peer::DestroyList (list.ptr);
 }
@@ -249,7 +253,7 @@ TeredoRelay::PingPeer (const struct in6_addr *a, peer *p) const
 {
 	int res = p->CountPing ();
 	if (res == 0)
-		return SendPing (sock, &maintenance.state.addr, a) ? 0 : -1;
+		return SendPing (fd, &maintenance.state.addr, a);
 	return res;
 }
 #endif
@@ -382,8 +386,8 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 		{
 			/* Already known -valid- peer */
 			p->TouchTransmit ();
-			return sock.SendPacket (packet, length, p->mapped_addr,
-			                        p->mapped_port);
+			return teredo_send (fd, packet, length, p->mapped_addr,
+			                    p->mapped_port) == (int)length ? 0 : -1;
 		}
 	}
 
@@ -444,8 +448,8 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 		if (allowCone && IN6_IS_TEREDO_ADDR_CONE (dst))
 		{
 			p->trusted = 1;
-			return sock.SendPacket (packet, length, p->mapped_addr,
-			                        p->mapped_port);
+			return teredo_send (fd, packet, length, p->mapped_addr,
+			                    p->mapped_port) == (int)length ? 0 : -1;
 		}
 	}
 
@@ -461,10 +465,10 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 			* Open the return path if we are behind a
 			* restricted NAT.
 			*/
-			if (!IsCone () && SendBubble (sock, &dst->ip6, false, false))
+			if (!IsCone () && SendBubbleFromDst (fd, &dst->ip6, false, false))
 				return -1;
 	
-			return SendBubble (sock, &dst->ip6, IsCone ());
+			return SendBubbleFromDst (fd, &dst->ip6, IsCone ());
 
 		case -1:
 			// Too many bubbles already sent
@@ -486,7 +490,7 @@ int TeredoRelay::ReceivePacket (void)
 {
 	TeredoPacket packet;
 
-	if (sock.ReceivePacket (packet))
+	if (packet.Receive (fd))
 		return -1;
 
 	size_t length;
@@ -520,7 +524,7 @@ int TeredoRelay::ReceivePacket (void)
 		const struct teredo_orig_ind *ind = packet.GetOrigInd ();
 		if (ind != NULL)
 		{
-			SendBubble (sock, ~ind->orig_addr, ~ind->orig_port, &ip6.ip6_dst,
+			SendBubble (fd, ~ind->orig_addr, ~ind->orig_port, &ip6.ip6_dst,
 			            &ip6.ip6_src);
 			if (IsBubble (&ip6))
 				return 0; // don't pass bubble to kernel
@@ -534,7 +538,8 @@ int TeredoRelay::ReceivePacket (void)
 			 * we can guess the mapping. Otherwise, we're stuck.
 			 */
 		 	if (IN6_TEREDO_PREFIX (&ip6.ip6_src) == GetPrefix ())
-				SendBubble (sock, IN6_TEREDO_IPV4 (&ip6.ip6_src),
+				/* FIXME: use SendBubbleFromDst if applicable */
+				SendBubble (fd, IN6_TEREDO_IPV4 (&ip6.ip6_src),
 				            IN6_TEREDO_PORT (&ip6.ip6_src), &ip6.ip6_dst,
 				            &ip6.ip6_src);
 			else

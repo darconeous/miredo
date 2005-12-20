@@ -25,7 +25,9 @@
 #ifndef LIBTEREDO_TEREDO_UDP_H
 # define LIBTEREDO_TEREDO_UDP_H
 
-struct teredo_packet
+# include <unistd.h> /* close() -> teredo_close() */
+
+typedef struct teredo_packet
 {
 	struct teredo_orig_ind *orig;
 	uint8_t *nonce, *ip6;
@@ -36,7 +38,7 @@ struct teredo_packet
 
 	struct teredo_orig_ind orig_buf;
 	uint8_t buf[65507];
-};
+} teredo_packet;
 
 
 # ifdef __cplusplus

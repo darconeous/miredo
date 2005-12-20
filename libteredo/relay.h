@@ -39,9 +39,6 @@ void libteredo_terminate (void);
 # ifdef __cplusplus
 }
 
-# include <libteredo/relay-udp.h> // FIXME: remove?
-//-> when local discovery is implemented?
-
 struct ip6_hdr;
 struct in6_addr;
 class TeredoPacket;
@@ -86,7 +83,8 @@ class TeredoRelay
 		} list;
 
 	public: /* FIXME: temporarily public */
-		TeredoRelayUDP sock;
+		int fd;
+
 	private:
 		bool allowCone;
 
@@ -167,7 +165,7 @@ class TeredoRelay
 
 		bool operator! (void) const
 		{
-			return !sock
+			return (fd == -1)
 #ifdef MIREDO_TEREDO_CLIENT
 				|| (IsClient () && (maintenance.relay == NULL));
 #endif
@@ -248,7 +246,9 @@ class TeredoRelay
 
 		int RegisterReadSet (fd_set *rs) const
 		{
-			return sock.RegisterReadSet (rs);
+			if (fd != -1)
+				FD_SET (fd, rs);
+			return fd;
 		}
 };
 

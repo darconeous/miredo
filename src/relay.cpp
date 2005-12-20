@@ -49,6 +49,8 @@
 
 #include <libtun6/tun6.h>
 
+#include <libteredo/teredo.h> /* FIXME should not be needed */
+#include <libteredo/teredo-udp.h> /* FIXME should not be needed */
 #include <libteredo/relay.h>
 #include <libteredo/security.h>
 

@@ -41,48 +41,60 @@
 #include <netinet/icmp6.h> /* router solicication */
 #include <syslog.h>
 
-#include <libteredo/teredo.h>
-#include <libteredo/v4global.h> // is_ipv4_global_unicast()
-#include <libteredo/relay-udp.h>
+#include "teredo.h"
+#include "v4global.h" // is_ipv4_global_unicast()
+#include "teredo-udp.h"
 
 #include "security.h"
 #include "packets.h"
 #include "checksum.h"
 
-/*
- * Sends a Teredo Bubble to the specified IPv4/port tuple.
- * Returns 0 on success, -1 on error.
+/**
+ * Sends a Teredo Bubble.
+ *
+ * @param ip destination IPv4
+ * @param port destination UDP port
+ *
+ * @return 0 on success, -1 on error.
  */
-int
-SendBubble (const TeredoRelayUDP& sock, uint32_t ip, uint16_t port,
-		const struct in6_addr *src, const struct in6_addr *dst)
+extern "C" int
+SendBubble (int fd, uint32_t ip, uint16_t port,
+            const struct in6_addr *src, const struct in6_addr *dst)
 {
 	if (is_ipv4_global_unicast (ip))
 	{
 		struct ip6_hdr hdr;
+		struct iovec iov[3] =
+		{
+			{ &hdr, 8 },
+			{ (void *)src, 16 },
+			{ (void *)dst, 16 }
+		};
 
 		hdr.ip6_flow = htonl (0x60000000);
 		hdr.ip6_plen = 0;
 		hdr.ip6_nxt = IPPROTO_NONE;
 		hdr.ip6_hlim = 255;
-		memcpy (&hdr.ip6_src, src, sizeof (hdr.ip6_src));
-		memcpy (&hdr.ip6_dst, dst, sizeof (hdr.ip6_dst));
 
-		return sock.SendPacket (&hdr, sizeof (hdr), ip, port);
+		return teredo_sendv (fd, iov, 3, ip, port) == 40 ? 0 : -1;
 	}
 
 	return 0;
 }
 
 
-/*
- * Sends a Teredo Bubble to the server (if indirect is true) or the client (if
- * indirect is false) specified in Teredo address <dst>.
- * Returns 0 on success, -1 on error.
+/**
+ * Sends a Teredo Bubble.
+ *
+ * @param dst Teredo destination address.
+ * @param indirect determines whether the bubble is sent to the server (true)
+ * or the client (if indirect is false) - as determined from dst.
+ *
+ * @return 0 on success, -1 on error.
  */
-int
-SendBubble (const TeredoRelayUDP& sock, const struct in6_addr *dst,
-		bool cone, bool indirect)
+extern "C" int
+SendBubbleFromDst (int fd, const struct in6_addr *dst,
+                   bool cone, bool indirect)
 {
 	uint32_t ip;
 	uint16_t port;
@@ -98,91 +110,75 @@ SendBubble (const TeredoRelayUDP& sock, const struct in6_addr *dst,
 		port = IN6_TEREDO_PORT (dst);
 	}
 
-	return SendBubble (sock, ip, port, cone
-				? &teredo_cone : &teredo_restrict, dst);
+	return SendBubble (fd, ip, port, cone ? &teredo_cone : &teredo_restrict,
+	                   dst);
 }
 
 
 #ifdef MIREDO_TEREDO_CLIENT
-/*
- * Sends a router solication with an Authentication header to the server
- * at specified address.
+/**
+ * Sends a router solication with an Authentication header.
  *
- * Returns 0 on success, -1 on error.
+ * @param server_ip server IPv4 address toward which the solicitation should
+ * be encapsulated
+ *
+ * @return 0 on success, -1 on error.
  */
 static const struct in6_addr in6addr_allrouters =
         { { { 0xff, 0x02, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x2 } } };
 
-int
-SendRS (const TeredoRelayUDP& sock, uint32_t server_ip,
+extern "C" int
+SendRS (int fd, uint32_t server_ip,
         const unsigned char *nonce, bool cone)
 {
-	uint8_t packet[3 + 13 + sizeof (struct ip6_hdr)
-			+ sizeof (struct nd_router_solicit)
-			+ sizeof (nd_opt_hdr) + 14],
-                *ptr = packet + 3;
+	struct teredo_simple_auth auth;
+	struct
+	{
+		struct ip6_hdr ip6;
+		struct nd_router_solicit rs;
+		struct nd_opt_hdr opt;
+		uint8_t lladdr[14];
+	} rs;
+	struct iovec iov[2] = { { &auth, 13 }, { &rs, sizeof (rs) } };
 
-	/* add 3 bytes for properly aligned IPv6 & ICMPv6 headers */
 	// Authentication header
 	// TODO: secure qualification
-	{
-		struct teredo_simple_auth *auth;
 
-		// only bytes - not aligned
-		auth = (struct teredo_simple_auth *)ptr;
-		auth->hdr.hdr.zero = 0;
-		auth->hdr.hdr.code = teredo_auth_hdr;
-		auth->hdr.id_len = auth->hdr.au_len = 0;
-		memcpy (auth->nonce, nonce, 8);
-		auth->confirmation = 0;
+	auth.hdr.hdr.zero = 0;
+	auth.hdr.hdr.code = teredo_auth_hdr;
+	auth.hdr.id_len = auth.hdr.au_len = 0;
+	memcpy (auth.nonce, nonce, 8);
+	auth.confirmation = 0;
 
-		ptr += 13;
-	}
-
-	{
-		// must be aligned on a 4 bytes boundary!
-		struct teredo_rs
-		{
-			struct ip6_hdr ip6;
-			struct nd_router_solicit rs;
-			struct nd_opt_hdr opt;
-			uint8_t lladdr[14];
-		} *rs = (struct teredo_rs *)ptr;
-
-		rs->ip6.ip6_flow = htonl (0x60000000);
-		rs->ip6.ip6_plen = htons (sizeof (*rs) - sizeof (rs->ip6));
-		rs->ip6.ip6_nxt = IPPROTO_ICMPV6;
-		rs->ip6.ip6_hlim = 255;
-		memcpy (&rs->ip6.ip6_src, cone
-			? &teredo_cone : &teredo_restrict,
-			sizeof (rs->ip6.ip6_src));
-		memcpy (&rs->ip6.ip6_dst, &in6addr_allrouters,
-			sizeof (rs->ip6.ip6_dst));
+	rs.ip6.ip6_flow = htonl (0x60000000);
+	rs.ip6.ip6_plen = htons (sizeof (rs) - sizeof (rs.ip6));
+	rs.ip6.ip6_nxt = IPPROTO_ICMPV6;
+	rs.ip6.ip6_hlim = 255;
+	memcpy (&rs.ip6.ip6_src, cone ? &teredo_cone : &teredo_restrict,
+	        sizeof (rs.ip6.ip6_src));
+	memcpy (&rs.ip6.ip6_dst, &in6addr_allrouters, sizeof (rs.ip6.ip6_dst));
 	
-		rs->rs.nd_rs_type = ND_ROUTER_SOLICIT;
-		rs->rs.nd_rs_code = 0;
-		// Checksums are pre-computed
-		rs->rs.nd_rs_cksum = cone ? htons (0x114b) : htons (0x914b);
-		rs->rs.nd_rs_reserved = 0;
+	rs.rs.nd_rs_type = ND_ROUTER_SOLICIT;
+	rs.rs.nd_rs_code = 0;
+	// Checksums are pre-computed
+	rs.rs.nd_rs_cksum = cone ? htons (0x114b) : htons (0x914b);
+	rs.rs.nd_rs_reserved = 0;
 
-		/*
-		 * Microsoft Windows XP sends a 14 byte nul
-		 * source link-layer address (this is useless) when qualifying.
-		 * Once qualified, it still sends a source link-layer address,
-		 * but it includes sort of an origin indication.
-		 * We keep it nul every time. It avoids having to compute the
-		 * checksum and it is not specified.
-		 */
-		rs->opt.nd_opt_type = ND_OPT_SOURCE_LINKADDR;
-		rs->opt.nd_opt_len = 2; // 16 bytes
+	/*
+	 * Microsoft Windows XP sends a 14 byte nul
+	 * source link-layer address (this is useless) when qualifying.
+	 * Once qualified, it still sends a source link-layer address,
+	 * but it includes sort of an origin indication.
+	 * We keep it nul every time. It avoids having to compute the
+	 * checksum and it is not specified.
+	 */
+	rs.opt.nd_opt_type = ND_OPT_SOURCE_LINKADDR;
+	rs.opt.nd_opt_len = 2; // 16 bytes
 
-		memset (rs->lladdr, 0, sizeof (rs->lladdr));
+	memset (rs.lladdr, 0, sizeof (rs.lladdr));
 
-		ptr += sizeof (*rs);
-	}
-
-	return sock.SendPacket (packet + 3, sizeof (packet) - 3, server_ip,
-	                        htons (IPPORT_TEREDO));
+	return teredo_sendv (fd, iov, 2, server_ip, htons (IPPORT_TEREDO)) > 0
+			? 0 : -1;
 }
 
 
@@ -324,8 +320,8 @@ ParseRA (const TeredoPacket& packet, union teredo_addr *newaddr, bool cone,
 /**
  * Sends an ICMPv6 Echo request toward an IPv6 node through the Teredo server.
  */
-bool SendPing (const TeredoRelayUDP& sock, const union teredo_addr *src,
-               const struct in6_addr *dst)
+extern "C" int
+SendPing (int fd, const union teredo_addr *src, const struct in6_addr *dst)
 {
 	struct
 	{
@@ -354,9 +350,9 @@ bool SendPing (const TeredoRelayUDP& sock, const union teredo_addr *src,
 
 	ping.icmp6.icmp6_cksum = icmp6_checksum (&ping.ip6, &ping.icmp6);
 
-	return sock.SendPacket (&ping, sizeof (ping.ip6) + sizeof (ping.icmp6)
-	                        + PING_PAYLOAD, IN6_TEREDO_SERVER (src),
-	                        htons (IPPORT_TEREDO)) > 0;
+	return teredo_send (fd, &ping, sizeof (ping.ip6) + sizeof (ping.icmp6)
+	                    + PING_PAYLOAD, IN6_TEREDO_SERVER (src),
+						htons (IPPORT_TEREDO)) > 0 ? 0 : -1;
 }
 
 
