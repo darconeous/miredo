@@ -74,120 +74,96 @@ static bool
 SendRA (const libteredo_server *s, const struct teredo_packet *p,
         const struct in6_addr *dest_ip6, bool secondary)
 {
-	uint8_t packet[13 + 8 + sizeof (struct ip6_hdr)
-	                  + sizeof (struct nd_router_advert)
-	                  + sizeof (struct nd_opt_prefix_info)];
-	uint8_t *ptr = packet;
+	const uint8_t *nonce;
+	union teredo_addr *addr;
+	struct iovec iov[3];
+	struct teredo_simple_auth auth;
+	struct teredo_orig_ind orig;
+	struct
+	{
+		struct ip6_hdr            ip6;
+		struct nd_router_advert   ra;
+		struct nd_opt_prefix_info pi;
+		struct nd_opt_mtu         mtu;
+	} ra;
 
 	// Authentification header
 	// TODO: support for secure qualification
-	const uint8_t *nonce = p->nonce;
+	iov[0].iov_base = &auth;
+
+	nonce = p->nonce;
 	if (nonce != NULL)
 	{
-		// No particular alignment issue
-		struct teredo_simple_auth *auth;
+		auth.hdr.hdr.zero = 0;
+		auth.hdr.hdr.code = teredo_auth_hdr;
+		auth.hdr.id_len = auth.hdr.au_len = 0;
+		memcpy (&auth.nonce, nonce, 8);
+		auth.confirmation = 0;
 
-		auth = (struct teredo_simple_auth *)ptr;
-
-		auth->hdr.hdr.zero = 0;
-		auth->hdr.hdr.code = teredo_auth_hdr;
-		auth->hdr.id_len = auth->hdr.au_len = 0;
-		memcpy (&auth->nonce, nonce, 8);
-		auth->confirmation = 0;
-
-		ptr += 13;
+		iov[0].iov_len = 13;
 	}
+	else
+		iov[0].iov_len = 0;
 
 	// Origin indication header
-	{
-		struct teredo_orig_ind orig;
+	iov[1].iov_base = &orig;
+	iov[1].iov_len = 8;
+	orig.hdr.zero = 0;
+	orig.hdr.code = teredo_orig_ind;
+	orig.orig_port = ~p->source_port; // obfuscate
+	orig.orig_addr = ~p->source_ipv4; // obfuscate
 
-		orig.hdr.zero = 0;
-		orig.hdr.code = teredo_orig_ind;
-		orig.orig_port = ~p->source_port; // obfuscate
-		orig.orig_addr = ~p->source_ipv4; // obfuscate
+	// IPv6 header
+	ra.ip6.ip6_flow = htonl (0x60000000);
+	ra.ip6.ip6_plen = htons (sizeof (ra) - sizeof (ra.ip6));
+	ra.ip6.ip6_nxt = IPPROTO_ICMPV6;
+	ra.ip6.ip6_hlim = 255;
 
-		memcpy (ptr, &orig, 8);
-		ptr += 8;
-	}
+	addr = (union teredo_addr *)&ra.ip6.ip6_src;
+	addr->teredo.prefix = htonl (0xfe800000);
+	addr->teredo.server_ip = 0;
+	addr->teredo.flags = htons (TEREDO_FLAG_CONE);
+	addr->teredo.client_port = htons (IPPORT_TEREDO);
+	addr->teredo.client_ip = ~s->server_ip;
 
+	memcpy (&ra.ip6.ip6_dst, dest_ip6, sizeof (ra.ip6.ip6_dst));
 
-	{
-		struct
-		{
-			struct ip6_hdr            ip6;
-			struct nd_router_advert   ra;
-			struct nd_opt_prefix_info pi;
-			struct nd_opt_mtu         mtu;
-		} ra;
+	// ICMPv6: Router Advertisement
+	ra.ra.nd_ra_type = ND_ROUTER_ADVERT;
+	ra.ra.nd_ra_code = 0;
+	ra.ra.nd_ra_cksum = 0;
+	ra.ra.nd_ra_curhoplimit = 0;
+	ra.ra.nd_ra_flags_reserved = 0;
+	ra.ra.nd_ra_router_lifetime = 0;
+	ra.ra.nd_ra_reachable = 0;
+	ra.ra.nd_ra_retransmit = htonl (2000);
 
-		// IPv6 header
-		ra.ip6.ip6_flow = htonl (0x60000000);
-		ra.ip6.ip6_plen = htons (sizeof (ra) - sizeof (ra.ip6));
-		ra.ip6.ip6_nxt = IPPROTO_ICMPV6;
-		ra.ip6.ip6_hlim = 255;
+	// ICMPv6 option: Prefix information
+	ra.pi.nd_opt_pi_type = ND_OPT_PREFIX_INFORMATION;
+	ra.pi.nd_opt_pi_len = sizeof (ra.pi) >> 3;
+	ra.pi.nd_opt_pi_prefix_len = 64;
+	ra.pi.nd_opt_pi_flags_reserved = ND_OPT_PI_FLAG_AUTO;
+	ra.pi.nd_opt_pi_valid_time = 0xffffffff;
+	ra.pi.nd_opt_pi_preferred_time = 0xffffffff;
+	addr = (union teredo_addr *)&ra.pi.nd_opt_pi_prefix;
+	addr->teredo.prefix = s->prefix;
+	addr->teredo.server_ip = s->server_ip;
+	memset (addr->ip6.s6_addr + 8, 0, 8);
 
-		{
-			union teredo_addr src;
-			src.teredo.prefix = htonl (0xfe800000);
-			src.teredo.server_ip = 0;
-			src.teredo.flags = htons (TEREDO_FLAG_CONE);
-			src.teredo.client_port = htons (IPPORT_TEREDO);
-			src.teredo.client_ip = ~s->server_ip;
+	// ICMPv6 option : MTU
+	ra.mtu.nd_opt_mtu_type = ND_OPT_MTU;
+	ra.mtu.nd_opt_mtu_len = sizeof (ra.mtu) >> 3;
+	ra.mtu.nd_opt_mtu_reserved = 0;
+	ra.mtu.nd_opt_mtu_mtu = s->advLinkMTU;
 
-			memcpy (&ra.ip6.ip6_src, &src,
-				sizeof (ra.ip6.ip6_src));
-		}
-
-		memcpy (&ra.ip6.ip6_dst, dest_ip6, sizeof (ra.ip6.ip6_dst));
-
-		// ICMPv6: Router Advertisement
-		ra.ra.nd_ra_type = ND_ROUTER_ADVERT;
-		ra.ra.nd_ra_code = 0;
-		ra.ra.nd_ra_cksum = 0;
-		ra.ra.nd_ra_curhoplimit = 0;
-		ra.ra.nd_ra_flags_reserved = 0;
-		ra.ra.nd_ra_router_lifetime = 0;
-		ra.ra.nd_ra_reachable = 0;
-		ra.ra.nd_ra_retransmit = htonl (2000);
-
-		// ICMPv6 option: Prefix information
-
-		ra.pi.nd_opt_pi_type = ND_OPT_PREFIX_INFORMATION;
-		ra.pi.nd_opt_pi_len = sizeof (ra.pi) >> 3;
-		ra.pi.nd_opt_pi_prefix_len = 64;
-		ra.pi.nd_opt_pi_flags_reserved = ND_OPT_PI_FLAG_AUTO;
-		ra.pi.nd_opt_pi_valid_time = 0xffffffff;
-		ra.pi.nd_opt_pi_preferred_time = 0xffffffff;
-		{
-			union teredo_addr pref;
-
-			pref.teredo.prefix = s->prefix;
-			pref.teredo.server_ip = s->server_ip;
-			memset (pref.ip6.s6_addr + 8, 0, 8);
-			memcpy (&ra.pi.nd_opt_pi_prefix, &pref.ip6,
-				sizeof (ra.pi.nd_opt_pi_prefix));
-		}
-
-		// ICMPv6 option : MTU
-		ra.mtu.nd_opt_mtu_type = ND_OPT_MTU;
-		ra.mtu.nd_opt_mtu_len = sizeof (ra.mtu) >> 3;
-		ra.mtu.nd_opt_mtu_reserved = 0;
-		ra.mtu.nd_opt_mtu_mtu = s->advLinkMTU;
-
-		// ICMPv6 checksum computation
-		ra.ra.nd_ra_cksum = icmp6_checksum (&ra.ip6,
-				(struct icmp6_hdr *)&ra.ra);
-		memcpy (ptr, &ra, sizeof (ra));
-		ptr += sizeof (ra);
-	}
+	// ICMPv6 checksum computation
+	ra.ra.nd_ra_cksum = icmp6_checksum (&ra.ip6, (struct icmp6_hdr *)&ra.ra);
 
 	if (IN6_IS_TEREDO_ADDR_CONE (dest_ip6))
 		secondary = !secondary;
 
-	return teredo_send (secondary ? s->fd_secondary : s->fd_primary,
-	                    packet, ptr - packet, p->source_ipv4,
-	                    p->source_port) == (ptr - packet);
+	return teredo_sendv (secondary ? s->fd_secondary : s->fd_primary,
+	                     iov, 3, p->source_ipv4, p->source_port) > 0;
 }
 
 /*
@@ -401,7 +377,7 @@ int libteredo_server_check (char *errmsg, size_t len)
 		return 0;
 	}
 
-	snprintf (errmsg, len, _("Raw IPv6 sockets not working: %s\n"),
+	snprintf (errmsg, len, _("Raw IPv6 socket not working: %s\n"),
 	          strerror (errno));
 	return -1;
 }
@@ -469,7 +445,7 @@ libteredo_server *libteredo_server_create (uint32_t ip1, uint32_t ip2)
 
 	if (raw_fd == -1)
 	{
-		syslog (LOG_ERR, _("Raw IPv6 socket: %m"));
+		syslog (LOG_ERR, _("Raw IPv6 socket not working: %m"));
 		return NULL;
 	}
 
