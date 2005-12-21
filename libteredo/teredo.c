@@ -189,7 +189,6 @@ int teredo_send (int fd, const void *packet, size_t plen,
  *  - malformatted packets,
  *  - no data pending while using a non-blocking socket.
  */
-#include <syslog.h>
 int teredo_recv (int fd, struct teredo_packet *p)
 {
 	uint8_t *ptr;
@@ -217,7 +216,6 @@ int teredo_recv (int fd, struct teredo_packet *p)
 	p->orig_ipv4 = 0;
 	p->orig_port = 0;
 
-	syslog (LOG_DEBUG, "received %d bytes", length);
 	// Teredo Authentication header
 	if ((ptr[0] == 0) && (ptr[1] == teredo_auth_hdr))
 	{
@@ -267,7 +265,6 @@ int teredo_recv (int fd, struct teredo_packet *p)
 		p->orig_ipv4 = ~addr;
 	}
 
-	syslog (LOG_DEBUG, "got IPv6 payload of %d bytes", length);
 	/* length <= 65507 = sizeof(buf) */
 	p->ip6_len = length;
 	p->ip6 = ptr;
