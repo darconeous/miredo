@@ -468,7 +468,7 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 			if (!IsCone () && SendBubbleFromDst (fd, &dst->ip6, false, false))
 				return -1;
 	
-			return SendBubbleFromDst (fd, &dst->ip6, IsCone ());
+			return SendBubbleFromDst (fd, &dst->ip6, IsCone (), true);
 
 		case -1:
 			// Too many bubbles already sent

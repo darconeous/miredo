@@ -29,6 +29,7 @@
 #include <gettext.h>
 
 #include <string.h>
+#include <stdbool.h>
 #if HAVE_STDINT_H
 # include <stdint.h>
 #elif HAVE_INTTYPES_H
@@ -57,7 +58,7 @@
  *
  * @return 0 on success, -1 on error.
  */
-extern "C" int
+int
 SendBubble (int fd, uint32_t ip, uint16_t port,
             const struct in6_addr *src, const struct in6_addr *dst)
 {
@@ -92,7 +93,7 @@ SendBubble (int fd, uint32_t ip, uint16_t port,
  *
  * @return 0 on success, -1 on error.
  */
-extern "C" int
+int
 SendBubbleFromDst (int fd, const struct in6_addr *dst,
                    bool cone, bool indirect)
 {
@@ -127,7 +128,7 @@ SendBubbleFromDst (int fd, const struct in6_addr *dst,
 static const struct in6_addr in6addr_allrouters =
         { { { 0xff, 0x02, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x2 } } };
 
-extern "C" int
+int
 SendRS (int fd, uint32_t server_ip,
         const unsigned char *nonce, bool cone)
 {
@@ -197,7 +198,7 @@ SendRS (int fd, uint32_t server_ip,
  * - IPv6 header is valid (ie. version 6, plen matches packet's length, and
  *   the full packet is at least 40 bytes long).
  */
-extern "C" int
+int
 ParseRA (const teredo_packet *packet, union teredo_addr *newaddr, bool cone,
          uint16_t *mtu)
 {
@@ -237,8 +238,8 @@ ParseRA (const teredo_packet *packet, union teredo_addr *newaddr, bool cone,
 	newaddr->teredo.server_ip = 0;
 
 	// Looks for a prefix information option
-	for (const struct nd_opt_hdr *hdr = (const struct nd_opt_hdr *)(ra + 1);
-	     length >= 8;
+	const struct nd_opt_hdr *hdr;
+	for (hdr = (const struct nd_opt_hdr *)(ra + 1); length >= 8;
 	     hdr = (const struct nd_opt_hdr *)
 				(((const uint8_t *)hdr) + (hdr->nd_opt_len << 3)))
 	{
@@ -319,7 +320,7 @@ ParseRA (const teredo_packet *packet, union teredo_addr *newaddr, bool cone,
 /**
  * Sends an ICMPv6 Echo request toward an IPv6 node through the Teredo server.
  */
-extern "C" int
+int
 SendPing (int fd, const union teredo_addr *src, const struct in6_addr *dst)
 {
 	struct
@@ -361,7 +362,7 @@ SendPing (int fd, const union teredo_addr *src, const struct in6_addr *dst)
  *
  * @return 0 if that is the case, -1 otherwise.
  */
-extern "C" int CheckPing (const teredo_packet *packet)
+int CheckPing (const teredo_packet *packet)
 {
 	const struct ip6_hdr *ip6 = (const struct ip6_hdr *)packet->ip6;
 	const struct icmp6_hdr *icmp6;
@@ -438,7 +439,7 @@ extern "C" int CheckPing (const teredo_packet *packet)
  * @return the actual size of the generated error message, or zero if no
  * ICMPv6 packet should be generated. Never fails.
  */
-extern "C" int
+int
 BuildICMPv6Error (struct icmp6_hdr *out, uint8_t type, uint8_t code,
                   const void *in, uint16_t inlen)
 {
@@ -469,8 +470,8 @@ BuildICMPv6Error (struct icmp6_hdr *out, uint8_t type, uint8_t code,
 	out->icmp6_cksum = 0;
 	out->icmp6_data32[0] = 0;
 
-	if (inlen > 1280 - (sizeof (struct ip6_hdr) + sizeof (icmp6_hdr)))
-		inlen = 1280 - (sizeof (struct ip6_hdr) + sizeof (icmp6_hdr));
+	if (inlen > 1280 - (sizeof (struct ip6_hdr) + sizeof (struct icmp6_hdr)))
+		inlen = 1280 - (sizeof (struct ip6_hdr) + sizeof (struct icmp6_hdr));
 
 	memcpy (out + 1, in, inlen);
 
@@ -497,7 +498,7 @@ BuildICMPv6Error (struct icmp6_hdr *out, uint8_t type, uint8_t code,
  * @return the actual size of the generated error message, or zero if no
  * ICMPv6/IPv6 packet should be sent. Never fails.
  */
-extern "C" int
+int
 BuildIPv6Error (struct ip6_hdr *out, const struct in6_addr *src,
                 uint8_t type, uint8_t code, const void *in, uint16_t len)
 {

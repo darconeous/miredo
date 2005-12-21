@@ -40,7 +40,7 @@ int CheckPing (const teredo_packet *packet);
 
 
 int SendBubbleFromDst (int fd, const struct in6_addr *dst, bool cone,
-                       bool indirect = true);
+                       bool indirect);
 
 int SendBubble (int fd, uint32_t ip, uint16_t port,
                 const struct in6_addr *src, const struct in6_addr *dst);
