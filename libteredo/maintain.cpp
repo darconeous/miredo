@@ -58,32 +58,33 @@
 #define NOT_RUNNING	(-1)
 
 
-bool TeredoRelay::IsServerPacket (const TeredoPacket *packet) const
+bool TeredoRelay::IsServerPacket (const teredo_packet *packet) const
 {
-	uint32_t ip = packet->GetClientIP ();
+	uint32_t ip = packet->source_ipv4;
 
-	return (packet->GetClientPort () == htons (IPPORT_TEREDO))
+	return (packet->source_port == htons (IPPORT_TEREDO))
 	 && ((ip == GetServerIP ()) || (ip == GetServerIP2 ()));
 }
 
 
 /* It is assumed that the calling thread holds the maintenance lock */
 static bool
-maintenance_recv (const TeredoPacket *packet, uint32_t server_ip, uint8_t *nonce,
-                  bool cone, uint16_t *mtu, union teredo_addr *newaddr)
+maintenance_recv (const teredo_packet *packet, uint32_t server_ip,
+                  uint8_t *nonce, bool cone, uint16_t *mtu,
+                  union teredo_addr *newaddr)
 {
-	assert (packet->GetAuthNonce () != NULL);
+	assert (packet->nonce != NULL);
 
-	if (memcmp (packet->GetAuthNonce (), nonce, 8))
+	if (memcmp (packet->nonce, nonce, 8))
 		return false;
 
-	if (packet->GetConfByte ())
+	if (packet->nonce[8]) /* FIXME gruiiiiiiiik */
 	{
 		syslog (LOG_ERR, _("Authentication with server failed."));
 		return false;
 	}
 
-	if ((!ParseRA (*packet, newaddr, cone, mtu))
+	if (ParseRA (packet, newaddr, cone, mtu)
 	/* TODO: try to work-around incorrect server IP */
 	 || (newaddr->teredo.server_ip != server_ip /*GetServerIP ()*/))
 		return false;
@@ -366,7 +367,7 @@ void teredo_maintenance_stop (struct teredo_maintenance *m)
 
 /* Handle router advertisement for qualification */
 static void
-maintenance_process (const TeredoPacket *packet, teredo_maintenance *m)
+maintenance_process (const teredo_packet *packet, teredo_maintenance *m)
 {
 	(void)pthread_mutex_lock (&m->lock);
 	m->incoming = packet;
@@ -376,24 +377,24 @@ maintenance_process (const TeredoPacket *packet, teredo_maintenance *m)
 }
 
 
-void TeredoRelay::ProcessQualificationPacket (const TeredoPacket *packet)
+void TeredoRelay::ProcessQualificationPacket (const teredo_packet *packet)
 {
 	/*
 	 * We don't accept router advertisement without nonce.
 	 * It is far too easy to spoof such packets.
 	 */
-	if ((IsServerPacket (packet)) && (packet->GetAuthNonce () != NULL))
+	if ((IsServerPacket (packet)) && (packet->nonce != NULL))
 		maintenance_process (packet, &maintenance);
 }
 
 
-bool TeredoRelay::ProcessMaintenancePacket (const TeredoPacket *packet)
+bool TeredoRelay::ProcessMaintenancePacket (const teredo_packet *packet)
 {
 	union teredo_addr newaddr;
 	uint16_t new_mtu;
 
-	if ((packet->GetAuthNonce () == NULL)
-	 || !ParseRA (*packet, &newaddr, IsCone (), &new_mtu))
+	if ((packet->nonce == NULL)
+	 || ParseRA (packet, &newaddr, IsCone (), &new_mtu))
 		return false;
 
 	maintenance_process (packet, &maintenance);

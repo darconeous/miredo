@@ -67,9 +67,9 @@ class TeredoRelay::peer
 			mapped_port = port;
 		}
 
-		void SetMappingFromPacket (const TeredoPacket& p)
+		void SetMappingFromPacket (const teredo_packet *p)
 		{
-			SetMapping (p.GetClientIP (), p.GetClientPort ());
+			SetMapping (p->source_ipv4, p->source_port);
 		}
 
 		void TouchReceive (void)

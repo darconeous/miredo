@@ -59,7 +59,7 @@ typedef struct teredo_maintenance
 	pthread_t thread;
 	pthread_mutex_t lock;
 	pthread_cond_t received;
-	const TeredoPacket *incoming;
+	const teredo_packet *incoming;
 	pthread_barrier_t processed;
 	TeredoRelay *relay; /* FIXME: provisional */
 #endif
@@ -98,9 +98,9 @@ class TeredoRelay
 		uint32_t server_ip2;
 
 		int PingPeer (const struct in6_addr *addr, peer *p) const;
-		bool IsServerPacket (const TeredoPacket *packet) const;
-		void ProcessQualificationPacket (const TeredoPacket *p);
-		bool ProcessMaintenancePacket (const TeredoPacket *p);
+		bool IsServerPacket (const teredo_packet *packet) const;
+		void ProcessQualificationPacket (const teredo_packet *p);
+		bool ProcessMaintenancePacket (const teredo_packet *p);
 
 	public: /* FIXME: temporary */
 		/*

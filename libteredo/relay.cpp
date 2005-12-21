@@ -488,13 +488,13 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
  */
 int TeredoRelay::ReceivePacket (void)
 {
-	TeredoPacket packet;
+	struct teredo_packet packet;
 
-	if (packet.Receive (fd))
+	if (teredo_recv (fd, &packet))
 		return -1;
 
-	size_t length;
-	const uint8_t *buf = packet.GetIPv6Packet (length);
+	const uint8_t *buf = packet.ip6;
+	size_t length = packet.ip6_len;
 	struct ip6_hdr ip6;
 
 	// Checks packet
@@ -521,11 +521,10 @@ int TeredoRelay::ReceivePacket (void)
 		if (ProcessMaintenancePacket (&packet))
 			return 0;
 
-		const struct teredo_orig_ind *ind = packet.GetOrigInd ();
-		if (ind != NULL)
+		if (packet.orig != NULL)
 		{
-			SendBubble (fd, ~ind->orig_addr, ~ind->orig_port, &ip6.ip6_dst,
-			            &ip6.ip6_src);
+			SendBubble (fd, ~packet.orig->orig_addr, ~packet.orig->orig_port,
+			            &ip6.ip6_dst, &ip6.ip6_src);
 			if (IsBubble (&ip6))
 				return 0; // don't pass bubble to kernel
 		}
@@ -625,8 +624,8 @@ int TeredoRelay::ReceivePacket (void)
 	{
 		// Client case 1 (trusted node or (trusted) Teredo client):
 		if (p->trusted
-		 && (packet.GetClientIP () == p->mapped_addr)
-		 && (packet.GetClientPort () == p->mapped_port))
+		 && (packet.source_ipv4 == p->mapped_addr)
+		 && (packet.source_port == p->mapped_port))
 		{
 			p->TouchReceive ();
 			return SendIPv6Packet (buf, length);
@@ -634,11 +633,11 @@ int TeredoRelay::ReceivePacket (void)
 
 #ifdef MIREDO_TEREDO_CLIENT
 		// Client case 2 (untrusted non-Teredo node):
-		if ((!p->trusted) && CheckPing (packet))
+		if ((!p->trusted) && (CheckPing (&packet) == 0))
 		{
 			p->trusted = 1;
 
-			p->SetMappingFromPacket (packet);
+			p->SetMappingFromPacket (&packet);
 			p->TouchReceive ();
 			p->Dequeue (this);
 			return 0;
@@ -653,9 +652,8 @@ int TeredoRelay::ReceivePacket (void)
 	if (IN6_TEREDO_PREFIX (&ip6.ip6_src) == GetPrefix ())
 	{
 		// Client case 3 (unknown or untrusted matching Teredo client):
-		if (IN6_MATCHES_TEREDO_CLIENT (&ip6.ip6_src,
-						packet.GetClientIP (),
-						packet.GetClientPort ()))
+		if (IN6_MATCHES_TEREDO_CLIENT (&ip6.ip6_src, packet.source_ipv4,
+		                               packet.source_port))
 		{
 			if (p == NULL)
 			{

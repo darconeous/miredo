@@ -182,7 +182,7 @@ SendRS (int fd, uint32_t server_ip,
 }
 
 
-/*
+/**
  * Validates a router advertisement from the Teredo server.
  * The RA must be of type cone if and only if cone is true.
  * Prefix, flags, mapped port and IP are returned through newaddr.
@@ -197,19 +197,18 @@ SendRS (int fd, uint32_t server_ip,
  * - IPv6 header is valid (ie. version 6, plen matches packet's length, and
  *   the full packet is at least 40 bytes long).
  */
-bool
-ParseRA (const TeredoPacket& packet, union teredo_addr *newaddr, bool cone,
+extern "C" int
+ParseRA (const teredo_packet *packet, union teredo_addr *newaddr, bool cone,
          uint16_t *mtu)
 {
-	const struct teredo_orig_ind *ind = packet.GetOrigInd ();
+	const struct teredo_orig_ind *ind = packet->orig;
 
 	if (ind == NULL)
-		return false;
+		return -1;
 
-	size_t length;
 	// Only read ip6_next (1 byte), so no need to align
-	const struct ip6_hdr *ip6 =
-		(const struct ip6_hdr *)packet.GetIPv6Packet (length);
+	const struct ip6_hdr *ip6 = (const struct ip6_hdr *)packet->ip6;
+	size_t length = packet->ip6_len;
 
 	length -= sizeof (*ip6);
 
@@ -217,7 +216,7 @@ ParseRA (const TeredoPacket& packet, union teredo_addr *newaddr, bool cone,
 			sizeof (ip6->ip6_dst))
 	 || (ip6->ip6_nxt != IPPROTO_ICMPV6)
 	 || (length < sizeof (struct nd_router_advert)))
-		return false;
+		return -1;
 
 	// Only read bytes, so no need to align
 	const struct nd_router_advert *ra =
@@ -232,7 +231,7 @@ ParseRA (const TeredoPacket& packet, union teredo_addr *newaddr, bool cone,
 	 * We don't check checksum, because it is rather useless.
 	 * There were already (at least) two lower-level checksums.
 	 */
-		return false;
+		return -1;
 
 	uint32_t net_mtu = 0;
 	newaddr->teredo.server_ip = 0;
@@ -247,7 +246,7 @@ ParseRA (const TeredoPacket& packet, union teredo_addr *newaddr, bool cone,
 
 		if ((length < optlen) /* too short */
 		 || (optlen == 0) /* invalid */)
-			return false;
+			return -1;
 
 		switch (hdr->nd_opt_type)
 		{
@@ -259,13 +258,13 @@ ParseRA (const TeredoPacket& packet, union teredo_addr *newaddr, bool cone,
 
 			if ((optlen < sizeof (*pi)) /* option too short */
 			 || (pi->nd_opt_pi_prefix_len != 64) /* unsupp. prefix size */)
-				return false;
+				return -1;
 
 			if (newaddr->teredo.server_ip != 0)
 			{
 				/* The Teredo specification excludes multiple prefixes */
 				syslog (LOG_ERR, _("Multiple Teredo prefixes received"));
-				return false;
+				return -1;
 			}
 
 			memcpy (newaddr, &pi->nd_opt_pi_prefix, 8);
@@ -278,13 +277,13 @@ ParseRA (const TeredoPacket& packet, union teredo_addr *newaddr, bool cone,
 			const struct nd_opt_mtu *mo = (const struct nd_opt_mtu *)hdr;
 
 			/*if (optlen < sizeof (*mo)) -- not possible (optlen >= 8)
-				return false;*/
+				return -1;*/
 
 			memcpy (&net_mtu, &mo->nd_opt_mtu_mtu, sizeof (net_mtu));
 			net_mtu = ntohl (net_mtu);
 
 			if ((net_mtu < 1280) || (net_mtu > 65535))
-				return false; // invalid IPv6 MTU
+				return -1; // invalid IPv6 MTU
 
 			break;
 		 }
@@ -301,7 +300,7 @@ ParseRA (const TeredoPacket& packet, union teredo_addr *newaddr, bool cone,
 	if (!is_valid_teredo_prefix (newaddr->teredo.prefix))
 	{
 		syslog (LOG_WARNING, _("Invalid Teredo prefix received"));
-		return false;
+		return -1;
 	}
 
 	// only accept the cone flag:
@@ -313,7 +312,7 @@ ParseRA (const TeredoPacket& packet, union teredo_addr *newaddr, bool cone,
 	if (net_mtu != 0)
 		*mtu = (uint16_t)net_mtu;
 
-	return true;
+	return 0;
 }
 
 #define PING_PAYLOAD (LIBTEREDO_HMAC_LEN - 4)
@@ -346,7 +345,7 @@ SendPing (int fd, const union teredo_addr *src, const struct in6_addr *dst)
 	 */
 	if (!GenerateHMAC (&ping.ip6.ip6_src, &ping.ip6.ip6_dst,
 	                   (uint8_t *)&ping.icmp6.icmp6_id))
-		return false;
+		return -1;
 
 	ping.icmp6.icmp6_cksum = icmp6_checksum (&ping.ip6, &ping.icmp6);
 
@@ -358,21 +357,20 @@ SendPing (int fd, const union teredo_addr *src, const struct in6_addr *dst)
 
 /**
  * Checks that the packet is an ICMPv6 Echo reply and that it matches the
- * specified nonce value. Returns true if that is the case, false otherwise.
+ * specified nonce value.
+ *
+ * @return 0 if that is the case, -1 otherwise.
  */
-bool
-CheckPing (const TeredoPacket& packet)
+extern "C" int CheckPing (const teredo_packet *packet)
 {
-	const struct ip6_hdr *ip6;
+	const struct ip6_hdr *ip6 = (const struct ip6_hdr *)packet->ip6;
 	const struct icmp6_hdr *icmp6;
-	size_t length;
-
-	ip6 = (const struct ip6_hdr *)packet.GetIPv6Packet (length);
+	size_t length = packet->ip6_len;
 
 	// Only read bytes, so no need to align
 	if ((ip6->ip6_nxt != IPPROTO_ICMPV6)
 	 || (length < (sizeof (*ip6) + sizeof (struct icmp6_hdr) + PING_PAYLOAD)))
-		return false;
+		return -1;
 
 	icmp6 = (const struct icmp6_hdr *)(ip6 + 1);
 
@@ -397,26 +395,26 @@ CheckPing (const TeredoPacket& packet)
 
 		if ((length < (sizeof (*ip6) + sizeof (*icmp6) + PING_PAYLOAD))
 		 || (ip6->ip6_nxt != IPPROTO_ICMPV6))
-			return false;
+			return -1;
 
 		memcpy (&plen, &ip6->ip6_plen, sizeof (plen));
 		if (ntohs (plen) != (sizeof (*icmp6) + PING_PAYLOAD))
-			return false; // not a ping from us
+			return -1; // not a ping from us
 
 		icmp6 = (const struct icmp6_hdr *)(ip6 + 1);
 
 		if (icmp6->icmp6_type != ICMP6_ECHO_REQUEST)
-			return false;
+			return -1;
 	}
 	else
 	if (icmp6->icmp6_type != ICMP6_ECHO_REPLY)
-		return false;
+		return -1;
 
 	if (icmp6->icmp6_code != 0)
-		return false;
+		return -1;
 	
 	return CompareHMAC (&ip6->ip6_dst, &ip6->ip6_src,
-	                    (uint8_t *)&icmp6->icmp6_id);
+						 (uint8_t *)&icmp6->icmp6_id) ? 0 : -1;
 	/* TODO: check the sum(?) */
 }
 #endif

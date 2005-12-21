@@ -29,28 +29,15 @@ struct in6_addr;
 struct ip6_hdr;
 
 
-
-/*
- * Validates a router advertisement from the Teredo server.
- * The RA must be of type cone if and only if cone is true.
- * Prefix, flags, mapped port and IP are returned through newaddr.
- *
- * Assumptions:
- * - newaddr must be 4-bytes aligned.
- * - newaddr->teredo.server_ip must be set to the server's expected IP by the
- *   caller.
- * - IPv6 header is valid (ie. version 6, plen matches packet's length).
- */
-bool
-ParseRA (const TeredoPacket& packet, union teredo_addr *newaddr, bool cone,
-         uint16_t *mtu);
-
-
-bool CheckPing (const TeredoPacket& packet);
-
 # ifdef __cplusplus
 extern "C" {
 #endif
+
+int ParseRA (const teredo_packet *packet, union teredo_addr *newaddr,
+             bool cone, uint16_t *mtu);
+
+int CheckPing (const teredo_packet *packet);
+
 
 int SendBubbleFromDst (int fd, const struct in6_addr *dst, bool cone,
                        bool indirect = true);
