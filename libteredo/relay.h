@@ -41,7 +41,7 @@ void libteredo_terminate (void);
 
 struct ip6_hdr;
 struct in6_addr;
-class TeredoPacket;
+struct teredo_packet;
 class TeredoRelay;
 
 
