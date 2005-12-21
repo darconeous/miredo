@@ -124,7 +124,7 @@ TeredoRelay::TeredoRelay (uint32_t ip, uint32_t ip2,
 	if (fd != -1)
 	{
 		maintenance.relay = this;
-		if (teredo_maintenance_start (&maintenance))
+		if (libteredo_maintenance_start (&maintenance))
 			maintenance.relay = NULL;
 	}
 
@@ -136,7 +136,7 @@ TeredoRelay::~TeredoRelay (void)
 {
 #ifdef MIREDO_TEREDO_CLIENT
 	if (maintenance.relay != NULL)
-		teredo_maintenance_stop (&maintenance);
+		libteredo_maintenance_stop (&maintenance);
 #endif
 
 	if (fd != -1)
@@ -746,4 +746,25 @@ int TeredoRelay::ReceivePacket (void)
 #else /* ifdef MIREDO_TEREDO_CLIENT */
 	return 0;
 #endif
+}
+
+
+/* C++ maintenance remains */
+bool TeredoRelay::IsServerPacket (const teredo_packet *packet) const
+{
+	uint32_t ip = packet->source_ipv4;
+
+	return (packet->source_port == htons (IPPORT_TEREDO))
+	 && ((ip == GetServerIP ()) || (ip == GetServerIP2 ()));
+}
+
+void TeredoRelay::ProcessQualificationPacket (const teredo_packet *packet)
+{
+	if (IsServerPacket (packet))
+		libteredo_maintenance_process (&maintenance, packet);
+}
+
+void TeredoRelay::ProcessMaintenancePacket (const teredo_packet *packet)
+{
+	libteredo_maintenance_process (&maintenance, packet);
 }

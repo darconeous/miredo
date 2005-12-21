@@ -58,15 +58,6 @@
 #define NOT_RUNNING	(-1)
 
 
-bool TeredoRelay::IsServerPacket (const teredo_packet *packet) const
-{
-	uint32_t ip = packet->source_ipv4;
-
-	return (packet->source_port == htons (IPPORT_TEREDO))
-	 && ((ip == GetServerIP ()) || (ip == GetServerIP2 ()));
-}
-
-
 /* It is assumed that the calling thread holds the maintenance lock */
 static bool
 maintenance_recv (const teredo_packet *packet, uint32_t server_ip,
@@ -127,11 +118,12 @@ cleanup_unlock (void *o)
 
 #define SERVER_PING_DELAY 30
 
-unsigned TeredoRelay::QualificationTimeOut = 4; // seconds
-unsigned TeredoRelay::QualificationRetries = 3;
+/* TODO: allow modification of these values ? */
+static unsigned QualificationTimeOut = 4; // seconds
+static unsigned QualificationRetries = 3;
 
-unsigned TeredoRelay::ServerNonceLifetime = 3600; // seconds
-unsigned TeredoRelay::RestartDelay = 100; // seconds
+static unsigned ServerNonceLifetime = 3600; // seconds
+static unsigned RestartDelay = 100; // seconds
 
 
 static inline void maintenance_thread (teredo_maintenance *m)
@@ -167,12 +159,12 @@ static inline void maintenance_thread (teredo_maintenance *m)
 			deadline.tv_sec = nonce.expiry.tv_sec;
 			deadline.tv_nsec = nonce.expiry.tv_usec * 1000;
 
-			nonce.expiry.tv_sec += TeredoRelay::ServerNonceLifetime;
+			nonce.expiry.tv_sec += ServerNonceLifetime;
 		}
 
 		/* SEND ROUTER SOLICATION */
 		do
-			deadline.tv_sec += TeredoRelay::QualificationTimeOut;
+			deadline.tv_sec += QualificationTimeOut;
 		while (!checkTimeDrift (&deadline));
 
 		SendRS (m->relay->fd, state == PROBE_RESTRICT /* secondary */
@@ -214,7 +206,7 @@ static inline void maintenance_thread (teredo_maintenance *m)
 			else
 				count++;
 
-			if (count >= TeredoRelay::QualificationRetries)
+			if (count >= QualificationRetries)
 			{
 				if (state == QUALIFIED)
 				{
@@ -236,7 +228,7 @@ static inline void maintenance_thread (teredo_maintenance *m)
 					/* Wait some time before retrying */
 					state = PROBE_CONE;
 					m->state.cone = true;
-					sleep = TeredoRelay::RestartDelay;
+					sleep = RestartDelay;
 				}
 			}
 		}
@@ -276,7 +268,7 @@ static inline void maintenance_thread (teredo_maintenance *m)
 					count = 0;
 					state = PROBE_CONE;
 					m->state.cone = true;
-					sleep = TeredoRelay::RestartDelay;
+					sleep = RestartDelay;
 					break;
 				}
 			case PROBE_CONE:
@@ -302,7 +294,7 @@ static inline void maintenance_thread (teredo_maintenance *m)
 		 * (netlink on Linux, PF_ROUTE on BSD) */
 		if (sleep)
 		{
-			deadline.tv_sec -= TeredoRelay::QualificationTimeOut;
+			deadline.tv_sec -= QualificationTimeOut;
 			deadline.tv_sec += sleep;
 			do
 			{
@@ -327,9 +319,8 @@ static void *do_maintenance (void *opaque)
 	return NULL;
 }
 
-
 extern "C"
-int teredo_maintenance_start (struct teredo_maintenance *m)
+int libteredo_maintenance_start (struct teredo_maintenance *m)
 {
 	int err;
 
@@ -357,9 +348,8 @@ int teredo_maintenance_start (struct teredo_maintenance *m)
 	return 0;
 }
 
-
 extern "C"
-void teredo_maintenance_stop (struct teredo_maintenance *m)
+void libteredo_maintenance_stop (struct teredo_maintenance *m)
 {
 	pthread_cancel (m->thread);
 	pthread_join (m->thread, NULL);
@@ -369,25 +359,13 @@ void teredo_maintenance_stop (struct teredo_maintenance *m)
 
 
 /* Handle router advertisement for qualification */
-static void
-maintenance_process (const teredo_packet *packet, teredo_maintenance *m)
+extern "C"
+void libteredo_maintenance_process (struct teredo_maintenance *m,
+                                    const teredo_packet *packet)
 {
 	(void)pthread_mutex_lock (&m->lock);
 	m->incoming = packet;
 	(void)pthread_cond_signal (&m->received);
 	(void)pthread_mutex_unlock (&m->lock);
 	(void)pthread_barrier_wait (&m->processed);
-}
-
-
-void TeredoRelay::ProcessQualificationPacket (const teredo_packet *packet)
-{
-	if (IsServerPacket (packet))
-		maintenance_process (packet, &maintenance);
-}
-
-
-void TeredoRelay::ProcessMaintenancePacket (const teredo_packet *packet)
-{
-	maintenance_process (packet, &maintenance);
 }

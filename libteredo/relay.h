@@ -201,10 +201,10 @@ class TeredoRelay
 			return server_ip2;
 		}
 
-		static unsigned QualificationRetries;
+		/*static unsigned QualificationRetries;
 		static unsigned QualificationTimeOut;
 		static unsigned ServerNonceLifetime;
-		static unsigned RestartDelay;
+		static unsigned RestartDelay;*/
 #endif
 		static unsigned MaxPeers;
 		static unsigned MaxQueueBytes;

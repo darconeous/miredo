@@ -28,8 +28,10 @@ struct teredo_maintenance;
 extern "C" {
 # endif
 
-int teredo_maintenance_start (struct teredo_maintenance *);
-void teredo_maintenance_stop (struct teredo_maintenance *);
+int libteredo_maintenance_start (struct teredo_maintenance *);
+void libteredo_maintenance_stop (struct teredo_maintenance *);
+void libteredo_maintenance_process (struct teredo_maintenance *m,
+                                    const teredo_packet *packet);
 
 # ifdef __cplusplus
 }
