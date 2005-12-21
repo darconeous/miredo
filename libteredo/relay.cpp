@@ -67,33 +67,36 @@ TeredoRelay::TeredoRelay (uint32_t pref, uint16_t port, uint32_t ipv4,
                           bool cone)
 	:  allowCone (false)
 {
-	maintenance.state.addr.teredo.prefix = pref;
-	maintenance.state.addr.teredo.server_ip = 0;
+	state.addr.teredo.prefix = pref;
+	state.addr.teredo.server_ip = 0;
 	if (cone)
 	{
-		maintenance.state.cone = true;
-		maintenance.state.addr.teredo.flags = htons (TEREDO_FLAG_CONE);
+		state.cone = true;
+		state.addr.teredo.flags = htons (TEREDO_FLAG_CONE);
 	}
 	else
 	{
-		maintenance.state.cone = false;
-		maintenance.state.addr.teredo.flags = 0;
+		state.cone = false;
+		state.addr.teredo.flags = 0;
 	}
-	/* that doesn't really need to match our mapping - the address is only used
-	 * to send Unreachable message */
-	maintenance.state.addr.teredo.client_port = ~port;
-	maintenance.state.addr.teredo.client_ip = ~ipv4;
+
+	/* that doesn't really need to match our mapping -
+	 * the address is only used to send Unreachable message... with the
+	 * old method that is no longer supported (the one that involves
+	 * building the IPv6 header as well as the ICMPv6 header) */
+	state.addr.teredo.client_port = ~port;
+	state.addr.teredo.client_ip = ~ipv4;
 
 	fd = teredo_socket (ipv4, port);
 
 	list.ptr = NULL;
 	list.peerNumber = 0;
 
-	maintenance.state.up = true;
+	state.up = true;
 
 #ifdef MIREDO_TEREDO_CLIENT
 	server_ip2 = 0;
-	maintenance.relay = NULL;
+	maintenance = NULL;
 }
 
 
@@ -101,31 +104,37 @@ TeredoRelay::TeredoRelay (uint32_t ip, uint32_t ip2,
                           uint16_t port, uint32_t ipv4)
 	: allowCone (false)
 {
+	maintenance = new teredo_maintenance;
+	maintenance->state = &state;
+
 	/*syslog (LOG_DEBUG, "Peer size: %u bytes", sizeof (peer));*/
 	if (!is_ipv4_global_unicast (ip) || !is_ipv4_global_unicast (ip2))
 		syslog (LOG_WARNING, _("Server has a non global IPv4 address. "
 		                       "It will most likely not work."));
 
-	maintenance.state.mtu = 1280;
-	maintenance.state.addr.teredo.prefix = PREFIX_UNSET;
-	maintenance.state.addr.teredo.server_ip = ip;
-	maintenance.state.addr.teredo.flags = htons (TEREDO_FLAG_CONE);
-	maintenance.state.addr.teredo.client_ip = 0;
-	maintenance.state.addr.teredo.client_port = 0;
-	maintenance.state.up = false;
+	state.mtu = 1280;
+	state.addr.teredo.prefix = PREFIX_UNSET;
+	state.addr.teredo.server_ip = ip;
+	state.addr.teredo.flags = htons (TEREDO_FLAG_CONE);
+	state.addr.teredo.client_ip = 0;
+	state.addr.teredo.client_port = 0;
+	state.up = false;
 
 	server_ip2 = ip2;
 
 	list.ptr = NULL;
 	list.peerNumber = 0;
 
-	maintenance.relay = NULL;
+	maintenance->relay = NULL;
 	fd = teredo_socket (ipv4, port);
 	if (fd != -1)
 	{
-		maintenance.relay = this;
-		if (libteredo_maintenance_start (&maintenance))
-			maintenance.relay = NULL;
+		maintenance->relay = this;
+		if (libteredo_maintenance_start (maintenance))
+		{
+			delete maintenance;
+			maintenance = NULL;
+		}
 	}
 
 #endif /* ifdef MIREDO_TEREDO_CLIENT */
@@ -135,8 +144,10 @@ TeredoRelay::TeredoRelay (uint32_t ip, uint32_t ip2,
 TeredoRelay::~TeredoRelay (void)
 {
 #ifdef MIREDO_TEREDO_CLIENT
-	if (maintenance.relay != NULL)
-		libteredo_maintenance_stop (&maintenance);
+	if (maintenance != NULL)
+		libteredo_maintenance_stop (maintenance);
+
+	delete maintenance;
 #endif
 
 	if (fd != -1)
@@ -156,6 +167,7 @@ unsigned TeredoRelay::IcmpRateLimitMs = 100;
 void
 TeredoRelay::SendUnreach (int code, const void *in, size_t len)
 {
+	/* FIXME: should probably not be static */
 	static struct
 	{
 		pthread_mutex_t lock;
@@ -201,7 +213,7 @@ TeredoRelay::EmitICMPv6Error (const void *packet, size_t length,
 	/* TODO should be implemented with BuildIPv6Error() */
 	/* that is currently dead code */
 #if 0
-	size_t outlen = BuildIPv6Error (&buf.hdr, &maintenance.state.addr.ip6,
+	size_t outlen = BuildIPv6Error (&buf.hdr, &state.addr.ip6,
 	                                ICMP6_DST_UNREACH, code, in, inlen);
 	(void)SendIPv6Packet (&buf, outlen);
 #endif
@@ -253,7 +265,7 @@ TeredoRelay::PingPeer (const struct in6_addr *a, peer *p) const
 {
 	int res = p->CountPing ();
 	if (res == 0)
-		return SendPing (fd, &maintenance.state.addr, a);
+		return SendPing (fd, &state.addr, a);
 	return res;
 }
 #endif
@@ -508,7 +520,7 @@ int TeredoRelay::ReceivePacket (void)
 
 #ifdef MIREDO_TEREDO_CLIENT
 	/* FIXME race condition */
-	if (IsClient () && !maintenance.state.up)
+	if (IsClient () && !state.up)
 	{
 		ProcessQualificationPacket (&packet);
 		return 0;
@@ -749,7 +761,7 @@ int TeredoRelay::ReceivePacket (void)
 }
 
 
-/* C++ maintenance remains */
+/* C++ maintenance remainings */
 bool TeredoRelay::IsServerPacket (const teredo_packet *packet) const
 {
 	uint32_t ip = packet->source_ipv4;
@@ -761,10 +773,10 @@ bool TeredoRelay::IsServerPacket (const teredo_packet *packet) const
 void TeredoRelay::ProcessQualificationPacket (const teredo_packet *packet)
 {
 	if (IsServerPacket (packet))
-		libteredo_maintenance_process (&maintenance, packet);
+		libteredo_maintenance_process (maintenance, packet);
 }
 
 void TeredoRelay::ProcessMaintenancePacket (const teredo_packet *packet)
 {
-	libteredo_maintenance_process (&maintenance, packet);
+	libteredo_maintenance_process (maintenance, packet);
 }

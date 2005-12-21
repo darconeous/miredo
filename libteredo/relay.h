@@ -41,31 +41,33 @@ void libteredo_terminate (void);
 
 struct ip6_hdr;
 struct in6_addr;
+
 struct teredo_packet;
+struct teredo_maintenance;
 class TeredoRelay;
 
 
 typedef struct teredo_state
 {
+	union teredo_addr addr;
+	uint16_t mtu;
 	bool up;
 	bool cone;
-	uint16_t mtu;
-	union teredo_addr addr;
 } teredo_state;
 
+#ifdef MIREDO_TEREDO_CLIENT
 typedef struct teredo_maintenance
 {
-#ifdef MIREDO_TEREDO_CLIENT
 	pthread_t thread;
 	pthread_mutex_t lock;
 	pthread_cond_t received;
 	const teredo_packet *incoming;
 	pthread_barrier_t processed;
 	TeredoRelay *relay; /* FIXME: provisional */
-#endif
 
-	teredo_state state;
+	teredo_state *state;
 } teredo_maintenance;
+#endif
 
 
 // big TODO: make all functions re-entrant safe
@@ -93,8 +95,10 @@ class TeredoRelay
 
 		void SendUnreach (int code, const void *in, size_t inlen);
 
-		teredo_maintenance maintenance;
+		teredo_state state;
+
 #ifdef MIREDO_TEREDO_CLIENT
+		teredo_maintenance *maintenance;
 		uint32_t server_ip2;
 
 		int PingPeer (const struct in6_addr *addr, peer *p) const;
@@ -167,7 +171,7 @@ class TeredoRelay
 		{
 			return (fd == -1)
 #ifdef MIREDO_TEREDO_CLIENT
-				|| (IsClient () && (maintenance.relay == NULL));
+				|| (IsClient () && (maintenance == NULL));
 #endif
 			;
 		}
@@ -193,7 +197,7 @@ class TeredoRelay
 #ifdef MIREDO_TEREDO_CLIENT
 		uint32_t GetServerIP (void) const
 		{
-			return maintenance.state.addr.teredo.server_ip;
+			return state.addr.teredo.server_ip;
 		}
 
 		uint32_t GetServerIP2 (void) const
@@ -212,7 +216,7 @@ class TeredoRelay
 
 		uint32_t GetPrefix (void) const
 		{
-			return maintenance.state.addr.teredo.prefix;
+			return state.addr.teredo.prefix;
 		}
 
 		/*
@@ -222,7 +226,7 @@ class TeredoRelay
 		 */
 		bool IsCone (void) const
 		{
-			return maintenance.state.cone;
+			return state.cone;
 		}
 
 		bool IsRelay (void) const

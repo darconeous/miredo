@@ -134,11 +134,12 @@ static inline void maintenance_thread (teredo_maintenance *m)
 		struct timeval expiry;
 	} nonce = { { 0, 0 } };
 	struct timespec deadline = { 0, 0 };
+	teredo_state *c_state = m->state;
 	unsigned count = 0;
 	int state = PROBE_CONE;
 
 	pthread_mutex_lock (&m->lock);
-	m->state.cone = true;
+	c_state->cone = true;
 
 	/*
 	 * Qualification/maintenance procedure
@@ -169,7 +170,7 @@ static inline void maintenance_thread (teredo_maintenance *m)
 
 		SendRS (m->relay->fd, state == PROBE_RESTRICT /* secondary */
 		        	? m->relay->GetServerIP2 () : m->relay->GetServerIP (),
-		        nonce.value, m->state.cone);
+		        nonce.value, c_state->cone);
 
 		/* RECEIVE ROUTER ADVERTISEMENT */
 		union teredo_addr newaddr;
@@ -185,8 +186,8 @@ static inline void maintenance_thread (teredo_maintenance *m)
 				/* check received packet */
 				accept = maintenance_recv (m->incoming,
 				                           m->relay->GetServerIP (),
-				                           nonce.value, m->state.cone, &mtu,
-				                           &newaddr);
+				                           nonce.value, c_state->cone,
+				                           &mtu, &newaddr);
 
 				(void)pthread_barrier_wait (&m->processed);
 				if (accept)
@@ -211,7 +212,7 @@ static inline void maintenance_thread (teredo_maintenance *m)
 				if (state == QUALIFIED)
 				{
 					syslog (LOG_NOTICE, _("Lost Teredo connectivity"));
-					m->state.up = false;
+					c_state->up = false;
 					m->relay->NotifyDown ();
 				}
 
@@ -219,7 +220,7 @@ static inline void maintenance_thread (teredo_maintenance *m)
 				if (state == PROBE_CONE)
 				{
 					state = PROBE_RESTRICT;
-					m->state.cone = false;
+					c_state->cone = false;
 				}
 				else /* PROBE_(RESTRICT|SYMMETRIC) or QUALIFIED */
 				{
@@ -227,7 +228,7 @@ static inline void maintenance_thread (teredo_maintenance *m)
 					syslog (LOG_INFO, _("No reply from Teredo server"));
 					/* Wait some time before retrying */
 					state = PROBE_CONE;
-					m->state.cone = true;
+					c_state->cone = true;
 					sleep = RestartDelay;
 				}
 			}
@@ -240,26 +241,26 @@ static inline void maintenance_thread (teredo_maintenance *m)
 				count = 0;
 				/* Success: schedule next NAT binding maintenance */
 				sleep = SERVER_PING_DELAY;
-				if (memcmp (&m->state.addr, &newaddr, sizeof (newaddr))
-				|| (m->state.mtu != mtu))
+				if (memcmp (&c_state->addr, &newaddr, sizeof (newaddr))
+				|| (c_state->mtu != mtu))
 				{
-					memcpy (&m->state.addr, &newaddr, sizeof (newaddr));
-					m->state.mtu = mtu;
+					memcpy (&c_state->addr, &newaddr, sizeof (c_state->addr));
+					c_state->mtu = mtu;
 		
 					syslog (LOG_NOTICE, _("Teredo address/MTU changed"));
 					m->relay->NotifyUp (&newaddr.ip6, mtu);
-					m->state.up = true;
+					c_state->up = true;
 				}
 				break;
 
 			case PROBE_RESTRICT:
 				state = PROBE_SYMMETRIC;
-				memcpy (&m->state.addr, &newaddr, sizeof (m->state.addr));
+				memcpy (&c_state->addr, &newaddr, sizeof (c_state->addr));
 				break;
 
 			case PROBE_SYMMETRIC:
-				if ((m->state.addr.teredo.client_port != newaddr.teredo.client_port)
-				 || (m->state.addr.teredo.client_ip != newaddr.teredo.client_ip))
+				if ((c_state->addr.teredo.client_port != newaddr.teredo.client_port)
+				 || (c_state->addr.teredo.client_ip != newaddr.teredo.client_ip))
 				{
 					/* Symmetric NAT failure */
 					/* Wait some time before retrying */
@@ -267,21 +268,21 @@ static inline void maintenance_thread (teredo_maintenance *m)
 					        _("Unsupported symmetric NAT detected."));
 					count = 0;
 					state = PROBE_CONE;
-					m->state.cone = true;
+					c_state->cone = true;
 					sleep = RestartDelay;
 					break;
 				}
+
 			case PROBE_CONE:
 				syslog (LOG_INFO, _("Qualified (NAT type: %s)"),
-				        gettext (m->state.cone
+				        gettext (c_state->cone
 			                      ? N_("cone") : N_("restricted")));
-
 				count = 0;
 				state = QUALIFIED;
-				memcpy (&m->state.addr, &newaddr, sizeof (m->state.addr));
-				m->state.mtu = mtu;
+				memcpy (&c_state->addr, &newaddr, sizeof (c_state->addr));
+				c_state->mtu = mtu;
 				m->relay->NotifyUp (&newaddr.ip6, mtu);
-				m->state.up = true;
+				c_state->up = true;
 
 				/* Success: schedule NAT binding maintenance */
 				sleep = SERVER_PING_DELAY;
