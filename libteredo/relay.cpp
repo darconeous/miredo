@@ -518,12 +518,15 @@ int TeredoRelay::ReceivePacket (void)
 	/* FIXME race condition */
 	if (IsClient () && IsServerPacket (&packet))
 	{
-		if (ProcessMaintenancePacket (&packet))
-			return 0;
-
-		if (packet.orig != NULL)
+		if (packet.auth_nonce != NULL)
 		{
-			SendBubble (fd, ~packet.orig->orig_addr, ~packet.orig->orig_port,
+			ProcessMaintenancePacket (&packet);
+			return 0;
+		}
+
+		if (packet.orig_ipv4)
+		{
+			SendBubble (fd, packet.orig_ipv4, packet.orig_port,
 			            &ip6.ip6_dst, &ip6.ip6_src);
 			if (IsBubble (&ip6))
 				return 0; // don't pass bubble to kernel

@@ -202,9 +202,7 @@ int
 ParseRA (const teredo_packet *packet, union teredo_addr *newaddr, bool cone,
          uint16_t *mtu)
 {
-	const struct teredo_orig_ind *ind = packet->orig;
-
-	if (ind == NULL)
+	if (packet->orig_ipv4 == 0)
 		return -1;
 
 	// Only read ip6_next (1 byte), so no need to align
@@ -306,9 +304,9 @@ ParseRA (const teredo_packet *packet, union teredo_addr *newaddr, bool cone,
 
 	// only accept the cone flag:
 	newaddr->teredo.flags = cone ? htons (TEREDO_FLAG_CONE) : 0;
-	// ip and port obscured on both sides:
-	newaddr->teredo.client_port = ind->orig_port;
-	newaddr->teredo.client_ip = ind->orig_addr;
+
+	newaddr->teredo.client_port = ~packet->orig_port;
+	newaddr->teredo.client_ip = ~packet->orig_ipv4;
 
 	if (net_mtu != 0)
 		*mtu = (uint16_t)net_mtu;

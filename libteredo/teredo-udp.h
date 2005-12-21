@@ -27,17 +27,28 @@
 
 # include <unistd.h> /* close() -> teredo_close() */
 
+# define MAX_TEREDO_PACKET_SIZE 65507
+# define MIN_TEREDO_PACKET_SIZE 1288
+# define TEREDO_PACKET_SIZE MAX_TEREDO_PACKET_SIZE
+
 typedef struct teredo_packet
 {
-	struct teredo_orig_ind *orig;
-	uint8_t *nonce, *ip6;
+	uint8_t *auth_nonce; /* NULL if auth not present */
+	uint8_t  auth_conf_byte; /* 0 if nonce == NULL */
 
-	uint32_t source_ipv4;
-	uint16_t source_port;
-	uint16_t ip6_len;
+	uint8_t *ip6; /* always defined */
+	uint16_t ip6_len; /* always defined though possibly < 40 */
 
-	struct teredo_orig_ind orig_buf;
-	uint8_t buf[65507];
+	/* IPv4 and UDP port numbers are always in network byte order */
+	/* Origin indication data is de-obfuscated */
+
+	uint32_t source_ipv4; /* always defined */
+	uint16_t source_port; /* always defined */
+
+	uint16_t orig_port; /* 0 if orig indication not present */
+	uint32_t orig_ipv4; /* 0 if orig indication not present */
+
+	uint8_t  buf[TEREDO_PACKET_SIZE];
 } teredo_packet;
 
 

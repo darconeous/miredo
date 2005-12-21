@@ -94,7 +94,7 @@ SendRA (const libteredo_server *s, const struct teredo_packet *p,
 	// TODO: support for secure qualification
 	iov[0].iov_base = &auth;
 
-	nonce = p->nonce;
+	nonce = p->auth_nonce;
 	if (nonce != NULL)
 	{
 		//memset (&auth, 0, sizeof (auth));

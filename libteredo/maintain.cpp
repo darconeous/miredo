@@ -73,12 +73,15 @@ maintenance_recv (const teredo_packet *packet, uint32_t server_ip,
                   uint8_t *nonce, bool cone, uint16_t *mtu,
                   union teredo_addr *newaddr)
 {
-	assert (packet->nonce != NULL);
-
-	if (memcmp (packet->nonce, nonce, 8))
+	/*
+	* We don't accept router advertisement without nonce.
+	* It is far too easy to spoof such packets.
+	*/
+	if ((packet->auth_nonce == NULL)
+	 || memcmp (packet->auth_nonce, nonce, 8))
 		return false;
 
-	if (packet->nonce[8]) /* FIXME gruiiiiiiiik */
+	if (packet->auth_conf_byte)
 	{
 		syslog (LOG_ERR, _("Authentication with server failed."));
 		return false;
@@ -379,24 +382,12 @@ maintenance_process (const teredo_packet *packet, teredo_maintenance *m)
 
 void TeredoRelay::ProcessQualificationPacket (const teredo_packet *packet)
 {
-	/*
-	 * We don't accept router advertisement without nonce.
-	 * It is far too easy to spoof such packets.
-	 */
-	if ((IsServerPacket (packet)) && (packet->nonce != NULL))
+	if (IsServerPacket (packet))
 		maintenance_process (packet, &maintenance);
 }
 
 
-bool TeredoRelay::ProcessMaintenancePacket (const teredo_packet *packet)
+void TeredoRelay::ProcessMaintenancePacket (const teredo_packet *packet)
 {
-	union teredo_addr newaddr;
-	uint16_t new_mtu;
-
-	if ((packet->nonce == NULL)
-	 || ParseRA (packet, &newaddr, IsCone (), &new_mtu))
-		return false;
-
 	maintenance_process (packet, &maintenance);
-	return true;
 }

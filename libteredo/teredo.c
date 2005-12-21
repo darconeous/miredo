@@ -189,6 +189,7 @@ int teredo_send (int fd, const void *packet, size_t plen,
  *  - malformatted packets,
  *  - no data pending while using a non-blocking socket.
  */
+#include <syslog.h>
 int teredo_recv (int fd, struct teredo_packet *p)
 {
 	uint8_t *ptr;
@@ -200,62 +201,73 @@ int teredo_recv (int fd, struct teredo_packet *p)
 		socklen_t alen = sizeof (ad);
 
 		length = recvfrom (fd, p->buf, sizeof (p->buf), 0,
-						   (struct sockaddr *)&ad, &alen);
+		                   (struct sockaddr *)&ad, &alen);
 
-		if (length < 0)
+		if (length < 2) // too small or error
 			return -1;
 
 		p->source_ipv4 = ad.sin_addr.s_addr;
 		p->source_port = ad.sin_port;
 	}
 
-	// Check type of Teredo header:
 	ptr = p->buf;
-	p->orig = NULL;
-	p->nonce = NULL;
 
-	// Parse Teredo headers
-	if (length < 40)
-		return -1; // too small
+	p->auth_nonce = NULL;
+	p->auth_conf_byte = 0;
+	p->orig_ipv4 = 0;
+	p->orig_port = 0;
 
+	syslog (LOG_DEBUG, "received %d bytes", length);
 	// Teredo Authentication header
 	if ((ptr[0] == 0) && (ptr[1] == teredo_auth_hdr))
 	{
 		uint8_t id_len, au_len;
 
-		ptr += 2;
 		length -= 13;
 		if (length < 0)
 			return -1; // too small
+		ptr += 2;
 
 		/* ID and Auth */
 		id_len = *ptr++;
 		au_len = *ptr++;
 
+		/* TODO: secure qualification */
 		length -= id_len + au_len;
 		if (length < 0)
 			return -1;
-
-		/* TODO: secure qualification */
 		ptr += id_len + au_len;
 
+
 		/* Nonce + confirmation byte */
-		p->nonce = ptr;
-		ptr += 9;
+		p->auth_nonce = ptr;
+		ptr += 8;
+		p->auth_conf_byte = *ptr++;
 	}
 
-	/* Teredo Origin Indication */
+	// Teredo Origin Indication
 	if ((ptr[0] == 0) && (ptr[1] == teredo_orig_ind))
 	{
-		length -= sizeof (p->orig_buf);
+		uint32_t addr;
+		uint16_t port;
+
+		length -= 8;
 		if (length < 0)
 			return -1; /* too small */
+		ptr += 2;
 
-		memcpy (&p->orig_buf, ptr, sizeof (p->orig_buf));
-		p->orig = &p->orig_buf;
-		ptr += sizeof (p->orig_buf);
+		/* Obfuscated port */
+		memcpy (&port, ptr, 2);
+		ptr += 2;
+		p->orig_port = ~port;
+
+		/* Obfuscated IPv4 */
+		memcpy (&addr, ptr, 4);
+		ptr += 4;
+		p->orig_ipv4 = ~addr;
 	}
 
+	syslog (LOG_DEBUG, "got IPv6 payload of %d bytes", length);
 	/* length <= 65507 = sizeof(buf) */
 	p->ip6_len = length;
 	p->ip6 = ptr;

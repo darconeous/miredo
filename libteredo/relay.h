@@ -100,7 +100,7 @@ class TeredoRelay
 		int PingPeer (const struct in6_addr *addr, peer *p) const;
 		bool IsServerPacket (const teredo_packet *packet) const;
 		void ProcessQualificationPacket (const teredo_packet *p);
-		bool ProcessMaintenancePacket (const teredo_packet *p);
+		void ProcessMaintenancePacket (const teredo_packet *p);
 
 	public: /* FIXME: temporary */
 		/*
