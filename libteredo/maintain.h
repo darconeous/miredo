@@ -33,6 +33,8 @@ void libteredo_maintenance_stop (struct teredo_maintenance *);
 void libteredo_maintenance_process (struct teredo_maintenance *m,
                                     const teredo_packet *packet);
 
+typedef struct teredo_maintenance teredo_maintenance;
+
 # ifdef __cplusplus
 }
 # endif

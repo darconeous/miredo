@@ -27,7 +27,7 @@
 
 struct in6_addr;
 struct ip6_hdr;
-
+struct icmp6_hdr;
 
 # ifdef __cplusplus
 extern "C" {
