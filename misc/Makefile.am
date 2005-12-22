@@ -17,6 +17,6 @@
 # *  http://www.gnu.org/copyleft/gpl.html                               *
 # ***********************************************************************
 
-EXTRA_DIST = miredo miredo.sh
+EXTRA_DIST = miredo miredo.sh miredo-server.sh
 dist_sysconf_DATA = miredo.conf-dist miredo-server.conf-dist
 
