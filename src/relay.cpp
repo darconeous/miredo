@@ -282,7 +282,7 @@ miredo_run (int sigfd, MiredoConf& conf, const char *server_name)
 	/*
 	 * CONFIGURATION
 	 */
-	prefix.teredo.prefix = htonl (DEFAULT_TEREDO_PREFIX);
+	prefix.teredo.prefix = htonl (TEREDO_PREFIX);
 
 	if (!ParseRelayType (conf, "RelayType", &mode))
 	{

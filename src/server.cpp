@@ -75,7 +75,7 @@ miredo_run (int fd, MiredoConf& conf, const char *server_name)
 	uint32_t server_ip = INADDR_ANY, server_ip2 = INADDR_ANY;
 	uint16_t mtu = 1280;
 
-	prefix.teredo.prefix = htonl (DEFAULT_TEREDO_PREFIX);
+	prefix.teredo.prefix = htonl (TEREDO_PREFIX);
 
 	if (server_name != NULL)
 	{

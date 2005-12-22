@@ -468,7 +468,7 @@ libteredo_server *libteredo_server_create (uint32_t ip1, uint32_t ip2)
 
 		memset (s, 0, sizeof (s));
 		s->server_ip = ip1;
-		s->prefix = htonl (DEFAULT_TEREDO_PREFIX);
+		s->prefix = htonl (TEREDO_PREFIX);
 		s->advLinkMTU = htonl (1280);
 
 		fd = s->fd_primary = teredo_socket (ip1, htons (IPPORT_TEREDO));

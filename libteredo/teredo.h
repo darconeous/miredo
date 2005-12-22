@@ -28,8 +28,11 @@
 /* UDP Teredo port number */
 #define IPPORT_TEREDO 3544
 
+#if 0
+/* FIXME: put permanent value once assigned */
 #define TEREDO_DISCOVERY_STR	"224.0.0.252"
 #define TEREDO_DISCOVERY_IP	0xe00000fc
+#endif
 
 #include <sys/types.h>
 #include <netinet/in.h>
@@ -41,8 +44,9 @@
 extern const struct in6_addr teredo_restrict;
 extern const struct in6_addr teredo_cone;
 
-#define DEFAULT_TEREDO_PREFIX 0x3ffe831f
-#define DEFAULT_TEREDO_PREFIX_STR "3ffe:831f:"
+/* FIXME: put permanent value once assigned by IANA */
+#define TEREDO_PREFIX 0x3ffe831f
+#define TEREDO_PREFIX_STR "3ffe:831f:"
 
 union teredo_addr
 {
@@ -152,3 +156,4 @@ struct teredo_simple_auth
 };
 
 #endif /* ifndef MIREDO_INCLUDE_TEREDO_H */
+
