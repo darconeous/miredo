@@ -18,6 +18,8 @@ Important features:
 ( ) local Teredo discovery,
 (*) interval determination procedure,
 (*) Metric support on BSD
+(!) improve unreachable messages generation timings
+    (should wait e.g. 1 second)
 
 Not so important features:
 ---------------------------
@@ -29,8 +31,8 @@ Not so important features:
 (H) other localizations,
 ( ) support for UPnP IGD to open an UDP port on supporting NATs,
 ( ) support for detecting networking changes with either /proc
-    or Netlink
-(?) "automatic sunset" / "exit strategy",
+    or Netlink,
+(?) "automatic sunset" / "exit strategy
 
 Security:
 ----------
@@ -67,5 +69,4 @@ Re-usability:
 (F) libteredo API stabilization,
 (?) thread-safety in libteredo,
 (F) libteredo C bindings,
-(*) external control program for scripting,
-(*) don't use a callback to receive packets
+(*) external control program for scripting
