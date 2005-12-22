@@ -260,8 +260,6 @@ tun6 *tun6_create (const char *req_name)
 #endif
 
 	t->fd = fd;
-	syslog (LOG_INFO, _("%s tunneling interface %s created"), os_driver,
-	        t->name);
 	return t;
 
 error:
@@ -285,7 +283,6 @@ void tun6_destroy (tun6* t)
 	assert (t->fd != -1);
 	assert (t->reqfd != -1);
 
-	syslog (LOG_INFO, _("Tunneling interface %s removed"), t->name);
 	close (t->fd);
 	close (t->reqfd);
 	free (t);
