@@ -46,7 +46,6 @@
 
 #include <sys/socket.h> // socket(AF_INET6, SOCK_DGRAM, 0)
 #include <netinet/in.h> // htons()
-#include <arpa/inet.h> // inet_ntop()
 
 #include <net/if.h> // struct ifreq, if_nametoindex()
 
@@ -124,16 +123,6 @@ static const char *os_driver = "Generic";
 
 #include "tun6.h"
 
-static int
-socket_udp6 (void)
-{
-	int fd = socket (AF_INET6, SOCK_DGRAM, 0);
-	if (fd == -1)
-		syslog (LOG_ERR, _("IPv6 stack not available: %m"));
-	return fd;
-}
-
-
 static inline void
 secure_strncpy (char *tgt, const char *src, size_t len)
 {
@@ -174,7 +163,7 @@ tun6 *tun6_create (const char *req_name)
 		return NULL;
 	}
 
-	t->reqfd = reqfd = socket_udp6 ();
+	t->reqfd = reqfd = socket (AF_INET6, SOCK_DGRAM, 0);
 	if (reqfd == -1)
 	{
 		free (t);
@@ -419,11 +408,8 @@ _iface_addr (int reqfd, const char *ifname, bool add,
 		struct in6_ifreq delreq6;
 	} r;
 #endif
-	char str[INET6_ADDRSTRLEN];
 	void *req = NULL;
-	const char *msg;
 	long cmd = 0;
-	int level, retval;
 
 	assert (reqfd != -1);
 	assert (ifname != NULL);
@@ -476,38 +462,10 @@ _iface_addr (int reqfd, const char *ifname, bool add,
 		req = &r.delreq6;
 	}
 #else
-	syslog (LOG_WARNING, "%s tunnel address setup not supported.\n"
-				"Please do it manually.", ifname);
-	return 0;
+# error FIXME tunnel address setup not implemented
 #endif
 
-	retval = ioctl (reqfd, cmd, req) >= 0 ? 0 : -1;
-
-	if (inet_ntop (AF_INET6, addr, str, sizeof (str)) == NULL)
-		return retval;
-
-	if (retval)
-	{
-		level = LOG_ERR;
-
-		if (add)
-			msg = N_("%s tunnel address %s/%u setup error: %m");
-		else
-			msg = N_("%s tunnel address %s/%u removal error: %m");
-	}
-	else
-	{
-		level = LOG_DEBUG;
-
-		if (add)
-			msg = N_("%s tunnel address added: %s/%u");
-		else
-			msg = N_("%s tunnel address deleted: %s/%u");
-	}
-
-	syslog (level, gettext (msg), ifname, str, prefix_len);
-
-	return retval;
+	return ioctl (reqfd, cmd, req) >= 0 ? 0 : -1;
 }
 
 
@@ -525,9 +483,7 @@ _iface_route (int reqfd, const char *ifname, bool add,
 #elif defined (HAVE_BSD)
 	int s;
 #endif
-	char str[INET6_ADDRSTRLEN];
-	const char *msg;
-	int level, retval = -1;
+	int retval = -1;
 
 	assert (reqfd != -1);
 	assert (ifname != NULL);
@@ -607,35 +563,8 @@ _iface_route (int reqfd, const char *ifname, bool add,
 	else
 		syslog (LOG_ERR, "socket (PF_ROUTE) error: %m");
 #else
-	/* FIXME: print address */
-	syslog (LOG_WARNING, "%s tunnel route setup not supported.\n"
-				"Please do it manually.", ifname);
-	retval = 0;
+# error FIXME route setup not implemented
 #endif
-
-	if (inet_ntop (AF_INET6, addr, str, sizeof (str)) == NULL)
-		return retval;
-
-	if (retval)
-	{
-		level = LOG_ERR;
-
-		if (add)
-			msg = N_("%s tunnel route %s/%u setup error: %m");
-		else
-			msg = N_("%s tunnel route %s/%u removal error: %m");
-	}
-	else
-	{
-		level = LOG_DEBUG;
-
-		if (add)
-			msg = N_("%s tunnel route set: %s/%u");
-		else
-			msg = N_("%s tunnel route removed: %s/%u");
-	}
-
-	syslog (level, gettext (msg), ifname, str, prefix_len);
 
 	return retval;
 }
@@ -698,14 +627,7 @@ tun6_setMTU (tun6 *t, unsigned mtu)
 	secure_strncpy (req.ifr_name, t->name, IFNAMSIZ);
 	req.ifr_mtu = mtu;
 
-	if (ioctl (t->reqfd, SIOCSIFMTU, &req))
-	{
-		syslog (LOG_ERR, _("%s tunnel MTU (%u bytes) change failed: %m"),
-		        t->name, mtu);
-		return -1;
-	}
-
-	return 0;
+	return ioctl (t->reqfd, SIOCSIFMTU, &req) ? -1 : 0;
 }
 
 
