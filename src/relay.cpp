@@ -43,6 +43,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netinet/icmp6.h>
+#include <arpa/inet.h> // inet_ntop()
 
 #include <string.h>
 #include <netdb.h> // gai_strerror()
@@ -128,12 +129,19 @@ class MiredoRelay : public TeredoRelay
 		virtual void NotifyUp (const struct in6_addr *addr,
 		                      uint16_t mtu = 1280)
 		{
+			char str[INET6_ADDRSTRLEN];
+
+			syslog (LOG_NOTICE, _("Teredo pseudo-tunnel started"));
+			if (inet_ntop (AF_INET6, addr, str, sizeof (str)) != NULL)
+				syslog (LOG_INFO, _(" (address: %s, MTU: %u)"),
+				        str, (unsigned)mtu);
 			miredo_configure_tunnel (priv_fd, addr, mtu);
 		}
 
 		virtual void NotifyDown (void)
 		{
 			NotifyUp (&in6addr_any);
+			syslog (LOG_NOTICE, _("Teredo pseudo-tunnel stopped"));
 		}
 #endif /* ifdef MIREDO_TEREDO_CLIENT */
 };
