@@ -40,6 +40,9 @@
 #include <syslog.h>
 #include <netdb.h> // gai_strerror()
 #include <unistd.h> // for broken libc which don't know about sys/select.h
+#ifdef HAVE_SYS_CAPABILITY_H
+# include <sys/capability.h>
+#endif
 
 #include <libteredo/teredo.h>
 
@@ -54,15 +57,14 @@ const char *const miredo_pidfile =
 		LOCALSTATEDIR"/run/miredo-server.pid";
 
 #ifdef HAVE_LIBCAP
-# include <sys/capabilities.h>
-
-const cap_value_t *miredo_capv =
+static const cap_value_t capv[] =
 {
 	CAP_SYS_CHROOT,
 	CAP_SETUID,
 	CAP_NET_RAW /* required by libteredo_server */
 };
 
+const cap_value_t *miredo_capv = capv;
 const int miredo_capc = 4;
 #endif
 

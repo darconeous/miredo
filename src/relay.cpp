@@ -44,6 +44,9 @@
 #include <netinet/in.h>
 #include <netinet/icmp6.h>
 #include <arpa/inet.h> // inet_ntop()
+#ifdef HAVE_SYS_CAPABILITY_H
+# include <sys/capability.h>
+#endif
 
 #include <string.h>
 #include <netdb.h> // gai_strerror()
@@ -62,9 +65,7 @@ const char *const miredo_conffile = SYSCONFDIR"/miredo.conf";
 const char *const miredo_pidfile = LOCALSTATEDIR"/run/miredo.pid";
 
 #ifdef HAVE_LIBCAP
-# include <sys/capabilities.h>
-
-const cap_value_t *miredo_capv =
+static const cap_value_t capv[] =
 {
 	CAP_SYS_CHROOT,
 	CAP_SETUID,
@@ -72,6 +73,7 @@ const cap_value_t *miredo_capv =
 	CAP_NET_RAW /* required for raw ICMPv6 socket */
 };
 
+const cap_value_t *miredo_capv = capv;
 const int miredo_capc = 4;
 #endif
 

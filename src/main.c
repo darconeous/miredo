@@ -311,8 +311,10 @@ init_daemon (const char *username, const char *pidfile, int nodetach)
 			return -1;
 		}
 
-		if (cap_set_flag (s, CAP_PERMITTED, miredo_capc, miredo_capv, CAP_SET)
-		 || cap_set_flag (s, CAP_EFFECTIVE, miredo_capc, miredo_capv, CAP_SET))
+		if (cap_set_flag (s, CAP_PERMITTED, miredo_capc,
+		                  (cap_value_t *)miredo_capv, CAP_SET)
+		 || cap_set_flag (s, CAP_EFFECTIVE, miredo_capc,
+		                  (cap_value_t *)miredo_capv, CAP_SET))
 		{
 			/* Unlikely */
 			fprintf (stderr, _("Error (%s): %s\n"), "cap_set_flag",
