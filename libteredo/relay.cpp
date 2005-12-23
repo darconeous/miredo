@@ -760,7 +760,7 @@ int TeredoRelay::ReceivePacket (void)
 #endif
 }
 
-
+#ifdef MIREDO_TEREDO_CLIENT
 /* C++ maintenance remainings */
 bool TeredoRelay::IsServerPacket (const teredo_packet *packet) const
 {
@@ -780,3 +780,5 @@ void TeredoRelay::ProcessMaintenancePacket (const teredo_packet *packet)
 {
 	libteredo_maintenance_process (maintenance, packet);
 }
+#endif
+
