@@ -390,6 +390,26 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 	}
 #endif
 
+	if (dst->teredo.prefix == prefix)
+	{
+		/*
+		 * Ignores Teredo clients with incorrect server IPv4.
+		 * This check is only specified for client case 4 & 5.
+		 * That said, it can never fail in the other client cases (either
+		 * because the peer is already known which means it already passed
+		 * this check, or because the peer is not a Teredo client.
+		 * As for the relay, I consider the check should also be done, even if
+		 * it wasn't specified (TBD: double check the spec).
+		 * Doing the check earlier, while it has an additionnal cost, makes
+		 * sure that the peer will be added to the list if it is not already
+		 * in it, which avoids a double peer list lookup (failed lookup, then
+		 * insertion), which is a big time saver under heavy load.
+		 */
+		uint32_t peer_server = IN6_TEREDO_SERVER (dst);
+		if (!is_ipv4_global_unicast (peer_server) || (peer_server == 0))
+			return 0;
+	}
+
 	teredo_peer *p = FindPeer (&dst->ip6);
 
 	if (p != NULL)
@@ -433,11 +453,6 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 #endif
 
 	/* Unknown or untrusted Teredo client */
-
-	// Ignores Teredo clients with incorrect server IPv4
-	uint32_t peer_server = IN6_TEREDO_SERVER (dst);
-	if (!is_ipv4_global_unicast (peer_server) || (peer_server == 0))
-		return 0;
 
 	/* Client case 3: TODO: implement local discovery */
 
