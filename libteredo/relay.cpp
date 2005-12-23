@@ -153,7 +153,7 @@ TeredoRelay::~TeredoRelay (void)
 	if (fd != -1)
 		teredo_close (fd);
 
-	TeredoRelay::peer::DestroyList (list.ptr);
+	teredo_peer::DestroyList (list.ptr);
 }
 
 
@@ -225,7 +225,7 @@ TeredoRelay::EmitICMPv6Error (const void *packet, size_t length,
  * Returns 0 if a ping may be sent, -1 if no more ping may be sent,
  * 1 if a ping may be sent later.
  */
-int TeredoRelay::peer::CountPing (void)
+int teredo_peer::CountPing (void)
 {
 	time_t now;
 	int res;
@@ -261,7 +261,7 @@ int TeredoRelay::peer::CountPing (void)
 
 
 int
-TeredoRelay::PingPeer (const struct in6_addr *a, peer *p) const
+TeredoRelay::PingPeer (const struct in6_addr *a, teredo_peer *p) const
 {
 	int res = p->CountPing ();
 	if (res == 0)
@@ -285,7 +285,7 @@ inline bool IsBubble (const struct ip6_hdr *hdr)
  * Returns 0 if a bubble may be sent, -1 if no more bubble may be sent,
  * 1 if a bubble may be sent later.
  */
-int TeredoRelay::peer::CountBubble (void)
+int teredo_peer::CountBubble (void)
 {
 	/* Pretty much the same code as CountPing above */
 	time_t now;
@@ -389,7 +389,7 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 	}
 #endif
 
-	peer *p = FindPeer (&dst->ip6);
+	teredo_peer *p = FindPeer (&dst->ip6);
 
 	if (p != NULL)
 	{
@@ -633,7 +633,7 @@ int TeredoRelay::ReceivePacket (void)
 	/* Actual packet reception, either as a relay or a client */
 
 	// Checks source IPv6 address / looks up peer in the list:
-	peer *p = FindPeer (&ip6.ip6_src);
+	teredo_peer *p = FindPeer (&ip6.ip6_src);
 
 	if (p != NULL)
 	{

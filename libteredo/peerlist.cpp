@@ -45,13 +45,13 @@
 #include "peerlist.h"
 
 void
-TeredoRelay::peer::DestroyList (void *head)
+teredo_peer::DestroyList (void *head)
 {
-	peer *p = (peer *)head;
+	teredo_peer *p = (teredo_peer *)head;
 
 	while (p != NULL)
 	{
-		peer *buf = p->next;
+		teredo_peer *buf = p->next;
 		delete p;
 		p = buf;
 	}
@@ -64,15 +64,15 @@ TeredoRelay::peer::DestroyList (void *head)
  */
 unsigned TeredoRelay::MaxPeers = 1024;
 
-TeredoRelay::peer *TeredoRelay::AllocatePeer (const struct in6_addr *addr)
+teredo_peer *TeredoRelay::AllocatePeer (const struct in6_addr *addr)
 {
 	time_t now;
-	peer *p;
+	teredo_peer *p;
 
 	time (&now);
 
 	/* Tries to recycle a timed-out peer entry */
-	for (p = (peer *)list.ptr; p != NULL; p = p->next)
+	for (p = (teredo_peer *)list.ptr; p != NULL; p = p->next)
 		if (p->IsExpired (now))
 		{
 			p->Reset ();
@@ -87,7 +87,7 @@ TeredoRelay::peer *TeredoRelay::AllocatePeer (const struct in6_addr *addr)
 	{
 		try
 		{
-			p = new peer;
+			p = new teredo_peer;
 		}
 		catch (...)
 		{
@@ -95,7 +95,7 @@ TeredoRelay::peer *TeredoRelay::AllocatePeer (const struct in6_addr *addr)
 		}
 
 		/* Puts new entry at the head of the list */
-		p->next = (peer *)list.ptr;
+		p->next = (teredo_peer *)list.ptr;
 		list.ptr = p;
 		list.peerNumber++;
 	}
@@ -111,10 +111,10 @@ TeredoRelay::peer *TeredoRelay::AllocatePeer (const struct in6_addr *addr)
  * TODO: avoid doing two lookups (easy with Judy, not so easy without)
  * when inserting a new item
  */
-TeredoRelay::peer *TeredoRelay::FindPeer (const struct in6_addr *addr)
+teredo_peer *TeredoRelay::FindPeer (const struct in6_addr *addr)
 {
 	/* Slow O(n) simplistic peer lookup */
-	for (peer *p = (peer *)list.ptr; p != NULL; p = p->next)
+	for (teredo_peer *p = (teredo_peer *)list.ptr; p != NULL; p = p->next)
 		if (t6cmp (&p->addr, (const union teredo_addr *)addr) == 0)
 		{
 			time_t now;
@@ -130,7 +130,7 @@ TeredoRelay::peer *TeredoRelay::FindPeer (const struct in6_addr *addr)
 /*
  * Packets queueing
  */
-typedef struct TeredoRelay::peer::packet
+typedef struct teredo_peer::packet
 {
 	packet *next;
 	size_t length;
@@ -140,7 +140,7 @@ typedef struct TeredoRelay::peer::packet
 
 unsigned TeredoRelay::MaxQueueBytes = 1280;
 
-void TeredoRelay::peer::Reset (void)
+void teredo_peer::Reset (void)
 {
 	packet *ptr;
 
@@ -161,7 +161,7 @@ void TeredoRelay::peer::Reset (void)
 }
 
 
-void TeredoRelay::peer::Queue (const void *data, size_t len, bool incoming)
+void teredo_peer::Queue (const void *data, size_t len, bool incoming)
 {
 	packet *p;
 
@@ -179,7 +179,7 @@ void TeredoRelay::peer::Queue (const void *data, size_t len, bool incoming)
 }
 
 
-void TeredoRelay::peer::Dequeue (TeredoRelay *r)
+void teredo_peer::Dequeue (TeredoRelay *r)
 {
 	packet *ptr;
 

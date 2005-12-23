@@ -1,5 +1,5 @@
 /*
- * relay.h - Teredo relay peers list declaration
+ * relay.h - Teredo relay declaration
  * $Id$
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
@@ -70,28 +70,26 @@ typedef struct teredo_maintenance
 #endif
 
 
+class teredo_peer;
+
 // big TODO: make all functions re-entrant safe
 //           make all functions thread-safe
 class TeredoRelay
 {
-	private:
-		class peer;
-
-		/*** Internal stuff ***/
+	public: /* FIXME: temporarily public */
 		struct
 		{
 			void *ptr;
 			unsigned peerNumber;
 		} list;
 
-	public: /* FIXME: temporarily public */
 		int fd;
 
 	private:
 		bool allowCone;
 
-		peer *AllocatePeer (const struct in6_addr *addr);
-		peer *FindPeer (const struct in6_addr *addr);
+		teredo_peer *AllocatePeer (const struct in6_addr *addr);
+		teredo_peer *FindPeer (const struct in6_addr *addr);
 
 		void SendUnreach (int code, const void *in, size_t inlen);
 
@@ -101,12 +99,12 @@ class TeredoRelay
 		teredo_maintenance *maintenance;
 		uint32_t server_ip2;
 
-		int PingPeer (const struct in6_addr *addr, peer *p) const;
+		int PingPeer (const struct in6_addr *addr, teredo_peer *p) const;
 		bool IsServerPacket (const teredo_packet *packet) const;
 		void ProcessQualificationPacket (const teredo_packet *p);
 		void ProcessMaintenancePacket (const teredo_packet *p);
 
-	public: /* FIXME: temporary */
+	public: /* FIXME: callbacks temporarily public */
 		/*
 		 * Tries to define the Teredo client IPv6 address. This is an
 		 * indication that the Teredo tunneling interface is ready.
@@ -127,7 +125,7 @@ class TeredoRelay
 		 * This function might be called from a separate thread.
 		 */
 		virtual void NotifyDown (void) { }
-	private:
+
 #endif
 
 		/*** Callbacks ***/
@@ -138,6 +136,7 @@ class TeredoRelay
 		 */
 		virtual int SendIPv6Packet (const void *packet, size_t length) = 0;
 
+	private:
 		virtual void EmitICMPv6Error (const void *packet, size_t length,
 		                              const struct in6_addr *dst);
 

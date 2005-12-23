@@ -26,7 +26,7 @@
 # define MAXQUEUE 1280u // bytes
 
 
-class TeredoRelay::peer
+class teredo_peer
 {
 	public:
 		union teredo_addr addr;
@@ -39,7 +39,7 @@ class TeredoRelay::peer
 		uint16_t mapped_port;
 		uint32_t mapped_addr;
 
-		peer *next;
+		teredo_peer *next;
 
 	private:
 		struct packet;
@@ -49,7 +49,7 @@ class TeredoRelay::peer
 		time_t expiry;
 
 	public:
-		peer (void) : queue (NULL), queue_left (TeredoRelay::MaxQueueBytes)
+		teredo_peer (void) : queue (NULL), queue_left (TeredoRelay::MaxQueueBytes)
 		{
 		}
 
@@ -97,7 +97,7 @@ class TeredoRelay::peer
 		void Dequeue (TeredoRelay *r);
 		void Reset (void);
 
-		~peer (void)
+		~teredo_peer (void)
 		{
 			Reset ();
 		}
