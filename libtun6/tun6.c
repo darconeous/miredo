@@ -561,7 +561,8 @@ _iface_route (int reqfd, const char *ifname, bool add,
 		close (s);
 	}
 	else
-		syslog (LOG_ERR, "socket (PF_ROUTE) error: %m");
+		syslog (LOG_ERR, _("Error (%s): %s\n", "socket (AF_ROUTE)",
+		        strerror (errno));
 #else
 # error FIXME route setup not implemented
 #endif
