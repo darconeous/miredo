@@ -302,17 +302,7 @@ init_daemon (const char *username, const char *pidfile, int nodetach)
 	/* POSIX.1e capabilities support */
 #ifdef HAVE_LIBCAP
 	{
-		cap_t s;
-		/* TODO: keep CAP_NET_ADMIN in miredo only */
-		cap_value_t v[] =
-		{
-			CAP_SYS_CHROOT,
-			CAP_SETUID,
-			CAP_NET_ADMIN,
-			CAP_NET_RAW
-		};
-
-		s = cap_init ();
+		cap_t s = cap_init ();
 		if (s == NULL)
 		{
 			/* Unlikely */
@@ -321,8 +311,8 @@ init_daemon (const char *username, const char *pidfile, int nodetach)
 			return -1;
 		}
 
-		if (cap_set_flag (s, CAP_PERMITTED, sizeof(v)/sizeof(*v), v, CAP_SET)
-		 || cap_set_flag (s, CAP_EFFECTIVE, sizeof(v)/sizeof(*v), v, CAP_SET))
+		if (cap_set_flag (s, CAP_PERMITTED, miredo_capc, miredo_capv, CAP_SET)
+		 || cap_set_flag (s, CAP_EFFECTIVE, miredo_capc, miredo_capv, CAP_SET))
 		{
 			/* Unlikely */
 			fprintf (stderr, _("Error (%s): %s\n"), "cap_set_flag",

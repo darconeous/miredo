@@ -53,6 +53,19 @@ const char *const miredo_conffile =
 const char *const miredo_pidfile =
 		LOCALSTATEDIR"/run/miredo-server.pid";
 
+#ifdef HAVE_LIBCAP
+# include <sys/capabilities.h>
+
+const cap_value_t *miredo_capv =
+{
+	CAP_SYS_CHROOT,
+	CAP_SETUID,
+	CAP_NET_RAW /* required by libteredo_server */
+};
+
+const int miredo_capc = 4;
+#endif
+
 extern "C" int
 miredo_diagnose (void)
 {

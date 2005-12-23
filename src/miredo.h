@@ -46,5 +46,10 @@ extern uid_t unpriv_uid;
 extern const char *const miredo_pidfile;
 extern const char *const miredo_conffile;
 
+# ifdef HAVE_LIBCAP
+extern const cap_value_t *miredo_capv;
+extern const int miredo_capc;
+# endif
+
 #endif /* ifndef MIREDO_CONF_H */
 
