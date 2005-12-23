@@ -103,18 +103,16 @@ typedef struct teredo_maintenance
 
 
 class teredo_peer;
+struct teredo_peerlist;
 
 // big TODO: make all functions re-entrant safe
 //           make all functions thread-safe
 class TeredoRelay
 {
-	public: /* FIXME: temporarily public */
-		struct
-		{
-			void *ptr;
-			unsigned peerNumber;
-		} list;
+	private:
+		struct teredo_peerlist *list;
 
+	public: /* FIXME: temporarily public */
 		int fd;
 
 	private:

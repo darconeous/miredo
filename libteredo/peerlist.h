@@ -25,7 +25,6 @@
 # define TEREDO_TIMEOUT 30 // seconds
 # define MAXQUEUE 1280u // bytes
 
-
 class teredo_peer
 {
 	public:
@@ -109,8 +108,27 @@ class teredo_peer
 
 		int CountBubble (void);
 		int CountPing (void);
-
-		static void DestroyList (void *head);
 };
+
+typedef struct teredo_peerlist teredo_peerlist;
+
+struct in6_addr;
+
+# ifdef __cplusplus
+extern "C" {
+# endif
+
+teredo_peerlist *teredo_list_create (unsigned max);
+void teredo_list_destroy (teredo_peerlist *l);
+
+void teredo_list_release (teredo_peerlist *l);
+
+# ifdef __cplusplus
+}
+# endif
+
+/* cannot be extern "C" atm */
+teredo_peer *teredo_list_lookup (teredo_peerlist *list,
+                                 const struct in6_addr *addr, bool create);
 
 #endif /* ifndef LIBTEREDO_PEERLIST_H */

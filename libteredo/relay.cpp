@@ -62,6 +62,8 @@
 // is_valid_teredo_prefix (PREFIX_UNSET) MUST return false
 #define PREFIX_UNSET 0xffffffff
 
+unsigned TeredoRelay::MaxPeers = 1024;
+
 
 TeredoRelay::TeredoRelay (uint32_t pref, uint16_t port, uint32_t ipv4,
                           bool cone)
@@ -89,8 +91,8 @@ TeredoRelay::TeredoRelay (uint32_t pref, uint16_t port, uint32_t ipv4,
 
 	fd = teredo_socket (ipv4, port);
 
-	list.ptr = NULL;
-	list.peerNumber = 0;
+	list = teredo_list_create (MaxPeers);
+	/* FIXME: don't assume teredo_list_create succeeds */
 
 	state.up = true;
 
@@ -122,8 +124,7 @@ TeredoRelay::TeredoRelay (uint32_t ip, uint32_t ip2,
 
 	server_ip2 = ip2;
 
-	list.ptr = NULL;
-	list.peerNumber = 0;
+	list = teredo_list_create (MaxPeers);
 
 	maintenance->relay = NULL;
 	fd = teredo_socket (ipv4, port);
@@ -153,7 +154,7 @@ TeredoRelay::~TeredoRelay (void)
 	if (fd != -1)
 		teredo_close (fd);
 
-	teredo_peer::DestroyList (list.ptr);
+	teredo_list_destroy (list);
 }
 
 
@@ -694,7 +695,6 @@ int TeredoRelay::ReceivePacket (void)
 				 * reach any destination. Not too good (FIXME).
 				 */
 					return 0;
-
 			}
 			else
 				p->Dequeue (this);

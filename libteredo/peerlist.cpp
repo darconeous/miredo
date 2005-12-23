@@ -44,88 +44,6 @@
 #include "relay.h"
 #include "peerlist.h"
 
-void
-teredo_peer::DestroyList (void *head)
-{
-	teredo_peer *p = (teredo_peer *)head;
-
-	while (p != NULL)
-	{
-		teredo_peer *buf = p->next;
-		delete p;
-		p = buf;
-	}
-}
-
-
-/* 
- * Allocates a peer entry. It is up to the caller to fill informations
- * correctly.
- */
-unsigned TeredoRelay::MaxPeers = 1024;
-
-teredo_peer *TeredoRelay::AllocatePeer (const struct in6_addr *addr)
-{
-	time_t now;
-	teredo_peer *p;
-
-	time (&now);
-
-	/* Tries to recycle a timed-out peer entry */
-	for (p = (teredo_peer *)list.ptr; p != NULL; p = p->next)
-		if (p->IsExpired (now))
-		{
-			p->Reset ();
-			break;
-		}
-
-	if (list.peerNumber >= MaxPeers)
-		return NULL;
-
-	/* Otherwise allocates a new peer entry */
-	if (p == NULL)
-	{
-		try
-		{
-			p = new teredo_peer;
-		}
-		catch (...)
-		{
-			return NULL;
-		}
-
-		/* Puts new entry at the head of the list */
-		p->next = (teredo_peer *)list.ptr;
-		list.ptr = p;
-		list.peerNumber++;
-	}
-
-	memcpy (&p->addr.ip6, addr, sizeof (struct in6_addr));
-	return p;
-}
-
-
-/*
- * Returns a pointer to the first peer entry matching <addr>,
- * or NULL if none were found.
- * TODO: avoid doing two lookups (easy with Judy, not so easy without)
- * when inserting a new item
- */
-teredo_peer *TeredoRelay::FindPeer (const struct in6_addr *addr)
-{
-	/* Slow O(n) simplistic peer lookup */
-	for (teredo_peer *p = (teredo_peer *)list.ptr; p != NULL; p = p->next)
-		if (t6cmp (&p->addr, (const union teredo_addr *)addr) == 0)
-		{
-			time_t now;
-			time (&now);
-
-			return !p->IsExpired (now) ? p : NULL;
-		}
-
-	return NULL;
-}
-
 
 /*
  * Packets queueing
@@ -202,4 +120,133 @@ void teredo_peer::Dequeue (TeredoRelay *r)
 		free (ptr);
 		ptr = buf;
 	}
+}
+
+
+/*** Peer list handling ***/
+struct teredo_peerlist
+{
+	teredo_peer *head;
+	unsigned left;
+};
+
+
+/**
+ * Creates an empty peer list.
+ *
+ * @return NULL on error.
+ */
+extern "C"
+teredo_peerlist *teredo_list_create (unsigned max)
+{
+	teredo_peerlist *l = (teredo_peerlist *)malloc (sizeof (*l));
+	if (l == NULL)
+		return NULL;
+
+	l->head = NULL;
+	l->left = max;
+	return l;
+}
+
+/**
+ * Empties and destroys an existing list.
+ */
+extern "C"
+void teredo_list_destroy (teredo_peerlist *l)
+{
+	teredo_peer *p = l->head;
+
+	while (p != NULL)
+	{
+		teredo_peer *buf = p->next;
+		delete p;
+		p = buf;
+	}
+}
+
+/**
+ * Locks the list and looks up a peer in a list.
+ * The list must be unlocked with teredo_list_release(), otherwise the next
+ * call to teredo_list_lookup will deadlock.
+ *
+ * @param create if true, the peer will be added to the list if it is not
+ * present already.
+ *
+ * @return The peer if found. NULL on error (when create is true), or if the
+ * peer was not found (when create is false).
+ */
+teredo_peer *teredo_list_lookup (teredo_peerlist *list,
+                                 const struct in6_addr *addr, bool create)
+{
+	/* FIXME: all this code is highly suboptimal, but it works */
+	teredo_peer *p;
+	time_t now;
+
+	time (&now);
+
+	/* Slow O(n) simplistic peer lookup */
+	for (p = list->head; p != NULL; p = p->next)
+		if (t6cmp (&p->addr, (const union teredo_addr *)addr) == 0)
+		{
+			if (!p->IsExpired (now))
+				return p;
+			break;
+		}
+
+	if (!create)
+		return NULL;
+
+	/* Tries to recycle a timed-out peer entry */
+	for (p = list->head; p != NULL; p = p->next)
+		if (p->IsExpired (now))
+		{
+			p->Reset ();
+			break;
+		}
+
+	if (p == NULL)
+	{
+		if (list->left == 0)
+			return NULL;
+
+		/* Otherwise allocates a new peer entry */
+		try
+		{
+			p = new teredo_peer;
+		}
+		catch (...)
+		{
+			return NULL;
+		}
+
+		/* Puts new entry at the head of the list */
+		p->next = list->head;
+		list->head = p;
+		list->left--;
+	}
+
+	memcpy (&p->addr.ip6, addr, sizeof (struct in6_addr));
+	return p;
+}
+
+
+/**
+ * Unlocks a list that was locked by teredo_list_lookup().
+ */
+extern "C"
+void teredo_list_release (teredo_peerlist *l)
+{
+}
+
+
+/** Legacy wrapper around the new code (TODO: remove these) */
+/* FIXME: that will break as it does not use the unlock thing */
+teredo_peer *TeredoRelay::AllocatePeer (const struct in6_addr *addr)
+{
+	return teredo_list_lookup (list, addr, true);
+}
+
+teredo_peer *TeredoRelay::FindPeer (const struct in6_addr *addr)
+{
+	return teredo_list_lookup (list, addr, false);
 }
