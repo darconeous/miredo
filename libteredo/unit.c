@@ -34,8 +34,10 @@
 #include <netinet/in.h>
 #include <unistd.h> /* sleep () */
 
-#include <libteredo/relay.h>
-#include <libteredo/security.h>
+#include "teredo.h"
+#include "relay.h"
+#include "security.h"
+#include "peerlist.h"
 
 int test_HMAC (void)
 {
@@ -91,10 +93,68 @@ int test_HMAC (void)
 }
 
 
+int test_list (void)
+{
+	teredo_peerlist *l;
+	struct in6_addr addr = { };
+	unsigned i;
+
+	// test empty list
+	l = teredo_list_create (0);
+	if (l == NULL)
+		return -1;
+	else
+	{
+		bool create;
+
+		if (teredo_list_lookup (l, &addr, &create) != NULL)
+			return -1;
+
+		teredo_list_destroy (l);
+	}
+
+	// test real list
+	l = teredo_list_create (255);
+	if (l == NULL)
+		return -1;
+
+	for (i = 0; i < 256; i++)
+	{
+		teredo_peer *p;
+		bool create;
+
+		addr.s6_addr[12] = i;
+		p = teredo_list_lookup (l, &addr, i & 1 ? &create : NULL);
+		if (i & 1)
+		{
+			// item should have been created
+			if ((!create) || (p == NULL))
+				return -1;
+			teredo_list_release (l);
+		}
+		else
+		{
+			// item did not exist and should not have been found
+			if (p != NULL)
+				return -1;
+		}
+	}
+
+	/* FIXME can't test lookup until IsExpired() / Touch*() are handled
+	 * properly inside the peer list */
+	teredo_list_destroy (l);
+
+	return 0;
+}
+
 int main (void)
 {
 	/* UNIT TEST 1: ping HMAC stuff */
-	if (test_HMAC ())
+	//if (test_HMAC ())
+	//	return 1;
+
+	/* UNIT TEST 2: peer list lookups */
+	if (test_list ())
 		return 1;
 
 	return 0;

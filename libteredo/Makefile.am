@@ -45,7 +45,7 @@ endif
 libteredo_server_la_SOURCES =	$(common_SOURCES) server.c server.h
 
 # libteredo-unit
-libteredo_unit_SOURCES = unit.c
+libteredo_unit_SOURCES = unit.c dummy.cpp
 libteredo_unit_CFLAGS = $(libteredo_la_CFLAGS)
 libteredo_unit_LDFLAGS = $(libteredo_la_LDFLAGS)
 libteredo_unit_LDADD = libteredo.la
