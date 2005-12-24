@@ -410,17 +410,24 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 			return 0;
 	}
 
-	teredo_peer *p = FindPeer (&dst->ip6);
+	bool created;
+	teredo_peer *p = teredo_list_lookup (list, &dst->ip6, &created);
+	if (p == NULL)
+		return -1; /* error */
 
-	if (p != NULL)
+	if (!created)
 	{
 		/* Case 1 (paragraphs 5.2.4 & 5.4.1): trusted peer */
 		if (p->trusted)
 		{
+			int res;
+
 			/* Already known -valid- peer */
 			p->TouchTransmit ();
-			return teredo_send (fd, packet, length, p->mapped_addr,
-			                    p->mapped_port) == (int)length ? 0 : -1;
+			res = teredo_send (fd, packet, length, p->mapped_addr,
+			                   p->mapped_port) == (int)length ? 0 : -1;
+			teredo_list_release (list);
+			return res;
 		}
 	}
 
@@ -433,12 +440,8 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 
 		/* Client case 2: direct IPv6 connectivity test */
 		// TODO: avoid code duplication
-		if (p == NULL)
+		if (created)
 		{
-			p = AllocatePeer (&dst->ip6);
-			if (p == NULL)
-				return -1; // memory error
-
 			p->mapped_port = 0;
 			p->mapped_addr = 0;
 			p->trusted = p->replied = p->bubbles = p->pings = 0;
@@ -448,6 +451,8 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 		p->QueueOutgoing (packet, length);
 		if (PingPeer (&dst->ip6, p) == -1)
 			SendUnreach (ICMP6_DST_UNREACH_ADDR, packet, length);
+
+		teredo_list_release (list);
 		return 0;
 	}
 #endif
@@ -456,15 +461,9 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 
 	/* Client case 3: TODO: implement local discovery */
 
-	if (p == NULL)
+	if (created)
 	{
 		/* Unknown Teredo clients */
-
-		// Creates a new entry
-		p = AllocatePeer (&dst->ip6);
-		if (p == NULL)
-			return -1; // insufficient memory
-
 		p->SetMapping (IN6_TEREDO_IPV4 (dst), IN6_TEREDO_PORT (dst));
 		p->trusted = p->replied = p->bubbles = p->pings = 0;
 
@@ -475,9 +474,13 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 		/* Client case 4 & relay case 2: new cone peer */
 		if (allowCone && IN6_IS_TEREDO_ADDR_CONE (dst))
 		{
+			int res;
+
 			p->trusted = 1;
-			return teredo_send (fd, packet, length, p->mapped_addr,
-			                    p->mapped_port) == (int)length ? 0 : -1;
+			res = teredo_send (fd, packet, length, p->mapped_addr,
+			                   p->mapped_port) == (int)length ? 0 : -1;
+			teredo_list_release (list);
+			return res;
 		}
 	}
 
@@ -489,14 +492,21 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 	switch (p->CountBubble ())
 	{
 		case 0:
+		{
 			/*
 			* Open the return path if we are behind a
 			* restricted NAT.
 			*/
 			if (!IsCone () && SendBubbleFromDst (fd, &dst->ip6, false, false))
+			{
+				teredo_list_release (list);
 				return -1;
+			}
 	
-			return SendBubbleFromDst (fd, &dst->ip6, IsCone (), true);
+			int res = SendBubbleFromDst (fd, &dst->ip6, IsCone (), true);
+			teredo_list_release (list);
+			return res;
+		}
 
 		case -1:
 			// Too many bubbles already sent
@@ -504,6 +514,7 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 		//case 1: -- between two bubbles -- nothing to do
 	}
 
+	teredo_list_release (list);
 	return 0;
 }
 
@@ -512,7 +523,6 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
  * Handles a packet coming from the Teredo tunnel
  * (as specified per paragraph 5.4.2). That's called "Packet reception".
  * Returns 0 on success, -1 on error.
- * FIXME: use a receive buffer
  */
 int TeredoRelay::ReceivePacket (void)
 {
@@ -649,7 +659,7 @@ int TeredoRelay::ReceivePacket (void)
 	/* Actual packet reception, either as a relay or a client */
 
 	// Checks source IPv6 address / looks up peer in the list:
-	teredo_peer *p = FindPeer (&ip6.ip6_src);
+	teredo_peer *p = teredo_list_lookup (list, &ip6.ip6_src, NULL);
 
 	if (p != NULL)
 	{
@@ -659,6 +669,7 @@ int TeredoRelay::ReceivePacket (void)
 		 && (packet.source_port == p->mapped_port))
 		{
 			p->TouchReceive ();
+			teredo_list_release (list);
 			return SendIPv6Packet (buf, length);
 		}
 
@@ -671,7 +682,8 @@ int TeredoRelay::ReceivePacket (void)
 			p->SetMappingFromPacket (&packet);
 			p->TouchReceive ();
 			p->Dequeue (this);
-			return 0;
+			teredo_list_release (list);
+			return 0; /* don't pass ping to kernel */
 		}
 #endif /* ifdef MIREDO_TEREDO_CLIENT */
 	}
@@ -691,8 +703,18 @@ int TeredoRelay::ReceivePacket (void)
 #ifdef MIREDO_TEREDO_CLIENT
 				if (IsClient ())
 				{
+					bool create;
+
 					// TODO: do not duplicate this code
-					p = AllocatePeer (&ip6.ip6_src);
+					p = teredo_list_lookup (list, &ip6.ip6_src, &create);
+					/* FIXME: if they were multiple threads, we'd have a race
+					 * condition whereby a peer would not be in the list at
+					 * the time when teredo_list_lookup() returned NULL above,
+					 * but would have been added since then. In that case, the
+					 * peer will be partially overriden - make sure that is
+					 * safe!
+					 */
+					/*if (!create) race_condition! */
 					if (p == NULL)
 						return -1; // insufficient memory
 
@@ -704,18 +726,19 @@ int TeredoRelay::ReceivePacket (void)
 #endif
 				/*
 				 * Relays are explicitly allowed to drop packets from
-				 * unknown peers. It prevents routing of packet through the
-				 * wrong relay. If the peer is known, with the current
-				 * libteredo implementation, it will be able to use a relay to
-				 * reach any destination. Not too good (FIXME).
+				 * unknown peers. It makes it a little more difficult to route
+				 * packets through the wrong relay. The specification leaves
+				 * us a choice here. It is arguable whether accepting these
+				 * packets would make it easier to DoS the peer list.
 				 */
-					return 0;
+					return 0; // list not locked
 			}
 			else
 				p->Dequeue (this);
 
 			p->trusted = 1;
 			p->TouchReceive ();
+			teredo_list_release (list);
 
 			if (IsBubble (&ip6))
 				return 0; // discard Teredo bubble
@@ -727,52 +750,71 @@ int TeredoRelay::ReceivePacket (void)
 	}
 
 #ifdef MIREDO_TEREDO_CLIENT
-	// Relays only accept packets from Teredo clients;
-	if (IsRelay ())
-		return 0;
-
-	// TODO: implement client cases 4 & 5 for local Teredo
-
-	/*
-	 * Default: Client case 6:
-	 * (unknown non-Teredo node or Tereco client with incorrect mapping):
-	 * We should be cautious when accepting packets there, all the
-	 * more as we don't know if we are a really client or just a
-	 * qualified relay (ie. whether the host's default route is
-	 * actually the Teredo tunnel).
-	 */
-
-	// TODO: avoid code duplication (direct IPv6 connectivity test)
-	if (p == NULL)
+	if (IsClient ())
 	{
-		p = AllocatePeer (&ip6.ip6_src);
-		if (p == NULL)
-			return -1; // memory error
-
-		p->mapped_port = 0;
-		p->mapped_addr = 0;
-		p->trusted = p->replied = p->bubbles = p->pings = 0;
-	}
-#if 0
-	else
-	if (p->trusted)
+		// TODO: implement client cases 4 & 5 for local Teredo
+	
 		/*
-		 * Trusted node, but mismatch. That can only happen if:
-		 *  - someone is spoofing the node,
-		 *  - the node has changed relay (very unlikely),
-		 *  - unfortunate node has multiple relay doing load-balancing
-		 *    (that is not supposed to work with the Teredo protocol).
-		 */
-		return 0;
-#endif
+		* Default: Client case 6:
+		* (unknown non-Teredo node or Tereco client with incorrect mapping):
+		* We should be cautious when accepting packets there, all the
+		* more as we don't know if we are a really client or just a
+		* qualified relay (ie. whether the host's default route is
+		* actually the Teredo tunnel).
+		*/
+	
+		// TODO: avoid code duplication (direct IPv6 connectivity test)
+		if (p == NULL)
+		{
+			bool create;
 
-	p->QueueIncoming (buf, length);
-	p->TouchReceive ();
+			// TODO: do not duplicate this code
+			p = teredo_list_lookup (list, &ip6.ip6_src, &create);
+			/* FIXME: if they were multiple threads, we'd have a race
+			 * condition whereby a peer would not be in the list at
+			 * the time when teredo_list_lookup() returned NULL above,
+			 * but would have been added since then. In that case, the
+			 * peer will be partially overriden - make sure that is
+			 * safe!
+			 */
+			/*if (!create) race_condition! */
+			if (p == NULL)
+				return -1; // memory error
+	
+			p->mapped_port = 0;
+			p->mapped_addr = 0;
+			p->trusted = p->replied = p->bubbles = p->pings = 0;
+		}
+# if 0
+		else
+		if (p->trusted)
+			/*
+			* Trusted node, but mismatch. That can only happen if:
+			*  - someone is spoofing the node,
+			*  - the node has changed relay (very unlikely),
+			*  - unfortunate node has multiple relay doing load-balancing
+			*    (that is not supposed to work with the Teredo protocol).
+			*/
+			return 0;
+# endif
+	
+		p->QueueIncoming (buf, length);
+		p->TouchReceive ();
+	
+		int res = PingPeer (&ip6.ip6_src, p) ? -1 : 0;
+		teredo_list_release (list);
+		return res;
+	}
+#endif /* ifdef MIREDO_TEREDO_CLIENT */
 
-	return PingPeer (&ip6.ip6_src, p) ? -1 : 0;
-#else /* ifdef MIREDO_TEREDO_CLIENT */
+	// Relays don't accept packets not from Teredo clients,
+	// nor from mismatching packets
+	assert (IsRelay ());
+	
+	if (p != NULL)
+		teredo_list_release (list);
+
 	return 0;
-#endif
 }
 
 #ifdef MIREDO_TEREDO_CLIENT

@@ -129,6 +129,6 @@ void teredo_list_release (teredo_peerlist *l);
 
 /* cannot be extern "C" atm */
 teredo_peer *teredo_list_lookup (teredo_peerlist *list,
-                                 const struct in6_addr *addr, bool create);
+                                 const struct in6_addr *addr, bool *create);
 
 #endif /* ifndef LIBTEREDO_PEERLIST_H */

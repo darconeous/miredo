@@ -118,9 +118,6 @@ class TeredoRelay
 	private:
 		bool allowCone;
 
-		teredo_peer *AllocatePeer (const struct in6_addr *addr);
-		teredo_peer *FindPeer (const struct in6_addr *addr);
-
 		void SendUnreach (int code, const void *in, size_t inlen);
 
 		teredo_state state;
