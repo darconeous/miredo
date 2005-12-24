@@ -154,6 +154,7 @@ class TeredoRelay
 		virtual void NotifyDown (void) { }
 
 #endif
+	public: /* FIXME: temporarily public callback */
 
 		/*** Callbacks ***/
 		/*
