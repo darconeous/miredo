@@ -46,6 +46,17 @@
 
 
 /*
+ * Big TODO:
+ * - suppress the replied flag which is non-standard,
+ * - check expiry time in relay code rather than peer list code,
+ * - replace expiry (4 bytes) with last_rx and last_tx
+ *   (both could be one byte),
+ * - implement garbage collector (needed if expiry is suppressed)
+ * - do not recycle peer (needs GC),
+ * - remove Reset() (consequence of recycling removal)
+ */
+
+/*
  * Packets queueing
  */
 typedef struct teredo_peer::packet
