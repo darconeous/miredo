@@ -19,19 +19,23 @@
 
 AM_CPPFLAGS = -I@top_srcdir@ -I@top_srcdir@/libteredo -D_REENTRANT
 
-check_PROGRAMS = libteredo-unit libteredo-regress
-
-TESTS = libteredo-unit libteredo-regress
+check_PROGRAMS = libteredo-addrcmp libteredo-list
+TESTS = $(check_PROGRAMS)
 
 if TEREDO_CLIENT
+check_PROGRAMS += libteredo-hmac
 AM_CFLAGS = @LIBGCRYPT_CFLAGS@
 AM_LDFLAGS = @LIBGCRYPT_LIBS@
 endif
 
-# libteredo-unit
-libteredo_unit_SOURCES = unit.c dummy.cpp
-libteredo_unit_LDADD = ../libteredo.la
+# libteredo-addr
+libteredo_addrcmp_SOURCES = addrcmp.c
 
-# libteredo-regress
-libteredo_regress_SOURCES = regress.c
+# libteredo-list
+libteredo_list_SOURCES = list.c dummy.cpp
+libteredo_list_LDADD = ../libteredo.la
+
+# libteredo-hmac
+libteredo_hmac_SOURCES = hmac.c
+libteredo_hmac_LDADD = ../libteredo.la
 
