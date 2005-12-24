@@ -178,6 +178,7 @@ void teredo_list_destroy (teredo_peerlist *l)
  * @return The peer if found or created. NULL on error (when create is not
  * NULL), or if the peer was not found (when create is NULL).
  */
+extern "C"
 teredo_peer *teredo_list_lookup (teredo_peerlist *list,
                                  const struct in6_addr *addr, bool *create)
 {
