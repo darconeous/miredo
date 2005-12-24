@@ -182,7 +182,7 @@ teredo_peer *teredo_list_lookup (teredo_peerlist *list,
                                  const struct in6_addr *addr, bool *create)
 {
 	/* FIXME: all this code is highly suboptimal, but it works */
-	teredo_peer *p;
+	teredo_peer *p, *recycle = NULL;
 	time_t now;
 
 	time (&now);
@@ -197,8 +197,13 @@ teredo_peer *teredo_list_lookup (teredo_peerlist *list,
 					*create = false;
 				return p;
 			}
+			if (recycle == NULL)
+				recycle = p;
 			break;
 		}
+		else
+		if ((recycle == NULL) && (p->IsExpired (now)))
+			recycle = p;
 
 	if (create == NULL)
 		return NULL;
@@ -206,14 +211,11 @@ teredo_peer *teredo_list_lookup (teredo_peerlist *list,
 	*create = true;
 
 	/* Tries to recycle a timed-out peer entry */
-	for (p = list->head; p != NULL; p = p->next)
-		if (p->IsExpired (now))
-		{
-			p->Reset ();
-			break;
-		}
-
-	if (p == NULL)
+	if (recycle != NULL)
+	{
+		recycle->Reset ();
+	}
+	else
 	{
 		if (list->left == 0)
 			return NULL;
@@ -221,7 +223,7 @@ teredo_peer *teredo_list_lookup (teredo_peerlist *list,
 		/* Otherwise allocates a new peer entry */
 		try
 		{
-			p = new teredo_peer;
+			recycle = new teredo_peer;
 		}
 		catch (...)
 		{
@@ -229,13 +231,13 @@ teredo_peer *teredo_list_lookup (teredo_peerlist *list,
 		}
 
 		/* Puts new entry at the head of the list */
-		p->next = list->head;
-		list->head = p;
+		recycle->next = list->head;
+		list->head = recycle;
 		list->left--;
 	}
 
-	memcpy (&p->addr.ip6, addr, sizeof (struct in6_addr));
-	return p;
+	memcpy (&recycle->addr.ip6, addr, sizeof (struct in6_addr));
+	return recycle;
 }
 
 
