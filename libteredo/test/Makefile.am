@@ -17,29 +17,21 @@
 # *  http://www.gnu.org/copyleft/gpl.html                               *
 # ***********************************************************************
 
-SUBDIRS = . test
+AM_CPPFLAGS = -I@top_srcdir@ -I@top_srcdir@/libteredo -D_REENTRANT
 
-AM_CPPFLAGS = -I@top_srcdir@/include -I@top_srcdir@ -D_REENTRANT
+check_PROGRAMS = libteredo-unit libteredo-regress
 
-noinst_LTLIBRARIES = libteredo-server.la
-lib_LTLIBRARIES = libteredo.la
+TESTS = libteredo-unit libteredo-regress
 
-include_libteredodir = $(includedir)/libteredo
-include_libteredo_HEADERS = teredo.h #relay.h - FIXME
-common_SOURCES =	teredo.c teredo.h teredo-udp.h \
-			v4global.c v4global.h checksum.h
-
-# libteredo.la
-libteredo_la_SOURCES =	$(common_SOURCES) init.c relay.cpp relay.h \
-			packets.c packets.h peerlist.cpp peerlist.h
-libteredo_la_CFLAGS =
-libteredo_la_LDFLAGS =
 if TEREDO_CLIENT
-libteredo_la_SOURCES += security.c security.h maintain.cpp maintain.h
-libteredo_la_CFLAGS += @LIBGCRYPT_CFLAGS@
-libteredo_la_LDFLAGS += @LIBGCRYPT_LIBS@
+AM_CFLAGS = @LIBGCRYPT_CFLAGS@
+AM_LDFLAGS = @LIBGCRYPT_LIBS@
 endif
 
-# libteredo-server.la
-libteredo_server_la_SOURCES =	$(common_SOURCES) server.c server.h
+# libteredo-unit
+libteredo_unit_SOURCES = unit.c dummy.cpp
+libteredo_unit_LDADD = ../libteredo.la
+
+# libteredo-regress
+libteredo_regress_SOURCES = regress.c
 

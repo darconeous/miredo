@@ -89,16 +89,19 @@ AC_DEFINE_UNQUOTED(PACKAGE_HOST, "$host",
 
 # Checks for header files.
 AC_CHECK_HEADERS([sys/capability.h libintl.h])
+dnl Judy.h
 
 
 # Checks for typedefs, structures, and compiler characteristics.
 dnl AC_C_BIGENDIAN
 RDC_STRUCT_SOCKADDR_LEN
+dnl AC_CHECK_SIZEOF([void *])
 
 
 # Checks for library functions.
 RDC_REPLACE_FUNC_GETOPT_LONG
 AC_CHECK_FUNCS([clearenv strlcpy])
+dnl AC_CHECK_LIB([Judy], [JudyLIns])
 
 # Socket stuff
 RDC_FUNC_SOCKET
@@ -173,5 +176,5 @@ AH_BOTTOM([
 
 # END
 AS_MESSAGE(writing results...)
-AC_CONFIG_FILES([Makefile m4/Makefile misc/Makefile libtun6/Makefile libteredo/Makefile src/Makefile po/Makefile.in ])
+AC_CONFIG_FILES([Makefile m4/Makefile misc/Makefile libtun6/Makefile libteredo/Makefile libteredo/test/Makefile src/Makefile po/Makefile.in ])
 AC_OUTPUT
