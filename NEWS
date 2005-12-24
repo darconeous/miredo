@@ -40,7 +40,9 @@ BETA RELEASE 0.6.0 : Minor features enhancement, security/bugs fixes
 # Define Linux kernel 2.6.9 as the minimum supported Linux kernel version.
 # Use kernel IPv6 stack to generate IPv6 headers for ICMPv6 errors
   (allow proper source address selection, and use of optimized checksum).
-# Fix Teredo peers list lookup (major bugfix also backported in 0.5.6)
+# Fix Teredo peers list lookup (major bugfix also backported in 0.5.6).
+# Various optimizations and clean up throughout the code.
+# Added some regression tests.
 
 =============================================================================
 BETA RELEASE 0.5.4 : Major bugfixes
