@@ -150,8 +150,8 @@ int test_list (void)
 int main (void)
 {
 	/* UNIT TEST 1: ping HMAC stuff */
-	//if (test_HMAC ())
-	//	return 1;
+	if (test_HMAC ())
+		return 1;
 
 	/* UNIT TEST 2: peer list lookups */
 	if (test_list ())
