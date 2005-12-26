@@ -73,9 +73,6 @@ properly tested on i386.
 Dependencies:
 --------------
 
-  As of version 0.5.6, Miredo requires libgcrypt to run as a Teredo
-client. You should install it if it is not present on your system.
-
   When available, Miredo can use the following optional libraries :
  - GNU gettext for localization,
  - libcap (or non-Linux equivalent) for POSIX capabilities.
