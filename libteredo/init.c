@@ -54,11 +54,6 @@ int libteredo_preinit (void)
  * Thread-safe, can be called multiple times. Should be called
  * before chroot() if it is used.
  *
- * Note that Teredo client-mode relies on libgcrypt. Libgcrypt will
- * be initialized with pthread as a threading package, and without secure
- * memory. If another library used in the same process uses libgcrypt, it
- * must also use pthread, and must not expect secure memory to be provided.
- *
  * @return 0 on success, -1 on failure.
  */
 int libteredo_client_preinit (void)

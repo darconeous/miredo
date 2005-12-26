@@ -35,12 +35,10 @@
 #include <pthread.h>
 #include <netinet/in.h> /* struct in6_addr */
 #include <time.h> /* time_t */
-
-#include <stdlib.h> /* malloc() for gcrypt() */
-#include <errno.h> /* ENOMEM for gcrypt() */
-#include <gcrypt.h>
+#include <errno.h>
 
 #include "security.h"
+#include "md5.h"
 
 #ifndef HAVE_OPENBSD
 static const char *randfile = "/dev/random";
@@ -137,23 +135,36 @@ GenerateNonce (unsigned char *b, bool critical)
 }
 
 
-/*** libgcrypt (client only) */
-static bool has_libgcrypt = false;
+/* HMAC authentication */
+#define HMAC_BLOCK_LEN 64 /* block size in bytes for MD5 (or SHA1) */
 #define LIBTEREDO_KEY_LEN LIBTEREDO_NONCE_LEN
-static unsigned char key[LIBTEREDO_KEY_LEN];
 
-GCRY_THREAD_OPTION_PTHREAD_IMPL;
-
-static void init_libgcrypt (void)
+static union
 {
-	gcry_control (GCRYCTL_SET_THREAD_CBS, &gcry_threads_pthread);
-	if (gcry_check_version ("1.2.0") == NULL)
-		syslog (LOG_ERR, _("Libgcrypt version mismatch."));
-	else
+	unsigned char key[LIBTEREDO_KEY_LEN];
+	unsigned char ipad[HMAC_BLOCK_LEN];
+} inner_key;
+
+static union
+{
+	unsigned char key[LIBTEREDO_KEY_LEN];
+	unsigned char opad[HMAC_BLOCK_LEN];
+} outer_key;
+
+
+static void init_hmac_once (void)
+{
+	unsigned i;
+
+	/* Generate HMAC key and precomputes padding */
+	memset (&inner_key, 0, sizeof (inner_key));
+	GenerateNonce (inner_key.key, true);
+	memcpy (&outer_key, &inner_key, sizeof (outer_key));
+
+	for (i = 0; i < sizeof (inner_key); i++)
 	{
-		has_libgcrypt = true;
-		gcry_control (GCRYCTL_DISABLE_SECMEM);
-		GenerateNonce (key, true);
+		inner_key.ipad[i] ^= 0x36;
+		outer_key.opad[i] ^= 0x5c;
 	}
 }
 
@@ -162,8 +173,8 @@ bool InitHMAC (void)
 {
 	static pthread_once_t once = PTHREAD_ONCE_INIT;
 
-	pthread_once (&once, init_libgcrypt);
-	return has_libgcrypt;
+	pthread_once (&once, init_hmac_once);
+	return true;
 }
 
 
@@ -188,17 +199,13 @@ typedef struct libteredo_hmac
 
 static pid_t hmac_pid = -1;
 
+#include <stdio.h>
 bool
 GenerateHMAC (const struct in6_addr *src, const struct in6_addr *dst,
               uint8_t *hash)
 {
-	gcry_md_hd_t hd;
+	md5_state_t ctx;
 	uint16_t v16;
-
-	/* create HMAC handle */
-	(void)gcry_md_open (&hd, GCRY_MD_MD5, GCRY_MD_FLAG_HMAC);
-	if ((hd == NULL) || (gcry_md_setkey (hd, key, LIBTEREDO_KEY_LEN)))
-		return false;
 
 	/* save hash-protected data */
 	if (hmac_pid == -1)
@@ -212,15 +219,19 @@ GenerateHMAC (const struct in6_addr *src, const struct in6_addr *dst,
 	hash += 2;
 
 	/* compute hash */
-	gcry_md_write (hd, src, sizeof (*src));
-	gcry_md_write (hd, dst, sizeof (*dst));
-	gcry_md_write (hd, &hmac_pid, sizeof (hmac_pid));
-	gcry_md_write (hd, &v16, sizeof (v16));
-	gcry_md_final (hd);
+	md5_init (&ctx);
+	md5_append (&ctx, inner_key.ipad, sizeof (inner_key.ipad));
+	md5_append (&ctx, (unsigned char *)src, sizeof (*src));
+	md5_append (&ctx, (unsigned char *)dst, sizeof (*dst));
+	md5_append (&ctx, (unsigned char *)&hmac_pid, sizeof (hmac_pid));
+	md5_append (&ctx, (unsigned char *)&v16, sizeof (v16));
+	md5_finish (&ctx, hash);
 
-	/* write hash */
-	memcpy (hash, gcry_md_read (hd, 0), LIBTEREDO_HASH_LEN);
-	gcry_md_close (hd);
+	md5_init (&ctx);
+	md5_append (&ctx, outer_key.opad, sizeof (outer_key.opad));
+	md5_append (&ctx, hash, LIBTEREDO_HASH_LEN);
+	md5_finish (&ctx, hash);
+
 	return true;
 }
 
@@ -228,9 +239,9 @@ bool
 CompareHMAC (const struct in6_addr *src, const struct in6_addr *dst,
              const uint8_t *hash)
 {
-	gcry_md_hd_t hd;
+	md5_state_t ctx;
 	uint16_t v16, t16;
-	bool res;
+	unsigned char h1[LIBTEREDO_HASH_LEN];
 
 	/* Check ICMPv6 ID */
 	memcpy (&v16, hash, 2);
@@ -245,20 +256,20 @@ CompareHMAC (const struct in6_addr *src, const struct in6_addr *dst,
 		return false; /* replay attack */
 	hash += 2;
 
-	/* create HMAC */
-	(void)gcry_md_open (&hd, GCRY_MD_MD5, GCRY_MD_FLAG_HMAC);
-	if ((hd == NULL) || (gcry_md_setkey (hd, key, LIBTEREDO_KEY_LEN)))
-		return false;
+	/* compute HMAC hash */
+	md5_init (&ctx);
+	md5_append (&ctx, inner_key.ipad, sizeof (inner_key.ipad));
+	md5_append (&ctx, (unsigned char *)src, sizeof (*src));
+	md5_append (&ctx, (unsigned char *)dst, sizeof (*dst));
+	md5_append (&ctx, (unsigned char *)&hmac_pid, sizeof (hmac_pid));
+	md5_append (&ctx, (unsigned char *)&t16, sizeof (t16));
+	md5_finish (&ctx, h1);
 
-	/* compute HMAC */
-	gcry_md_write (hd, src, sizeof (*src));
-	gcry_md_write (hd, dst, sizeof (*dst));
-	gcry_md_write (hd, &hmac_pid, sizeof (hmac_pid));
-	gcry_md_write (hd, &t16, sizeof (t16));
-	gcry_md_final (hd);
+	md5_init (&ctx);
+	md5_append (&ctx, outer_key.opad, sizeof (outer_key.opad));
+	md5_append (&ctx, h1, sizeof (h1));
+	md5_finish (&ctx, h1);
 
-	/* compare hash */
-	res = !memcmp (gcry_md_read (hd, 0), hash, LIBTEREDO_HASH_LEN);
-	gcry_md_close (hd);
-	return res;
+	/* compare HMAC hash */
+	return !memcmp (h1, hash, LIBTEREDO_HASH_LEN);
 }

@@ -32,12 +32,9 @@ common_SOURCES =	teredo.c teredo.h teredo-udp.h \
 # libteredo.la
 libteredo_la_SOURCES =	$(common_SOURCES) init.c relay.cpp relay.h \
 			packets.c packets.h peerlist.cpp peerlist.h
-libteredo_la_CFLAGS =
-libteredo_la_LDFLAGS =
 if TEREDO_CLIENT
-libteredo_la_SOURCES += security.c security.h maintain.cpp maintain.h
-libteredo_la_CFLAGS += @LIBGCRYPT_CFLAGS@
-libteredo_la_LDFLAGS += @LIBGCRYPT_LIBS@
+libteredo_la_SOURCES += security.c security.h maintain.cpp maintain.h \
+			md5.c md5.h
 endif
 
 # libteredo-server.la
