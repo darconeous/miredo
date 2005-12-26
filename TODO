@@ -23,7 +23,6 @@ Important features & fixes:
     (should wait e.g. 1 second)
 (!) retry DNS lookup when server stops responding
     (needs removal of chroot though)
-(!) use endianess optimization for MD5
 
 Not so important features:
 ---------------------------

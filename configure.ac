@@ -92,7 +92,7 @@ dnl Judy.h
 
 
 # Checks for typedefs, structures, and compiler characteristics.
-dnl AC_C_BIGENDIAN
+AC_C_BIGENDIAN
 RDC_STRUCT_SOCKADDR_LEN
 dnl AC_CHECK_SIZEOF([void *])
 

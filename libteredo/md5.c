@@ -1,3 +1,13 @@
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
+
+#if defined (WORDS_BIGENDIAN)
+# define ARCH_IS_BIG_ENDIAN 1
+#else
+# define ARCH_IS_BIG_ENDIAN 0
+#endif
+
 /*
   Copyright (C) 1999, 2000, 2002 Aladdin Enterprises.  All rights reserved.
 
