@@ -23,9 +23,7 @@ check_PROGRAMS = libteredo-addrcmp libteredo-list
 TESTS = $(check_PROGRAMS)
 
 if TEREDO_CLIENT
-check_PROGRAMS += libteredo-hmac
-AM_CFLAGS = @LIBGCRYPT_CFLAGS@
-AM_LDFLAGS = @LIBGCRYPT_LIBS@
+check_PROGRAMS += libteredo-hmac md5test
 endif
 
 # libteredo-addr
@@ -38,4 +36,8 @@ libteredo_list_LDADD = ../libteredo.la
 # libteredo-hmac
 libteredo_hmac_SOURCES = hmac.c
 libteredo_hmac_LDADD = ../libteredo.la
+
+# md5main
+md5test_SOURCES = md5test.c ../md5.c
+#md5test_LDADD = -lm
 
