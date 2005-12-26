@@ -47,7 +47,6 @@ AM_INIT_AUTOMAKE([check-news dist-bzip2 std-options])
 # Checks for libraries.
 AM_BINRELOC
 AM_GNU_GETTEXT([external])
-AM_PATH_LIBGCRYPT([1.2.0], [has_libgcrypt=true], [has_libgcrypt=false])
 AH_TEMPLATE(HAVE_LINUX,
 		[Define to 1 if the host kernel is Linux.])
 AH_TEMPLATE(HAVE_FREEBSD,
@@ -132,9 +131,7 @@ AH_TEMPLATE(MIREDO_TEREDO_CLIENT,
 AM_CONDITIONAL(TEREDO_CLIENT, [test "x${enable_teredo_client}" != "xno"])
 AS_IF([test "x${enable_teredo_client}" != "xno"],
 	[AC_DEFINE(MIREDO_TEREDO_CLIENT)
-	AC_MSG_RESULT(yes)
-	AS_IF([test "${has_libgcrypt}" == "false"],
-		[AC_MSG_ERROR([Libgcrypt is required for Teredo client support])])],
+	AC_MSG_RESULT(yes)],
 	[AC_MSG_RESULT(no)])
 
 # chroot path
