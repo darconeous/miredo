@@ -554,16 +554,26 @@ int TeredoRelay::ReceivePacket (void)
 #ifdef MIREDO_TEREDO_CLIENT
 	/* Maintenance */
 	/* FIXME race condition */
-	if (IsClient () && IsServerPacket (&packet))
+	if (IsClient () && (packet.source_port == htons (IPPORT_TEREDO)))
 	{
 		if (packet.auth_nonce != NULL)
 		{
 			libteredo_maintenance_process (maintenance, &packet);
 			return 0;
 		}
+		else
 		if (!state.up)
+		{
+			/* Not qualified -> do not accept incoming packets */
 			return 0;
-
+		}
+		else
+		if (packet.source_ipv4 != GetServerIP ())
+		{
+			/* Not from primary server IPv4 address
+			   -> force normal packet reception */
+		}
+		else
 		if (packet.orig_ipv4)
 		{
 			SendBubble (fd, packet.orig_ipv4, packet.orig_port,
@@ -591,18 +601,16 @@ int TeredoRelay::ReceivePacket (void)
 			}
 			return 0; // don't pass bubble to kernel
 		}
-
 		/*
 		 * Normal reception of packet must only occur if it does not
 		 * come from the server, as specified. However, it is not
 		 * unlikely that our server is a relay too. Hence, we must
 		 * further process packets from it.
 		 * At the moment, we only drop bubble (see above).
-		 * (NOTE: besides, we don't sufficiently check that the packet
-		 *  comes from the server, we only check the source port)
 		 */
 	}
 	else if (!state.up)
+		/* Not qualified -> do not accept incoming packets */
 		return 0;
 #endif /* MIREDO_TEREDO_CLIENT */
 
@@ -820,15 +828,4 @@ int TeredoRelay::ReceivePacket (void)
 
 	return 0;
 }
-
-#ifdef MIREDO_TEREDO_CLIENT
-/* C++ maintenance remainings */
-bool TeredoRelay::IsServerPacket (const teredo_packet *packet) const
-{
-	uint32_t ip = packet->source_ipv4;
-
-	return (packet->source_port == htons (IPPORT_TEREDO))
-	 && ((ip == GetServerIP ()) || (ip == GetServerIP2 ()));
-}
-#endif
 

@@ -109,7 +109,6 @@ class TeredoRelay
 		uint32_t server_ip2;
 
 		int PingPeer (const struct in6_addr *addr, teredo_peer *p) const;
-		bool IsServerPacket (const teredo_packet *packet) const;
 
 	public: /* FIXME: callbacks temporarily public */
 		/*
