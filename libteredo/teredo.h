@@ -36,7 +36,6 @@
 
 #include <sys/types.h>
 #include <netinet/in.h>
-#include <netinet/ip6.h>
 
 /*
  * Teredo addresses

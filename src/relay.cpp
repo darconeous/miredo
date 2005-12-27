@@ -42,6 +42,7 @@
 
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <netinet/ip6.h>
 #include <netinet/icmp6.h>
 #include <arpa/inet.h> // inet_ntop()
 #ifdef HAVE_SYS_CAPABILITY_H
@@ -55,7 +56,6 @@
 
 #include <libteredo/teredo.h> /* FIXME should not be needed */
 #include <libteredo/relay.h>
-#include <libteredo/security.h>
 
 #include "privproc.h"
 #include "conf.h"

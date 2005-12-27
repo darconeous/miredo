@@ -67,10 +67,6 @@ void libteredo_set_state_cb (libteredo_tunnel *t, libteredo_state_up_cb u,
 # ifdef __cplusplus
 }
 
-# include <sys/time.h> // struct timeval
-# include <pthread.h>
-
-
 struct ip6_hdr;
 struct in6_addr;
 

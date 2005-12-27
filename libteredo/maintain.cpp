@@ -44,6 +44,7 @@
 #include <syslog.h>
 #include <stdlib.h> /* malloc() */
 #include <errno.h> /* EINTR */
+#include <pthread.h>
 
 #include "teredo.h"
 #include "teredo-udp.h"

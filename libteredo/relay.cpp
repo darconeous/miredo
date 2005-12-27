@@ -44,6 +44,7 @@
 #include <netinet/ip6.h> // struct ip6_hdr
 #include <netinet/icmp6.h> // ICMP6_DST_UNREACH_*
 #include <syslog.h>
+#include <pthread.h>
 
 #include "teredo.h"
 #include "v4global.h" // is_ipv4_global_unicast()
