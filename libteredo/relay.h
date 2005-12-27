@@ -178,15 +178,6 @@ class TeredoRelay
 	public:
 		virtual ~TeredoRelay ();
 
-		bool operator! (void) const
-		{
-			return (fd == -1)
-#ifdef MIREDO_TEREDO_CLIENT
-				|| (IsClient () && (maintenance == NULL));
-#endif
-			;
-		}
-
 		/*
 		 * Transmits a packet from IPv6 Internet via Teredo,
 		 * i.e. performs "Packet transmission".

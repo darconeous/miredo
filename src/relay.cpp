@@ -500,20 +500,8 @@ miredo_run (int sigfd, MiredoConf& conf, const char *server_name)
 	if (relay == NULL)
 	{
 		syslog (LOG_ALERT, _("Teredo tunnel fatal error"));
-		goto abort;
-	}
-
-	if (!*relay)
-	{
-		const char *msg = _("Teredo tunnel fatal error");
-		if (bind_port)
-			syslog (LOG_ALERT, _("%s:\n cannot open UDP port %u"), msg,
-			        (unsigned int)ntohs (bind_port));
-		else
-			syslog (LOG_ALERT, _("%s:\n cannot open an UDP port"), msg);
-
 		syslog (LOG_NOTICE, _("Make sure another instance of the program is "
-		                      "not already running."));
+		        "not already running."));
 		goto abort;
 	}
 
