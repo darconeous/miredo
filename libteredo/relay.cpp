@@ -89,19 +89,28 @@ TeredoRelay::TeredoRelay (uint32_t pref, uint16_t port, uint32_t ipv4,
 	state.addr.teredo.client_port = ~port;
 	state.addr.teredo.client_ip = ~ipv4;
 
-	fd = teredo_socket (ipv4, port);
-
-	list = teredo_list_create (MaxPeers);
-	/* FIXME: don't assume teredo_list_create succeeds */
-
-	state.up = true;
-
 #ifdef MIREDO_TEREDO_CLIENT
 	server_ip2 = 0;
 	maintenance = NULL;
+#endif
+
+	state.up = true;
+
+	fd = teredo_socket (ipv4, port);
+	if (fd != -1)
+	{
+		list = teredo_list_create (MaxPeers);
+		if (list != NULL)
+			return; /* success */
+		teredo_close (fd);
+	}
+
+	/* failure */
+	throw new (void *)(NULL);
 }
 
 
+#ifdef MIREDO_TEREDO_CLIENT
 TeredoRelay::TeredoRelay (uint32_t ip, uint32_t ip2,
                           uint16_t port, uint32_t ipv4)
 	: allowCone (false), maintenance (NULL)
@@ -122,15 +131,25 @@ TeredoRelay::TeredoRelay (uint32_t ip, uint32_t ip2,
 
 	server_ip2 = ip2;
 
-	list = teredo_list_create (MaxPeers);
-	/* FIXME: don't assume teredo_list_create succeeds */
-	maintenance = libteredo_maintenance_start (this, &state);
-	/* FIXME: don't assume maintenance succeeds */
-
 	fd = teredo_socket (ipv4, port);
+	if (fd != -1)
+	{
+		list = teredo_list_create (MaxPeers);
+		if (list != NULL)
+		{
+			maintenance = libteredo_maintenance_start (this, &state);
+			if (maintenance != NULL)
+				return; /* success */
 
-#endif /* ifdef MIREDO_TEREDO_CLIENT */
+			teredo_list_destroy (list);
+		}
+		teredo_close (fd);
+	}
+
+	/* failure */
+	throw new (void *)(NULL);
 }
+#endif /* ifdef MIREDO_TEREDO_CLIENT */
 
 /* Releases peers list entries */
 TeredoRelay::~TeredoRelay (void)
@@ -140,9 +159,7 @@ TeredoRelay::~TeredoRelay (void)
 		libteredo_maintenance_stop (maintenance);
 #endif
 
-	if (fd != -1)
-		teredo_close (fd);
-
+	teredo_close (fd);
 	teredo_list_destroy (list);
 }
 
