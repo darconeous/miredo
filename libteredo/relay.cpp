@@ -545,22 +545,17 @@ int TeredoRelay::ReceivePacket (void)
 		return 0; // malformatted IPv6 packet
 
 #ifdef MIREDO_TEREDO_CLIENT
-	/* FIXME race condition */
-	if (IsClient () && !state.up)
-	{
-		ProcessQualificationPacket (&packet);
-		return 0;
-	}
-
 	/* Maintenance */
 	/* FIXME race condition */
 	if (IsClient () && IsServerPacket (&packet))
 	{
 		if (packet.auth_nonce != NULL)
 		{
-			ProcessMaintenancePacket (&packet);
+			libteredo_maintenance_process (maintenance, &packet);
 			return 0;
 		}
+		if (!state.up)
+			return 0;
 
 		if (packet.orig_ipv4)
 		{
@@ -600,6 +595,8 @@ int TeredoRelay::ReceivePacket (void)
 		 *  comes from the server, we only check the source port)
 		 */
 	}
+	else if (!state.up)
+		return 0;
 #endif /* MIREDO_TEREDO_CLIENT */
 
 	/*
@@ -825,17 +822,6 @@ bool TeredoRelay::IsServerPacket (const teredo_packet *packet) const
 
 	return (packet->source_port == htons (IPPORT_TEREDO))
 	 && ((ip == GetServerIP ()) || (ip == GetServerIP2 ()));
-}
-
-void TeredoRelay::ProcessQualificationPacket (const teredo_packet *packet)
-{
-	if (IsServerPacket (packet))
-		libteredo_maintenance_process (maintenance, packet);
-}
-
-void TeredoRelay::ProcessMaintenancePacket (const teredo_packet *packet)
-{
-	libteredo_maintenance_process (maintenance, packet);
 }
 #endif
 
