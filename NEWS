@@ -43,6 +43,9 @@ BETA RELEASE 0.6.0 : Minor features enhancement, security/bugs fixes
 # Fix Teredo peers list lookup (major bugfix also backported in 0.5.6).
 # Various optimizations and clean up throughout the code.
 # Added some regression tests.
+# Re-resolve server IP address when connectivity fails.
+# Remove chroot by default (prevents DNS resolution without platform
+  specific setup).
 
 =============================================================================
 BETA RELEASE 0.5.4 : Major bugfixes

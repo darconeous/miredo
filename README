@@ -201,9 +201,17 @@ not be able to compromise the whole system.
 
 2) Chroot jail:
 ----------------
-  Chroot jail setup does no longer require manual setup. It is always
-and automatically enabled (unless you used the --disable-chroot
-./configure option).
+  Chroot jail setup can be enabled with the --enable-chroot configure
+option. Note that when using miredo as a Teredo client, you will
+typically have to install your DNS resolver library and configuration
+within the chroot environment, which is why the feature is currently
+disabled by default. On Linux/libc6, that would consist of copying
+/etc/resolv.conf, /etc/nsswitch.conf and the Name Service Switch
+shared objects within the chroot.
+
+  If you intend to use miredo only as a Teredo relay and/or server,
+you should really enable the chroot, as it is safer and should work
+fine "out of the box".
 
 
 3) POSIX capabilities:
