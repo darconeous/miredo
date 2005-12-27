@@ -104,7 +104,7 @@ miredo_privileged_process (struct tun6 *tunnel, bool default_route)
 
 	tun6_bringUp (tunnel);
 
-	while (1)
+	for (;;)
 	{
 		struct miredo_tunnel_settings newcfg;
 		const struct in6_addr *p_newloc;
