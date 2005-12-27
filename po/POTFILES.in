@@ -2,7 +2,7 @@ libteredo/relay.cpp
 libteredo/security.c
 libteredo/server.c
 libteredo/packets.c
-libteredo/maintain.cpp
+libteredo/maintain.c
 libtun6/tun6.c
 src/main.c
 src/miredo.cpp
