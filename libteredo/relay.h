@@ -64,6 +64,15 @@ typedef void (*libteredo_state_down_cb) (libteredo_tunnel *);
 void libteredo_set_state_cb (libteredo_tunnel *t, libteredo_state_up_cb u,
                              libteredo_state_down_cb d);
 
+/* FIXME: should be internal */
+typedef struct teredo_state
+{
+	union teredo_addr addr;
+	uint16_t mtu;
+	bool up;
+	bool cone;
+} teredo_state;
+
 # ifdef __cplusplus
 }
 
@@ -75,16 +84,6 @@ struct teredo_maintenance;
 struct teredo_peerlist;
 class teredo_peer;
 class TeredoRelay;
-
-
-typedef struct teredo_state
-{
-	union teredo_addr addr;
-	uint16_t mtu;
-	bool up;
-	bool cone;
-} teredo_state;
-
 
 
 // big TODO: make all functions re-entrant safe
