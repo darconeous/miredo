@@ -34,6 +34,7 @@
 #include <netinet/in.h>
 #include <unistd.h> /* sleep () */
 
+#include "teredo.h"
 #include "relay.h"
 #include "security.h"
 
