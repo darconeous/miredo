@@ -364,10 +364,12 @@ miredo_run (int sigfd, MiredoConf& conf, const char *cmd_server_name)
 	 || !conf.GetBoolean ("IgnoreConeBit", &ignore_cone))
 	{
 		syslog (LOG_ALERT, _("Fatal configuration error"));
+#ifdef MIREDO_TEREDO_CLIENT
 		if (server_name != NULL)
 			free (server_name);
 		if (server_name2 != NULL)
 			free (server_name2);
+#endif
 		return -2;
 	}
 
@@ -403,10 +405,12 @@ miredo_run (int sigfd, MiredoConf& conf, const char *cmd_server_name)
 		syslog (LOG_ALERT, _("Teredo tunnel fatal error"));
 		syslog (LOG_NOTICE, _("Make sure another instance of the program is "
 		                      "not already running."));
+#ifdef MIREDO_TEREDO_CLIENT
 		if (server_name != NULL)
 			free (server_name);
 		if (server_name2 != NULL)
 			free (server_name2);
+#endif
 		return -1;
 	}
 
@@ -506,12 +510,12 @@ abort:
 
 	tun6_destroy (tunnel);
 
+#ifdef MIREDO_TEREDO_CLIENT
 	if (server_name != NULL)
 		free (server_name);
 	if (server_name2 != NULL)
 		free (server_name2);
 
-#ifdef MIREDO_TEREDO_CLIENT
 	if (fd != -1)
 	{
 		close (fd);
