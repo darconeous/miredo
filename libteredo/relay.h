@@ -161,7 +161,7 @@ class TeredoRelay
 		 *
 		 * TODO: support for secure qualification
 		 */
-		TeredoRelay (uint32_t server_ip, uint32_t server_ip2,
+		TeredoRelay (const char *server, const char *server2,
 		             uint16_t port = 0, uint32_t ipv4 = 0);
 
 	public:

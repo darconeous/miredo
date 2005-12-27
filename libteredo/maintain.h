@@ -31,7 +31,7 @@ typedef void (*teredo_state_change) (const struct teredo_state *s, void *);
 
 teredo_maintenance *
 libteredo_maintenance_start (int fd, teredo_state_change cb, void *opaque,
-                             uint32_t s1, uint32_t s2);
+                             const char *s1, const char *s2);
 void libteredo_maintenance_stop (teredo_maintenance *m);
 void libteredo_maintenance_process (teredo_maintenance *m,
                                     const teredo_packet *packet);

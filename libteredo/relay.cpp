@@ -111,18 +111,14 @@ TeredoRelay::TeredoRelay (uint32_t pref, uint16_t port, uint32_t ipv4,
 
 
 #ifdef MIREDO_TEREDO_CLIENT
-TeredoRelay::TeredoRelay (uint32_t ip, uint32_t ip2,
+TeredoRelay::TeredoRelay (const char *server, const char *server2,
                           uint16_t port, uint32_t ipv4)
 	: allowCone (false), maintenance (NULL)
 {
 	/*syslog (LOG_DEBUG, "Peer size: %u bytes", sizeof (peer));*/
-	if (!is_ipv4_global_unicast (ip) || !is_ipv4_global_unicast (ip2))
-		syslog (LOG_WARNING, _("Server has a non global IPv4 address. "
-		                       "It will most likely not work."));
-
 	state.mtu = 1280;
 	state.addr.teredo.prefix = PREFIX_UNSET;
-	state.addr.teredo.server_ip = ip;
+	state.addr.teredo.server_ip = 0;
 	state.addr.teredo.flags = htons (TEREDO_FLAG_CONE);
 	state.addr.teredo.client_ip = 0;
 	state.addr.teredo.client_port = 0;
@@ -135,7 +131,7 @@ TeredoRelay::TeredoRelay (uint32_t ip, uint32_t ip2,
 		if (list != NULL)
 		{
 			maintenance = libteredo_maintenance_start (fd, StateChange, this,
-			                                           ip, ip2);
+			                                           server, server2);
 			if (maintenance != NULL)
 				return; /* success */
 

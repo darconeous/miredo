@@ -134,7 +134,7 @@ class MiredoRelay : public TeredoRelay
 
 #ifdef MIREDO_TEREDO_CLIENT
 		MiredoRelay (int fd, const tun6 *tun,
-		             uint32_t server_ip, uint32_t server_ip2,
+		             const char *server_ip, const char *server_ip2,
 		             uint16_t port = 0, uint32_t ipv4 = 0)
 			: TeredoRelay (server_ip, server_ip2, port, ipv4), tunnel (tun),
 			  priv_fd (fd)
@@ -156,7 +156,7 @@ class MiredoRelay : public TeredoRelay
 
 		virtual void NotifyDown (void)
 		{
-			NotifyUp (&in6addr_any);
+			miredo_configure_tunnel (priv_fd, &in6addr_any, 1280);
 			syslog (LOG_NOTICE, _("Teredo pseudo-tunnel stopped"));
 		}
 #endif /* ifdef MIREDO_TEREDO_CLIENT */
@@ -277,7 +277,7 @@ ParseRelayType (MiredoConf& conf, const char *name, int *type)
 
 
 extern int
-miredo_run (int sigfd, MiredoConf& conf, const char *server_name)
+miredo_run (int sigfd, MiredoConf& conf, const char *cmd_server_name)
 {
 	int mode = TEREDO_CLIENT;
 	char *ifname = NULL;
@@ -298,7 +298,7 @@ miredo_run (int sigfd, MiredoConf& conf, const char *server_name)
 		0;
 #endif
 #ifdef MIREDO_TEREDO_CLIENT
-	uint32_t server_ip = INADDR_ANY, server_ip2 = INADDR_ANY;
+	char *server_name, *server_name2;
 	bool default_route = true;
 #endif
 	bool ignore_cone = true;
@@ -323,43 +323,24 @@ miredo_run (int sigfd, MiredoConf& conf, const char *server_name)
 			return -2;
 		}
 
-		if (server_name != NULL)
+		if (cmd_server_name != NULL)
 		{
-			int check = GetIPv4ByName (server_name, &server_ip);
-			if (check)
-			{
-				syslog (LOG_ALERT, _("Invalid server hostname \"%s\": %s"),
-				        server_name, gai_strerror (check));
-				syslog (LOG_ALERT, _("Fatal configuration error"));
-				return -2;
-			}
+			server_name = strdup (cmd_server_name);
+			if (cmd_server_name == NULL)
+				return -1;
 		}
 		else
 		{
-			if (!ParseIPv4 (conf, "ServerAddress", &server_ip)
-			 || !ParseIPv4 (conf, "ServerAddress2", &server_ip2))
+			server_name = conf.GetRawValue ("ServerAddress");
+			if (server_name == NULL)
 			{
+				syslog (LOG_ALERT, _("Server address not specified"));
 				syslog (LOG_ALERT, _("Fatal configuration error"));
 				return -2;
 			}
-		}
 
-		if (server_ip == INADDR_ANY)
-		{
-			syslog (LOG_ALERT, _("Server address not specified"));
-			syslog (LOG_ALERT, _("Fatal configuration error"));
-			return -2;
+			server_name2 = conf.GetRawValue ("ServerAddress2");
 		}
-
-		/*
-		 * NOTE:
-		 * While it is not specified in the draft Teredo
-		 * specification, it really seems that the secondary
-		 * server IPv4 address has to be the one just after
-		 * the primary server IPv4 address.
-		 */
-		if (server_ip2 == INADDR_ANY)
-			server_ip2 = htonl (ntohl (server_ip) + 1);
 #else
 		syslog (LOG_ALERT, _("Unsupported Teredo client mode"));
 		syslog (LOG_ALERT, _("Fatal configuration error"));
@@ -383,6 +364,10 @@ miredo_run (int sigfd, MiredoConf& conf, const char *server_name)
 	 || !conf.GetBoolean ("IgnoreConeBit", &ignore_cone))
 	{
 		syslog (LOG_ALERT, _("Fatal configuration error"));
+		if (server_name != NULL)
+			free (server_name);
+		if (server_name2 != NULL)
+			free (server_name2);
 		return -2;
 	}
 
@@ -418,6 +403,10 @@ miredo_run (int sigfd, MiredoConf& conf, const char *server_name)
 		syslog (LOG_ALERT, _("Teredo tunnel fatal error"));
 		syslog (LOG_NOTICE, _("Make sure another instance of the program is "
 		                      "not already running."));
+		if (server_name != NULL)
+			free (server_name);
+		if (server_name2 != NULL)
+			free (server_name2);
 		return -1;
 	}
 
@@ -474,7 +463,7 @@ miredo_run (int sigfd, MiredoConf& conf, const char *server_name)
 		// Sets up client
 		try
 		{
-			relay = new MiredoRelay (fd, tunnel, server_ip, server_ip2,
+			relay = new MiredoRelay (fd, tunnel, server_name, server_name2,
 			                         bind_port, bind_ip);
 		}
 		catch (...)
@@ -516,6 +505,11 @@ abort:
 	MiredoRelay::GlobalDeinit ();
 
 	tun6_destroy (tunnel);
+
+	if (server_name != NULL)
+		free (server_name);
+	if (server_name2 != NULL)
+		free (server_name2);
 
 #ifdef MIREDO_TEREDO_CLIENT
 	if (fd != -1)

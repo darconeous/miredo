@@ -26,7 +26,7 @@
 # include <config.h>
 #endif
 
-#define _XOPEN_SOURCE 600
+#define _GNU_SOURCE
 #include <gettext.h>
 
 #include <string.h> /* memcmp() */
@@ -43,10 +43,13 @@
 #include <time.h>
 #include <sys/time.h>
 #include <netinet/in.h> /* struct in6_addr */
+#include <netdb.h> /* getaddrinfo(), gai_strerror() */
 #include <syslog.h>
-#include <stdlib.h> /* malloc() */
+#include <stdlib.h> /* malloc(), free() */
 #include <errno.h> /* EINTR */
 #include <pthread.h>
+#include <arpa/nameser.h>
+#include <resolv.h> /* res_init() */
 
 #include "teredo.h"
 #include "teredo-udp.h"
@@ -55,6 +58,7 @@
 #include "security.h"
 #include "relay.h" // struct teredo_state
 #include "maintain.h"
+#include "v4global.h" // is_ipv4_global_unicast()
 
 #define QUALIFIED	0
 #define PROBE_CONE	1
@@ -78,12 +82,70 @@ struct teredo_maintenance
 		teredo_state_change cb;
 		void *opaque;
 	} state;
-	uint32_t server;
-	uint32_t server2;
+	char *server;
+	char *server2;
 };
 
 
-/* It is assumed that the calling thread holds the maintenance lock */
+static int getipv4byname (const char *name, uint32_t *ipv4)
+{
+	struct addrinfo hints = { }, *res;
+	int val;
+
+	hints.ai_family = AF_INET;
+	hints.ai_socktype = SOCK_DGRAM;
+
+	val = getaddrinfo (name, NULL, &hints, &res);
+	if (val)
+		return val;
+
+	memcpy (ipv4, &((const struct sockaddr_in *)(res->ai_addr))->sin_addr, 4);
+	freeaddrinfo (res);
+
+	return 0;
+}
+
+
+/**
+ * Resolve Teredo server addresses.
+ *
+ * @return 0 on success, or an error value as defined for getaddrinfo().
+ */
+static int resolveServerIP (const char *server, uint32_t *server_ip,
+                            const char *server2, uint32_t *server_ip2)
+{
+	int val;
+
+	/* Connectivity might have been reconfigured (DHCP...), and our DNS
+	 * servers might no longer be those they were when the program started.
+	 * As such, we call res_init() to re-read /etc/resolv.conf.
+	 */
+	res_init ();
+
+	val = getipv4byname (server, server_ip);
+	if (val)
+		return val;
+
+	if ((server2 == NULL)
+	 || getipv4byname (server2, server_ip2)
+	 || (server_ip2 == server_ip))
+		/*
+		 * NOTE:
+		 * While not specified anywhere, Windows XP/2003 seems to always
+		 * use the "next" IPv4 address as the secondary address.
+		 * We use as default, or as a replacement in case of error.
+		 */
+		*server_ip2 = htonl (ntohl (*server_ip) + 1);
+
+	return 0;
+}
+
+
+/**
+ * Checks and parses a received Router Advertisement.
+ *
+ * @return true if successful.
+ */
 static bool
 maintenance_recv (const teredo_packet *packet, uint32_t server_ip,
                   uint8_t *nonce, bool cone, uint16_t *mtu,
@@ -164,6 +226,7 @@ static inline void maintenance_thread (teredo_maintenance *m)
 	} nonce = { { 0, 0 } };
 	struct timespec deadline = { 0, 0 };
 	teredo_state *c_state = &m->state.state;
+	uint32_t server_ip = 0, server_ip2 = 0;
 	unsigned count = 0;
 	int state = PROBE_CONE;
 
@@ -176,6 +239,11 @@ static inline void maintenance_thread (teredo_maintenance *m)
 	pthread_cleanup_push (cleanup_unlock, &m->lock);
 	while (1)
 	{
+		int val;
+		unsigned sleep = 0;
+		union teredo_addr newaddr;
+		uint16_t mtu = 1280;
+
 		if (deadline.tv_sec >= nonce.expiry.tv_sec)
 		{
 			/* The lifetime of the nonce is not second-critical
@@ -192,18 +260,40 @@ static inline void maintenance_thread (teredo_maintenance *m)
 			nonce.expiry.tv_sec += ServerNonceLifetime;
 		}
 
+		/* Resolve server IPv4 addresses */
+		if (server_ip == 0)
+		{
+			val = resolveServerIP (m->server, &server_ip,
+			                       m->server2, &server_ip2);
+			if (val)
+			{
+				syslog (LOG_ERR,
+				        _("Cannot resolve Teredo server address \"%s\": %s"),
+				        m->server, gai_strerror (val));
+				sleep = RestartDelay;
+				goto sleep;
+			}
+
+			if (!is_ipv4_global_unicast (server_ip)
+			 || !is_ipv4_global_unicast (server_ip2))
+				syslog (LOG_WARNING, _("Server has a non global IPv4 address. "
+				                       "It will most likely not work."));
+
+			/* Tells Teredo client about the new server's IP */
+			assert (!c_state->up);
+			c_state->addr.teredo.server_ip = server_ip;
+			m->state.cb (c_state, m->state.opaque);
+		}
+
 		/* SEND ROUTER SOLICATION */
 		do
 			deadline.tv_sec += QualificationTimeOut;
 		while (!checkTimeDrift (&deadline));
 
-		SendRS (m->fd, (state == PROBE_RESTRICT) ? m->server2 : m->server,
+		SendRS (m->fd, (state == PROBE_RESTRICT) ? server_ip2 : server_ip,
 		        nonce.value, c_state->cone);
 
 		/* RECEIVE ROUTER ADVERTISEMENT */
-		union teredo_addr newaddr;
-		int val;
-		uint16_t mtu = 1280;
 		do
 		{
 			val = pthread_cond_timedwait (&m->received, &m->lock, &deadline);
@@ -212,8 +302,7 @@ static inline void maintenance_thread (teredo_maintenance *m)
 			{
 				bool accept;
 				/* check received packet */
-				accept = maintenance_recv (m->incoming,
-				                           m->server,
+				accept = maintenance_recv (m->incoming, server_ip,
 				                           nonce.value, c_state->cone,
 				                           &mtu, &newaddr);
 
@@ -223,8 +312,6 @@ static inline void maintenance_thread (teredo_maintenance *m)
 			}
 		}
 		while (val == EINTR);
-
-		unsigned sleep = 0;
 
 		/* UPDATE FINITE STATE MACHINE */
 		if (val)
@@ -242,6 +329,7 @@ static inline void maintenance_thread (teredo_maintenance *m)
 					syslog (LOG_NOTICE, _("Lost Teredo connectivity"));
 					c_state->up = false;
 					m->state.cb (c_state, m->state.opaque);
+					server_ip = 0;
 				}
 
 				count = 0;
@@ -316,6 +404,7 @@ static inline void maintenance_thread (teredo_maintenance *m)
 				break;
 		}
 
+sleep:
 		/* WAIT UNTIL NEXT SOLICITATION */
 		/* TODO refresh interval optimization */
 		/* TODO: watch for new interface events
@@ -354,7 +443,7 @@ static void *do_maintenance (void *opaque)
  */
 teredo_maintenance *
 libteredo_maintenance_start (int fd, teredo_state_change cb, void *opaque,
-                             uint32_t s1, uint32_t s2)
+                             const char *s1, const char *s2)
 {
 	int err;
 	teredo_maintenance *m = (teredo_maintenance *)malloc (sizeof (*m));
@@ -366,8 +455,26 @@ libteredo_maintenance_start (int fd, teredo_state_change cb, void *opaque,
 	m->fd = fd;
 	m->state.cb = cb;
 	m->state.opaque = opaque;
-	m->server = s1;
-	m->server2 = s2;
+	m->server = strdup (s1);
+
+	if (m->server == NULL)
+	{
+		free (m);
+		return NULL;
+	}
+
+	if (s2 != NULL)
+	{
+		m->server2 = strdup (s2);
+		if (m->server2 == NULL)
+		{
+			free (m->server);
+			free (m);
+			return NULL;
+		}
+	}
+	else
+		m->server2 = NULL;
 
 	err = pthread_mutex_init (&m->lock, NULL);
 	if (err == 0)
@@ -390,6 +497,10 @@ libteredo_maintenance_start (int fd, teredo_state_change cb, void *opaque,
 	}
 	syslog (LOG_ALERT, _("Error (%s): %s\n"), "pthread_create",
 	        strerror (err));
+
+	if (m->server2 != NULL)
+		free (m->server2);
+	free (m->server);
 	free (m);
 	return NULL;
 }
@@ -404,6 +515,9 @@ void libteredo_maintenance_stop (teredo_maintenance *m)
 	pthread_join (m->thread, NULL);
 	pthread_cond_destroy (&m->received);
 	pthread_mutex_destroy (&m->lock);
+	if (m->server2 != NULL)
+		free (m->server2);
+	free (m->server);
 	free (m);
 }
 
