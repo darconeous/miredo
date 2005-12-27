@@ -104,10 +104,8 @@ TeredoRelay::TeredoRelay (uint32_t pref, uint16_t port, uint32_t ipv4,
 
 TeredoRelay::TeredoRelay (uint32_t ip, uint32_t ip2,
                           uint16_t port, uint32_t ipv4)
-	: allowCone (false)
+	: allowCone (false), maintenance (NULL)
 {
-	maintenance = new teredo_maintenance;
-	maintenance->state = &state;
 
 	/*syslog (LOG_DEBUG, "Peer size: %u bytes", sizeof (peer));*/
 	if (!is_ipv4_global_unicast (ip) || !is_ipv4_global_unicast (ip2))
@@ -125,18 +123,11 @@ TeredoRelay::TeredoRelay (uint32_t ip, uint32_t ip2,
 	server_ip2 = ip2;
 
 	list = teredo_list_create (MaxPeers);
+	/* FIXME: don't assume teredo_list_create succeeds */
+	maintenance = libteredo_maintenance_start (this, &state);
+	/* FIXME: don't assume maintenance succeeds */
 
-	maintenance->relay = NULL;
 	fd = teredo_socket (ipv4, port);
-	if (fd != -1)
-	{
-		maintenance->relay = this;
-		if (libteredo_maintenance_start (maintenance))
-		{
-			delete maintenance;
-			maintenance = NULL;
-		}
-	}
 
 #endif /* ifdef MIREDO_TEREDO_CLIENT */
 }
@@ -147,8 +138,6 @@ TeredoRelay::~TeredoRelay (void)
 #ifdef MIREDO_TEREDO_CLIENT
 	if (maintenance != NULL)
 		libteredo_maintenance_stop (maintenance);
-
-	delete maintenance;
 #endif
 
 	if (fd != -1)

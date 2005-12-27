@@ -22,18 +22,17 @@
 #ifndef MIREDO_LIBTEREDO_MAINTAIN_H
 # define MIREDO_LIBTEREDO_MAINTAIN_H
 
-struct teredo_maintenance;
-
 # ifdef __cplusplus
 extern "C" {
 # endif
 
-int libteredo_maintenance_start (struct teredo_maintenance *);
-void libteredo_maintenance_stop (struct teredo_maintenance *);
+typedef struct teredo_maintenance teredo_maintenance;
+
+teredo_maintenance *libteredo_maintenance_start (void *r,
+                                                 struct teredo_state *s);
+void libteredo_maintenance_stop (struct teredo_maintenance *m);
 void libteredo_maintenance_process (struct teredo_maintenance *m,
                                     const teredo_packet *packet);
-
-typedef struct teredo_maintenance teredo_maintenance;
 
 # ifdef __cplusplus
 }

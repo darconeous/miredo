@@ -76,6 +76,8 @@ struct in6_addr;
 
 struct teredo_packet;
 struct teredo_maintenance;
+struct teredo_peerlist;
+class teredo_peer;
 class TeredoRelay;
 
 
@@ -87,23 +89,7 @@ typedef struct teredo_state
 	bool cone;
 } teredo_state;
 
-#ifdef MIREDO_TEREDO_CLIENT
-typedef struct teredo_maintenance
-{
-	pthread_t thread;
-	pthread_mutex_t lock;
-	pthread_cond_t received;
-	const teredo_packet *incoming;
-	pthread_barrier_t processed;
-	TeredoRelay *relay; /* FIXME: provisional */
 
-	teredo_state *state;
-} teredo_maintenance;
-#endif
-
-
-class teredo_peer;
-struct teredo_peerlist;
 
 // big TODO: make all functions re-entrant safe
 //           make all functions thread-safe
@@ -123,7 +109,7 @@ class TeredoRelay
 		teredo_state state;
 
 #ifdef MIREDO_TEREDO_CLIENT
-		teredo_maintenance *maintenance;
+		struct teredo_maintenance *maintenance;
 		uint32_t server_ip2;
 
 		int PingPeer (const struct in6_addr *addr, teredo_peer *p) const;

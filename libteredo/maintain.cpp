@@ -42,6 +42,7 @@
 #include <sys/time.h>
 #include <netinet/in.h> /* struct in6_addr */
 #include <syslog.h>
+#include <stdlib.h> /* malloc() */
 #include <errno.h> /* EINTR */
 
 #include "teredo.h"
@@ -50,12 +51,26 @@
 
 #include "security.h"
 #include "relay.h"
+#include "maintain.h"
 
 #define QUALIFIED	0
 #define PROBE_CONE	1
 #define PROBE_RESTRICT	2
 #define PROBE_SYMMETRIC	3
 #define NOT_RUNNING	(-1)
+
+
+typedef struct teredo_maintenance
+{
+	pthread_t thread;
+	pthread_mutex_t lock;
+	pthread_cond_t received;
+	const teredo_packet *incoming;
+	pthread_barrier_t processed;
+	TeredoRelay *relay; /* FIXME: provisional */
+
+	teredo_state *state;
+} teredo_maintenance;
 
 
 /* It is assumed that the calling thread holds the maintenance lock */
@@ -321,9 +336,17 @@ static void *do_maintenance (void *opaque)
 }
 
 extern "C"
-int libteredo_maintenance_start (struct teredo_maintenance *m)
+teredo_maintenance *libteredo_maintenance_start (void *r,
+                                                 struct teredo_state *s)
 {
 	int err;
+	teredo_maintenance *m = (teredo_maintenance *)malloc (sizeof (*m));
+
+	if (m == NULL)
+		return NULL;
+	memset (m, 0, sizeof (*m));
+	m->state = s;
+	m->relay = (TeredoRelay *)r;
 
 	err = pthread_mutex_init (&m->lock, NULL);
 	if (err == 0)
@@ -336,7 +359,7 @@ int libteredo_maintenance_start (struct teredo_maintenance *m)
 			{
 				err = pthread_create (&m->thread, NULL, do_maintenance, m);
 				if (err == 0)
-					return 0;
+					return m;
 
 				pthread_barrier_destroy (&m->processed);
 			}
@@ -346,7 +369,8 @@ int libteredo_maintenance_start (struct teredo_maintenance *m)
 	}
 	syslog (LOG_ALERT, _("Error (%s): %s\n"), "pthread_create",
 	        strerror (err));
-	return 0;
+	free (m);
+	return NULL;
 }
 
 extern "C"
@@ -356,6 +380,7 @@ void libteredo_maintenance_stop (struct teredo_maintenance *m)
 	pthread_join (m->thread, NULL);
 	pthread_cond_destroy (&m->received);
 	pthread_mutex_destroy (&m->lock);
+	free (m);
 }
 
 
