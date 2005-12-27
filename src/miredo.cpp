@@ -223,6 +223,7 @@ miredo (const char *confpath, const char *server_name, int pidfd)
 			facility = newfac;
 			openlog (ident, LOG_PID, facility);
 		}
+		syslog (LOG_INFO, _("Starting..."));
 
 		// Starts the main miredo process
 		pid_t pid = fork ();
