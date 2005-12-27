@@ -102,7 +102,6 @@ class TeredoRelay
 
 #ifdef MIREDO_TEREDO_CLIENT
 		struct teredo_maintenance *maintenance;
-		uint32_t server_ip2;
 
 		int PingPeer (const struct in6_addr *addr, teredo_peer *p) const;
 
@@ -190,11 +189,6 @@ class TeredoRelay
 		uint32_t GetServerIP (void) const
 		{
 			return state.addr.teredo.server_ip;
-		}
-
-		uint32_t GetServerIP2 (void) const
-		{
-			return server_ip2;
 		}
 
 		/*static unsigned QualificationRetries;

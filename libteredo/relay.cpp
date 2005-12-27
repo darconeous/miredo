@@ -91,7 +91,6 @@ TeredoRelay::TeredoRelay (uint32_t pref, uint16_t port, uint32_t ipv4,
 	state.addr.teredo.client_ip = ~ipv4;
 
 #ifdef MIREDO_TEREDO_CLIENT
-	server_ip2 = 0;
 	maintenance = NULL;
 #endif
 
@@ -128,8 +127,6 @@ TeredoRelay::TeredoRelay (uint32_t ip, uint32_t ip2,
 	state.addr.teredo.client_ip = 0;
 	state.addr.teredo.client_port = 0;
 	state.up = false;
-
-	server_ip2 = ip2;
 
 	fd = teredo_socket (ipv4, port);
 	if (fd != -1)
