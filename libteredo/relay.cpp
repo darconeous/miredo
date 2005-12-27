@@ -225,6 +225,7 @@ TeredoRelay::EmitICMPv6Error (const void *packet, size_t length,
 void TeredoRelay::StateChange (const teredo_state *state, void *self)
 {
 	TeredoRelay *r = (TeredoRelay *)self;
+	bool previously_up = r->state.up;
 
 	/* write lock */
 	memcpy (&r->state, state, sizeof (r->state));
@@ -232,6 +233,7 @@ void TeredoRelay::StateChange (const teredo_state *state, void *self)
 	if (r->state.up)
 		r->NotifyUp (&r->state.addr.ip6, r->state.mtu);
 	else
+	if (previously_up)
 		r->NotifyDown ();
 }
 
