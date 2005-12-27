@@ -51,7 +51,7 @@
 #include "packets.h"
 
 #include "security.h"
-#include "relay.h"
+#include "relay.h" // struct teredo_state
 #include "maintain.h"
 
 #define QUALIFIED	0
@@ -68,9 +68,16 @@ typedef struct teredo_maintenance
 	pthread_cond_t received;
 	const teredo_packet *incoming;
 	pthread_barrier_t processed;
-	TeredoRelay *relay; /* FIXME: provisional */
 
-	teredo_state *state;
+	int fd;
+	struct
+	{
+		teredo_state state;
+		teredo_state_change cb;
+		void *opaque;
+	} state;
+	uint32_t server;
+	uint32_t server2;
 } teredo_maintenance;
 
 
@@ -96,7 +103,7 @@ maintenance_recv (const teredo_packet *packet, uint32_t server_ip,
 
 	if (ParseRA (packet, newaddr, cone, mtu)
 	/* TODO: try to work-around incorrect server IP */
-	 || (newaddr->teredo.server_ip != server_ip /*GetServerIP ()*/))
+	 || (newaddr->teredo.server_ip != server_ip))
 		return false;
 
 	/* Valid router advertisement received! */
@@ -104,8 +111,10 @@ maintenance_recv (const teredo_packet *packet, uint32_t server_ip,
 }
 
 
-/* Make sure tv is in the future. If not set it to the current time.
- * Returns false if *tv was changed. */
+/**
+ * Make sure tv is in the future. If not, set it to the current time.
+ * @return false if (*tv) was changed, true otherwise.
+ */
 static bool
 checkTimeDrift (struct timespec *tv)
 {
@@ -141,7 +150,9 @@ static unsigned QualificationRetries = 3;
 static unsigned ServerNonceLifetime = 3600; // seconds
 static unsigned RestartDelay = 100; // seconds
 
-
+/**
+ * Teredo client maintenance procedure
+ */
 static inline void maintenance_thread (teredo_maintenance *m)
 {
 	struct
@@ -150,7 +161,7 @@ static inline void maintenance_thread (teredo_maintenance *m)
 		struct timeval expiry;
 	} nonce = { { 0, 0 } };
 	struct timespec deadline = { 0, 0 };
-	teredo_state *c_state = m->state;
+	teredo_state *c_state = &m->state.state;
 	unsigned count = 0;
 	int state = PROBE_CONE;
 
@@ -184,8 +195,7 @@ static inline void maintenance_thread (teredo_maintenance *m)
 			deadline.tv_sec += QualificationTimeOut;
 		while (!checkTimeDrift (&deadline));
 
-		SendRS (m->relay->fd, state == PROBE_RESTRICT /* secondary */
-		        	? m->relay->GetServerIP2 () : m->relay->GetServerIP (),
+		SendRS (m->fd, (state == PROBE_RESTRICT) ? m->server2 : m->server,
 		        nonce.value, c_state->cone);
 
 		/* RECEIVE ROUTER ADVERTISEMENT */
@@ -201,7 +211,7 @@ static inline void maintenance_thread (teredo_maintenance *m)
 				bool accept;
 				/* check received packet */
 				accept = maintenance_recv (m->incoming,
-				                           m->relay->GetServerIP (),
+				                           m->server,
 				                           nonce.value, c_state->cone,
 				                           &mtu, &newaddr);
 
@@ -229,7 +239,7 @@ static inline void maintenance_thread (teredo_maintenance *m)
 				{
 					syslog (LOG_NOTICE, _("Lost Teredo connectivity"));
 					c_state->up = false;
-					m->relay->NotifyDown ();
+					m->state.cb (c_state, m->state.opaque);
 				}
 
 				count = 0;
@@ -264,8 +274,7 @@ static inline void maintenance_thread (teredo_maintenance *m)
 					c_state->mtu = mtu;
 		
 					syslog (LOG_NOTICE, _("Teredo address/MTU changed"));
-					m->relay->NotifyUp (&newaddr.ip6, mtu);
-					c_state->up = true;
+					m->state.cb (c_state, m->state.opaque);
 				}
 				break;
 
@@ -288,7 +297,7 @@ static inline void maintenance_thread (teredo_maintenance *m)
 					sleep = RestartDelay;
 					break;
 				}
-
+				/* DO NOT break; */
 			case PROBE_CONE:
 				syslog (LOG_INFO, _("Qualified (NAT type: %s)"),
 				        gettext (c_state->cone
@@ -297,8 +306,8 @@ static inline void maintenance_thread (teredo_maintenance *m)
 				state = QUALIFIED;
 				memcpy (&c_state->addr, &newaddr, sizeof (c_state->addr));
 				c_state->mtu = mtu;
-				m->relay->NotifyUp (&newaddr.ip6, mtu);
 				c_state->up = true;
+				m->state.cb (c_state, m->state.opaque);
 
 				/* Success: schedule NAT binding maintenance */
 				sleep = SERVER_PING_DELAY;
@@ -336,18 +345,27 @@ static void *do_maintenance (void *opaque)
 	return NULL;
 }
 
-extern "C"
-teredo_maintenance *libteredo_maintenance_start (void *r,
-                                                 struct teredo_state *s)
+/**
+ * Creates and starts a Teredo client maintenance procedure thread
+ *
+ * @return NULL on error.
+ */
+extern "C" teredo_maintenance *
+libteredo_maintenance_start (int fd, teredo_state_change cb, void *opaque,
+                             uint32_t s1, uint32_t s2)
 {
 	int err;
 	teredo_maintenance *m = (teredo_maintenance *)malloc (sizeof (*m));
 
 	if (m == NULL)
 		return NULL;
+
 	memset (m, 0, sizeof (*m));
-	m->state = s;
-	m->relay = (TeredoRelay *)r;
+	m->fd = fd;
+	m->state.cb = cb;
+	m->state.opaque = opaque;
+	m->server = s1;
+	m->server2 = s2;
 
 	err = pthread_mutex_init (&m->lock, NULL);
 	if (err == 0)
@@ -374,8 +392,12 @@ teredo_maintenance *libteredo_maintenance_start (void *r,
 	return NULL;
 }
 
+/**
+ * Stops and destroys a maintenance thread created by
+ * libteredo_maintenance_start()
+ */
 extern "C"
-void libteredo_maintenance_stop (struct teredo_maintenance *m)
+void libteredo_maintenance_stop (teredo_maintenance *m)
 {
 	pthread_cancel (m->thread);
 	pthread_join (m->thread, NULL);
@@ -385,9 +407,11 @@ void libteredo_maintenance_stop (struct teredo_maintenance *m)
 }
 
 
-/* Handle router advertisement for qualification */
+/**
+ * Passes a Teredo packet to a maintenance thread for processing.
+ */
 extern "C"
-void libteredo_maintenance_process (struct teredo_maintenance *m,
+void libteredo_maintenance_process (teredo_maintenance *m,
                                     const teredo_packet *packet)
 {
 	(void)pthread_mutex_lock (&m->lock);

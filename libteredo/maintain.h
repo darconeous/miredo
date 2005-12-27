@@ -27,11 +27,13 @@ extern "C" {
 # endif
 
 typedef struct teredo_maintenance teredo_maintenance;
+typedef void (*teredo_state_change) (const struct teredo_state *s, void *);
 
-teredo_maintenance *libteredo_maintenance_start (void *r,
-                                                 struct teredo_state *s);
-void libteredo_maintenance_stop (struct teredo_maintenance *m);
-void libteredo_maintenance_process (struct teredo_maintenance *m,
+teredo_maintenance *
+libteredo_maintenance_start (int fd, teredo_state_change cb, void *opaque,
+                             uint32_t s1, uint32_t s2);
+void libteredo_maintenance_stop (teredo_maintenance *m);
+void libteredo_maintenance_process (teredo_maintenance *m,
                                     const teredo_packet *packet);
 
 # ifdef __cplusplus

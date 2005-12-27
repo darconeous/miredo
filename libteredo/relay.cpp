@@ -116,7 +116,6 @@ TeredoRelay::TeredoRelay (uint32_t ip, uint32_t ip2,
                           uint16_t port, uint32_t ipv4)
 	: allowCone (false), maintenance (NULL)
 {
-
 	/*syslog (LOG_DEBUG, "Peer size: %u bytes", sizeof (peer));*/
 	if (!is_ipv4_global_unicast (ip) || !is_ipv4_global_unicast (ip2))
 		syslog (LOG_WARNING, _("Server has a non global IPv4 address. "
@@ -138,7 +137,8 @@ TeredoRelay::TeredoRelay (uint32_t ip, uint32_t ip2,
 		list = teredo_list_create (MaxPeers);
 		if (list != NULL)
 		{
-			maintenance = libteredo_maintenance_start (this, &state);
+			maintenance = libteredo_maintenance_start (fd, StateChange, this,
+			                                           ip, ip2);
 			if (maintenance != NULL)
 				return; /* success */
 
@@ -229,6 +229,19 @@ TeredoRelay::EmitICMPv6Error (const void *packet, size_t length,
 
 
 #ifdef MIREDO_TEREDO_CLIENT
+void TeredoRelay::StateChange (const teredo_state *state, void *self)
+{
+	TeredoRelay *r = (TeredoRelay *)self;
+
+	/* write lock */
+	memcpy (&r->state, state, sizeof (r->state));
+	/* write unlock */
+	if (r->state.up)
+		r->NotifyUp (&r->state.addr.ip6, r->state.mtu);
+	else
+		r->NotifyDown ();
+}
+
 /*
  * Returns 0 if a ping may be sent, -1 if no more ping may be sent,
  * 1 if a ping may be sent later.

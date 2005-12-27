@@ -91,13 +91,10 @@ typedef struct teredo_state
 //           make all functions thread-safe
 class TeredoRelay
 {
+	public: /* FIXME public because of teredo_list */
+		int fd;
 	private:
 		struct teredo_peerlist *list;
-
-	public: /* FIXME: temporarily public */
-		int fd;
-
-	private:
 		bool allowCone;
 
 		void SendUnreach (int code, const void *in, size_t inlen);
@@ -110,7 +107,6 @@ class TeredoRelay
 
 		int PingPeer (const struct in6_addr *addr, teredo_peer *p) const;
 
-	public: /* FIXME: callbacks temporarily public */
 		/*
 		 * Tries to define the Teredo client IPv6 address. This is an
 		 * indication that the Teredo tunneling interface is ready.
@@ -132,8 +128,12 @@ class TeredoRelay
 		 */
 		virtual void NotifyDown (void) { }
 
+		static void StateChange (const teredo_state *, void *self);
 #endif
-	public: /* FIXME: temporarily public callback */
+		virtual void EmitICMPv6Error (const void *packet, size_t length,
+		                              const struct in6_addr *dst);
+
+	public: /* FIXME: temporarily public callback because of teredo_list */
 
 		/*** Callbacks ***/
 		/*
@@ -142,10 +142,6 @@ class TeredoRelay
 		 * Returns 0 on success, -1 on error.
 		 */
 		virtual int SendIPv6Packet (const void *packet, size_t length) = 0;
-
-	private:
-		virtual void EmitICMPv6Error (const void *packet, size_t length,
-		                              const struct in6_addr *dst);
 
 	protected:
 		/*
