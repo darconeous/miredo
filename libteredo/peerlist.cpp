@@ -173,6 +173,7 @@ void teredo_list_destroy (teredo_peerlist *l)
 		delete p;
 		p = buf;
 	}
+	free (l);
 }
 
 /**
