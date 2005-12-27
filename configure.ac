@@ -138,9 +138,11 @@ AS_IF([test "x${enable_teredo_client}" != "xno"],
 AC_MSG_CHECKING([directory to chroot to])
 AC_ARG_ENABLE(chroot,
 	      [AS_HELP_STRING(--enable-chroot,
-	      		      [path to chroot to (PREFIX/var/run/miredo by default)])])
-AS_IF([test "x${enable_chroot}" = "x" || test "${enable_chroot}" = "yes"],
+	      		      [path to chroot to (disabled by default)])])
+AS_IF([test "${enable_chroot}" = "yes"],
 	[enable_chroot='${localstatedir}/run/miredo'])
+AS_IF([test "${enable_chroot}" = ""],
+	[enable_chroot=no])
 AM_CONDITIONAL(MIREDO_CHROOT, [test "${enable_chroot}" != "no"])
 AS_IF([test "${enable_chroot}" != "no"],
 	[AC_SUBST(miredo_chroot, "${enable_chroot}")

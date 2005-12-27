@@ -21,8 +21,6 @@ Important features & fixes:
 (*) Metric support on BSD
 (!) improve unreachable messages generation timings
     (should wait e.g. 1 second)
-(!) retry DNS lookup when server stops responding
-    (needs removal of chroot though)
 
 Not so important features:
 ---------------------------
@@ -59,7 +57,7 @@ Performance/scalibility:
 Portability:
 -------------
 (H) big-endianess compatibility tests
-(H) byte alignement tests on problematic platforms (not i386!)
+(H) byte alignement tests on problematic platforms (not i386)
 (H) Solaris support & tests
 (H) Darwin tests
 
