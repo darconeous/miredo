@@ -283,13 +283,13 @@ int teredo_peer::CountPing (void)
 }
 
 
-int
-TeredoRelay::PingPeer (const struct in6_addr *a, teredo_peer *p) const
+static int PingPeer (int fd, teredo_peer *p,
+                     const union teredo_addr *src, const struct in6_addr *dst)
 {
 	int res = p->CountPing ();
-	/* FIXME race condition */
+	
 	if (res == 0)
-		return SendPing (fd, &state.addr, a);
+		return SendPing (fd, src, dst);
 	return res;
 }
 #endif
@@ -478,7 +478,7 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 		}
 
 		p->QueueOutgoing (packet, length);
-		if (PingPeer (&dst->ip6, p) == -1)
+		if (PingPeer (fd, p, &s.addr, &dst->ip6) == -1)
 			SendUnreach (ICMP6_DST_UNREACH_ADDR, packet, length);
 
 		teredo_list_release (list);
@@ -584,7 +584,6 @@ int TeredoRelay::ReceivePacket (void)
 
 #ifdef MIREDO_TEREDO_CLIENT
 	/* Maintenance */
-	/* FIXME race condition */
 	if (IsClient () && (packet.source_port == htons (IPPORT_TEREDO)))
 	{
 		if (packet.auth_nonce != NULL)
@@ -844,7 +843,7 @@ int TeredoRelay::ReceivePacket (void)
 		p->QueueIncoming (buf, length);
 		p->TouchReceive ();
 	
-		int res = PingPeer (&ip6.ip6_src, p) ? -1 : 0;
+		int res = PingPeer (fd, p, &s.addr, &ip6.ip6_src) ? -1 : 0;
 		teredo_list_release (list);
 		return res;
 	}

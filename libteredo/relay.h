@@ -101,8 +101,6 @@ class TeredoRelay
 #ifdef MIREDO_TEREDO_CLIENT
 		struct teredo_maintenance *maintenance;
 
-		int PingPeer (const struct in6_addr *addr, teredo_peer *p) const;
-
 		/*** Callbacks ***/
 
 		/*
