@@ -31,7 +31,7 @@
 #include <sys/types.h>
 #include <netinet/in.h> // ntohl()
 
-#include <libteredo/v4global.h>
+#include "v4global.h"
 
 /*
  * Checks that ip is a global unicast IPv4 address
