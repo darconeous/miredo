@@ -526,13 +526,13 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 			* Open the return path if we are behind a
 			* restricted NAT.
 			*/
-			if (!IsCone () && SendBubbleFromDst (fd, &dst->ip6, false, false))
+			if ((!s.cone) && SendBubbleFromDst (fd, &dst->ip6, false, false))
 			{
 				teredo_list_release (list);
 				return -1;
 			}
 	
-			int res = SendBubbleFromDst (fd, &dst->ip6, IsCone (), true);
+			int res = SendBubbleFromDst (fd, &dst->ip6, s.cone, true);
 			teredo_list_release (list);
 			return res;
 		}

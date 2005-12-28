@@ -198,20 +198,10 @@ class TeredoRelay
 		static unsigned MaxQueueBytes;
 		static unsigned IcmpRateLimitMs;
 
-		/*
-		 * Returns true if the relay/client is behind a cone NAT.
-		 * The result is not meaningful if the client is not fully
-		 * qualified.
-		 */
-		bool IsCone (void) const
-		{
-			return state.cone;
-		}
-
 		bool IsRelay (void) const
 		{
 #ifdef MIREDO_TEREDO_CLIENT
-			return GetServerIP () == 0;
+			return maintenance == NULL;
 #else
 			return true;
 #endif
@@ -219,7 +209,11 @@ class TeredoRelay
 
 		bool IsClient (void) const
 		{
-			return !IsRelay ();
+#ifdef MIREDO_TEREDO_CLIENT
+			return maintenance != NULL;
+#else
+			return false;
+#endif
 		}
 
 		void SetConeIgnore (bool ignore = true)
