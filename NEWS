@@ -1,5 +1,5 @@
 RELEASE NOTES for Miredo
-version 0.6.0 (beta version)
+version 0.7.0 (beta version)
 =============================
 $Id$
 
@@ -26,7 +26,7 @@ changes, run 'miredo -h' to get help. For detailled internal changes, see
 ChangeLog.
 
 =============================================================================
-BETA RELEASE 0.6.0 : Minor features enhancement, security/bugs fixes
+BETA RELEASE 0.7.0 : Minor features enhancement, security/bugs fixes
 
 # Make efforts to retry sending UDP packets in case of ICMP failure.
 # Partially rewritten IPv6 tunneling driver; now supports Darwin (Mac OS X).
@@ -46,6 +46,7 @@ BETA RELEASE 0.6.0 : Minor features enhancement, security/bugs fixes
 # Re-resolve server IP address when connectivity fails.
 # Remove chroot by default (prevents DNS resolution without platform
   specific setup).
+# Fix minor race condition that "never happens" in Teredo client.
 
 =============================================================================
 BETA RELEASE 0.5.4 : Major bugfixes
