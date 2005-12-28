@@ -599,7 +599,7 @@ int TeredoRelay::ReceivePacket (void)
 			return 0;
 		}
 		else
-		if (packet.source_ipv4 != GetServerIP ())
+		if (packet.source_ipv4 != s.addr.teredo.server_ip)
 		{
 			/* Not from primary server IPv4 address
 			   -> force normal packet reception */

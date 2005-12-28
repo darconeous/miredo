@@ -184,11 +184,6 @@ class TeredoRelay
 		int ReceivePacket ();
 
 #ifdef MIREDO_TEREDO_CLIENT
-		uint32_t GetServerIP (void) const
-		{
-			return state.addr.teredo.server_ip;
-		}
-
 		/*static unsigned QualificationRetries;
 		static unsigned QualificationTimeOut;
 		static unsigned ServerNonceLifetime;
