@@ -60,9 +60,6 @@
 
 #define TEREDO_TIMEOUT 30 // seconds
 
-// is_valid_teredo_prefix (PREFIX_UNSET) MUST return false
-#define PREFIX_UNSET 0xffffffff
-
 unsigned TeredoRelay::MaxPeers = 1024;
 
 
@@ -116,13 +113,7 @@ TeredoRelay::TeredoRelay (const char *server, const char *server2,
 	: allowCone (false), maintenance (NULL)
 {
 	/*syslog (LOG_DEBUG, "Peer size: %u bytes", sizeof (peer));*/
-	state.mtu = 1280;
-	state.addr.teredo.prefix = PREFIX_UNSET;
-	state.addr.teredo.server_ip = 0;
-	state.addr.teredo.flags = htons (TEREDO_FLAG_CONE);
-	state.addr.teredo.client_ip = 0;
-	state.addr.teredo.client_port = 0;
-	state.up = false;
+	memset (&state, 0, sizeof (state));
 
 	fd = teredo_socket (ipv4, port);
 	if (fd != -1)
@@ -382,7 +373,7 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 #ifdef MIREDO_TEREDO_CLIENT
 	else
 	{
-		if (prefix == PREFIX_UNSET) /* not qualified */
+		if (!state.up) /* not qualified */
 		{
 			SendUnreach (ICMP6_DST_UNREACH_ADDR, packet, length);
 			return 0;
