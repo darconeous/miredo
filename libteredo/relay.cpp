@@ -205,6 +205,7 @@ TeredoRelay::EmitICMPv6Error (const void *packet, size_t length,
 	/* TODO should be implemented with BuildIPv6Error() */
 	/* that is currently dead code */
 #if 0
+	/* F-I-X-M-E: using state implies locking */
 	size_t outlen = BuildIPv6Error (&buf.hdr, &state.addr.ip6,
 	                                ICMP6_DST_UNREACH, code, in, inlen);
 	(void)SendIPv6Packet (&buf, outlen);
@@ -212,20 +213,35 @@ TeredoRelay::EmitICMPv6Error (const void *packet, size_t length,
 }
 
 
+/* FIXME: that should definitely be instance-dependant rather than
+ * static/global, but so long as only miredo, which only instantiates one
+ * client at a time use libteredo, that's no problem. This is meant to
+ * avoid including <pthread.h> from <libteredo/relay.h>.
+ *
+ * TODO: turn that into a rwlock.
+ */
+static pthread_mutex_t state_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+
 #ifdef MIREDO_TEREDO_CLIENT
 void TeredoRelay::StateChange (const teredo_state *state, void *self)
 {
 	TeredoRelay *r = (TeredoRelay *)self;
-	bool previously_up = r->state.up;
+	bool previously_up;
 
-	/* write lock */
+	pthread_mutex_lock (&state_mutex);
+	previously_up = r->state.up;
 	memcpy (&r->state, state, sizeof (r->state));
-	/* write unlock */
+
 	if (r->state.up)
 		r->NotifyUp (&r->state.addr.ip6, r->state.mtu);
 	else
 	if (previously_up)
 		r->NotifyDown ();
+
+	/* NOTE: the lock is retained until here to ensure notifications remain
+	 * properly ordered */
+	pthread_mutex_unlock (&state_mutex);
 }
 
 /*
@@ -262,7 +278,7 @@ int teredo_peer::CountPing (void)
 		pings ++;
 		next_ping = next < 31 ? next : 30;
 	}
-	
+
 	return res;
 }
 
@@ -271,6 +287,7 @@ int
 TeredoRelay::PingPeer (const struct in6_addr *a, teredo_peer *p) const
 {
 	int res = p->CountPing ();
+	/* FIXME race condition */
 	if (res == 0)
 		return SendPing (fd, &state.addr, a);
 	return res;
@@ -339,9 +356,7 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 {
 	const union teredo_addr *dst = (union teredo_addr *)&packet->ip6_dst,
 				*src = (union teredo_addr *)&packet->ip6_src;
-
-	/* FIXME: race condition with maintenance procedure */
-	uint32_t prefix = GetPrefix ();
+	teredo_state s;
 
 	/* Drops multicast destination, we cannot handle these */
 	if ((dst->ip6.s6_addr[0] == 0xff)
@@ -349,9 +364,17 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 	 || (src->ip6.s6_addr[0] == 0xff))
 		return 0;
 
+	pthread_mutex_lock (&state_mutex);
+	memcpy (&s, &state, sizeof (s));
+	/*
+	 * We can afford to use a slightly outdated state, but we cannot afford to
+	 * use an inconsistent state, hence this lock.
+	*/
+	pthread_mutex_unlock (&state_mutex);
+
 	if (IsRelay ())
 	{
-		if (dst->teredo.prefix != prefix)
+		if (dst->teredo.prefix != s.addr.teredo.prefix)
 		{
 			/*
 			 * If we are not a qualified client, ie. we have no server
@@ -373,14 +396,14 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 #ifdef MIREDO_TEREDO_CLIENT
 	else
 	{
-		if (!state.up) /* not qualified */
+		if (!s.up) /* not qualified */
 		{
 			SendUnreach (ICMP6_DST_UNREACH_ADDR, packet, length);
 			return 0;
 		}
 
-		if ((dst->teredo.prefix != prefix)
-		 && (src->teredo.prefix != prefix))
+		if ((dst->teredo.prefix != s.addr.teredo.prefix)
+		 && (src->teredo.prefix != s.addr.teredo.prefix))
 		{
 			/*
 			 * Routing packets not from a Teredo client,
@@ -396,7 +419,7 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 	}
 #endif
 
-	if (dst->teredo.prefix == prefix)
+	if (dst->teredo.prefix == s.addr.teredo.prefix)
 	{
 		/*
 		 * Ignores Teredo clients with incorrect server IPv4.
@@ -439,7 +462,7 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 
 #ifdef MIREDO_TEREDO_CLIENT
 	/* Unknown or untrusted peer */
-	if (dst->teredo.prefix != prefix)
+	if (dst->teredo.prefix != s.addr.teredo.prefix)
 	{
 		/* Unkown or untrusted non-Teredo node */
 		assert (IsClient ());
@@ -533,6 +556,7 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 int TeredoRelay::ReceivePacket (void)
 {
 	struct teredo_packet packet;
+	teredo_state s;
 
 	if (teredo_recv (fd, &packet))
 		return -1;
@@ -550,6 +574,14 @@ int TeredoRelay::ReceivePacket (void)
 	 || ((ntohs (ip6.ip6_plen) + sizeof (ip6)) != length))
 		return 0; // malformatted IPv6 packet
 
+	pthread_mutex_lock (&state_mutex);
+	memcpy (&s, &state, sizeof (s));
+	/*
+	 * We can afford to use a slightly outdated state, but we cannot afford to
+	 * use an inconsistent state, hence this lock.
+	 */
+	pthread_mutex_unlock (&state_mutex);
+
 #ifdef MIREDO_TEREDO_CLIENT
 	/* Maintenance */
 	/* FIXME race condition */
@@ -561,7 +593,7 @@ int TeredoRelay::ReceivePacket (void)
 			return 0;
 		}
 		else
-		if (!state.up)
+		if (!s.up)
 		{
 			/* Not qualified -> do not accept incoming packets */
 			return 0;
@@ -588,7 +620,7 @@ int TeredoRelay::ReceivePacket (void)
 			 * When the source IPv6 address is a Teredo address,
 			 * we can guess the mapping. Otherwise, we're stuck.
 			 */
-		 	if (IN6_TEREDO_PREFIX (&ip6.ip6_src) == GetPrefix ())
+		 	if (IN6_TEREDO_PREFIX (&ip6.ip6_src) == s.addr.teredo.prefix)
 				/* FIXME: use SendBubbleFromDst if applicable */
 				SendBubble (fd, IN6_TEREDO_IPV4 (&ip6.ip6_src),
 				            IN6_TEREDO_PORT (&ip6.ip6_src), &ip6.ip6_dst,
@@ -608,7 +640,7 @@ int TeredoRelay::ReceivePacket (void)
 		 * At the moment, we only drop bubble (see above).
 		 */
 	}
-	else if (!state.up)
+	else if (!s.up)
 		/* Not qualified -> do not accept incoming packets */
 		return 0;
 #endif /* MIREDO_TEREDO_CLIENT */
@@ -703,7 +735,7 @@ int TeredoRelay::ReceivePacket (void)
 	 * At this point, we have either a trusted mapping mismatch,
 	 * an unlisted peer, or an un-trusted client peer.
 	 */
-	if (IN6_TEREDO_PREFIX (&ip6.ip6_src) == GetPrefix ())
+	if (IN6_TEREDO_PREFIX (&ip6.ip6_src) == s.addr.teredo.prefix)
 	{
 		// Client case 3 (unknown or untrusted matching Teredo client):
 		if (IN6_MATCHES_TEREDO_CLIENT (&ip6.ip6_src, packet.source_ipv4,

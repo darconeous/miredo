@@ -85,7 +85,6 @@ struct teredo_peerlist;
 class teredo_peer;
 class TeredoRelay;
 
-
 // big TODO: make all functions re-entrant safe
 //           make all functions thread-safe
 class TeredoRelay
@@ -103,6 +102,8 @@ class TeredoRelay
 		struct teredo_maintenance *maintenance;
 
 		int PingPeer (const struct in6_addr *addr, teredo_peer *p) const;
+
+		/*** Callbacks ***/
 
 		/*
 		 * Tries to define the Teredo client IPv6 address. This is an
@@ -131,8 +132,6 @@ class TeredoRelay
 		                              const struct in6_addr *dst);
 
 	public: /* FIXME: temporarily public callback because of teredo_list */
-
-		/*** Callbacks ***/
 		/*
 		 * Sends an IPv6 packet from Teredo toward the IPv6 Internet.
 		 *
@@ -198,11 +197,6 @@ class TeredoRelay
 		static unsigned MaxPeers;
 		static unsigned MaxQueueBytes;
 		static unsigned IcmpRateLimitMs;
-
-		uint32_t GetPrefix (void) const
-		{
-			return state.addr.teredo.prefix;
-		}
 
 		/*
 		 * Returns true if the relay/client is behind a cone NAT.
