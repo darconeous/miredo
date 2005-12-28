@@ -90,10 +90,9 @@ class TeredoRelay;
 //           make all functions thread-safe
 class TeredoRelay
 {
-	public: /* FIXME public because of teredo_list */
-		int fd;
 	private:
 		struct teredo_peerlist *list;
+		int fd;
 		bool allowCone;
 
 		void SendUnreach (int code, const void *in, size_t inlen);

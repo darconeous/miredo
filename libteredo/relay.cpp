@@ -692,7 +692,7 @@ int TeredoRelay::ReceivePacket (void)
 
 			p->SetMappingFromPacket (&packet);
 			p->TouchReceive ();
-			p->Dequeue (this);
+			p->Dequeue (fd, this);
 			teredo_list_release (list);
 			return 0; /* don't pass ping to kernel */
 		}
@@ -745,7 +745,7 @@ int TeredoRelay::ReceivePacket (void)
 					return 0; // list not locked
 			}
 			else
-				p->Dequeue (this);
+				p->Dequeue (fd, this);
 
 			p->trusted = 1;
 			p->TouchReceive ();

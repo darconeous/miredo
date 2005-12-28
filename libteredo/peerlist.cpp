@@ -108,7 +108,7 @@ void teredo_peer::Queue (const void *data, size_t len, bool incoming)
 }
 
 
-void teredo_peer::Dequeue (TeredoRelay *r)
+void teredo_peer::Dequeue (int fd, TeredoRelay *r)
 {
 	packet *ptr;
 
@@ -126,7 +126,7 @@ void teredo_peer::Dequeue (TeredoRelay *r)
 		if (ptr->incoming)
 			r->SendIPv6Packet (ptr->data, ptr->length);
 		else
-			teredo_send (r->fd, ptr->data, ptr->length,
+			teredo_send (fd, ptr->data, ptr->length,
 			             mapped_addr, mapped_port);
 		free (ptr);
 		ptr = buf;

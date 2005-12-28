@@ -94,7 +94,7 @@ class teredo_peer
 			Queue (data, len, false);
 		}
 
-		void Dequeue (TeredoRelay *r);
+		void Dequeue (int fd, TeredoRelay *r);
 		void Reset (void);
 
 		~teredo_peer (void)
