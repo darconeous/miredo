@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: rdenis@simphalempin.com\n"
-"POT-Creation-Date: 2005-12-28 22:01+0100\n"
+"POT-Creation-Date: 2005-12-29 12:43+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -265,6 +265,21 @@ msgstr ""
 #: src/main.c:449
 #, c-format
 msgid "Reading configuration from %s: %s\n"
+msgstr ""
+
+#: src/main.c:480
+msgid ""
+"***********************************************************************\n"
+"*                          IMPORTANT NOTICE                           *\n"
+"*                                                                     *\n"
+"* At the time of release of this version of the program, the IETF had *\n"
+"* not yet published the Teredo protocol specification (RFC). As such, *\n"
+"* this version of the program still uses experimental provisional     *\n"
+"* settings, which will most likely be altered when the specification  *\n"
+"* is published. A new version of the program will then be released to *\n"
+"* take these changes into consideration. Until then, this program     *\n"
+"* might not work properly and should be considered experimental.      *\n"
+"***********************************************************************\n"
 msgstr ""
 
 #: src/miredo.cpp:212
