@@ -237,52 +237,64 @@ static inline void maintenance_thread (teredo_maintenance *m)
 	 * Qualification/maintenance procedure
 	 */
 	pthread_cleanup_push (cleanup_unlock, &m->lock);
-	while (1)
+	for (;;)
 	{
 		int val;
 		unsigned sleep = 0;
 		union teredo_addr newaddr;
 		uint16_t mtu = 1280;
 
+		/* Resolve server IPv4 addresses */
+		while (server_ip == 0)
+		{
+			struct timeval now;
+
+			/* FIXME: mutex kept while resolving - very bad */
+			val = resolveServerIP (m->server, &server_ip,
+			                       m->server2, &server_ip2);
+
+			gettimeofday (&now, NULL);
+			deadline.tv_sec = now.tv_sec;
+			deadline.tv_nsec = now.tv_usec * 1000;
+
+			if (val)
+			{
+				/* DNS resolution failed */
+				syslog (LOG_ERR,
+				        _("Cannot resolve Teredo server address \"%s\": %s"),
+				        m->server, gai_strerror (val));
+
+				/* wait some time before next resolution attempt */
+				deadline.tv_sec += RestartDelay;
+				do
+				{
+					val = pthread_cond_timedwait (&m->received, &m->lock,
+					                              &deadline);
+				}
+				while (val != ETIMEDOUT);
+			}
+			else
+			{
+				/* DNS resolution succeeded */
+				if (!is_ipv4_global_unicast (server_ip)
+				|| !is_ipv4_global_unicast (server_ip2))
+					syslog (LOG_WARNING, _("Server has a non global IPv4 address. "
+										"It will most likely not work."));
+	
+				/* Tells Teredo client about the new server's IP */
+				assert (!c_state->up);
+				c_state->addr.teredo.server_ip = server_ip;
+				m->state.cb (c_state, m->state.opaque);
+			}
+		}
+
 		if (deadline.tv_sec >= nonce.expiry.tv_sec)
 		{
 			/* The lifetime of the nonce is not second-critical
 			 => we don't check/set tv_usec */
 			GenerateNonce (nonce.value, true);
-
-			/* avoid lost connectivity and RS flood if nonce generation has
-			 * been blocking for a long time -> resync timer */
-			gettimeofday (&nonce.expiry, NULL);
-
-			deadline.tv_sec = nonce.expiry.tv_sec;
-			deadline.tv_nsec = nonce.expiry.tv_usec * 1000;
-
 			nonce.expiry.tv_sec += ServerNonceLifetime;
-		}
-
-		/* Resolve server IPv4 addresses */
-		if (server_ip == 0)
-		{
-			val = resolveServerIP (m->server, &server_ip,
-			                       m->server2, &server_ip2);
-			if (val)
-			{
-				syslog (LOG_ERR,
-				        _("Cannot resolve Teredo server address \"%s\": %s"),
-				        m->server, gai_strerror (val));
-				sleep = RestartDelay;
-				goto sleep;
-			}
-
-			if (!is_ipv4_global_unicast (server_ip)
-			 || !is_ipv4_global_unicast (server_ip2))
-				syslog (LOG_WARNING, _("Server has a non global IPv4 address. "
-				                       "It will most likely not work."));
-
-			/* Tells Teredo client about the new server's IP */
-			assert (!c_state->up);
-			c_state->addr.teredo.server_ip = server_ip;
-			m->state.cb (c_state, m->state.opaque);
+			/* If nonce generation is too long, checkTimeDrift() will fix */
 		}
 
 		/* SEND ROUTER SOLICATION */
@@ -404,7 +416,6 @@ static inline void maintenance_thread (teredo_maintenance *m)
 				break;
 		}
 
-sleep:
 		/* WAIT UNTIL NEXT SOLICITATION */
 		/* TODO refresh interval optimization */
 		/* TODO: watch for new interface events
