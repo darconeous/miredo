@@ -23,7 +23,7 @@ check_PROGRAMS = libteredo-addrcmp libteredo-list
 TESTS = $(check_PROGRAMS)
 
 if TEREDO_CLIENT
-check_PROGRAMS += libteredo-hmac md5test
+check_PROGRAMS += md5test libteredo-hmac
 endif
 
 # libteredo-addr
