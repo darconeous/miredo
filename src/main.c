@@ -476,7 +476,7 @@ main (int argc, char *argv[])
 
 	if (miredo_diagnose ())
 		return 1;
-	puts (_(
+	puts (_("\n"
 "***********************************************************************\n"
 "*                          IMPORTANT NOTICE                           *\n"
 "*                                                                     *\n"

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: miredo 0.6.0\n"
 "Report-Msgid-Bugs-To: rdenis@simphalempin.com\n"
-"POT-Creation-Date: 2005-12-29 12:43+0100\n"
+"POT-Creation-Date: 2005-12-29 17:36+0100\n"
 "PO-Revision-Date: 2005-12-27 19:02+0100\n"
 "Last-Translator: Rémi Denis-Courmont <rdenis (at) simphalempin (dot) com>\n"
 "Language-Team: N/A\n"
@@ -21,7 +21,7 @@ msgid "Ignoring invalid bubble: your Teredo server is probably buggy."
 msgstr ""
 
 #: libteredo/security.c:60 libteredo/security.c:123 libteredo/server.c:485
-#: libteredo/server.c:496 libteredo/maintain.c:498 libtun6/tun6.c:564
+#: libteredo/server.c:496 libteredo/maintain.c:509 libtun6/tun6.c:564
 #: src/main.c:309 src/main.c:320 src/main.c:328 src/main.c:356 src/main.c:467
 #: src/miredo.cpp:108 src/miredo.cpp:115 src/miredo.cpp:139 src/miredo.cpp:234
 #, c-format
@@ -54,41 +54,41 @@ msgstr ""
 msgid "Too much time drift. Resynchronizing."
 msgstr "Too much time drift. Resynchronising."
 
-#: libteredo/maintain.c:271
+#: libteredo/maintain.c:264
 #, c-format
 msgid "Cannot resolve Teredo server address \"%s\": %s"
 msgstr "Cannot resolve Teredo server address “%s”: %s"
 
-#: libteredo/maintain.c:279
+#: libteredo/maintain.c:281
 msgid "Server has a non global IPv4 address. It will most likely not work."
 msgstr ""
 
-#: libteredo/maintain.c:329
+#: libteredo/maintain.c:341
 msgid "Lost Teredo connectivity"
 msgstr ""
 
-#: libteredo/maintain.c:344
+#: libteredo/maintain.c:356
 msgid "No reply from Teredo server"
 msgstr ""
 
-#: libteredo/maintain.c:366
+#: libteredo/maintain.c:378
 msgid "Teredo address/MTU changed"
 msgstr ""
 
-#: libteredo/maintain.c:383
+#: libteredo/maintain.c:395
 msgid "Unsupported symmetric NAT detected."
 msgstr ""
 
-#: libteredo/maintain.c:392
+#: libteredo/maintain.c:404
 #, c-format
 msgid "Qualified (NAT type: %s)"
 msgstr ""
 
-#: libteredo/maintain.c:394
+#: libteredo/maintain.c:406
 msgid "cone"
 msgstr ""
 
-#: libteredo/maintain.c:394
+#: libteredo/maintain.c:406
 msgid "restricted"
 msgstr ""
 
@@ -282,8 +282,9 @@ msgstr ""
 msgid "Reading configuration from %s: %s\n"
 msgstr ""
 
-#: src/main.c:480
+#: src/main.c:479
 msgid ""
+"\n"
 "***********************************************************************\n"
 "*                          IMPORTANT NOTICE                           *\n"
 "*                                                                     *\n"
@@ -296,6 +297,7 @@ msgid ""
 "* might not work properly and should be considered experimental.      *\n"
 "***********************************************************************\n"
 msgstr ""
+"\n"
 "╔═════════════════════════════════════════════════════════════════════╗\n"
 "║                          IMPORTANT NOTICE                           ║\n"
 "║                                                                     ║\n"
