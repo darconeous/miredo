@@ -167,6 +167,7 @@ static void *garbage_collector (void *data)
 			teredo_listitem *victim = l->sentinel.prev;
 			struct timespec deadline = { 0, 0 };
 
+			assert (victim != &l->sentinel);
 			deadline.tv_sec = victim->atime + l->expiration;
 			/*deadline.tv_nsec = 0;*/
 			
@@ -182,11 +183,14 @@ static void *garbage_collector (void *data)
 				victim->next->prev = victim->prev;
 				l->left++;
 
+				assert (victim != &l->sentinel);
 				delete victim->peer;
 				free (victim);
 
 				/* delete all victims from the same expiry time */
 				victim = l->sentinel.prev;
+				if (victim == &l->sentinel)
+					break;
 			}
 		}
 
