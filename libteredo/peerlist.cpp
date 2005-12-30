@@ -242,12 +242,12 @@ teredo_peerlist *teredo_list_create (unsigned max, unsigned expiration)
 extern "C"
 void teredo_list_destroy (teredo_peerlist *l)
 {
-	teredo_listitem *p = l->sentinel.next;
-
 	pthread_cancel (l->gc);
 	pthread_join (l->gc, NULL);
 	pthread_cond_destroy (&l->cond);
 	pthread_mutex_destroy (&l->lock);
+
+	teredo_listitem *p = l->sentinel.next;
 
 	while (p != &l->sentinel)
 	{
