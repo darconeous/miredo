@@ -39,16 +39,17 @@ class teredo_peer
 		uint16_t mapped_port;
 		uint32_t mapped_addr;
 
-		teredo_peer *next;
+		teredo_peer *prev, *next;
 
 	private:
 		struct packet;
 		packet *queue;
 		size_t queue_left;
 		void Queue (const void *data, size_t len, bool incoming);
-		time_t expiry;
 
 	public:
+		time_t expiry;
+
 		teredo_peer (void) : queue (NULL), queue_left (TeredoRelay::MaxQueueBytes)
 		{
 		}
@@ -95,12 +96,8 @@ class teredo_peer
 		}
 
 		void Dequeue (int fd, TeredoRelay *r);
-		void Reset (void);
 
-		~teredo_peer (void)
-		{
-			Reset ();
-		}
+		~teredo_peer (void);
 
 		bool IsExpired (const time_t now) const
 		{

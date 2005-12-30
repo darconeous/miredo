@@ -29,6 +29,7 @@
 #include <string.h>
 #include <time.h>
 #include <stdlib.h> /* malloc() / free() */
+#include <assert.h>
 
 #if HAVE_STDINT_H
 # include <stdint.h>
@@ -38,6 +39,8 @@
 
 #include <sys/types.h>
 #include <netinet/in.h>
+#include <pthread.h>
+#include <errno.h>
 
 #include "teredo.h"
 #include "teredo-udp.h"
@@ -52,8 +55,6 @@
  * - replace expiry (4 bytes) with last_rx and last_tx
  *   (both could be one byte),
  * - implement garbage collector (needed if expiry is suppressed)
- * - do not recycle peer (needs GC),
- * - remove Reset() (consequence of recycling removal)
  */
 
 /*
@@ -69,23 +70,15 @@ typedef struct teredo_peer::packet
 
 unsigned TeredoRelay::MaxQueueBytes = 1280;
 
-void teredo_peer::Reset (void)
+teredo_peer::~teredo_peer (void)
 {
-	packet *ptr;
-
-	/* lock peer */
-	ptr = queue;
-	queue = NULL;
-	queue_left = TeredoRelay::MaxQueueBytes;
-	/* unlock */
-
-	while (ptr != NULL)
+	while (queue != NULL)
 	{
 		packet *buf;
 
-		buf = ptr->next;
-		free (ptr);
-		ptr = buf;
+		buf = queue->next;
+		free (queue);
+		queue = buf;
 	}
 }
 
@@ -137,15 +130,68 @@ void teredo_peer::Dequeue (int fd, TeredoRelay *r)
 /*** Peer list handling ***/
 struct teredo_peerlist
 {
-	teredo_peer *head;
+	teredo_peer *head, *tail;
 	unsigned left;
+	pthread_t gc;
+	pthread_mutex_t lock;
+	pthread_cond_t cond;
 };
 
+
+static void cleanup_mutex (void *data)
+{
+	pthread_mutex_unlock ((pthread_mutex_t *)data);
+}
+
+
+static void *garbage_collector (void *data)
+{
+	struct teredo_peerlist *l = (struct teredo_peerlist *)data;
+
+	pthread_mutex_lock (&l->lock);
+	pthread_cleanup_push (cleanup_mutex, &l->lock);
+
+	for (;;)
+	{
+		/* wait until there the list is not empty */
+		while (pthread_cond_wait (&l->cond, &l->lock));
+
+		while (l->tail != NULL)
+		{
+			teredo_peer *victim = l->tail;
+			struct timespec deadline = { 0, 0 };
+
+			deadline.tv_sec = victim->expiry;
+			/*deadline.tv_nsec = 0; */
+			while (pthread_cond_timedwait (&l->cond, &l->lock,
+			                               &deadline) != ETIMEDOUT);
+
+			while (victim->expiry <= deadline.tv_sec)
+			{
+				/*
+				 * The victim was not touched in the mean time... destroy it.
+				 */
+				assert (victim == l->tail);
+				l->tail = victim->prev;
+				l->tail->next = NULL;
+				l->left++;
+
+				delete victim; /* NOTE: delete != free() */
+
+				/* delete all victims from the same expiry time */
+				victim = l->tail;
+			}
+		}
+	}
+
+	pthread_cleanup_pop (1); /* dead code */
+	return NULL;
+}
 
 /**
  * Creates an empty peer list.
  *
- * @return NULL on error.
+ * @return NULL on error (see errno for actual problem).
  */
 extern "C"
 teredo_peerlist *teredo_list_create (unsigned max)
@@ -154,7 +200,15 @@ teredo_peerlist *teredo_list_create (unsigned max)
 	if (l == NULL)
 		return NULL;
 
-	l->head = NULL;
+	pthread_mutex_init (&l->lock, NULL);
+	pthread_cond_init (&l->cond, NULL);
+	if (pthread_create (&l->gc, NULL, garbage_collector, l))
+	{
+		free (l);
+		return NULL;
+	}
+
+	l->head = l->tail = NULL;
 	l->left = max;
 	return l;
 }
@@ -166,6 +220,11 @@ extern "C"
 void teredo_list_destroy (teredo_peerlist *l)
 {
 	teredo_peer *p = l->head;
+
+	pthread_cancel (l->gc);
+	pthread_join (l->gc, NULL);
+	pthread_cond_destroy (&l->cond);
+	pthread_mutex_destroy (&l->lock);
 
 	while (p != NULL)
 	{
@@ -195,62 +254,71 @@ teredo_peer *teredo_list_lookup (teredo_peerlist *list,
                                  const struct in6_addr *addr, bool *create)
 {
 	/* FIXME: all this code is highly suboptimal, but it works */
-	teredo_peer *p, *recycle = NULL;
+	teredo_peer *p;
 	time_t now;
 
 	time (&now);
+
+	pthread_mutex_lock (&list->lock);
 
 	/* Slow O(n) simplistic peer lookup */
 	for (p = list->head; p != NULL; p = p->next)
 		if (t6cmp (&p->addr, (const union teredo_addr *)addr) == 0)
 		{
-			if (!p->IsExpired (now))
-			{
-				if (create != NULL)
-					*create = false;
-				return p;
-			}
-			if (recycle == NULL)
-				recycle = p;
-			break;
+			assert (((p->next == NULL) && (p == list->tail))
+			     || (p->next->prev == p));
+
+			if (create != NULL)
+				*create = false;
+			return p;
 		}
-		else
-		if ((recycle == NULL) && (p->IsExpired (now)))
-			recycle = p;
+
+	assert (p == NULL);
 
 	if (create == NULL)
+	{
+		pthread_mutex_unlock (&list->lock);
 		return NULL;
+	}
 
 	*create = true;
 
-	/* Tries to recycle a timed-out peer entry */
-	if (recycle != NULL)
+	/* Allocates a new peer entry */
+	if (list->left != 0)
 	{
-		recycle->Reset ();
-	}
-	else
-	{
-		if (list->left == 0)
-			return NULL;
-
-		/* Otherwise allocates a new peer entry */
 		try
 		{
-			recycle = new teredo_peer;
+			p = new teredo_peer;
 		}
 		catch (...)
 		{
-			return NULL;
+			p = NULL;
 		}
-
-		/* Puts new entry at the head of the list */
-		recycle->next = list->head;
-		list->head = recycle;
-		list->left--;
 	}
 
-	memcpy (&recycle->addr.ip6, addr, sizeof (struct in6_addr));
-	return recycle;
+	if (p == NULL)
+	{
+		pthread_mutex_unlock (&list->lock);
+		return NULL;
+	}
+
+	/* Puts new entry at the tail of the list */
+	p->prev = list->tail;
+	p->next = NULL;
+
+	if (list->tail == NULL)
+	{
+		list->head = p;
+		/* tell GC the list is no longer empty */
+		pthread_cond_signal (&list->cond);
+	}
+	else
+		list->tail->next = p;
+	list->tail = p;
+	list->left--;
+
+	memcpy (&p->addr.ip6, addr, sizeof (struct in6_addr));
+	return p;
 }
 
 
@@ -260,4 +328,5 @@ teredo_peer *teredo_list_lookup (teredo_peerlist *list,
 extern "C"
 void teredo_list_release (teredo_peerlist *l)
 {
+	pthread_mutex_unlock (&l->lock);
 }
