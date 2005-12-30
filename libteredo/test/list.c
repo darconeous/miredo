@@ -208,6 +208,32 @@ int main (void)
 		}
 	}
 
+	puts ("Waiting 4 seconds...");
+	sleep (4);
+
+	// everything should have been deleted now
+	for (i = 0; i < 256; i++)
+	{
+		teredo_peer *p;
+		bool create;
+
+		addr.s6_addr[12] = i;
+		p = teredo_list_lookup (l, &addr, i & 1 ? &create : NULL);
+		if (i & 1)
+		{
+			// item should have been created
+			if ((!create) || (p == NULL))
+				return -1;
+			teredo_list_release (l);
+		}
+		else
+		{
+			// item did not exist and should not have been found
+			if (p != NULL)
+				return -1;
+		}
+	}
+
 	teredo_list_destroy (l);
 
 	return 0;
