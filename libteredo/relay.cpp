@@ -510,16 +510,13 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 		p->SetMapping (IN6_TEREDO_IPV4 (dst), IN6_TEREDO_PORT (dst));
 		p->trusted = p->bubbles = p->pings = 0;
 
-		// FIXME: we call TouchTransmit() but if the peer is non-cone, and
-		// we are cone, we don't actually send a packet
-		p->TouchTransmit ();
-
 		/* Client case 4 & relay case 2: new cone peer */
 		if (allowCone && IN6_IS_TEREDO_ADDR_CONE (dst))
 		{
 			int res;
 
 			p->trusted = 1;
+			p->TouchTransmit ();
 			res = teredo_send (fd, packet, length, p->mapped_addr,
 			                   p->mapped_port) == (int)length ? 0 : -1;
 			teredo_list_release (list);
