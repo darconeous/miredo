@@ -51,10 +51,11 @@
 /*
  * Big TODO:
  * - suppress the replied flag which is non-standard,
- * - check expiry time in relay code rather than peer list code,
  * - replace expiry (4 bytes) with last_rx and last_tx
  *   (both could be one byte),
  * - implement garbage collector (needed if expiry is suppressed)
+ *
+ * - check last RX date in relay code for conformance
  */
 
 /*
@@ -128,10 +129,19 @@ void teredo_peer::Dequeue (int fd, TeredoRelay *r)
 
 
 /*** Peer list handling ***/
+typedef struct teredo_listitem
+{
+	struct teredo_listitem *prev, *next;
+	teredo_peer *peer; /* TODO: not a pointer */
+	union teredo_addr key;
+	time_t atime;
+} teredo_listitem;
+
 struct teredo_peerlist
 {
-	teredo_peer *head, *tail;
+	teredo_listitem sentinel;
 	unsigned left;
+	unsigned expiration;
 	pthread_t gc;
 	pthread_mutex_t lock;
 	pthread_cond_t cond;
@@ -143,7 +153,6 @@ static void cleanup_mutex (void *data)
 	pthread_mutex_unlock ((pthread_mutex_t *)data);
 }
 
-
 static void *garbage_collector (void *data)
 {
 	struct teredo_peerlist *l = (struct teredo_peerlist *)data;
@@ -153,35 +162,36 @@ static void *garbage_collector (void *data)
 
 	for (;;)
 	{
-		/* wait until there the list is not empty */
-		while (pthread_cond_wait (&l->cond, &l->lock));
-
-		while (l->tail != NULL)
+		while (l->sentinel.next != &l->sentinel)
 		{
-			teredo_peer *victim = l->tail;
+			teredo_listitem *victim = l->sentinel.prev;
 			struct timespec deadline = { 0, 0 };
 
-			deadline.tv_sec = victim->expiry;
-			/*deadline.tv_nsec = 0; */
+			deadline.tv_sec = victim->atime + l->expiration;
+			/*deadline.tv_nsec = 0;*/
+			
 			while (pthread_cond_timedwait (&l->cond, &l->lock,
 			                               &deadline) != ETIMEDOUT);
 
-			while (victim->expiry <= deadline.tv_sec)
+			while ((victim->atime + l->expiration) <= (unsigned)deadline.tv_sec)
 			{
 				/*
 				 * The victim was not touched in the mean time... destroy it.
 				 */
-				assert (victim == l->tail);
-				l->tail = victim->prev;
-				l->tail->next = NULL;
+				victim->prev->next = victim->next;
+				victim->next->prev = victim->prev;
 				l->left++;
 
-				delete victim; /* NOTE: delete != free() */
+				delete victim->peer;
+				free (victim);
 
 				/* delete all victims from the same expiry time */
-				victim = l->tail;
+				victim = l->sentinel.prev;
 			}
 		}
+
+		/* wait until there the list is not empty */
+		pthread_cond_wait (&l->cond, &l->lock);
 	}
 
 	pthread_cleanup_pop (1); /* dead code */
@@ -194,22 +204,25 @@ static void *garbage_collector (void *data)
  * @return NULL on error (see errno for actual problem).
  */
 extern "C"
-teredo_peerlist *teredo_list_create (unsigned max)
+teredo_peerlist *teredo_list_create (unsigned max, unsigned expiration)
 {
 	teredo_peerlist *l = (teredo_peerlist *)malloc (sizeof (*l));
 	if (l == NULL)
 		return NULL;
 
+	memset (l, 0, sizeof (l));
 	pthread_mutex_init (&l->lock, NULL);
 	pthread_cond_init (&l->cond, NULL);
+	l->sentinel.next = l->sentinel.prev = &l->sentinel;
+	l->left = max;
+	l->expiration = expiration;
+
 	if (pthread_create (&l->gc, NULL, garbage_collector, l))
 	{
 		free (l);
 		return NULL;
 	}
 
-	l->head = l->tail = NULL;
-	l->left = max;
 	return l;
 }
 
@@ -219,17 +232,18 @@ teredo_peerlist *teredo_list_create (unsigned max)
 extern "C"
 void teredo_list_destroy (teredo_peerlist *l)
 {
-	teredo_peer *p = l->head;
+	teredo_listitem *p = l->sentinel.next;
 
 	pthread_cancel (l->gc);
 	pthread_join (l->gc, NULL);
 	pthread_cond_destroy (&l->cond);
 	pthread_mutex_destroy (&l->lock);
 
-	while (p != NULL)
+	while (p != &l->sentinel)
 	{
-		teredo_peer *buf = p->next;
-		delete p;
+		teredo_listitem *buf = p->next;
+		delete p->peer;
+		free (p);
 		p = buf;
 	}
 	free (l);
@@ -254,7 +268,7 @@ teredo_peer *teredo_list_lookup (teredo_peerlist *list,
                                  const struct in6_addr *addr, bool *create)
 {
 	/* FIXME: all this code is highly suboptimal, but it works */
-	teredo_peer *p;
+	teredo_listitem *p;
 	time_t now;
 
 	time (&now);
@@ -262,18 +276,32 @@ teredo_peer *teredo_list_lookup (teredo_peerlist *list,
 	pthread_mutex_lock (&list->lock);
 
 	/* Slow O(n) simplistic peer lookup */
-	for (p = list->head; p != NULL; p = p->next)
-		if (t6cmp (&p->addr, (const union teredo_addr *)addr) == 0)
+	for (p = list->sentinel.next; p != &list->sentinel; p = p->next)
+		if (t6cmp (&p->key, (const union teredo_addr *)addr) == 0)
 		{
-			assert (((p->next == NULL) && (p == list->tail))
-			     || (p->next->prev == p));
+			assert (p->prev->next == p);
+			assert (p->next->prev == p);
 
 			if (create != NULL)
 				*create = false;
-			return p;
-		}
 
-	assert (p == NULL);
+			/* touch peer toward garbage collector */
+			p->atime = now;
+			if (p->prev != NULL)
+			{
+				/* remove peer from list */
+				p->prev->next = p->next;
+				p->next->prev = p->prev;
+
+				/* bring peer to the head of the list if it is not already */
+				p->next = list->sentinel.next;
+				p->next->prev = p;
+				p->prev = &list->sentinel;
+				list->sentinel.next = p;
+			}
+
+			return p->peer;
+		}
 
 	if (create == NULL)
 	{
@@ -286,15 +314,22 @@ teredo_peer *teredo_list_lookup (teredo_peerlist *list,
 	/* Allocates a new peer entry */
 	if (list->left != 0)
 	{
-		try
+		p = (teredo_listitem *)malloc (sizeof (*p));
+		if (p != NULL)
 		{
-			p = new teredo_peer;
-		}
-		catch (...)
-		{
-			p = NULL;
+			try
+			{
+				p->peer = new teredo_peer;
+			}
+			catch (...)
+			{
+				free (p);
+				p = NULL;
+			}
 		}
 	}
+	else
+		p = NULL;
 
 	if (p == NULL)
 	{
@@ -302,23 +337,24 @@ teredo_peer *teredo_list_lookup (teredo_peerlist *list,
 		return NULL;
 	}
 
-	/* Puts new entry at the tail of the list */
-	p->prev = list->tail;
-	p->next = NULL;
-
-	if (list->tail == NULL)
-	{
-		list->head = p;
+	if (list->sentinel.next == &list->sentinel)
 		/* tell GC the list is no longer empty */
 		pthread_cond_signal (&list->cond);
-	}
-	else
-		list->tail->next = p;
-	list->tail = p;
+
+	/* Puts new entry at the head of the list */
+	p->next = list->sentinel.next;
+	p->next->prev = p;
+	p->prev = &list->sentinel;
+	list->sentinel.next = p;
+
 	list->left--;
 
-	memcpy (&p->addr.ip6, addr, sizeof (struct in6_addr));
-	return p;
+	assert (p->next->prev == p);
+	assert (p->prev->next == p);
+
+	memcpy (&p->key.ip6, addr, sizeof (struct in6_addr));
+	p->atime = now;
+	return p->peer;
 }
 
 

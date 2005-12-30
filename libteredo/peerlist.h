@@ -29,37 +29,27 @@
 class teredo_peer
 {
 	public:
-		union teredo_addr addr;
 		unsigned pings:2;
 		unsigned next_ping:5;
 		unsigned trusted:1;
 		unsigned bubbles:2;
 		unsigned next_bubble:5;
-		unsigned replied:1;
+		unsigned dummy:1;
 		uint16_t mapped_port;
 		uint32_t mapped_addr;
-
-		teredo_peer *prev, *next;
 
 	private:
 		struct packet;
 		packet *queue;
 		size_t queue_left;
 		void Queue (const void *data, size_t len, bool incoming);
+		time_t last_rx;
 
 	public:
-		time_t expiry;
-
 		teredo_peer (void) : queue (NULL), queue_left (TeredoRelay::MaxQueueBytes)
 		{
 		}
-
-	private:
-		void Touch (void)
-		{
-			time (&expiry);
-			expiry += TEREDO_TIMEOUT;
-		}
+		~teredo_peer (void);
 
 	public:
 		void SetMapping (uint32_t ip, uint16_t port)
@@ -75,14 +65,13 @@ class teredo_peer
 
 		void TouchReceive (void)
 		{
-			replied = 1;
-			Touch ();
+			time (&last_rx);
 		}
 
 		void TouchTransmit (void)
 		{
-			if (replied == 0)
-				Touch ();
+			/* time of last transmission is a write-only field,
+			 * so we don't keep track of it */
 		}
 
 		void QueueIncoming (const void *data, size_t len)
@@ -97,11 +86,10 @@ class teredo_peer
 
 		void Dequeue (int fd, TeredoRelay *r);
 
-		~teredo_peer (void);
-
-		bool IsExpired (const time_t now) const
+		/* FIXME: implement and use this */
+		bool IsValid (time_t now) const
 		{
-			return ((signed)(now - expiry)) > 0;
+			return true;
 		}
 
 		int CountBubble (void);
@@ -120,7 +108,7 @@ extern "C" {
 typedef struct teredo_peer teredo_peer; /* FIXME: temporary */
 # endif
 
-teredo_peerlist *teredo_list_create (unsigned max);
+teredo_peerlist *teredo_list_create (unsigned max, unsigned expiration);
 void teredo_list_destroy (teredo_peerlist *l);
 
 teredo_peer *teredo_list_lookup (teredo_peerlist *list,

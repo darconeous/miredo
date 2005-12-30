@@ -96,7 +96,7 @@ TeredoRelay::TeredoRelay (uint32_t pref, uint16_t port, uint32_t ipv4,
 	fd = teredo_socket (ipv4, port);
 	if (fd != -1)
 	{
-		list = teredo_list_create (MaxPeers);
+		list = teredo_list_create (MaxPeers, 30);
 		if (list != NULL)
 			return; /* success */
 		teredo_close (fd);
@@ -118,7 +118,7 @@ TeredoRelay::TeredoRelay (const char *server, const char *server2,
 	fd = teredo_socket (ipv4, port);
 	if (fd != -1)
 	{
-		list = teredo_list_create (MaxPeers);
+		list = teredo_list_create (MaxPeers, 30);
 		if (list != NULL)
 		{
 			maintenance = libteredo_maintenance_start (fd, StateChange, this,
@@ -260,6 +260,7 @@ int teredo_peer::CountPing (void)
 	else if (pings == 3)
 		res = -1;
 	else
+#if 0 /* FIXME FIXME FIXME FIXME broken */
 	/*
 	 * NOTE/FIXME:
 	 * We hereby assume that expiry does not change.
@@ -269,14 +270,19 @@ int teredo_peer::CountPing (void)
 	 * minimum).
 	 */
 		res = ((unsigned)now > expiry - next_ping) ? 0 : 1;
+#else
+		res = 0;
+#endif
 
 	if (res == 0)
 	{
+#if 0
 		int next;
 
 		next = expiry - (now + 2);
-		pings ++;
 		next_ping = next < 31 ? next : 30;
+#endif
+		pings ++;
 	}
 
 	return res;
@@ -322,15 +328,21 @@ int teredo_peer::CountBubble (void)
 	else if (bubbles == 3)
 		res = -1;
 	else
+#if 0 /* FIXME FIXME FIXME FIXME broken */
 		res = ((unsigned)now > expiry - next_bubble) ? 0 : 1;
+#else
+		res = 0;
+#endif
 
 	if (res)
 	{
+#if 0
 		int next;
 
 		next = expiry - (now + 2);
-		bubbles ++;
 		next_bubble = next < 31 ? next : 30;
+#endif
+		bubbles ++;
 	}
 	return res;
 }
@@ -473,7 +485,7 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 		{
 			p->mapped_port = 0;
 			p->mapped_addr = 0;
-			p->trusted = p->replied = p->bubbles = p->pings = 0;
+			p->trusted = p->bubbles = p->pings = 0;
 			p->TouchTransmit ();
 		}
 
@@ -494,7 +506,7 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 	{
 		/* Unknown Teredo clients */
 		p->SetMapping (IN6_TEREDO_IPV4 (dst), IN6_TEREDO_PORT (dst));
-		p->trusted = p->replied = p->bubbles = p->pings = 0;
+		p->trusted = p->bubbles = p->pings = 0;
 
 		// NOTE: we call TouchTransmit() but if the peer is non-cone, and
 		// we are cone, we don't actually send a packet
@@ -762,7 +774,7 @@ int TeredoRelay::ReceivePacket (void)
 
 					p->SetMapping (IN6_TEREDO_IPV4 (&ip6.ip6_src),
 				    	           IN6_TEREDO_PORT (&ip6.ip6_src));
-					p->trusted = p->replied = p->bubbles = p->pings = 0;
+					p->trusted = p->bubbles = p->pings = 0;
 				}
 				else
 #endif
@@ -825,7 +837,7 @@ int TeredoRelay::ReceivePacket (void)
 	
 			p->mapped_port = 0;
 			p->mapped_addr = 0;
-			p->trusted = p->replied = p->bubbles = p->pings = 0;
+			p->trusted = p->bubbles = p->pings = 0;
 		}
 # if 0
 		else
