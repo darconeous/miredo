@@ -53,7 +53,6 @@
  * - suppress the replied flag which is non-standard,
  * - replace expiry (4 bytes) with last_rx and last_tx
  *   (both could be one byte),
- * - implement garbage collector (needed if expiry is suppressed)
  *
  * - check last RX date in relay code for conformance
  */
@@ -153,6 +152,13 @@ static void cleanup_mutex (void *data)
 	pthread_mutex_unlock ((pthread_mutex_t *)data);
 }
 
+
+/**
+ * Peer list garbage collector entry point.
+ * Thread cancellation-safe.
+ *
+ * @return never ever.
+ */
 static void *garbage_collector (void *data)
 {
 	struct teredo_peerlist *l = (struct teredo_peerlist *)data;
@@ -259,6 +265,13 @@ void teredo_list_destroy (teredo_peerlist *l)
  * the next call to teredo_list_lookup will deadlock. Unlocking the list after
  * a failure is not defined.
  *
+ * @param atime time value to be used for garbage collection of the peer.
+ * When current time exceeds (atime + expiration), the peer is destroyed.
+ * The expiration value (in seconds) is specified defined when calling
+ * teredo_list_create()). atime should normally be the result of time().
+ * It is not computed internally to allow clock caching (and avoid thousands
+ * of system call for the current time).
+ *
  * @param create if not NULL, the peer will be added to the list if it is not
  * present already, and *create will be true on return. If create is not NULL
  * but the peer was already present, *create will be false on return.
@@ -268,14 +281,11 @@ void teredo_list_destroy (teredo_peerlist *l)
  * NULL), or if the peer was not found (when create is NULL).
  */
 extern "C"
-teredo_peer *teredo_list_lookup (teredo_peerlist *list,
+teredo_peer *teredo_list_lookup (teredo_peerlist *list, time_t atime,
                                  const struct in6_addr *addr, bool *create)
 {
 	/* FIXME: all this code is highly suboptimal, but it works */
 	teredo_listitem *p;
-	time_t now;
-
-	time (&now);
 
 	pthread_mutex_lock (&list->lock);
 
@@ -290,7 +300,7 @@ teredo_peer *teredo_list_lookup (teredo_peerlist *list,
 				*create = false;
 
 			/* touch peer toward garbage collector */
-			p->atime = now;
+			p->atime = atime;
 			if (p->prev != NULL)
 			{
 				/* remove peer from list */
@@ -357,7 +367,7 @@ teredo_peer *teredo_list_lookup (teredo_peerlist *list,
 	assert (p->prev->next == p);
 
 	memcpy (&p->key.ip6, addr, sizeof (struct in6_addr));
-	p->atime = now;
+	p->atime = atime;
 	return p->peer;
 }
 

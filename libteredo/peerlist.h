@@ -111,7 +111,7 @@ typedef struct teredo_peer teredo_peer; /* FIXME: temporary */
 teredo_peerlist *teredo_list_create (unsigned max, unsigned expiration);
 void teredo_list_destroy (teredo_peerlist *l);
 
-teredo_peer *teredo_list_lookup (teredo_peerlist *list,
+teredo_peer *teredo_list_lookup (teredo_peerlist *list, time_t atime,
                                  const struct in6_addr *addr, bool *create);
 void teredo_list_release (teredo_peerlist *l);
 

@@ -452,7 +452,9 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 	}
 
 	bool created;
-	teredo_peer *p = teredo_list_lookup (list, &dst->ip6, &created);
+	time_t now = time (NULL);
+
+	teredo_peer *p = teredo_list_lookup (list, now, &dst->ip6, &created);
 	if (p == NULL)
 		return -1; /* error */
 
@@ -508,7 +510,7 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 		p->SetMapping (IN6_TEREDO_IPV4 (dst), IN6_TEREDO_PORT (dst));
 		p->trusted = p->bubbles = p->pings = 0;
 
-		// NOTE: we call TouchTransmit() but if the peer is non-cone, and
+		// FIXME: we call TouchTransmit() but if the peer is non-cone, and
 		// we are cone, we don't actually send a packet
 		p->TouchTransmit ();
 
@@ -712,8 +714,10 @@ int TeredoRelay::ReceivePacket (void)
 
 	/* Actual packet reception, either as a relay or a client */
 
+	time_t now = time (NULL);
+
 	// Checks source IPv6 address / looks up peer in the list:
-	teredo_peer *p = teredo_list_lookup (list, &ip6.ip6_src, NULL);
+	teredo_peer *p = teredo_list_lookup (list, now, &ip6.ip6_src, NULL);
 
 	if (p != NULL)
 	{
@@ -760,7 +764,7 @@ int TeredoRelay::ReceivePacket (void)
 					bool create;
 
 					// TODO: do not duplicate this code
-					p = teredo_list_lookup (list, &ip6.ip6_src, &create);
+					p = teredo_list_lookup (list, now, &ip6.ip6_src, &create);
 					/* FIXME: if they were multiple threads, we'd have a race
 					 * condition whereby a peer would not be in the list at
 					 * the time when teredo_list_lookup() returned NULL above,
@@ -823,7 +827,7 @@ int TeredoRelay::ReceivePacket (void)
 			bool create;
 
 			// TODO: do not duplicate this code
-			p = teredo_list_lookup (list, &ip6.ip6_src, &create);
+			p = teredo_list_lookup (list, now, &ip6.ip6_src, &create);
 			/* FIXME: if they were multiple threads, we'd have a race
 			 * condition whereby a peer would not be in the list at
 			 * the time when teredo_list_lookup() returned NULL above,

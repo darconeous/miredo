@@ -25,6 +25,7 @@
 
 #include <stdbool.h>
 #include <stdio.h>
+#include <time.h>
 
 #if HAVE_STDINT_H
 # include <stdint.h> /* Mac OS X needs that */
@@ -42,16 +43,18 @@ int main (void)
 	teredo_peerlist *l;
 	struct in6_addr addr = { };
 	unsigned i;
+	time_t now;
 
 	// test empty list
 	l = teredo_list_create (0, 0);
+	time (&now);
 	if (l == NULL)
 		return -1;
 	else
 	{
 		bool create;
 
-		if (teredo_list_lookup (l, &addr, &create) != NULL)
+		if (teredo_list_lookup (l, now, &addr, &create) != NULL)
 			return -1;
 
 		teredo_list_destroy (l);
@@ -69,7 +72,7 @@ int main (void)
 		bool create;
 
 		addr.s6_addr[12] = i;
-		p = teredo_list_lookup (l, &addr, i & 1 ? &create : NULL);
+		p = teredo_list_lookup (l, now, &addr, i & 1 ? &create : NULL);
 		if (i & 1)
 		{
 			// item should have been created
@@ -91,7 +94,7 @@ int main (void)
 		teredo_peer *p;
 
 		addr.s6_addr[12] = i;
-		p = teredo_list_lookup (l, &addr, NULL);
+		p = teredo_list_lookup (l, now, &addr, NULL);
 		if (i & 1)
 		{
 			// item was created earlier
@@ -109,6 +112,7 @@ int main (void)
 
 	puts ("Waiting 2 seconds...");
 	sleep (2);
+	time (&now);
 	addr.s6_addr[0] = 1;
 	// test further insertions
 	for (i = 0; i < 256; i++)
@@ -117,7 +121,7 @@ int main (void)
 		bool create;
 
 		addr.s6_addr[12] = i;
-		p = teredo_list_lookup (l, &addr, i & 1 ? &create : NULL);
+		p = teredo_list_lookup (l, now, &addr, i & 1 ? &create : NULL);
 		if ((i & 1) && (i != 255))
 		{
 			// item should have been created... except the last one
@@ -142,7 +146,7 @@ int main (void)
 		addr.s6_addr[12] = i;
 		if ((i & 3) == 3)
 		{
-			p = teredo_list_lookup (l, &addr, NULL);
+			p = teredo_list_lookup (l, now, &addr, NULL);
 			{
 				// item was created earlier
 				if (p == NULL)
@@ -152,7 +156,7 @@ int main (void)
 		}
 
 		addr.s6_addr[0] = 1;
-		p = teredo_list_lookup (l, &addr, NULL);
+		p = teredo_list_lookup (l, now, &addr, NULL);
 		if ((i & 1) && (i != 255))
 		{
 			// item was created earlier
@@ -170,6 +174,7 @@ int main (void)
 
 	puts ("Waiting 2 seconds...");
 	sleep (2);
+	time (&now);
 	// further lookup tests
 	for (i = 0; i < 256; i++)
 	{
@@ -177,7 +182,7 @@ int main (void)
 
 		addr.s6_addr[0] = 0;
 		addr.s6_addr[12] = i;
-		p = teredo_list_lookup (l, &addr, NULL);
+		p = teredo_list_lookup (l, now, &addr, NULL);
 		// item should not/no longet exist
 		if ((i & 3) == 3)
 		{
@@ -192,7 +197,7 @@ int main (void)
 		}
 
 		addr.s6_addr[0] = 1;
-		p = teredo_list_lookup (l, &addr, NULL);
+		p = teredo_list_lookup (l, now, &addr, NULL);
 		if ((i & 1) && (i != 255))
 		{
 			// item was created earlier
@@ -218,7 +223,7 @@ int main (void)
 		bool create;
 
 		addr.s6_addr[12] = i;
-		p = teredo_list_lookup (l, &addr, i & 1 ? &create : NULL);
+		p = teredo_list_lookup (l, now, &addr, i & 1 ? &create : NULL);
 		if (i & 1)
 		{
 			// item should have been created
