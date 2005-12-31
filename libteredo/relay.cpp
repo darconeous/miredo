@@ -465,7 +465,7 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 	if (!created)
 	{
 		/* Case 1 (paragraphs 5.2.4 & 5.4.1): trusted peer */
-		if (p->trusted)
+		if (p->trusted && p->IsValid (now))
 		{
 			int res;
 
@@ -478,13 +478,15 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 		}
 	}
 
-	/* Unknown or untrusted peer */
+	// Unknown, untrusted, or too old peer
+	// (thereafter refered to as simply "untrusted")
+
 #ifdef MIREDO_TEREDO_CLIENT
+	/* Untrusted non-Teredo node */
 	if (dst->teredo.prefix != s.addr.teredo.prefix)
 	{
 		int res;
 
-		/* Unkown or untrusted non-Teredo node */
 		assert (IsClient ());
 
 		/* Client case 2: direct IPv6 connectivity test */
@@ -507,35 +509,33 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 	}
 #endif
 
-	/* Unknown or untrusted Teredo client */
+	// Untrusted Teredo client
 
 	/* Client case 3: TODO: implement local discovery */
 
 	if (created)
-	{
 		/* Unknown Teredo clients */
 		p->SetMapping (IN6_TEREDO_IPV4 (dst), IN6_TEREDO_PORT (dst));
-		p->trusted = p->bubbles = p->pings = 0;
 
-		/* Client case 4 & relay case 2: new cone peer */
-		if (allowCone && IN6_IS_TEREDO_ADDR_CONE (dst))
-		{
-			int res;
+	p->trusted = p->bubbles = p->pings = 0;
 
-			p->trusted = 1;
-			p->TouchTransmit (now);
-			res = teredo_send (fd, packet, length, p->mapped_addr,
-			                   p->mapped_port) == (int)length ? 0 : -1;
-			teredo_list_release (list);
-			return res;
-		}
+	/* Client case 4 & relay case 2: new cone peer */
+	if (allowCone && IN6_IS_TEREDO_ADDR_CONE (dst))
+	{
+		int res;
+
+		p->trusted = 1;
+		p->TouchTransmit (now);
+		res = teredo_send (fd, packet, length, p->mapped_addr,
+		                   p->mapped_port) == (int)length ? 0 : -1;
+		teredo_list_release (list);
+		return res;
 	}
 
 	/* Client case 5 & relay case 3: untrusted non-cone peer */
 	p->QueueOutgoing (packet, length);
 
-	// Sends no more than one bubble every 2 seconds,
-	// and 4 bubbles every 300 secondes
+	// Sends bubble, if rate limit allows
 	switch (p->CountBubble (now))
 	{
 		case 0:
