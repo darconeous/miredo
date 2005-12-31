@@ -514,10 +514,11 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 	/* Client case 3: TODO: implement local discovery */
 
 	if (created)
+	{
 		/* Unknown Teredo clients */
 		p->SetMapping (IN6_TEREDO_IPV4 (dst), IN6_TEREDO_PORT (dst));
-
-	p->trusted = p->bubbles = p->pings = 0;
+		p->trusted = p->bubbles = p->pings = 0;
+	}
 
 	/* Client case 4 & relay case 2: new cone peer */
 	if (allowCone && IN6_IS_TEREDO_ADDR_CONE (dst))
@@ -692,7 +693,7 @@ int TeredoRelay::ReceivePacket (void)
 	 * reception date even if the destination is incorrect.
 	 */
 #if 0
-	/*
+	/* FIXME
 	 * Ensures that the packet destination has an IPv6 Internet scope
 	 * (ie 2000::/3). That should be done just before calling
 	 * SendIPv6Packet(), but it so much easier to do it now.
