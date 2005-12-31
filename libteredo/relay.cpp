@@ -670,40 +670,36 @@ int TeredoRelay::ReceivePacket (void)
 #endif /* MIREDO_TEREDO_CLIENT */
 
 	/*
-	 * NOTE/TODO:
+	 * NOTE:
 	 * In the client case, the spec says we should check that the
 	 * destination is our Teredo IPv6 address. However, this library makes
 	 * no difference between relay, host-specific relay and client
 	 * (it very much sounds like market segmentation to me).
 	 * We purposedly leave it up to the kernel to determine whether he
 	 * should accept, route, or drop the packet, according to its
-	 * configuration. That should be done now if we wanted to.
+	 * configuration. It is expected that client will normally not have
+	 * IPv6 forwarding enabled, so that the kernel will actually make said
+	 * destination address check itself.
 	 *
-	 * In the relay case, it says we should accept packet toward the range
+	 * In the relay case, it is sayd we should accept packet toward the range
 	 * of hosts for which we serve as a Teredo relay, and should otherwise
-	 * drop it. That should be done just before sending the packet. That
-	 * might be a run-time option.
+	 * drop it. That should be done just before sending the packet. We leave
+	 * it up to the network administrator to configure or not configure
+	 * source address filtering on its Teredo relay/router, via standard
+	 * firewalling (i.e. NetFilter/iptables on Linux).
 	 *
-	 * It should be noted that dropping packets with link-local
+	 * It should also be noted that dropping packets with link-local
 	 * destination here, before further processing, breaks connectivity
 	 * with restricted Teredo clients: we send them Teredo bubbles with
 	 * a link-local source, to which they reply with Teredo bubbles with
 	 * a link-local destination. Indeed, the specification specifies that
 	 * the relay MUST look up the peer in the list and update last
 	 * reception date even if the destination is incorrect.
+	 *
+	 * Therefore, we don't check that the destination in any case. However, we
+	 * DO check source address quite a lot...
 	 */
-#if 0
-	/* FIXME
-	 * Ensures that the packet destination has an IPv6 Internet scope
-	 * (ie 2000::/3). That should be done just before calling
-	 * SendIPv6Packet(), but it so much easier to do it now.
-	 */
-	if ((ip6.ip6_dst.s6_addr[0] & 0xe0) != 0x20)
-		return 0; // must be discarded, or ICMPv6 error (?)
 
-	if ((ip6.ip6_dst.s6_addr[0] & 0xfe) == 0xfe)
-		return 0;
-#endif
 	/*
 	 * Packets with a link-local source address are purposedly dropped to
 	 * prevent the kernel from receiving faked Router Advertisement which
@@ -716,7 +712,7 @@ int TeredoRelay::ReceivePacket (void)
 	 * such a packet *except* from their server (that processing is done
 	 * in the "Maintenance" case above), or bubbles from other restricted
 	 * clients/relays, which can safely be ignored (so long as the other
-	 * bubble sent through the server is not ignored).
+	 * bubbles sent through the server are not ignored).
 	 *
 	 * This check is not part of the Teredo specification.
 	 */
@@ -858,12 +854,12 @@ int TeredoRelay::ReceivePacket (void)
 		else
 		if (p->trusted)
 			/*
-			* Trusted node, but mismatch. That can only happen if:
-			*  - someone is spoofing the node,
-			*  - the node has changed relay (very unlikely),
-			*  - unfortunate node has multiple relay doing load-balancing
-			*    (that is not supposed to work with the Teredo protocol).
-			*/
+			 * Trusted node, but mismatch. That can only happen if:
+			 *  - someone is spoofing the node,
+			 *  - the node has changed relay (very unlikely),
+			 *  - unfortunate node has multiple relay doing load-balancing
+			 *    (that is not supposed to work with the Teredo protocol).
+			 */
 			return 0;
 # endif
 	
