@@ -36,14 +36,14 @@ class teredo_peer
 		size_t queue_left;
 		time_t last_rx;
 		time_t last_tx;
-		time_t last_ping;
 
 	public:
 		uint32_t mapped_addr;
 		uint16_t mapped_port;
 		unsigned trusted:1;
-		unsigned pings:2;
 		unsigned bubbles:3;
+		unsigned pings:3;
+		unsigned last_ping:9;
 
 		teredo_peer (void) : queue (NULL), queue_left (TeredoRelay::MaxQueueBytes)
 		{

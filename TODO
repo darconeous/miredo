@@ -19,8 +19,7 @@ Important features & fixes:
 ( ) local Teredo discovery
 (*) interval determination procedure
 (*) Metric support on BSD
-(!) improve unreachable messages generation timings
-    (should wait e.g. 1 second)
+(!) flush peers list when address changes
 
 Not so important features:
 ---------------------------
@@ -37,7 +36,7 @@ Not so important features:
 
 Conformance:
 -------------
-(!) conformant garbage collection,
+(!) limit sending of bubbles (not completed yet),
 (I) use permanent Teredo prefix
 
 Security:

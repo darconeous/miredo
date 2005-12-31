@@ -254,20 +254,32 @@ int teredo_peer::CountPing (time_t now)
 {
 	int res;
 
-	if ((now - last_ping) > 34)
-		pings = 0;
-
 	if (pings == 0)
 		res = 0;
-	else if (pings == 3)
+	// don't test more than 4 times (once + 3 repeats)
+	else if (pings >= 4)
 		res = -1;
+	// test must be separated by at least 2 seconds
 	else
-		res = ((now - last_ping) > 2) ? 0 : 1;
+	switch ((now - last_ping) & 0x1ff)
+	{
+		case 0:
+			res = 1;
+			break;
+
+		case 1:
+		case 2:
+			res = -1;
+			break;
+
+		default:
+			res = 0; // can test again!
+	}
 
 	if (res == 0)
 	{
 		last_ping = now;
-		pings ++;
+		pings++;
 	}
 
 	return res;
