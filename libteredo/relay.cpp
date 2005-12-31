@@ -217,10 +217,8 @@ TeredoRelay::EmitICMPv6Error (const void *packet, size_t length,
  * static/global, but so long as only miredo, which only instantiates one
  * client at a time use libteredo, that's no problem. This is meant to
  * avoid including <pthread.h> from <libteredo/relay.h>.
- *
- * TODO: turn that into a rwlock.
  */
-static pthread_mutex_t state_mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_rwlock_t state_lock = PTHREAD_RWLOCK_INITIALIZER;
 
 
 #ifdef MIREDO_TEREDO_CLIENT
@@ -229,7 +227,7 @@ void TeredoRelay::StateChange (const teredo_state *state, void *self)
 	TeredoRelay *r = (TeredoRelay *)self;
 	bool previously_up;
 
-	pthread_mutex_lock (&state_mutex);
+	pthread_rwlock_wrlock (&state_lock);
 	previously_up = r->state.up;
 	memcpy (&r->state, state, sizeof (r->state));
 
@@ -241,7 +239,7 @@ void TeredoRelay::StateChange (const teredo_state *state, void *self)
 
 	/* NOTE: the lock is retained until here to ensure notifications remain
 	 * properly ordered */
-	pthread_mutex_unlock (&state_mutex);
+	pthread_rwlock_unlock (&state_lock);
 }
 
 /*
@@ -382,13 +380,13 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 	 || (src->ip6.s6_addr[0] == 0xff))
 		return 0;
 
-	pthread_mutex_lock (&state_mutex);
+	pthread_rwlock_rdlock (&state_lock);
 	memcpy (&s, &state, sizeof (s));
 	/*
 	 * We can afford to use a slightly outdated state, but we cannot afford to
 	 * use an inconsistent state, hence this lock.
 	*/
-	pthread_mutex_unlock (&state_mutex);
+	pthread_rwlock_unlock (&state_lock);
 
 	if (IsRelay ())
 	{
@@ -590,13 +588,15 @@ int TeredoRelay::ReceivePacket (void)
 	 || ((ntohs (ip6.ip6_plen) + sizeof (ip6)) != length))
 		return 0; // malformatted IPv6 packet
 
-	pthread_mutex_lock (&state_mutex);
+	pthread_rwlock_rdlock (&state_lock);
 	memcpy (&s, &state, sizeof (s));
 	/*
 	 * We can afford to use a slightly outdated state, but we cannot afford to
-	 * use an inconsistent state, hence this lock.
+	 * use an inconsistent state, hence this lock. Also, we cannot call
+	 * libteredo_maintenance_process() while holding the lock, as that would
+	 * cause a deadlock at StateChange().
 	 */
-	pthread_mutex_unlock (&state_mutex);
+	pthread_rwlock_unlock (&state_lock);
 
 #ifdef MIREDO_TEREDO_CLIENT
 	/* Maintenance */
