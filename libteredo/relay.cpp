@@ -482,6 +482,8 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 #ifdef MIREDO_TEREDO_CLIENT
 	if (dst->teredo.prefix != s.addr.teredo.prefix)
 	{
+		int res;
+
 		/* Unkown or untrusted non-Teredo node */
 		assert (IsClient ());
 
@@ -495,10 +497,12 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 		}
 
 		p->QueueOutgoing (packet, length);
-		if (PingPeer (fd, p, now, &s.addr, &dst->ip6) == -1)
+		res = PingPeer (fd, p, now, &s.addr, &dst->ip6);
+
+ 		teredo_list_release (list);
+		if (res == -1)
 			SendUnreach (ICMP6_DST_UNREACH_ADDR, packet, length);
 
-		teredo_list_release (list);
 		return 0;
 	}
 #endif
@@ -536,28 +540,31 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 	{
 		case 0:
 		{
+			int res;
 			/*
-			* Open the return path if we are behind a
-			* restricted NAT.
-			*/
+			 * Open the return path if we are behind a
+			 * restricted NAT.
+			 */
 			if ((!s.cone) && SendBubbleFromDst (fd, &dst->ip6, false, false))
 			{
 				teredo_list_release (list);
 				return -1;
 			}
 	
-			int res = SendBubbleFromDst (fd, &dst->ip6, s.cone, true);
+			res = SendBubbleFromDst (fd, &dst->ip6, s.cone, true);
 			teredo_list_release (list);
 			return res;
 		}
 
-		case -1:
-			// Too many bubbles already sent
+		case -1: // Too many bubbles already sent
+			teredo_list_release (list);
 			SendUnreach (ICMP6_DST_UNREACH_ADDR, packet, length);
-		//case 1: -- between two bubbles -- nothing to do
+			break;
+
+		default: //case 1: -- between two bubbles -- nothing to do
+			teredo_list_release (list);
 	}
 
-	teredo_list_release (list);
 	return 0;
 }
 
