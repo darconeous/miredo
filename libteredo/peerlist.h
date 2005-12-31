@@ -35,16 +35,15 @@ class teredo_peer
 		packet *queue;
 		size_t queue_left;
 		time_t last_rx;
+		time_t last_tx;
 		time_t last_ping;
-		time_t last_bubble;
 
 	public:
 		uint32_t mapped_addr;
 		uint16_t mapped_port;
-		unsigned pings:2;
-		unsigned bubbles:2;
 		unsigned trusted:1;
-		unsigned dummy:9;
+		unsigned pings:2;
+		unsigned bubbles:3;
 
 		teredo_peer (void) : queue (NULL), queue_left (TeredoRelay::MaxQueueBytes)
 		{
@@ -68,10 +67,9 @@ class teredo_peer
 			time (&last_rx);
 		}
 
-		void TouchTransmit (void)
+		void TouchTransmit (time_t now)
 		{
-			/* time of last transmission is a write-only field,
-			 * so we don't keep track of it */
+			last_tx = now;
 		}
 
 		void QueueIncoming (const void *data, size_t len)

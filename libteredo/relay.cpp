@@ -96,7 +96,7 @@ TeredoRelay::TeredoRelay (uint32_t pref, uint16_t port, uint32_t ipv4,
 	fd = teredo_socket (ipv4, port);
 	if (fd != -1)
 	{
-		list = teredo_list_create (MaxPeers, 30);
+		list = teredo_list_create (MaxPeers, 300);
 		if (list != NULL)
 			return; /* success */
 		teredo_close (fd);
@@ -299,27 +299,43 @@ inline bool IsBubble (const struct ip6_hdr *hdr)
 /*
  * Returns 0 if a bubble may be sent, -1 if no more bubble may be sent,
  * 1 if a bubble may be sent later.
- * FIXME: code duplication with CountPing
  */
 int teredo_peer::CountBubble (time_t now)
 {
-	/* Pretty much the same code as CountPing above */
+	/* § 5.2.6 - sending bubbles */
 	int res;
 
-	if ((now - last_bubble) > 34)
-		bubbles = 0;
-
-	if (bubbles == 0)
-		res = 0;
-	else if (bubbles == 3)
-		res = -1;
+	if (bubbles > 0)
+	{
+		// don't send if a last tx was 2 seconds ago or fewer
+		if (now == last_tx)
+			res = 1;
+		else
+		if ((now - last_tx) < 2)
+			res = -1;
+		else
+		if (bubbles >= 4)
+		{
+			// don't send if 4 bubbles already sent within 300 seconds
+			if ((now - last_tx) <= 300)
+				res = -1;
+			else
+			{
+				// reset counter every 300 seconds
+				bubbles = 0;
+				res = 0;
+			}
+		}
+		else
+			res = 0;
+	}
 	else
-		res = ((now - last_bubble) > 2) ? 0 : 1;
+		res = 0;
 
 	if (res == 0)
 	{
-		last_bubble = now;
-		bubbles ++;
+		last_tx = now;
+		bubbles++;
 	}
 
 	return res;
@@ -444,7 +460,7 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 			int res;
 
 			/* Already known -valid- peer */
-			p->TouchTransmit ();
+			p->TouchTransmit (now);
 			res = teredo_send (fd, packet, length, p->mapped_addr,
 			                   p->mapped_port) == (int)length ? 0 : -1;
 			teredo_list_release (list);
@@ -466,7 +482,6 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 			p->mapped_port = 0;
 			p->mapped_addr = 0;
 			p->trusted = p->bubbles = p->pings = 0;
-			p->TouchTransmit ();
 		}
 
 		p->QueueOutgoing (packet, length);
@@ -494,7 +509,7 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 			int res;
 
 			p->trusted = 1;
-			p->TouchTransmit ();
+			p->TouchTransmit (now);
 			res = teredo_send (fd, packet, length, p->mapped_addr,
 			                   p->mapped_port) == (int)length ? 0 : -1;
 			teredo_list_release (list);
@@ -506,7 +521,7 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 	p->QueueOutgoing (packet, length);
 
 	// Sends no more than one bubble every 2 seconds,
-	// and 3 bubbles every 30 secondes
+	// and 4 bubbles every 300 secondes
 	switch (p->CountBubble (now))
 	{
 		case 0:
@@ -595,6 +610,7 @@ int TeredoRelay::ReceivePacket (void)
 		else
 		if (packet.orig_ipv4)
 		{
+			/* TODO: record sending of bubble, create a peer, etc ? */
 			SendBubble (fd, packet.orig_ipv4, packet.orig_port,
 			            &ip6.ip6_dst, &ip6.ip6_src);
 			if (IsBubble (&ip6))
@@ -609,7 +625,7 @@ int TeredoRelay::ReceivePacket (void)
 			 * we can guess the mapping. Otherwise, we're stuck.
 			 */
 		 	if (IN6_TEREDO_PREFIX (&ip6.ip6_src) == s.addr.teredo.prefix)
-				/* FIXME: use SendBubbleFromDst if applicable */
+				/* TODO: record sending of bubble, create a peer, etc ? */
 				SendBubble (fd, IN6_TEREDO_IPV4 (&ip6.ip6_src),
 				            IN6_TEREDO_PORT (&ip6.ip6_src), &ip6.ip6_dst,
 				            &ip6.ip6_src);
