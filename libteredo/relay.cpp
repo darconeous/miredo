@@ -247,41 +247,26 @@ void TeredoRelay::StateChange (const teredo_state *state, void *self)
 /*
  * Returns 0 if a ping may be sent, -1 if no more ping may be sent,
  * 1 if a ping may be sent later.
+ *
+ * FIXME: deserves a unit test
  */
-int teredo_peer::CountPing (void)
+int teredo_peer::CountPing (time_t now)
 {
-	time_t now;
 	int res;
 
-	time (&now);
+	if ((now - last_ping) > 34)
+		pings = 0;
 
 	if (pings == 0)
 		res = 0;
 	else if (pings == 3)
 		res = -1;
 	else
-#if 0 /* FIXME FIXME FIXME FIXME broken */
-	/*
-	 * NOTE/FIXME:
-	 * We hereby assume that expiry does not change.
-	 * In practice, the value may increase. In that case,
-	 * It will increase the delay of 2 seconds between pings
-	 * to something longer, which is allowed (2 seconds is a
-	 * minimum).
-	 */
-		res = ((unsigned)now > expiry - next_ping) ? 0 : 1;
-#else
-		res = 0;
-#endif
+		res = ((now - last_ping) > 2) ? 0 : 1;
 
 	if (res == 0)
 	{
-#if 0
-		int next;
-
-		next = expiry - (now + 2);
-		next_ping = next < 31 ? next : 30;
-#endif
+		last_ping = now;
 		pings ++;
 	}
 
@@ -289,10 +274,10 @@ int teredo_peer::CountPing (void)
 }
 
 
-static int PingPeer (int fd, teredo_peer *p,
+static int PingPeer (int fd, teredo_peer *p, time_t now,
                      const union teredo_addr *src, const struct in6_addr *dst)
 {
-	int res = p->CountPing ();
+	int res = p->CountPing (now);
 	
 	if (res == 0)
 		return SendPing (fd, src, dst);
@@ -314,36 +299,29 @@ inline bool IsBubble (const struct ip6_hdr *hdr)
 /*
  * Returns 0 if a bubble may be sent, -1 if no more bubble may be sent,
  * 1 if a bubble may be sent later.
+ * FIXME: code duplication with CountPing
  */
-int teredo_peer::CountBubble (void)
+int teredo_peer::CountBubble (time_t now)
 {
 	/* Pretty much the same code as CountPing above */
-	time_t now;
 	int res;
 
-	time (&now);
+	if ((now - last_bubble) > 34)
+		bubbles = 0;
 
 	if (bubbles == 0)
 		res = 0;
 	else if (bubbles == 3)
 		res = -1;
 	else
-#if 0 /* FIXME FIXME FIXME FIXME broken */
-		res = ((unsigned)now > expiry - next_bubble) ? 0 : 1;
-#else
-		res = 0;
-#endif
+		res = ((now - last_bubble) > 2) ? 0 : 1;
 
-	if (res)
+	if (res == 0)
 	{
-#if 0
-		int next;
-
-		next = expiry - (now + 2);
-		next_bubble = next < 31 ? next : 30;
-#endif
+		last_bubble = now;
 		bubbles ++;
 	}
+
 	return res;
 }
 
@@ -474,8 +452,8 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 		}
 	}
 
-#ifdef MIREDO_TEREDO_CLIENT
 	/* Unknown or untrusted peer */
+#ifdef MIREDO_TEREDO_CLIENT
 	if (dst->teredo.prefix != s.addr.teredo.prefix)
 	{
 		/* Unkown or untrusted non-Teredo node */
@@ -492,7 +470,7 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 		}
 
 		p->QueueOutgoing (packet, length);
-		if (PingPeer (fd, p, &s.addr, &dst->ip6) == -1)
+		if (PingPeer (fd, p, now, &s.addr, &dst->ip6) == -1)
 			SendUnreach (ICMP6_DST_UNREACH_ADDR, packet, length);
 
 		teredo_list_release (list);
@@ -529,7 +507,7 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 
 	// Sends no more than one bubble every 2 seconds,
 	// and 3 bubbles every 30 secondes
-	switch (p->CountBubble ())
+	switch (p->CountBubble (now))
 	{
 		case 0:
 		{
@@ -856,7 +834,7 @@ int TeredoRelay::ReceivePacket (void)
 		p->QueueIncoming (buf, length);
 		p->TouchReceive ();
 	
-		int res = PingPeer (fd, p, &s.addr, &ip6.ip6_src) ? -1 : 0;
+		int res = PingPeer (fd, p, now, &s.addr, &ip6.ip6_src) ? -1 : 0;
 		teredo_list_release (list);
 		return res;
 	}

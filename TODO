@@ -51,7 +51,6 @@ Security:
 Performance/scalibility:
 -------------------------
 (!) faster peer lists lookups/updates
-(!) peers list garbage collection
 ( ) multi-threading in relay/client
 
 Portability:

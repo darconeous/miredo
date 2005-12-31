@@ -28,24 +28,24 @@
 
 class teredo_peer
 {
-	public:
-		unsigned pings:2;
-		unsigned next_ping:5;
-		unsigned trusted:1;
-		unsigned bubbles:2;
-		unsigned next_bubble:5;
-		unsigned dummy:1;
-		uint16_t mapped_port;
-		uint32_t mapped_addr;
-
 	private:
+		void Queue (const void *data, size_t len, bool incoming);
 		struct packet;
+
 		packet *queue;
 		size_t queue_left;
-		void Queue (const void *data, size_t len, bool incoming);
 		time_t last_rx;
+		time_t last_ping;
+		time_t last_bubble;
 
 	public:
+		uint32_t mapped_addr;
+		uint16_t mapped_port;
+		unsigned pings:2;
+		unsigned bubbles:2;
+		unsigned trusted:1;
+		unsigned dummy:9;
+
 		teredo_peer (void) : queue (NULL), queue_left (TeredoRelay::MaxQueueBytes)
 		{
 		}
@@ -86,14 +86,14 @@ class teredo_peer
 
 		void Dequeue (int fd, TeredoRelay *r);
 
-		/* FIXME: implement and use this */
+		/* FIXME: use this */
 		bool IsValid (time_t now) const
 		{
-			return true;
+			return (now - last_rx) > 30;
 		}
 
-		int CountBubble (void);
-		int CountPing (void);
+		int CountBubble (time_t now);
+		int CountPing (time_t now);
 };
 
 # endif
