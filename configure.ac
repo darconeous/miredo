@@ -87,7 +87,7 @@ AC_DEFINE_UNQUOTED(PACKAGE_HOST, "$host",
                    [Define to the canonical host-system name])
 
 # Checks for header files.
-AC_CHECK_HEADERS([sys/capability.h libintl.h])
+AC_CHECK_HEADERS([sys/capability.h libintl.h Judy.h])
 
 
 # Checks for typedefs, structures, and compiler characteristics.
@@ -123,11 +123,10 @@ AC_ARG_WITH(Judy,
 	    [AS_HELP_STRING(--without-Judy,
 	    		    [do not use Judy dynamic arrays (auto by default)])])
 AS_IF([test "${with_Judy}" != "no"],
-	[AC_CHECK_HEADER([Judy.h], [have_Judy=yes], [have_Judy=no])],
-	[have_Judy=no])
+	[AC_CHECK_LIB(Judy, JudyHSIns,, [have_Judy=no])])
 AC_MSG_CHECKING([whether to use Judy dynamic arrays])
 AC_MSG_RESULT([${have_Judy}])
-AS_IF([test "${have_Judy}" == "no" && test "x${with_Judy}" == "xyes"],
+AS_IF([test "x${have_Judy}" == "xno" && test "x${with_Judy}" == "xyes"],
 	[AC_MSG_ERROR([Judy requested while not available])])
 
 # Teredo client
