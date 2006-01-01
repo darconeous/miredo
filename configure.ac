@@ -19,7 +19,7 @@ dnl *  along with this program; if not, you can get it from:              *
 dnl *  http://www.gnu.org/copyleft/gpl.html                               *
 dnl ***********************************************************************
 
-AC_COPYRIGHT([Copyright (C) 2004-2005 Remi Denis-Courmont])
+AC_COPYRIGHT([Copyright (C) 2004-2006 Remi Denis-Courmont])
 AC_INIT(miredo, 0.7.1, rdenis@simphalempin.com)
 AC_PREREQ(2.59)
 INVOCATION="$0 $*"
@@ -88,19 +88,16 @@ AC_DEFINE_UNQUOTED(PACKAGE_HOST, "$host",
 
 # Checks for header files.
 AC_CHECK_HEADERS([sys/capability.h libintl.h])
-dnl Judy.h
 
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_BIGENDIAN
 RDC_STRUCT_SOCKADDR_LEN
-dnl AC_CHECK_SIZEOF([void *])
 
 
 # Checks for library functions.
 RDC_REPLACE_FUNC_GETOPT_LONG
 AC_CHECK_FUNCS([clearenv strlcpy])
-dnl AC_CHECK_LIB([Judy], [JudyLIns])
 
 # Socket stuff
 RDC_FUNC_SOCKET
@@ -120,6 +117,18 @@ AH_BOTTOM([
 
 
 # Checks for optionnal features
+
+# Judy
+AC_ARG_WITH(Judy,
+	    [AS_HELP_STRING(--without-Judy,
+	    		    [do not use Judy dynamic arrays (auto by default)])])
+AS_IF([test "${with_Judy}" != "no"],
+	[AC_CHECK_HEADER([Judy.h], [have_Judy=yes], [have_Judy=no])],
+	[have_Judy=no])
+AC_MSG_CHECKING([whether to use Judy dynamic arrays])
+AC_MSG_RESULT([${have_Judy}])
+AS_IF([test "${have_Judy}" == "no" && test "x${with_Judy}" == "xyes"],
+	[AC_MSG_ERROR([Judy requested while not available])])
 
 # Teredo client
 AC_MSG_CHECKING([whether to enable Teredo client support])
