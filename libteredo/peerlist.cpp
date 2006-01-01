@@ -7,7 +7,7 @@
  */
 
 /***********************************************************************
- *  Copyright (C) 2004-2005 Remi Denis-Courmont.                       *
+ *  Copyright (C) 2004-2006 Remi Denis-Courmont.                       *
  *  This program is free software; you can redistribute and/or modify  *
  *  it under the terms of the GNU General Public License as published  *
  *  by the Free Software Foundation; version 2 of the license.         *
@@ -46,16 +46,6 @@
 #include "teredo-udp.h"
 #include "relay.h"
 #include "peerlist.h"
-
-
-/*
- * Big TODO:
- * - suppress the replied flag which is non-standard,
- * - replace expiry (4 bytes) with last_rx and last_tx
- *   (both could be one byte),
- *
- * - check last RX date in relay code for conformance
- */
 
 /*
  * Packets queueing
