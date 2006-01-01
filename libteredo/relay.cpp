@@ -772,20 +772,14 @@ int TeredoRelay::ReceivePacket (void)
 
 					// TODO: do not duplicate this code
 					p = teredo_list_lookup (list, now, &ip6.ip6_src, &create);
-					/* FIXME: if they were multiple threads, we'd have a race
-					 * condition whereby a peer would not be in the list at
-					 * the time when teredo_list_lookup() returned NULL above,
-					 * but would have been added since then. In that case, the
-					 * peer will be partially overriden - make sure that is
-					 * safe!
-					 */
-					/*if (!create) race_condition! */
 					if (p == NULL)
 						return -1; // insufficient memory
 
+					if (create)
+						p->trusted = p->bubbles = p->pings = 0;
+					//else race condition - peer created by another thread
 					p->SetMapping (IN6_TEREDO_IPV4 (&ip6.ip6_src),
-				    	           IN6_TEREDO_PORT (&ip6.ip6_src));
-					p->trusted = p->bubbles = p->pings = 0;
+					               IN6_TEREDO_PORT (&ip6.ip6_src));
 				}
 				else
 #endif
@@ -835,33 +829,19 @@ int TeredoRelay::ReceivePacket (void)
 
 			// TODO: do not duplicate this code
 			p = teredo_list_lookup (list, now, &ip6.ip6_src, &create);
-			/* FIXME: if they were multiple threads, we'd have a race
-			 * condition whereby a peer would not be in the list at
-			 * the time when teredo_list_lookup() returned NULL above,
-			 * but would have been added since then. In that case, the
-			 * peer will be partially overriden - make sure that is
-			 * safe!
-			 */
-			/*if (!create) race_condition! */
 			if (p == NULL)
 				return -1; // memory error
-	
-			p->mapped_port = 0;
-			p->mapped_addr = 0;
-			p->trusted = p->bubbles = p->pings = 0;
+
+			if (create)
+			{
+
+				p->mapped_port = 0;
+				p->mapped_addr = 0;
+				p->trusted = p->bubbles = p->pings = 0;
+			}
+			//else race condition - peer already created by another thread
+				// -> nothing to set in that case
 		}
-# if 0
-		else
-		if (p->trusted)
-			/*
-			 * Trusted node, but mismatch. That can only happen if:
-			 *  - someone is spoofing the node,
-			 *  - the node has changed relay (very unlikely),
-			 *  - unfortunate node has multiple relay doing load-balancing
-			 *    (that is not supposed to work with the Teredo protocol).
-			 */
-			return 0;
-# endif
 	
 		p->QueueIncoming (buf, length);
 		p->TouchReceive ();
