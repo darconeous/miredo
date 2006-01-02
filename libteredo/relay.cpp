@@ -242,11 +242,9 @@ void TeredoRelay::StateChange (const teredo_state *state, void *self)
 	pthread_rwlock_unlock (&state_lock);
 }
 
-/*
- * Returns 0 if a ping may be sent, -1 if no more ping may be sent,
- * 1 if a ping may be sent later.
- *
- * FIXME: deserves a unit test
+/**
+ * @return 0 if a ping may be sent. 1 if one was sent recently
+ * -1 if the peer seems unreachable.
  */
 int teredo_peer::CountPing (time_t now)
 {
@@ -259,20 +257,10 @@ int teredo_peer::CountPing (time_t now)
 		res = -1;
 	// test must be separated by at least 2 seconds
 	else
-	switch ((now - last_ping) & 0x1ff)
-	{
-		case 0:
-			res = 1;
-			break;
-
-		case 1:
-		case 2:
-			res = -1;
-			break;
-
-		default:
-			res = 0; // can test again!
-	}
+	if (((now - last_ping) & 0x1ff) <= 2)
+		res = 1;
+	else
+		res = 0; // can test again!
 
 	if (res == 0)
 	{
@@ -317,13 +305,6 @@ int teredo_peer::CountBubble (time_t now)
 
 	if (bubbles > 0)
 	{
-		// don't send if a last tx was 2 seconds ago or fewer
-		if (now == last_tx)
-			res = 1;
-		else
-		if ((now - last_tx) < 2)
-			res = -1;
-		else
 		if (bubbles >= 4)
 		{
 			// don't send if 4 bubbles already sent within 300 seconds
@@ -336,6 +317,10 @@ int teredo_peer::CountBubble (time_t now)
 				res = 0;
 			}
 		}
+		else
+		// don't send if last tx was 2 seconds ago or fewer
+		if ((now - last_tx) <= 2)
+			res = 1;
 		else
 			res = 0;
 	}
@@ -526,6 +511,7 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 		int res;
 
 		p->trusted = 1;
+		p->bubbles = /*p->pings -USELESS- =*/ 0;
 		p->TouchTransmit (now);
 		res = teredo_send (fd, packet, length, p->mapped_addr,
 		                   p->mapped_port) == (int)length ? 0 : -1;
@@ -743,6 +729,7 @@ int TeredoRelay::ReceivePacket (void)
 		if ((!p->trusted) && (CheckPing (&packet) == 0))
 		{
 			p->trusted = 1;
+			p->bubbles = p->pings = 0;
 
 			p->SetMappingFromPacket (&packet);
 			p->TouchReceive (now);
@@ -796,6 +783,7 @@ int TeredoRelay::ReceivePacket (void)
 				p->Dequeue (fd, this);
 
 			p->trusted = 1;
+			p->bubbles = /*p->pings -USELESS- =*/ 0;
 			p->TouchReceive (now);
 			teredo_list_release (list);
 
