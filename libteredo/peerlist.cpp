@@ -325,10 +325,16 @@ teredo_peer *teredo_list_lookup (teredo_peerlist *list, time_t atime,
 #else
 	/* Slow O(n) simplistic peer lookup */
 	bool found = false;
-
-	for (p = list->sentinel.next; p != &list->sentinel && !found; p = p->next)
+	p = list->sentinel.next;
+	while (p != &list->sentinel)
+	{
 		if (t6cmp (&p->key, (const union teredo_addr *)addr) == 0)
+		{
 			found = true;
+			break;
+		}
+		p = p->next;
+	}
 
 	if (!found)
 		p = NULL;
