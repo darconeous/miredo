@@ -42,6 +42,10 @@
 #include <pthread.h>
 #include <errno.h>
 
+#if HAVE_JUDY_H
+# include <Judy.h>
+#endif
+
 #include "teredo.h"
 #include "teredo-udp.h"
 #include "relay.h"
@@ -134,6 +138,9 @@ struct teredo_peerlist
 	pthread_t gc;
 	pthread_mutex_t lock;
 	pthread_cond_t cond;
+#if HAVE_LIBJUDY
+	Pvoid_t PJHSArray;
+#endif
 };
 
 
@@ -177,6 +184,12 @@ static void *garbage_collector (void *data)
 				 */
 				victim->prev->next = victim->next;
 				victim->next->prev = victim->prev;
+#if HAVE_LIBJUDY
+				{
+					int Rc_int;
+					JHSD (Rc_int, l->PJHSArray, (uint8_t *)&victim->key, 16);
+				}
+#endif
 				l->left++;
 
 				assert (victim != &l->sentinel);
@@ -216,6 +229,9 @@ teredo_peerlist *teredo_list_create (unsigned max, unsigned expiration)
 	l->sentinel.next = l->sentinel.prev = &l->sentinel;
 	l->left = max;
 	l->expiration = expiration;
+#if HAVE_LIBJUDY
+	l->PJHSArray = (Pvoid_t)NULL;
+#endif
 
 	if (pthread_create (&l->gc, NULL, garbage_collector, l))
 	{
@@ -236,6 +252,13 @@ void teredo_list_destroy (teredo_peerlist *l)
 	pthread_join (l->gc, NULL);
 	pthread_cond_destroy (&l->cond);
 	pthread_mutex_destroy (&l->lock);
+
+#if HAVE_LIBJUDY
+	{
+		long Rc_word;
+		JHSFA (Rc_word, l->PJHSArray);
+	}
+#endif
 
 	teredo_listitem *p = l->sentinel.next;
 
@@ -274,39 +297,71 @@ extern "C"
 teredo_peer *teredo_list_lookup (teredo_peerlist *list, time_t atime,
                                  const struct in6_addr *addr, bool *create)
 {
-	/* FIXME: all this code is highly suboptimal, but it works */
 	teredo_listitem *p;
 
 	pthread_mutex_lock (&list->lock);
 
-	/* Slow O(n) simplistic peer lookup */
-	for (p = list->sentinel.next; p != &list->sentinel; p = p->next)
-		if (t6cmp (&p->key, (const union teredo_addr *)addr) == 0)
+#if HAVE_LIBJUDY
+	teredo_listitem **pp = NULL;
+
+	/* Judy dynamic array-based fast lookup */
+	{
+		void *PValue;
+
+		if (create != NULL)
 		{
-			assert (p->prev->next == p);
-			assert (p->next->prev == p);
-
-			if (create != NULL)
-				*create = false;
-
-			/* touch peer toward garbage collector */
-			p->atime = atime;
-			if (p->prev != NULL)
-			{
-				/* remove peer from list */
-				p->prev->next = p->next;
-				p->next->prev = p->prev;
-
-				/* bring peer to the head of the list if it is not already */
-				p->next = list->sentinel.next;
-				p->next->prev = p;
-				p->prev = &list->sentinel;
-				list->sentinel.next = p;
-			}
-
-			return p->peer;
+			JHSI (PValue, list->PJHSArray, (uint8_t *)addr, 16);
+			pp = (teredo_listitem **)PValue;
+			p = *pp;
+		}
+		else
+		{
+			JHSG (PValue, list->PJHSArray, (uint8_t *)addr, 16);
+			pp = (teredo_listitem **)PValue;
+			p = (pp != NULL) ? *pp : NULL;
 		}
 
+	}
+#else
+	/* Slow O(n) simplistic peer lookup */
+	bool found = false;
+
+	for (p = list->sentinel.next; p != &list->sentinel && !found; p = p->next)
+		if (t6cmp (&p->key, (const union teredo_addr *)addr) == 0)
+			found = true;
+
+	if (!found)
+		p = NULL;
+#endif
+
+	if (p != NULL)
+	{
+		/* peer was already in list */
+		assert (p->prev->next == p);
+		assert (p->next->prev == p);
+
+		if (create != NULL)
+			*create = false;
+	
+		/* touch peer toward garbage collector */
+		p->atime = atime;
+		if (p->prev != NULL)
+		{
+			/* remove peer from list */
+			p->prev->next = p->next;
+			p->next->prev = p->prev;
+	
+			/* bring peer to the head of the list if it is not already */
+			p->next = list->sentinel.next;
+			p->next->prev = p;
+			p->prev = &list->sentinel;
+			list->sentinel.next = p;
+		}
+	
+		return p->peer;
+	}
+
+	/* otherwise, peer was not in list */
 	if (create == NULL)
 	{
 		pthread_mutex_unlock (&list->lock);
@@ -356,6 +411,9 @@ teredo_peer *teredo_list_lookup (teredo_peerlist *list, time_t atime,
 	assert (p->next->prev == p);
 	assert (p->prev->next == p);
 
+#if HAVE_LIBJUDY
+	*pp = p;
+#endif
 	memcpy (&p->key.ip6, addr, sizeof (struct in6_addr));
 	p->atime = atime;
 	return p->peer;

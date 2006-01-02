@@ -5,7 +5,7 @@ $Id$
 This task list is only indicative. It is not exhaustive nor
 authoritative.
 
-(!) before next release (0.8.0)
+(!) before next release (0.7.1)
 (*) before stable release (1.0.0)
 ( ) unscheduled
 (H) help needed - cannot be done unless someone volunteers
@@ -49,7 +49,6 @@ Security:
 
 Performance/scalibility:
 -------------------------
-(!) faster peer lists lookups/updates
 ( ) multi-threading in relay/client
 
 Portability:
