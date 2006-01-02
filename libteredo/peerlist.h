@@ -62,9 +62,9 @@ class teredo_peer
 			SetMapping (p->source_ipv4, p->source_port);
 		}
 
-		void TouchReceive (void)
+		void TouchReceive (time_t now)
 		{
-			time (&last_rx);
+			last_rx = now;
 		}
 
 		void TouchTransmit (time_t now)
@@ -87,7 +87,7 @@ class teredo_peer
 		/* FIXME: use this */
 		bool IsValid (time_t now) const
 		{
-			return (now - last_rx) > 30;
+			return (now - last_rx) <= 30;
 		}
 
 		int CountBubble (time_t now);

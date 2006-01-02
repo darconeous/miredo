@@ -464,6 +464,9 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 
 	if (!created)
 	{
+		syslog (LOG_DEBUG, "packet toward a known peer");
+		syslog (LOG_DEBUG, " peer is %strusted", p->trusted ? "" : "NOT ");
+		syslog (LOG_DEBUG, " peer is %svalid", p->IsValid (now) ? "" : "NOT ");
 		/* Case 1 (paragraphs 5.2.4 & 5.4.1): trusted peer */
 		if (p->trusted && p->IsValid (now))
 		{
@@ -535,6 +538,7 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 
 	/* Client case 5 & relay case 3: untrusted non-cone peer */
 	p->QueueOutgoing (packet, length);
+	syslog (LOG_DEBUG, "packet queued - about to send a bubble");
 
 	// Sends bubble, if rate limit allows
 	switch (p->CountBubble (now))
@@ -554,6 +558,7 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 	
 			res = SendBubbleFromDst (fd, &dst->ip6, s.cone, true);
 			teredo_list_release (list);
+			syslog (LOG_DEBUG, "bubble sent");
 			return res;
 		}
 
@@ -722,6 +727,7 @@ int TeredoRelay::ReceivePacket (void)
 	/* Actual packet reception, either as a relay or a client */
 
 	time_t now = time (NULL);
+	syslog (LOG_DEBUG, "received Teredo packet");
 
 	// Checks source IPv6 address / looks up peer in the list:
 	teredo_peer *p = teredo_list_lookup (list, now, &ip6.ip6_src, NULL);
@@ -733,7 +739,8 @@ int TeredoRelay::ReceivePacket (void)
 		 && (packet.source_ipv4 == p->mapped_addr)
 		 && (packet.source_port == p->mapped_port))
 		{
-			p->TouchReceive ();
+			syslog (LOG_DEBUG, " peer is trusted");
+			p->TouchReceive (now);
 			teredo_list_release (list);
 			return SendIPv6Packet (buf, length);
 		}
@@ -745,7 +752,7 @@ int TeredoRelay::ReceivePacket (void)
 			p->trusted = 1;
 
 			p->SetMappingFromPacket (&packet);
-			p->TouchReceive ();
+			p->TouchReceive (now);
 			p->Dequeue (fd, this);
 			teredo_list_release (list);
 			return 0; /* don't pass ping to kernel */
@@ -753,6 +760,8 @@ int TeredoRelay::ReceivePacket (void)
 #endif /* ifdef MIREDO_TEREDO_CLIENT */
 	}
 
+	syslog (LOG_DEBUG, " peer is NOT trusted");
+	syslog (LOG_DEBUG, " peer is %sknown", (p != NULL) ? "" : "NOT ");
 	/*
 	 * At this point, we have either a trusted mapping mismatch,
 	 * an unlisted peer, or an un-trusted client peer.
@@ -763,6 +772,7 @@ int TeredoRelay::ReceivePacket (void)
 		if (IN6_MATCHES_TEREDO_CLIENT (&ip6.ip6_src, packet.source_ipv4,
 		                               packet.source_port))
 		{
+			syslog (LOG_DEBUG, " peer matches");
 			if (p == NULL)
 			{
 #ifdef MIREDO_TEREDO_CLIENT
@@ -796,7 +806,7 @@ int TeredoRelay::ReceivePacket (void)
 				p->Dequeue (fd, this);
 
 			p->trusted = 1;
-			p->TouchReceive ();
+			p->TouchReceive (now);
 			teredo_list_release (list);
 
 			if (IsBubble (&ip6))
@@ -844,7 +854,7 @@ int TeredoRelay::ReceivePacket (void)
 		}
 	
 		p->QueueIncoming (buf, length);
-		p->TouchReceive ();
+		p->TouchReceive (now);
 	
 		int res = PingPeer (fd, p, now, &s.addr, &ip6.ip6_src) ? -1 : 0;
 		teredo_list_release (list);
