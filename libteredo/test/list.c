@@ -35,7 +35,6 @@
 #include <unistd.h>
 
 #include "teredo.h"
-#include "relay.h"
 #include "peerlist.h"
 
 int main (void)

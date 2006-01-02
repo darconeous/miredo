@@ -19,7 +19,7 @@
 
 AM_CPPFLAGS = -I@top_srcdir@ -I@top_srcdir@/libteredo -D_REENTRANT
 
-check_PROGRAMS = libteredo-addrcmp libteredo-list
+check_PROGRAMS = libteredo-addrcmp libteredo-list libteredo-stresslist
 TESTS = $(check_PROGRAMS)
 
 if TEREDO_CLIENT
@@ -32,6 +32,10 @@ libteredo_addrcmp_SOURCES = addrcmp.c
 # libteredo-list
 libteredo_list_SOURCES = list.c dummy.cpp
 libteredo_list_LDADD = ../libteredo.la
+
+# libteredo-stresslist
+libteredo_stresslist_SOURCES = stresslist.c dummy.cpp
+libteredo_stresslist_LDADD = ../libteredo.la
 
 # libteredo-hmac
 libteredo_hmac_SOURCES = hmac.c
