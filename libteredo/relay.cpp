@@ -720,6 +720,7 @@ int TeredoRelay::ReceivePacket (void)
 		 && (packet.source_port == p->mapped_port))
 		{
 			p->TouchReceive (now);
+			p->Dequeue (fd, this);
 			teredo_list_release (list);
 			return SendIPv6Packet (buf, length);
 		}
@@ -762,6 +763,7 @@ int TeredoRelay::ReceivePacket (void)
 					if (p == NULL)
 						return -1; // insufficient memory
 
+					/* FIXME: seemingly useless*/
 					if (create)
 						p->trusted = p->bubbles = p->pings = 0;
 					//else race condition - peer created by another thread
