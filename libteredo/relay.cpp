@@ -630,7 +630,7 @@ int TeredoRelay::ReceivePacket (void)
 			 * When the source IPv6 address is a Teredo address,
 			 * we can guess the mapping. Otherwise, we're stuck.
 			 */
-		 	if (IN6_TEREDO_PREFIX (&ip6.ip6_src) == s.addr.teredo.prefix)
+			if (IN6_TEREDO_PREFIX (&ip6.ip6_src) == s.addr.teredo.prefix)
 				/* TODO: record sending of bubble, create a peer, etc ? */
 				SendBubble (fd, IN6_TEREDO_IPV4 (&ip6.ip6_src),
 				            IN6_TEREDO_PORT (&ip6.ip6_src), &ip6.ip6_dst,
