@@ -123,7 +123,9 @@ AC_ARG_WITH(Judy,
 	    [AS_HELP_STRING(--without-Judy,
 	    		    [do not use Judy dynamic arrays (auto by default)])])
 AS_IF([test "${with_Judy}" != "no"],
-	[AC_CHECK_LIB(Judy, JudyHSIns,, [have_Judy=no])])
+	[have_Judy=yes
+	AC_CHECK_LIB(Judy, JudyHSIns,, [have_Judy=no])],
+	[have_Judy=no])
 AC_MSG_CHECKING([whether to use Judy dynamic arrays])
 AC_MSG_RESULT([${have_Judy}])
 AS_IF([test "x${have_Judy}" == "xno" && test "x${with_Judy}" == "xyes"],
