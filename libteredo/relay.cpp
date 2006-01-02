@@ -721,6 +721,7 @@ int TeredoRelay::ReceivePacket (void)
 		{
 			p->TouchReceive (now);
 			p->Dequeue (fd, this);
+			p->bubbles = p->pings = 0;
 			teredo_list_release (list);
 			return SendIPv6Packet (buf, length);
 		}
