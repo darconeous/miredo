@@ -4,7 +4,7 @@
  */
 
 /***********************************************************************
- *  Copyright (C) 2004-2005 Remi Denis-Courmont.                       *
+ *  Copyright (C) 2004-2006 Remi Denis-Courmont.                       *
  *  This program is free software; you can redistribute and/or modify  *
  *  it under the terms of the GNU General Public License as published  *
  *  by the Free Software Foundation; version 2 of the license.         *
@@ -146,17 +146,9 @@ struct tun6
  */
 tun6 *tun6_create (const char *req_name)
 {
-#if defined (HAVE_LINUX)
-	static const char tundev[] = "/dev/net/tun";
-	struct ifreq req;
-#elif defined (HAVE_BSD)
-	unsigned i;
-	char tundev[12];
-#endif
-	tun6 *t;
 	int fd, reqfd;
 
-	t = (tun6 *)malloc (sizeof (*t));
+	tun6 *t = (tun6 *)malloc (sizeof (*t));
 	if (t == NULL)
 	{
 		syslog (LOG_ERR, _("Tunneling driver error (%s): %m"), "malloc");
@@ -174,6 +166,9 @@ tun6 *tun6_create (const char *req_name)
 	/*
 	 * TUNTAP (Linux) tunnel driver initialization
 	 */
+	static const char tundev[] = "/dev/net/tun";
+	struct ifreq req;
+
 	fd = open (tundev, O_RDWR);
 	if (fd == -1)
 	{
@@ -200,7 +195,9 @@ tun6 *tun6_create (const char *req_name)
 	/*
 	 * BSD tunnel driver initialization
 	 */
-	for (i = 0; (i < 256) && (fd == -1); i++)
+	char tundev[12];
+
+	for (unsigned i = 0; (i < 256) && (fd == -1); i++)
 	{
 		const int dummy = 1;
 
@@ -395,19 +392,6 @@ static int
 _iface_addr (int reqfd, const char *ifname, bool add,
              const struct in6_addr *addr, unsigned prefix_len)
 {
-#if defined (HAVE_LINUX)
-	union
-	{
-		struct in6_ifreq req6;
-		struct ifreq req;
-	} r;
-#elif defined (HAVE_BSD)
-	union
-	{
-		struct in6_aliasreq addreq6;
-		struct in6_ifreq delreq6;
-	} r;
-#endif
 	void *req = NULL;
 	long cmd = 0;
 
@@ -421,6 +405,12 @@ _iface_addr (int reqfd, const char *ifname, bool add,
 	/*
 	 * Linux ioctl interface
 	 */
+	union
+	{
+		struct in6_ifreq req6;
+		struct ifreq req;
+	} r;
+
 	memset (&r, 0, sizeof (r));
 	r.req6.ifr6_ifindex = if_nametoindex (ifname);
 	memcpy (&r.req6.ifr6_addr, addr, sizeof (r.req6.ifr6_addr));
@@ -432,6 +422,12 @@ _iface_addr (int reqfd, const char *ifname, bool add,
 	/*
 	 * BSD ioctl interface
 	 */
+	union
+	{
+		struct in6_aliasreq addreq6;
+		struct in6_ifreq delreq6;
+	} r;
+
 	if (add)
 	{
 		memset (&r.addreq6, 0, sizeof (r.addreq6));
@@ -478,23 +474,20 @@ _iface_route (int reqfd, const char *ifname, bool add,
               const struct in6_addr *addr, unsigned prefix_len,
               int rel_metric)
 {
-#if defined (HAVE_LINUX)
-	struct in6_rtmsg req6;
-#elif defined (HAVE_BSD)
-	int s;
-#endif
-	int retval = -1;
-
 	assert (reqfd != -1);
 	assert (ifname != NULL);
 
 	if ((prefix_len > 128) || (addr == NULL))
 		return -1;
 
+	int retval = -1;
+
 #if defined (HAVE_LINUX)
 	/*
 	 * Linux ioctl interface
 	 */
+	struct in6_rtmsg req6;
+
 	/* Adds/deletes route */
 	memset (&req6, 0, sizeof (req6));
 	req6.rtmsg_flags = RTF_UP;
@@ -515,7 +508,7 @@ _iface_route (int reqfd, const char *ifname, bool add,
 	 * BSD routing socket interface
 	 * FIXME: metric unimplemented
 	 */
-	s = socket (AF_ROUTE, SOCK_RAW, AF_INET6);
+	int s = socket (AF_ROUTE, SOCK_RAW, AF_INET6);
 	if (s != -1)
 	{
 		static int rtm_seq = 0;
@@ -659,25 +652,24 @@ tun6_registerReadSet (const tun6 *t, fd_set *readset)
 int
 tun6_recv (const tun6 *t, const fd_set *readset, void *buffer, size_t maxlen)
 {
-#if defined (HAVE_LINUX)
-	struct
-{
-	uint16_t flags;
-	uint16_t proto;
-} head;
-#elif defined (HAVE_FREEBSD) || defined (HAVE_OPENBSD)
-	uint32_t head;
-#endif
-	int fd;
-
 	assert (t != NULL);
 
-	fd = t->fd;
+	int fd = t->fd;
 	if (!FD_ISSET (fd, readset))
 		return -1;
 
 #if defined (USE_TUNHEAD)
 	struct iovec vect[2];
+	union
+	{
+		struct
+		{
+			uint16_t flags;
+			uint16_t proto;
+		} linux;
+		uint32_t bsd;
+	} head;
+
 	vect[0].iov_base = (char *)&head;
 	vect[0].iov_len = sizeof (head);
 	vect[1].iov_base = (char *)buffer;
@@ -699,11 +691,11 @@ tun6_recv (const tun6 *t, const fd_set *readset, void *buffer, size_t maxlen)
 
 #if defined (HAVE_LINUX)
 	/* TUNTAP driver */
-	if (head.proto != htons (ETH_P_IPV6))
+	if (head.linux.proto != htons (ETH_P_IPV6))
 		return -1; /* only accept IPv6 packets */
 #elif defined (HAVE_FREEBSD) || defined (HAVE_OPENBSD)
 	/* FreeBSD driver */
-	if (head != htonl (AF_INET6))
+	if (head.bsd != htonl (AF_INET6))
 		return -1;
 #endif
 
