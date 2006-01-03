@@ -666,8 +666,8 @@ tun6_recv (const tun6 *t, const fd_set *readset, void *buffer, size_t maxlen)
 		{
 			uint16_t flags;
 			uint16_t proto;
-		} linux;
-		uint32_t bsd;
+		} tun_linux;
+		uint32_t tun_bsd;
 	} head;
 
 	vect[0].iov_base = (char *)&head;
@@ -691,11 +691,11 @@ tun6_recv (const tun6 *t, const fd_set *readset, void *buffer, size_t maxlen)
 
 #if defined (HAVE_LINUX)
 	/* TUNTAP driver */
-	if (head.linux.proto != htons (ETH_P_IPV6))
+	if (head.tun_linux.proto != htons (ETH_P_IPV6))
 		return -1; /* only accept IPv6 packets */
 #elif defined (HAVE_FREEBSD) || defined (HAVE_OPENBSD)
 	/* FreeBSD driver */
-	if (head.bsd != htonl (AF_INET6))
+	if (head.tun_bsd != htonl (AF_INET6))
 		return -1;
 #endif
 
