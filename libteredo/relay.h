@@ -182,6 +182,11 @@ class TeredoRelay
 		int ReceivePacket ();
 
 #ifdef MIREDO_TEREDO_CLIENT
+		bool IsClient (void) const
+		{
+			return maintenance != NULL;
+		}
+
 		/*static unsigned QualificationRetries;
 		static unsigned QualificationTimeOut;
 		static unsigned ServerNonceLifetime;
@@ -190,15 +195,6 @@ class TeredoRelay
 		static unsigned MaxPeers;
 		static unsigned MaxQueueBytes;
 		static unsigned IcmpRateLimitMs;
-
-		bool IsClient (void) const
-		{
-#ifdef MIREDO_TEREDO_CLIENT
-			return maintenance != NULL;
-#else
-			return false;
-#endif
-		}
 
 		void SetConeIgnore (bool ignore = true)
 		{
