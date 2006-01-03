@@ -373,7 +373,32 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 	*/
 	pthread_rwlock_unlock (&state_lock);
 
-	if (IsRelay ())
+#ifdef MIREDO_TEREDO_CLIENT
+	if (IsClient ())
+	{
+		if (!s.up) /* not qualified */
+		{
+			SendUnreach (ICMP6_DST_UNREACH_ADDR, packet, length);
+			return 0;
+		}
+	
+		if ((dst->teredo.prefix != s.addr.teredo.prefix)
+				&& (src->teredo.prefix != s.addr.teredo.prefix))
+		{
+				/*
+			* Routing packets not from a Teredo client,
+			* neither toward a Teredo client is NOT allowed through a
+			* Teredo tunnel. The Teredo server will reject the packet.
+			*
+			* We also drop link-local unicast and multicast packets as
+			* they can't be routed through Teredo properly.
+				*/
+			SendUnreach (ICMP6_DST_UNREACH_ADMIN, packet, length);
+			return 0;
+		}
+	}
+	else
+#endif
 	{
 		if (dst->teredo.prefix != s.addr.teredo.prefix)
 		{
@@ -394,31 +419,6 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 			return 0;
 		}
 	}
-#ifdef MIREDO_TEREDO_CLIENT
-	else
-	{
-		if (!s.up) /* not qualified */
-		{
-			SendUnreach (ICMP6_DST_UNREACH_ADDR, packet, length);
-			return 0;
-		}
-
-		if ((dst->teredo.prefix != s.addr.teredo.prefix)
-		 && (src->teredo.prefix != s.addr.teredo.prefix))
-		{
-			/*
-			 * Routing packets not from a Teredo client,
-			 * neither toward a Teredo client is NOT allowed through a
-			 * Teredo tunnel. The Teredo server will reject the packet.
-			 *
-			 * We also drop link-local unicast and multicast packets as
-			 * they can't be routed through Teredo properly.
-			 */
-			SendUnreach (ICMP6_DST_UNREACH_ADMIN, packet, length);
-			return 0;
-		}
-	}
-#endif
 
 	if (dst->teredo.prefix == s.addr.teredo.prefix)
 	{
@@ -847,8 +847,6 @@ int TeredoRelay::ReceivePacket (void)
 
 	// Relays don't accept packets not from Teredo clients,
 	// nor from mismatching packets
-	assert (IsRelay ());
-	
 	if (p != NULL)
 		teredo_list_release (list);
 

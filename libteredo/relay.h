@@ -191,15 +191,6 @@ class TeredoRelay
 		static unsigned MaxQueueBytes;
 		static unsigned IcmpRateLimitMs;
 
-		bool IsRelay (void) const
-		{
-#ifdef MIREDO_TEREDO_CLIENT
-			return maintenance == NULL;
-#else
-			return true;
-#endif
-		}
-
 		bool IsClient (void) const
 		{
 #ifdef MIREDO_TEREDO_CLIENT
