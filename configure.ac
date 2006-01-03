@@ -4,7 +4,7 @@ dnl based on earlier configure.ac from tcpreen by the same author
 dnl Process this file with GNU Autoconf to produce a configure script
 
 dnl ***********************************************************************
-dnl *  Copyright (C) 2002-2005 Remi Denis-Courmont.                       *
+dnl *  Copyright (C) 2002-2006 Remi Denis-Courmont.                       *
 dnl *  This program is free software; you can redistribute and/or modify  *
 dnl *  it under the terms of the GNU General Public License as published  *
 dnl *  by the Free Software Foundation; version 2 of the license.         *
@@ -38,6 +38,7 @@ RDC_BUILD_HOSTNAME
 # Checks for programs.
 AS_MESSAGE(checking required programs...)
 AC_PROG_CC
+dnl AC_PROG_CC_C99
 AC_PROG_CXX
 AC_DISABLE_SHARED
 AC_PROG_LIBTOOL
