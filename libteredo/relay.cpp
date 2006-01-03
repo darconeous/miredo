@@ -7,7 +7,7 @@
  */
 
 /***********************************************************************
- *  Copyright (C) 2004-2005 Remi Denis-Courmont.                       *
+ *  Copyright (C) 2004-2006 Remi Denis-Courmont.                       *
  *  This program is free software; you can redistribute and/or modify  *
  *  it under the terms of the GNU General Public License as published  *
  *  by the Free Software Foundation; version 2 of the license.         *
@@ -728,7 +728,7 @@ int TeredoRelay::ReceivePacket (void)
 
 #ifdef MIREDO_TEREDO_CLIENT
 		// Client case 2 (untrusted non-Teredo node):
-		if ((!p->trusted) && (CheckPing (&packet) == 0))
+		if (IsClient () && (!p->trusted) && (CheckPing (&packet) == 0))
 		{
 			p->trusted = 1;
 			p->bubbles = p->pings = 0;
@@ -798,6 +798,8 @@ int TeredoRelay::ReceivePacket (void)
 		// TODO: remove this line if we implement local teredo
 		return 0;
 	}
+
+	assert (IN6_TEREDO_PREFIX (&ip6.ip6_src) != s.addr.teredo.prefix);
 
 #ifdef MIREDO_TEREDO_CLIENT
 	if (IsClient ())
