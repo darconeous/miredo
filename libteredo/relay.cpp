@@ -383,7 +383,7 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 		}
 	
 		if ((dst->teredo.prefix != s.addr.teredo.prefix)
-				&& (src->teredo.prefix != s.addr.teredo.prefix))
+		 && (src->teredo.prefix != s.addr.teredo.prefix))
 		{
 				/*
 			* Routing packets not from a Teredo client,
@@ -443,12 +443,17 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 	bool created;
 	time_t now = time (NULL);
 
+// 	syslog (LOG_DEBUG, "packet to be sent");
 	teredo_peer *p = teredo_list_lookup (list, now, &dst->ip6, &created);
 	if (p == NULL)
 		return -1; /* error */
 
 	if (!created)
 	{
+// 		syslog (LOG_DEBUG, " peer is %strusted", p->trusted ? "" : "NOT ");
+// 		syslog (LOG_DEBUG, " peer is %svalid", p->IsValid (now) ? "" : "NOT ");
+// 		syslog (LOG_DEBUG, " pings = %u, bubbles = %u", p->pings, p->bubbles);
+
 		/* Case 1 (paragraphs 5.2.4 & 5.4.1): trusted peer */
 		if (p->trusted && p->IsValid (now))
 		{
@@ -462,6 +467,8 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 			return res;
 		}
 	}
+// 	else
+// 		syslog (LOG_DEBUG, " peer unknown and created");
 
 	// Unknown, untrusted, or too old peer
 	// (thereafter refered to as simply "untrusted")
@@ -490,6 +497,7 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 		if (res == -1)
 			SendUnreach (ICMP6_DST_UNREACH_ADDR, packet, length);
 
+// 		syslog (LOG_DEBUG, " ping peer returned %d", res);
 		return 0;
 	}
 #endif
@@ -612,10 +620,12 @@ int TeredoRelay::ReceivePacket (void)
 		{
 			/* Not from primary server IPv4 address
 			   -> force normal packet reception */
+// 			syslog (LOG_DEBUG, "packet from relay");
 		}
 		else
 		if (packet.orig_ipv4)
 		{
+// 			syslog (LOG_DEBUG, "bubble from server (+reply)");
 			/* TODO: record sending of bubble, create a peer, etc ? */
 			SendBubble (fd, packet.orig_ipv4, packet.orig_port,
 			            &ip6.ip6_dst, &ip6.ip6_src);
@@ -714,6 +724,10 @@ int TeredoRelay::ReceivePacket (void)
 
 	if (p != NULL)
 	{
+// 		syslog (LOG_DEBUG, " peer is %strusted", p->trusted ? "" : "NOT ");
+// 		syslog (LOG_DEBUG, " not checking validity");
+// 		syslog (LOG_DEBUG, " pings = %u, bubbles = %u", p->pings, p->bubbles);
+
 		// Client case 1 (trusted node or (trusted) Teredo client):
 		if (p->trusted
 		 && (packet.source_ipv4 == p->mapped_addr)
@@ -741,6 +755,8 @@ int TeredoRelay::ReceivePacket (void)
 		}
 #endif /* ifdef MIREDO_TEREDO_CLIENT */
 	}
+//	else
+// 		syslog (LOG_DEBUG, " unknown peer");
 
 	/*
 	 * At this point, we have either a trusted mapping mismatch,
@@ -827,20 +843,22 @@ int TeredoRelay::ReceivePacket (void)
 
 			if (create)
 			{
-
 				p->mapped_port = 0;
 				p->mapped_addr = 0;
 				p->trusted = p->bubbles = p->pings = 0;
 			}
 			//else race condition - peer already created by another thread
 				// -> nothing to set in that case
+// 			syslog (LOG_DEBUG, " peer created");
 		}
-	
+
+// 		syslog (LOG_DEBUG, " packet queued pending Echo Reply");
 		p->QueueIncoming (buf, length);
 		p->TouchReceive (now);
 	
 		int res = PingPeer (fd, p, now, &s.addr, &ip6.ip6_src) ? -1 : 0;
 		teredo_list_release (list);
+// 		syslog (LOG_DEBUG, " PingPeer returned %d", res);
 		return res;
 	}
 #endif /* ifdef MIREDO_TEREDO_CLIENT */
