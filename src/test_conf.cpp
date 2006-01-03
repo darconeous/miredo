@@ -1,10 +1,10 @@
 /*
  * test_conf.cpp - Miredo conf parser unit test
- * $Id: relay.cpp 659 2005-08-23 15:34:33Z remi $
+ * $Id$
  */
 
 /***********************************************************************
- *  Copyright (C) 2005 Remi Denis-Courmont.                            *
+ *  Copyright (C) 2005-2006 Remi Denis-Courmont.                       *
  *  This program is free software; you can redistribute and/or modify  *
  *  it under the terms of the GNU General Public License as published  *
  *  by the Free Software Foundation; version 2 of the license.         *
@@ -42,11 +42,21 @@ int main(int argc, char *argv[])
 	uint16_t u16;
 	bool b;
 
-	if (argc <= 1)
-		return 1;
-
 	MiredoConf conf;
 
+	if (argc <= 1)
+	{
+		const char *srcdir = getenv ("srcdir");
+
+		if ((srcdir == NULL)
+		 || (asprintf (&str, "%s/../misc/miredo.conf-dist",
+		               srcdir) == -1))
+			return 1;
+		if (!conf.ReadFile (str))
+			return 1;
+		free (str);
+	}
+	else
 	if (!conf.ReadFile (argv[1]))
 		return 1;
 
