@@ -62,8 +62,8 @@
  * in the context of the privileged child process or in that of the main
  * unprivileged worker process. They must not compromise the child's security.
  */
-static int should_exit;
-static int should_reload;
+static volatile int should_exit;
+static volatile int should_reload;
 
 /*
  * Pipe file descriptors (the right way to interrupt select() on Linux
