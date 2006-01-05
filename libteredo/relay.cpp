@@ -531,33 +531,24 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 	p->QueueOutgoing (packet, length);
 
 	// Sends bubble, if rate limit allows
-	switch (p->CountBubble (now))
+	int res = p->CountBubble (now);
+	teredo_list_release (list);
+	switch (res)
 	{
 		case 0:
-		{
-			int res;
 			/*
 			 * Open the return path if we are behind a
 			 * restricted NAT.
 			 */
 			if ((!s.cone) && SendBubbleFromDst (fd, &dst->ip6, false, false))
-			{
-				teredo_list_release (list);
 				return -1;
-			}
-	
-			res = SendBubbleFromDst (fd, &dst->ip6, s.cone, true);
-			teredo_list_release (list);
-			return res;
-		}
+
+			return SendBubbleFromDst (fd, &dst->ip6, s.cone, true);
 
 		case -1: // Too many bubbles already sent
-			teredo_list_release (list);
 			SendUnreach (ICMP6_DST_UNREACH_ADDR, packet, length);
-			break;
 
-		default: //case 1: -- between two bubbles -- nothing to do
-			teredo_list_release (list);
+		//case 1: -- between two bubbles -- nothing to do
 	}
 
 	return 0;
@@ -812,6 +803,8 @@ int TeredoRelay::ReceivePacket (void)
 		}
 
 		// TODO: remove this line if we implement local teredo
+		if (p != NULL)
+			teredo_list_release (list);
 		return 0;
 	}
 
