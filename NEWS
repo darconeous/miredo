@@ -1,5 +1,5 @@
 RELEASE NOTES for Miredo
-version 0.7.0 (beta version)
+version 0.7.1 (beta version)
 =============================
 $Id$
 
@@ -24,6 +24,20 @@ Thanks for your help.
 informations on this program, see README. For syntax details and
 changes, run 'miredo -h' to get help. For detailled internal changes, see
 ChangeLog.
+
+=============================================================================
+BETA RELEASE 0.7.1 : Major features enhancement
+
+# One hundred time more scalable peers list: Miredo should now be able to
+  handle a few hundreds of thousands of peers simultaneously while it would
+  hardly hundle one thousand previously. That is done with Judy dynamic
+  arrays (an external very fast LGPL library for hash tables). If Judy is
+  not available, the old naive and not scalable linked list algorithm will
+  still be used.
+# Basic working garbage collector for peers list.
+# Better Echo Requests and Teredo bubbles timings as regards draft 05.
+# Add --enable-debug configure option. Without this, debug stuff will no
+  longer be included.
 
 =============================================================================
 BETA RELEASE 0.7.0 : Minor features enhancement, security/bugs fixes
