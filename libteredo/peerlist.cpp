@@ -42,6 +42,9 @@
 #include <pthread.h>
 #include <errno.h>
 
+#ifndef NDEBUG
+# define JUDYERROR_NOTEST 1
+#endif
 #if HAVE_JUDY_H
 # include <Judy.h>
 #endif
@@ -338,6 +341,11 @@ teredo_peer *teredo_list_lookup (teredo_peerlist *list, time_t atime,
 		if (create != NULL)
 		{
 			JHSI (PValue, list->PJHSArray, (uint8_t *)addr, 16);
+			if (PValue == PJERR)
+			{
+				pthread_mutex_unlock (&list->lock);
+				return NULL;
+			}
 			pp = (teredo_listitem **)PValue;
 			p = *pp;
 		}
@@ -425,6 +433,10 @@ teredo_peer *teredo_list_lookup (teredo_peerlist *list, time_t atime,
 
 	if (p == NULL)
 	{
+#if HAVE_LIBJUDY
+		int Rc_int;
+		JHSD (Rc_int, list->PJHSArray, (uint8_t *)addr, sizeof (*addr));
+#endif
 		pthread_mutex_unlock (&list->lock);
 		return NULL;
 	}
