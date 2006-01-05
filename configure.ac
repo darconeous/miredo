@@ -36,7 +36,7 @@ RDC_BUILD_HOSTNAME
 
 
 # Checks for programs.
-AS_MESSAGE(checking required programs...)
+AS_MESSAGE([checking required programs...])
 AC_PROG_CC
 dnl AC_PROG_CC_C99
 AC_PROG_CXX
@@ -46,6 +46,7 @@ AM_INIT_AUTOMAKE([check-news dist-bzip2 std-options])
 
 
 # Checks for libraries.
+AS_MESSAGE([checking required libraries...])
 AM_BINRELOC
 AM_GNU_GETTEXT([external])
 AH_TEMPLATE(HAVE_LINUX,
@@ -88,15 +89,18 @@ AC_DEFINE_UNQUOTED(PACKAGE_HOST, "$host",
                    [Define to the canonical host-system name])
 
 # Checks for header files.
+AS_MESSAGE([checking header files...])
 AC_CHECK_HEADERS([sys/capability.h libintl.h Judy.h])
 
 
 # Checks for typedefs, structures, and compiler characteristics.
+AS_MESSAGE([checking target characteristics...])
 AC_C_BIGENDIAN
 RDC_STRUCT_SOCKADDR_LEN
 
 
 # Checks for library functions.
+AS_MESSAGE([checking library functions...])
 RDC_REPLACE_FUNC_GETOPT_LONG
 AC_CHECK_FUNCS([clearenv strlcpy])
 
@@ -118,11 +122,12 @@ AH_BOTTOM([
 
 
 # Checks for optionnal features
+AS_MESSAGE([checking optional features...])
 
 # Judy
 AC_ARG_WITH(Judy,
 	    [AS_HELP_STRING(--without-Judy,
-	    		    [do not use Judy dynamic arrays (auto by default)])])
+	    		    [do not use Judy dynamic arrays (default automatic)])])
 AS_IF([test "${with_Judy}" != "no"],
 	[have_Judy=yes
 	AC_CHECK_LIB(Judy, JudyHSIns,, [have_Judy=no])],
@@ -133,10 +138,10 @@ AS_IF([test "x${have_Judy}" == "xno" && test "x${with_Judy}" == "xyes"],
 	[AC_MSG_ERROR([Judy requested while not available])])
 
 # Teredo client
-AC_MSG_CHECKING([whether to enable Teredo client support])
+AC_MSG_CHECKING([whether to include Teredo client support])
 AC_ARG_ENABLE(teredo-client,
 	      [AS_HELP_STRING(--disable-teredo-client,
-			      [do not compile Teredo client (enabled by default)])])
+			      [do not compile Teredo client (default enabled)])])
 AH_TEMPLATE(MIREDO_TEREDO_CLIENT,
 	    [Define to 1 if the Teredo client support is enabled])
 AM_CONDITIONAL(TEREDO_CLIENT, [test "x${enable_teredo_client}" != "xno"])
@@ -145,11 +150,24 @@ AS_IF([test "x${enable_teredo_client}" != "xno"],
 	AC_MSG_RESULT(yes)],
 	[AC_MSG_RESULT(no)])
 
+# Debugging
+AC_MSG_CHECKING([whether to compile debug code])
+AC_ARG_ENABLE(debug,
+	      [AS_HELP_STRING(--enable-debug,
+			       [compile debug code (default disabled)])])
+AH_TEMPLATE(NDEBUG,
+	    [Define to 1 if debug code should be compiled in])
+AS_IF([test "x${enable_debug}" == "x"], [enable_debug=no])
+AS_IF([test "x${enable_debug}" != "xno"],
+	[enable_debug=yes
+	AC_DEFINE(NDEBUG)])
+AC_MSG_RESULT(${enable_debug})
+
 # chroot path
 AC_MSG_CHECKING([directory to chroot to])
 AC_ARG_ENABLE(chroot,
 	      [AS_HELP_STRING(--enable-chroot,
-	      		      [path to chroot to (disabled by default)])])
+	      		      [path to chroot to (default disabled)])])
 AS_IF([test "${enable_chroot}" = ""],
 	[AS_IF([test "${enable_teredo_client}" = "no"],
 		[enable_chroot=yes], [enable_chroot=no])])
@@ -165,7 +183,7 @@ AS_IF([test "${enable_chroot}" != "no"],
 AC_MSG_CHECKING([user to run as])
 AC_ARG_ENABLE(miredo-user,
 	      [AS_HELP_STRING(--enable-miredo-user,
-			      [run as a specific user (disabled by default)])])
+			      [run as a specific user (default disabled)])])
 AS_IF([test "${enable_miredo_user}" = "yes"],
 	[enable_miredo_user="miredo"])
 AS_IF([test "x${enable_miredo_user}" = "x" || test "${enable_miredo_user}" = "no"],

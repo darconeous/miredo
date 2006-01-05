@@ -20,6 +20,7 @@ Important features & fixes:
 (*) interval determination procedure
 (*) Metric support on BSD
 (!) flush peers list when address changes
+(!) detected dead lock in peer list lookup !!!!!! GRAVE !!!!!
 
 Not so important features:
 ---------------------------
@@ -36,7 +37,8 @@ Not so important features:
 
 Conformance:
 -------------
-(!) limit sending of bubbles (not completed yet),
+(*) limit sending of bubbles (not completed yet)
+(*) send unreachable in response when dropping previously queued packets
 (I) use permanent Teredo prefix
 
 Security:
@@ -70,3 +72,4 @@ Re-usability:
 (?) thread-safety in libteredo
 (F) libteredo C bindings
 (*) external control program for scripting
+(*) NEVER EVER call SendIPv6Packet with the list lock held
