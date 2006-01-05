@@ -64,9 +64,12 @@ int main (void)
 {
 	teredo_peerlist *l;
 	struct in6_addr addr = { };
-	unsigned long i, j;
+	unsigned long i;
 	time_t seed;
 	clock_t t;
+
+	signal (SIGALRM, alarm_handler);
+	alarm (1);
 
 	time (&seed);
 
@@ -76,8 +79,7 @@ int main (void)
 
 	// Insertion stress test
 	srand ((unsigned int)seed);
-	signal (SIGALRM, alarm_handler);
-	alarm (1);
+	t = clock ();
 	for (i = 0; count < DELAY; i++)
 	{
 		teredo_peer *p;
@@ -89,14 +91,16 @@ int main (void)
 			return -1;
 		teredo_list_release (l);
 	}
+	t = clock () - t;
 
-	printf ("\n%lu insertions per second\n", i / DELAY);
+	printf ("\n%lu inserts/s\n",
+			(unsigned long)((float)i * CLOCKS_PER_SEC / t));
 
 	// Lookup stress test
 	srand ((unsigned int)seed);
 	seed += 10;
 	t = clock ();
-	for (j = 0; j < i; j++)
+	for (unsigned long j = 0; j < i; j++)
 	{
 		teredo_peer *p;
 
@@ -108,9 +112,12 @@ int main (void)
 	}
 	t = clock () - t;
 
-	printf ("\n%lu lookups per second\n",
-	        (unsigned long)((float)j * CLOCKS_PER_SEC / t));
+	printf ("\n%lu lookups/s\n",
+	        (unsigned long)((float)i * CLOCKS_PER_SEC / t));
 
 	teredo_list_destroy (l);
+
+	signal (SIGALRM, SIG_IGN);
+	fputc ('\n', stderr);
 	return 0;
 }
