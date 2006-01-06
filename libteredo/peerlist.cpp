@@ -54,7 +54,6 @@
 #include "relay.h"
 #include "peerlist.h"
 #ifndef NDEBUG
-# include <syslog.h>
 # include <errno.h>
 #endif
 
@@ -320,12 +319,8 @@ teredo_peer *teredo_list_lookup (teredo_peerlist *list, time_t atime,
 #ifndef NDEBUG
 	{
 		int err = pthread_mutex_lock (&list->lock);
-		if (err)
-		{
-			syslog (LOG_DEBUG, "pthread_mutex_lock failed: %s",
-			        strerror (err));
-			abort ();
-		}
+		assert (err != EDEADLK);
+		assert (err == 0);
 	}
 #else
 	pthread_mutex_lock (&list->lock);
@@ -471,5 +466,11 @@ teredo_peer *teredo_list_lookup (teredo_peerlist *list, time_t atime,
 extern "C"
 void teredo_list_release (teredo_peerlist *l)
 {
+#ifndef NDEBUG
+	int err = pthread_mutex_unlock (&l->lock);
+	assert (err != EPERM);
+	assert (err == 0);
+#else
 	pthread_mutex_unlock (&l->lock);
+#endif
 }

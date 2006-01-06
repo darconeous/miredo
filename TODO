@@ -20,7 +20,6 @@ Important features & fixes:
 (*) interval determination procedure
 (*) Metric support on BSD
 (!) flush peers list when address changes
-(!) detected dead lock in peer list lookup !!!!!! GRAVE !!!!!
 
 Not so important features:
 ---------------------------
