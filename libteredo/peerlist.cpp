@@ -179,9 +179,10 @@ static void *garbage_collector (void *data)
 			assert (victim != &l->sentinel);
 			deadline.tv_sec = victim->atime + l->expiration;
 			/*deadline.tv_nsec = 0;*/
-			
-			while (pthread_cond_timedwait (&l->cond, &l->lock,
-			                               &deadline) != ETIMEDOUT);
+
+			if (pthread_cond_timedwait (&l->cond, &l->lock,
+			                            &deadline) != ETIMEDOUT)
+				continue;
 
 			while ((victim->atime + l->expiration) <= (unsigned)deadline.tv_sec)
 			{
