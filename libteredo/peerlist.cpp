@@ -261,37 +261,64 @@ teredo_peerlist *teredo_list_create (unsigned max, unsigned expiration)
 }
 
 /**
- * Empties and destroys an existing list.
+ * Empties an existing unlocked list. Always succeeds.
+ *
+ * @param max new value for maximum number of items allowed.
+ */
+extern "C"
+void teredo_list_reset (teredo_peerlist *l, unsigned max)
+{
+	pthread_mutex_lock (&l->lock);
+
+#if HAVE_LIBJUDY
+{
+	long Rc_word;
+	JHSFA (Rc_word, l->PJHSArray);
+	l->PJHSArray = (Pvoid_t)NULL;
+}
+#endif
+
+	teredo_listitem *p = l->sentinel.next;
+
+	if (p != &l->sentinel)
+	{
+		do
+		{
+			teredo_listitem *buf = p->next;
+			delete p->peer;
+			free (p);
+			p = buf;
+		}
+		while (p != &l->sentinel);
+
+		l->sentinel.next = l->sentinel.prev = &l->sentinel;
+
+		// notifies garbage collector
+		pthread_cond_signal (&l->cond);
+	}
+	l->left = max;
+
+	pthread_mutex_unlock (&l->lock);
+}
+
+/**
+ * Destroys an existing unlocked list.
  */
 extern "C"
 void teredo_list_destroy (teredo_peerlist *l)
 {
+	teredo_list_reset (l, 0);
+
 	pthread_cancel (l->gc);
 	pthread_join (l->gc, NULL);
 	pthread_cond_destroy (&l->cond);
 	pthread_mutex_destroy (&l->lock);
 
-#if HAVE_LIBJUDY
-	{
-		long Rc_word;
-		JHSFA (Rc_word, l->PJHSArray);
-	}
-#endif
-
-	teredo_listitem *p = l->sentinel.next;
-
-	while (p != &l->sentinel)
-	{
-		teredo_listitem *buf = p->next;
-		delete p->peer;
-		free (p);
-		p = buf;
-	}
 	free (l);
 }
 
 /**
- * Locks the list and looks up a peer in a list.
+ * Locks the list and looks up a peer in an unlocked list.
  * On success, the list must be unlocked with teredo_list_release(), otherwise
  * the next call to teredo_list_lookup will deadlock. Unlocking the list after
  * a failure is not defined.
