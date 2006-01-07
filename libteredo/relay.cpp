@@ -232,13 +232,25 @@ void TeredoRelay::StateChange (const teredo_state *state, void *self)
 	memcpy (&r->state, state, sizeof (r->state));
 
 	if (r->state.up)
+	{
+		/*
+		 * NOTE: we get an hold on both state and peer list locks here.
+		 * As such, in any case, attempting to acquire the state lock while
+		 * the peer list is locked is STRICTLY FORBIDDEN to avoid an obvious
+		 * inter-locking deadlock.
+		 */
+		teredo_list_reset (r->list, MaxPeers);
 		r->NotifyUp (&r->state.addr.ip6, r->state.mtu);
+	}
 	else
 	if (previously_up)
 		r->NotifyDown ();
 
-	/* NOTE: the lock is retained until here to ensure notifications remain
-	 * properly ordered */
+	/*
+	 * NOTE: the lock is retained until here to ensure notifications remain
+	 * properly ordered. Unfortunately, we cannot be re-entrant from within
+	 * NotifyUp/Down.
+	 */
 	pthread_rwlock_unlock (&state_lock);
 }
 
