@@ -4,7 +4,7 @@
  */
 
 /***********************************************************************
- *  Copyright (C) 2004-2005 Remi Denis-Courmont.                       *
+ *  Copyright (C) 2004-2006 Remi Denis-Courmont.                       *
  *  This program is free software; you can redistribute and/or modify  *
  *  it under the terms of the GNU General Public License as published  *
  *  by the Free Software Foundation; version 2 of the license.         *
@@ -108,6 +108,7 @@ typedef struct teredo_peer teredo_peer; /* FIXME: temporary */
 
 teredo_peerlist *teredo_list_create (unsigned max, unsigned expiration);
 void teredo_list_destroy (teredo_peerlist *l);
+void teredo_list_reset (teredo_peerlist *l, unsigned max);
 
 teredo_peer *teredo_list_lookup (teredo_peerlist *list, time_t atime,
                                  const struct in6_addr *addr, bool *create);

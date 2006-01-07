@@ -59,6 +59,33 @@ int main (void)
 		teredo_list_destroy (l);
 	}
 
+	// further test empty list
+	l = teredo_list_create (0, 0);
+	time (&now);
+	if (l == NULL)
+		return -1;
+	else
+	{
+		bool create;
+
+		if (teredo_list_lookup (l, now, &addr, &create) != NULL)
+			return -1;
+
+		teredo_list_reset (l, 1);
+		// should now be able to insert a single item
+		if (teredo_list_lookup (l, now, &addr, &create) == NULL)
+			return -1;
+		teredo_list_release (l);
+
+		addr.s6_addr[12] = 10;
+		if (teredo_list_lookup (l, now, &addr, &create) != NULL)
+			return -1;
+
+		teredo_list_reset (l, 1);
+		teredo_list_reset (l, 1);
+		teredo_list_destroy (l);
+	}
+
 	// test real list
 	l = teredo_list_create (255, 3);
 	if (l == NULL)
