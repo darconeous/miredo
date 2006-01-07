@@ -16,9 +16,8 @@ authoritative.
 Important features & fixes:
 ----------------------------
 ( ) fixed TODOs and FIXMEs in source code
-( ) local Teredo discovery
+(*) local Teredo discovery
 (*) interval determination procedure
-(*) Metric support on BSD
 (!) flush peers list when address changes
 
 Not so important features:
@@ -58,6 +57,7 @@ Portability:
 (H) byte alignement tests on problematic platforms (not i386)
 (H) Solaris support & tests
 (H) Darwin tests
+(*) Metric support on BSD
 
 Documentation & support:
 -------------------------
