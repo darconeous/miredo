@@ -147,13 +147,8 @@ struct teredo_peerlist
 #if HAVE_LIBJUDY
 	Pvoid_t PJHSArray;
 #endif
+	bool running;
 };
-
-
-static void cleanup_mutex (void *data)
-{
-	pthread_mutex_unlock ((pthread_mutex_t *)data);
-}
 
 
 /**
@@ -167,11 +162,10 @@ static void *garbage_collector (void *data)
 	struct teredo_peerlist *l = (struct teredo_peerlist *)data;
 
 	pthread_mutex_lock (&l->lock);
-	pthread_cleanup_push (cleanup_mutex, &l->lock);
 
-	for (;;)
+	while (l->running)
 	{
-		while (l->sentinel.next != &l->sentinel)
+		while (l->running && (l->sentinel.next != &l->sentinel))
 		{
 			teredo_listitem *victim = l->sentinel.prev;
 			struct timespec deadline = { 0, 0 };
@@ -190,32 +184,32 @@ static void *garbage_collector (void *data)
 				/*
 				 * The victim was not touched in the mean time... destroy it.
 				 */
-				victim->prev->next = victim->next;
-				victim->next->prev = victim->prev;
 #if HAVE_LIBJUDY
-				{
-					int Rc_int;
-					JHSD (Rc_int, l->PJHSArray, (uint8_t *)&victim->key, 16);
-				}
+				int Rc_int;
+				JHSD (Rc_int, l->PJHSArray, (uint8_t *)&victim->key, 16);
 #endif
+				l->sentinel.prev = victim->prev;
 				l->left++;
+			}
 
-				assert (victim != &l->sentinel);
+			victim->next = &l->sentinel;
+			pthread_mutex_unlock (&l->lock);
+
+			// Perform possibly expensive memory release without the lock
+			while ((victim = victim->next) != &l->sentinel)
+			{
 				delete victim->peer;
 				free (victim);
-
-				/* delete all victims from the same expiry time */
-				victim = l->sentinel.prev;
-				if (victim == &l->sentinel)
-					break;
 			}
+
+			pthread_mutex_lock (&l->lock);
 		}
 
 		/* wait until there the list is not empty */
 		pthread_cond_wait (&l->cond, &l->lock);
 	}
 
-	pthread_cleanup_pop (1); /* dead code */
+	pthread_mutex_unlock (&l->lock);
 	return NULL;
 }
 
@@ -251,6 +245,7 @@ teredo_peerlist *teredo_list_create (unsigned max, unsigned expiration)
 #if HAVE_LIBJUDY
 	l->PJHSArray = (Pvoid_t)NULL;
 #endif
+	l->running = true;
 
 	if (pthread_create (&l->gc, NULL, garbage_collector, l))
 	{
@@ -286,7 +281,7 @@ void teredo_list_reset (teredo_peerlist *l, unsigned max)
 		assert (l->sentinel.prev != &l->sentinel);
 		l->sentinel.prev->next = NULL;
 
-		// notifies garbage collector
+		// resets garbage collector
 		pthread_cond_signal (&l->cond);
 		l->sentinel.next = l->sentinel.prev = &l->sentinel;
 	}
@@ -318,7 +313,11 @@ void teredo_list_destroy (teredo_peerlist *l)
 {
 	teredo_list_reset (l, 0);
 
-	pthread_cancel (l->gc);
+	pthread_mutex_lock (&l->lock);
+	l->running = false;
+	pthread_cond_signal (&l->cond);
+	pthread_mutex_unlock (&l->lock);
+
 	pthread_join (l->gc, NULL);
 	pthread_cond_destroy (&l->cond);
 	pthread_mutex_destroy (&l->lock);
