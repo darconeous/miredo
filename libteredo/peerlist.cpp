@@ -272,34 +272,40 @@ void teredo_list_reset (teredo_peerlist *l, unsigned max)
 	pthread_mutex_lock (&l->lock);
 
 #if HAVE_LIBJUDY
-{
-	long Rc_word;
-	JHSFA (Rc_word, l->PJHSArray);
+	Pvoid_t array = l->PJHSArray;
 	l->PJHSArray = (Pvoid_t)NULL;
-}
-#endif
+#endif	
 
 	teredo_listitem *p = l->sentinel.next;
+	l->left = max;
 
 	if (p != &l->sentinel)
 	{
-		do
-		{
-			teredo_listitem *buf = p->next;
-			delete p->peer;
-			free (p);
-			p = buf;
-		}
-		while (p != &l->sentinel);
-
-		l->sentinel.next = l->sentinel.prev = &l->sentinel;
+		assert (l->sentinel.prev != &l->sentinel);
+		l->sentinel.prev->next = NULL;
 
 		// notifies garbage collector
 		pthread_cond_signal (&l->cond);
+		l->sentinel.next = l->sentinel.prev = &l->sentinel;
 	}
-	l->left = max;
+	else
+		p = NULL;
 
 	pthread_mutex_unlock (&l->lock);
+
+	/* the mutex is not needed for actual memory release */
+	while (p != NULL)
+	{
+		teredo_listitem *buf = p->next;
+		delete p->peer;
+		free (p);
+		p = buf;
+	}
+
+#if HAVE_LIBJUDY
+	long Rc_word;
+	JHSFA (Rc_word, array);
+#endif
 }
 
 /**
