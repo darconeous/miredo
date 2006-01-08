@@ -257,26 +257,26 @@ void TeredoRelay::StateChange (const teredo_state *state, void *self)
  * @return 0 if a ping may be sent. 1 if one was sent recently
  * -1 if the peer seems unreachable.
  */
-int teredo_peer::CountPing (time_t now)
+static int CountPing (teredo_peer *peer, time_t now)
 {
 	int res;
 
-	if (pings == 0)
+	if (peer->pings == 0)
 		res = 0;
 	// don't test more than 4 times (once + 3 repeats)
-	else if (pings >= 4)
+	else if (peer->pings >= 4)
 		res = -1;
 	// test must be separated by at least 2 seconds
 	else
-	if (((now - last_ping) & 0x1ff) <= 2)
+	if (((now - peer->last_ping) & 0x1ff) <= 2)
 		res = 1;
 	else
 		res = 0; // can test again!
 
 	if (res == 0)
 	{
-		last_ping = now;
-		pings++;
+		peer->last_ping = now;
+		peer->pings++;
 	}
 
 	return res;
@@ -286,7 +286,7 @@ int teredo_peer::CountPing (time_t now)
 static int PingPeer (int fd, teredo_peer *p, time_t now,
                      const union teredo_addr *src, const struct in6_addr *dst)
 {
-	int res = p->CountPing (now);
+	int res = CountPing (p, now);
 	
 	if (res == 0)
 		return SendPing (fd, src, dst);
@@ -309,28 +309,28 @@ inline bool IsBubble (const struct ip6_hdr *hdr)
  * Returns 0 if a bubble may be sent, -1 if no more bubble may be sent,
  * 1 if a bubble may be sent later.
  */
-int teredo_peer::CountBubble (time_t now)
+static int CountBubble (teredo_peer *peer, time_t now)
 {
 	/* § 5.2.6 - sending bubbles */
 	int res;
 
-	if (bubbles > 0)
+	if (peer->bubbles > 0)
 	{
-		if (bubbles >= 4)
+		if (peer->bubbles >= 4)
 		{
 			// don't send if 4 bubbles already sent within 300 seconds
-			if ((now - last_tx) <= 300)
+			if ((now - peer->last_tx) <= 300)
 				res = -1;
 			else
 			{
 				// reset counter every 300 seconds
-				bubbles = 0;
+				peer->bubbles = 0;
 				res = 0;
 			}
 		}
 		else
 		// don't send if last tx was 2 seconds ago or fewer
-		if ((now - last_tx) <= 2)
+		if ((now - peer->last_tx) <= 2)
 			res = 1;
 		else
 			res = 0;
@@ -340,11 +340,18 @@ int teredo_peer::CountBubble (time_t now)
 
 	if (res == 0)
 	{
-		last_tx = now;
-		bubbles++;
+		peer->last_tx = now;
+		peer->bubbles++;
 	}
 
 	return res;
+}
+
+
+static inline void SetMappingFromPacket (teredo_peer *peer,
+										 const struct teredo_packet *p)
+{
+	SetMapping (peer, p->source_ipv4, p->source_port);
 }
 
 
@@ -466,12 +473,12 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 // 		syslog (LOG_DEBUG, " pings = %u, bubbles = %u", p->pings, p->bubbles);
 
 		/* Case 1 (paragraphs 5.2.4 & 5.4.1): trusted peer */
-		if (p->trusted && p->IsValid (now))
+		if (p->trusted && IsValid (p, now))
 		{
 			int res;
 
 			/* Already known -valid- peer */
-			p->TouchTransmit (now);
+			TouchTransmit (p, now);
 			res = teredo_send (fd, packet, length, p->mapped_addr,
 			                   p->mapped_port) == (int)length ? 0 : -1;
 			teredo_list_release (list);
@@ -501,7 +508,7 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 			p->trusted = p->bubbles = p->pings = 0;
 		}
 
-		p->QueueOutgoing (packet, length);
+		QueueOutgoing (p, packet, length);
 		res = PingPeer (fd, p, now, &s.addr, &dst->ip6);
 
  		teredo_list_release (list);
@@ -520,7 +527,7 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 	if (created)
 	{
 		/* Unknown Teredo clients */
-		p->SetMapping (IN6_TEREDO_IPV4 (dst), IN6_TEREDO_PORT (dst));
+		SetMapping (p, IN6_TEREDO_IPV4 (dst), IN6_TEREDO_PORT (dst));
 		p->trusted = p->bubbles = p->pings = 0;
 	}
 
@@ -531,7 +538,7 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 
 		p->trusted = 1;
 		p->bubbles = /*p->pings -USELESS- =*/ 0;
-		p->TouchTransmit (now);
+		TouchTransmit (p, now);
 		res = teredo_send (fd, packet, length, p->mapped_addr,
 		                   p->mapped_port) == (int)length ? 0 : -1;
 		teredo_list_release (list);
@@ -539,10 +546,10 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 	}
 
 	/* Client case 5 & relay case 3: untrusted non-cone peer */
-	p->QueueOutgoing (packet, length);
+	QueueOutgoing (p, packet, length);
 
 	// Sends bubble, if rate limit allows
-	int res = p->CountBubble (now);
+	int res = CountBubble (p, now);
 	teredo_list_release (list);
 	switch (res)
 	{
@@ -735,8 +742,8 @@ int TeredoRelay::ReceivePacket (void)
 		 && (packet.source_ipv4 == p->mapped_addr)
 		 && (packet.source_port == p->mapped_port))
 		{
-			p->TouchReceive (now);
-			p->Dequeue (fd, this);
+			TouchReceive (p, now);
+			Dequeue (p, fd, this);
 			p->bubbles = p->pings = 0;
 			teredo_list_release (list);
 			return SendIPv6Packet (buf, length);
@@ -749,9 +756,9 @@ int TeredoRelay::ReceivePacket (void)
 			p->trusted = 1;
 			p->bubbles = p->pings = 0;
 
-			p->SetMappingFromPacket (&packet);
-			p->TouchReceive (now);
-			p->Dequeue (fd, this);
+			SetMappingFromPacket (p, &packet);
+			TouchReceive (p, now);
+			Dequeue (p, fd, this);
 			teredo_list_release (list);
 			return 0; /* don't pass ping to kernel */
 		}
@@ -786,8 +793,8 @@ int TeredoRelay::ReceivePacket (void)
 					if (create)
 						p->trusted = p->bubbles = p->pings = 0;
 					//else race condition - peer created by another thread
-					p->SetMapping (IN6_TEREDO_IPV4 (&ip6.ip6_src),
-					               IN6_TEREDO_PORT (&ip6.ip6_src));
+					SetMapping (p, IN6_TEREDO_IPV4 (&ip6.ip6_src),
+					            IN6_TEREDO_PORT (&ip6.ip6_src));
 				}
 				else
 #endif
@@ -801,11 +808,11 @@ int TeredoRelay::ReceivePacket (void)
 					return 0; // list not locked
 			}
 			else
-				p->Dequeue (fd, this);
+				Dequeue (p, fd, this);
 
 			p->trusted = 1;
 			p->bubbles = /*p->pings -USELESS- =*/ 0;
-			p->TouchReceive (now);
+			TouchReceive (p, now);
 			teredo_list_release (list);
 
 			if (IsBubble (&ip6))
@@ -857,8 +864,8 @@ int TeredoRelay::ReceivePacket (void)
 		}
 
 // 		syslog (LOG_DEBUG, " packet queued pending Echo Reply");
-		p->QueueIncoming (buf, length);
-		p->TouchReceive (now);
+		QueueIncoming (p, buf, length);
+		TouchReceive (p, now);
 	
 		int res = PingPeer (fd, p, now, &s.addr, &ip6.ip6_src) ? -1 : 0;
 		teredo_list_release (list);

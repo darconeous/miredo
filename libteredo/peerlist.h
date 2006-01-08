@@ -22,79 +22,78 @@
 #ifndef LIBTEREDO_PEERLIST_H
 # define LIBTEREDO_PEERLIST_H
 
-# ifdef __cplusplus
 # define TEREDO_TIMEOUT 30 // seconds
 # define MAXQUEUE 1280u // bytes
 
-class teredo_peer
+typedef struct packet packet;
+
+typedef struct teredo_peer
 {
-	private:
-		void Queue (const void *data, size_t len, bool incoming);
-		struct packet;
+	packet *queue;
+	size_t queue_left;
+	time_t last_rx;
+	time_t last_tx;
+	uint32_t mapped_addr;
+	uint16_t mapped_port;
+	unsigned trusted:1;
+	unsigned bubbles:3;
+	unsigned pings:3;
+	unsigned last_ping:9;
+} teredo_peer;
 
-		packet *queue;
-		size_t queue_left;
-		time_t last_rx;
-		time_t last_tx;
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-	public:
-		uint32_t mapped_addr;
-		uint16_t mapped_port;
-		unsigned trusted:1;
-		unsigned bubbles:3;
-		unsigned pings:3;
-		unsigned last_ping:9;
+void teredo_peer_queue (teredo_peer *peer, const void *data, size_t len,
+                        bool incoming);
+void teredo_peer_dequeue (teredo_peer *peer, int fd, void *r);
 
-		teredo_peer (void) : queue (NULL), queue_left (TeredoRelay::MaxQueueBytes)
-		{
-		}
-		~teredo_peer (void);
+#ifdef __cplusplus
+}
+#endif
 
-	public:
-		void SetMapping (uint32_t ip, uint16_t port)
-		{
-			mapped_addr = ip;
-			mapped_port = port;
-		}
+static inline void SetMapping (teredo_peer *peer, uint32_t ip, uint16_t port)
+{
+	peer->mapped_addr = ip;
+	peer->mapped_port = port;
+}
 
-		void SetMappingFromPacket (const teredo_packet *p)
-		{
-			SetMapping (p->source_ipv4, p->source_port);
-		}
+static inline void TouchReceive (teredo_peer *peer, time_t now)
+{
+	peer->last_rx = now;
+}
 
-		void TouchReceive (time_t now)
-		{
-			last_rx = now;
-		}
+static inline void TouchTransmit (teredo_peer *peer, time_t now)
+{
+	peer->last_tx = now;
+}
 
-		void TouchTransmit (time_t now)
-		{
-			last_tx = now;
-		}
+static inline
+void QueueIncoming (teredo_peer *peer, const void *data, size_t len)
+{
+	teredo_peer_queue (peer, data, len, true);
+}
 
-		void QueueIncoming (const void *data, size_t len)
-		{
-			Queue (data, len, true);
-		}
+static inline
+void QueueOutgoing (teredo_peer *peer, const void *data, size_t len)
+{
+	teredo_peer_queue (peer, data, len, false);
+}
 
-		void QueueOutgoing (const void *data, size_t len)
-		{
-			Queue (data, len, false);
-		}
+static inline
+void Dequeue (teredo_peer *peer, int fd, void *r)
+{
+	teredo_peer_dequeue (peer, fd, r);
+}
 
-		void Dequeue (int fd, TeredoRelay *r);
 
-		/* FIXME: use this */
-		bool IsValid (time_t now) const
-		{
-			return (now - last_rx) <= 30;
-		}
+static inline
+bool IsValid (const teredo_peer *peer, time_t now)
+{
+	return (now - peer->last_rx) <= 30;
+}
 
-		int CountBubble (time_t now);
-		int CountPing (time_t now);
-};
-
-# endif
 
 typedef struct teredo_peerlist teredo_peerlist;
 
@@ -102,8 +101,6 @@ struct in6_addr;
 
 # ifdef __cplusplus
 extern "C" {
-# else
-typedef struct teredo_peer teredo_peer; /* FIXME: temporary */
 # endif
 
 teredo_peerlist *teredo_list_create (unsigned max, unsigned expiration);

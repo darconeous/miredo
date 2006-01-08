@@ -60,55 +60,64 @@
 /*
  * Packets queueing
  */
-typedef struct teredo_peer::packet
+struct packet
 {
 	packet *next;
 	size_t length;
 	bool incoming;
 	uint8_t data[];
-} packet;
+};
 
 unsigned TeredoRelay::MaxQueueBytes = 1280;
 
-teredo_peer::~teredo_peer (void)
+
+static inline void teredo_peer_init (teredo_peer *peer)
 {
-	while (queue != NULL)
+	peer->queue = NULL;
+	peer->queue_left = TeredoRelay::MaxQueueBytes;
+}
+
+
+static void teredo_peer_destroy (teredo_peer *peer)
+{
+	struct packet *p = peer->queue;
+
+	while (p != NULL)
 	{
 		packet *buf;
 
-		buf = queue->next;
-		free (queue);
-		queue = buf;
+		buf = p->next;
+		free (p);
+		p = buf;
 	}
 }
 
 
-void teredo_peer::Queue (const void *data, size_t len, bool incoming)
+void teredo_peer_queue (teredo_peer *peer, const void *data, size_t len,
+                        bool incoming)
 {
 	packet *p;
 
-	if (len > queue_left)
+	if (len > peer->queue_left)
 		return;
-	queue_left -= len;
+	peer->queue_left -= len;
 
 	p = (packet *)malloc (sizeof (*p) + len);
 	p->length = len;
 	memcpy (p->data, data, len);
 	p->incoming = incoming;
 
-	p->next = queue;
-	queue = p;
+	p->next = peer->queue;
+	peer->queue = p;
 }
 
 
-void teredo_peer::Dequeue (int fd, TeredoRelay *r)
+void teredo_peer_dequeue (teredo_peer *peer, int fd, void *r)
 {
-	packet *ptr;
-
 	/* lock peer */
-	ptr = queue;
-	queue = NULL;
-	queue_left = TeredoRelay::MaxQueueBytes;
+	packet *ptr = peer->queue;
+	peer->queue = NULL;
+	peer->queue_left = TeredoRelay::MaxQueueBytes;
 	/* unlock */
 
 	while (ptr != NULL)
@@ -117,10 +126,10 @@ void teredo_peer::Dequeue (int fd, TeredoRelay *r)
 
 		buf = ptr->next;
 		if (ptr->incoming)
-			r->SendIPv6Packet (ptr->data, ptr->length);
+			((TeredoRelay *)r)->SendIPv6Packet (ptr->data, ptr->length);
 		else
 			teredo_send (fd, ptr->data, ptr->length,
-			             mapped_addr, mapped_port);
+			             peer->mapped_addr, peer->mapped_port);
 		free (ptr);
 		ptr = buf;
 	}
@@ -131,7 +140,7 @@ void teredo_peer::Dequeue (int fd, TeredoRelay *r)
 typedef struct teredo_listitem
 {
 	struct teredo_listitem *prev, *next;
-	teredo_peer *peer; /* TODO: not a pointer */
+	teredo_peer peer;
 	union teredo_addr key;
 	time_t atime;
 } teredo_listitem;
@@ -209,7 +218,7 @@ static void *garbage_collector (void *data)
 			while (victim != NULL)
 			{
 				teredo_listitem *buf = victim->next;
-				delete victim->peer;
+				teredo_peer_destroy (&victim->peer);
 				free (victim);
 				victim = buf;
 			}
@@ -233,6 +242,9 @@ static void *garbage_collector (void *data)
 extern "C"
 teredo_peerlist *teredo_list_create (unsigned max, unsigned expiration)
 {
+	/*printf ("Peer size: %u/%u bytes\n",sizeof (teredo_peer),
+	        sizeof (teredo_listitem));*/
+
 	teredo_peerlist *l = (teredo_peerlist *)malloc (sizeof (*l));
 	if (l == NULL)
 		return NULL;
@@ -306,7 +318,7 @@ void teredo_list_reset (teredo_peerlist *l, unsigned max)
 	while (p != NULL)
 	{
 		teredo_listitem *buf = p->next;
-		delete p->peer;
+		teredo_peer_destroy (&p->peer);
 		free (p);
 		p = buf;
 	}
@@ -442,7 +454,7 @@ teredo_peer *teredo_list_lookup (teredo_peerlist *list, time_t atime,
 			list->sentinel.next = p;
 		}
 	
-		return p->peer;
+		return &p->peer;
 	}
 
 	/* otherwise, peer was not in list */
@@ -455,24 +467,7 @@ teredo_peer *teredo_list_lookup (teredo_peerlist *list, time_t atime,
 	*create = true;
 
 	/* Allocates a new peer entry */
-	if (list->left != 0)
-	{
-		p = (teredo_listitem *)malloc (sizeof (*p));
-		if (p != NULL)
-		{
-			try
-			{
-				p->peer = new teredo_peer;
-			}
-			catch (...)
-			{
-				free (p);
-				p = NULL;
-			}
-		}
-	}
-	else
-		p = NULL;
+	p = (list->left != 0) ? (teredo_listitem *)malloc (sizeof (*p)) : NULL;
 
 	if (p == NULL)
 	{
@@ -483,6 +478,8 @@ teredo_peer *teredo_list_lookup (teredo_peerlist *list, time_t atime,
 		pthread_mutex_unlock (&list->lock);
 		return NULL;
 	}
+
+	teredo_peer_init (&p->peer);
 
 	if (list->sentinel.next == &list->sentinel)
 		/* tell GC the list is no longer empty */
@@ -504,7 +501,7 @@ teredo_peer *teredo_list_lookup (teredo_peerlist *list, time_t atime,
 #endif
 	memcpy (&p->key.ip6, addr, sizeof (struct in6_addr));
 	p->atime = atime;
-	return p->peer;
+	return &p->peer;
 }
 
 
