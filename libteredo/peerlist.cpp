@@ -254,6 +254,8 @@ teredo_peerlist *teredo_list_create (unsigned max, unsigned expiration)
 
 	if (pthread_create (&l->gc, NULL, garbage_collector, l))
 	{
+		pthread_cond_destroy (&l->cond);
+		pthread_mutex_destroy (&l->lock);
 		free (l);
 		return NULL;
 	}
