@@ -112,7 +112,6 @@ TeredoRelay::TeredoRelay (const char *server, const char *server2,
                           uint16_t port, uint32_t ipv4)
 	: allowCone (false), maintenance (NULL)
 {
-	/*syslog (LOG_DEBUG, "Peer size: %u bytes", sizeof (peer));*/
 	memset (&state, 0, sizeof (state));
 
 	fd = teredo_socket (ipv4, port);
