@@ -174,7 +174,7 @@ static void *garbage_collector (void *data)
 
 	while (l->running)
 	{
-		while (l->running && (l->sentinel.prev != &l->sentinel))
+		while (l->sentinel.prev != &l->sentinel)
 		{
 			struct timespec deadline;
 
@@ -183,7 +183,11 @@ static void *garbage_collector (void *data)
 
 			if (pthread_cond_timedwait (&l->cond, &l->lock,
 			                            &deadline) != ETIMEDOUT)
+			{
+				if (!l->running)
+					goto out;
 				continue;
+			}
 
 			teredo_listitem *victim = NULL;
 
@@ -230,6 +234,7 @@ static void *garbage_collector (void *data)
 		pthread_cond_wait (&l->cond, &l->lock);
 	}
 
+out:
 	pthread_mutex_unlock (&l->lock);
 	return NULL;
 }
