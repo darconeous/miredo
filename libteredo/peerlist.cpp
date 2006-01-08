@@ -184,7 +184,8 @@ static void *garbage_collector (void *data)
 			                            &deadline) != ETIMEDOUT)
 				continue;
 
-			while ((victim->atime + l->expiration) <= (unsigned)deadline.tv_sec)
+			while (((victim = l->sentinel.prev) != &l->sentinel)
+			 && ((victim->atime + l->expiration) <= (unsigned)deadline.tv_sec))
 			{
 				/*
 				 * The victim was not touched in the mean time... destroy it.
