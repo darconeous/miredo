@@ -165,41 +165,53 @@ static void *garbage_collector (void *data)
 
 	while (l->running)
 	{
-		while (l->running && (l->sentinel.next != &l->sentinel))
+		while (l->running && (l->sentinel.prev != &l->sentinel))
 		{
-			teredo_listitem *victim = l->sentinel.prev;
-			struct timespec deadline = { 0, 0 };
+			struct timespec deadline;
 
-			assert (victim != &l->sentinel);
-			deadline.tv_sec = victim->atime + l->expiration;
-			/*deadline.tv_nsec = 0;*/
+			deadline.tv_sec = l->sentinel.prev->atime + l->expiration;
+			deadline.tv_nsec = 0;
 
 			if (pthread_cond_timedwait (&l->cond, &l->lock,
 			                            &deadline) != ETIMEDOUT)
 				continue;
 
-			while (((victim = l->sentinel.prev) != &l->sentinel)
-			 && ((victim->atime + l->expiration) <= (unsigned)deadline.tv_sec))
+			teredo_listitem *victim = NULL;
+
+			for (teredo_listitem *p = l->sentinel.prev;
+			     p != &l->sentinel;
+			     p = p->prev)
 			{
+				if ((p->atime + l->expiration) > (unsigned)deadline.tv_sec)
+					break;
+
 				/*
 				 * The victim was not touched in the mean time... destroy it.
 				 */
 #if HAVE_LIBJUDY
 				int Rc_int;
-				JHSD (Rc_int, l->PJHSArray, (uint8_t *)&victim->key, 16);
+				JHSD (Rc_int, l->PJHSArray, (uint8_t *)&p->key, 16);
 #endif
-				l->sentinel.prev = victim->prev;
+				victim = p;
 				l->left++;
 			}
 
-			victim->next = &l->sentinel;
+			if (victim != NULL)
+			{
+				victim->prev->next = &l->sentinel;
+				l->sentinel.prev->next = NULL;
+				l->sentinel.prev = victim->prev;
+			}
+
 			pthread_mutex_unlock (&l->lock);
 
 			// Perform possibly expensive memory release without the lock
-			while ((victim = victim->next) != &l->sentinel)
+			while (victim != NULL)
 			{
+				teredo_listitem *buf = victim->next;
 				delete victim->peer;
 				free (victim);
+				victim = buf;
 			}
 
 			pthread_mutex_lock (&l->lock);
