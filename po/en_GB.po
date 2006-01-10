@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: miredo 0.7.0\n"
 "Report-Msgid-Bugs-To: rdenis@simphalempin.com\n"
-"POT-Creation-Date: 2005-12-29 17:36+0100\n"
+"POT-Creation-Date: 2006-01-10 22:11+0100\n"
 "PO-Revision-Date: 2005-12-27 19:02+0100\n"
 "Last-Translator: Rémi Denis-Courmont <rdenis (at) simphalempin (dot) com>\n"
 "Language-Team: N/A\n"
@@ -16,12 +16,12 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: libteredo/relay.cpp:629
+#: libteredo/relay.cpp:663
 msgid "Ignoring invalid bubble: your Teredo server is probably buggy."
 msgstr ""
 
 #: libteredo/security.c:60 libteredo/security.c:123 libteredo/server.c:485
-#: libteredo/server.c:496 libteredo/maintain.c:509 libtun6/tun6.c:564
+#: libteredo/server.c:496 libteredo/maintain.c:508 libtun6/tun6.c:557
 #: src/main.c:309 src/main.c:320 src/main.c:328 src/main.c:356 src/main.c:467
 #: src/miredo.cpp:108 src/miredo.cpp:115 src/miredo.cpp:139 src/miredo.cpp:234
 #, c-format
@@ -46,64 +46,64 @@ msgstr ""
 msgid "Invalid Teredo prefix received"
 msgstr ""
 
-#: libteredo/maintain.c:164
+#: libteredo/maintain.c:163
 msgid "Authentication with server failed."
 msgstr ""
 
-#: libteredo/maintain.c:192
+#: libteredo/maintain.c:191
 msgid "Too much time drift. Resynchronizing."
 msgstr "Too much time drift. Resynchronising."
 
-#: libteredo/maintain.c:264
+#: libteredo/maintain.c:263
 #, c-format
 msgid "Cannot resolve Teredo server address \"%s\": %s"
 msgstr "Cannot resolve Teredo server address “%s”: %s"
 
-#: libteredo/maintain.c:281
+#: libteredo/maintain.c:280
 msgid "Server has a non global IPv4 address. It will most likely not work."
 msgstr ""
 
-#: libteredo/maintain.c:341
+#: libteredo/maintain.c:340
 msgid "Lost Teredo connectivity"
 msgstr ""
 
-#: libteredo/maintain.c:356
+#: libteredo/maintain.c:355
 msgid "No reply from Teredo server"
 msgstr ""
 
-#: libteredo/maintain.c:378
+#: libteredo/maintain.c:377
 msgid "Teredo address/MTU changed"
 msgstr ""
 
-#: libteredo/maintain.c:395
+#: libteredo/maintain.c:394
 msgid "Unsupported symmetric NAT detected."
 msgstr ""
 
-#: libteredo/maintain.c:404
+#: libteredo/maintain.c:403
 #, c-format
 msgid "Qualified (NAT type: %s)"
 msgstr ""
 
-#: libteredo/maintain.c:406
+#: libteredo/maintain.c:405
 msgid "cone"
 msgstr ""
 
-#: libteredo/maintain.c:406
+#: libteredo/maintain.c:405
 msgid "restricted"
 msgstr ""
 
-#: libtun6/tun6.c:162 libtun6/tun6.c:180 libtun6/tun6.c:194 libtun6/tun6.c:225
-#: libtun6/tun6.c:238
+#: libtun6/tun6.c:154 libtun6/tun6.c:175 libtun6/tun6.c:189 libtun6/tun6.c:222
+#: libtun6/tun6.c:235
 #, c-format
 msgid "Tunneling driver error (%s): %m"
 msgstr ""
 
-#: libtun6/tun6.c:258
+#: libtun6/tun6.c:255
 #, c-format
 msgid "%s tunneling interface creation failure"
 msgstr ""
 
-#: libtun6/tun6.c:784
+#: libtun6/tun6.c:776
 msgid ""
 "You should run these commands to create it:\n"
 "# mkdir -p /dev/net\n"
@@ -111,20 +111,20 @@ msgid ""
 "(you must be root to do that).\n"
 msgstr ""
 
-#: libtun6/tun6.c:789 libtun6/tun6.c:814
+#: libtun6/tun6.c:781 libtun6/tun6.c:806
 msgid ""
 "You can obtain a tunnel driver for the Darwin kernel (Mac OS X) from:\n"
 "http://chrisp.de/en/projects/tunnel.html\n"
 msgstr ""
 
-#: libtun6/tun6.c:797
+#: libtun6/tun6.c:789
 #, c-format
 msgid ""
 "Error: %s character device not found or unavailable.\n"
 "%s"
 msgstr ""
 
-#: libtun6/tun6.c:810
+#: libtun6/tun6.c:802
 msgid ""
 "Make sure your Linux kernel includes the \"Universal TUNTAP driver\"\n"
 "(CONFIG_TUN option), possibly as a module.\n"
@@ -132,7 +132,7 @@ msgstr ""
 "Make sure your Linux kernel includes the “Universal TUNTAP driver”\n"
 "(CONFIG_TUN option), possibly as a module.\n"
 
-#: libtun6/tun6.c:822
+#: libtun6/tun6.c:814
 #, c-format
 msgid ""
 "Error: your operating system does not seem to provide a network tunnneling\n"
@@ -140,7 +140,7 @@ msgid ""
 "%s"
 msgstr ""
 
-#: libtun6/tun6.c:831
+#: libtun6/tun6.c:823
 #, c-format
 msgid ""
 "Error: cannot open device file %s (%s)\n"
