@@ -15,6 +15,7 @@ authoritative.
 
 Important features & fixes:
 ----------------------------
+(*) do something in case of DoS against the peers list
 ( ) fixed TODOs and FIXMEs in source code
 (*) local Teredo discovery
 (*) interval determination procedure
@@ -41,7 +42,7 @@ Conformance:
 Security:
 ----------
 (?) full secure qualification support with user ID,
-( ) relay/server IPv4 *modifiable* access control lists
+( ) relay/server IPv4 _modifiable_ access control lists
     (currently hard-coded to reject private IPv4 space),
 ( ) automatic/dynamic relay access control list
     (stateful firewall-like)

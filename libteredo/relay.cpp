@@ -60,7 +60,11 @@
 
 #define TEREDO_TIMEOUT 30 // seconds
 
+#ifdef HAVE_LIBJUDY
+unsigned TeredoRelay::MaxPeers = 1048576;
+#else
 unsigned TeredoRelay::MaxPeers = 1024;
+#endif
 
 
 TeredoRelay::TeredoRelay (uint32_t pref, uint16_t port, uint32_t ipv4,
