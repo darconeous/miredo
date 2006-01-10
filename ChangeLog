@@ -1,4 +1,582 @@
 ------------------------------------------------------------------------
+r933 | remi | 2006-01-10 22:13:53 +0100 (Tue, 10 Jan 2006) | 2 lines
+Changed paths:
+   M /trunk/po/en.po
+   M /trunk/po/en_GB.po
+   M /trunk/po/fr.po
+   M /trunk/po/miredo.pot
+
+Resync PO files for 0.7.1
+
+------------------------------------------------------------------------
+r932 | remi | 2006-01-10 22:08:38 +0100 (Tue, 10 Jan 2006) | 2 lines
+Changed paths:
+   M /trunk/TODO
+   M /trunk/libteredo/relay.cpp
+
+Allow as most 1 millions rather than 1 thousand entries in peer lists when Judy is used
+
+------------------------------------------------------------------------
+r931 | remi | 2006-01-08 22:03:48 +0100 (Sun, 08 Jan 2006) | 2 lines
+Changed paths:
+   M /trunk/libteredo/peerlist.cpp
+
+Fix deadlock on exit
+
+------------------------------------------------------------------------
+r930 | remi | 2006-01-08 22:00:02 +0100 (Sun, 08 Jan 2006) | 2 lines
+Changed paths:
+   M /trunk/libteredo/peerlist.cpp
+   M /trunk/libteredo/peerlist.h
+   M /trunk/libteredo/relay.cpp
+
+Convert teredo_peer to a C struct and save one pointer per peer
+
+------------------------------------------------------------------------
+r929 | remi | 2006-01-08 21:14:37 +0100 (Sun, 08 Jan 2006) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+
+Remove unused debug message
+
+------------------------------------------------------------------------
+r928 | remi | 2006-01-08 21:09:22 +0100 (Sun, 08 Jan 2006) | 2 lines
+Changed paths:
+   M /trunk/libteredo/peerlist.cpp
+
+Fix previous commit
+
+------------------------------------------------------------------------
+r927 | remi | 2006-01-08 20:35:00 +0100 (Sun, 08 Jan 2006) | 4 lines
+Changed paths:
+   M /trunk/libteredo/peerlist.cpp
+
+- Minimize lock time within GC (ie. do delete/free without lock)
+- Don't use pthread_cancel() against GC as it is not safe
+  (fix crash with icc)
+
+------------------------------------------------------------------------
+r926 | remi | 2006-01-08 20:08:38 +0100 (Sun, 08 Jan 2006) | 2 lines
+Changed paths:
+   M /trunk/libteredo/peerlist.cpp
+
+Don't leak a condition and a mutex when pthread_create fail
+
+------------------------------------------------------------------------
+r925 | remi | 2006-01-08 20:07:11 +0100 (Sun, 08 Jan 2006) | 5 lines
+Changed paths:
+   M /trunk/libteredo/peerlist.cpp
+
+Garbage collect reset peers list outside of critical section
+-> the list lock is held for a much shorter period of time
+
+The same should be done for the garbage collector thread
+
+------------------------------------------------------------------------
+r924 | remi | 2006-01-08 14:26:46 +0100 (Sun, 08 Jan 2006) | 2 lines
+Changed paths:
+   M /trunk/libteredo/peerlist.cpp
+
+Fix race condition in GC
+
+------------------------------------------------------------------------
+r923 | remi | 2006-01-07 23:11:20 +0100 (Sat, 07 Jan 2006) | 2 lines
+Changed paths:
+   M /trunk/TODO
+   M /trunk/libteredo/relay.cpp
+
+Resets peers list when client state changes
+
+------------------------------------------------------------------------
+r922 | remi | 2006-01-07 22:31:11 +0100 (Sat, 07 Jan 2006) | 2 lines
+Changed paths:
+   M /trunk/libteredo/peerlist.h
+   M /trunk/libteredo/test/list.c
+
+Export and test teredo_list_reset()
+
+------------------------------------------------------------------------
+r921 | remi | 2006-01-07 22:19:14 +0100 (Sat, 07 Jan 2006) | 2 lines
+Changed paths:
+   M /trunk/libteredo/peerlist.cpp
+
+Implement teredo_list_reset to reset a peers list
+
+------------------------------------------------------------------------
+r920 | remi | 2006-01-07 21:23:11 +0100 (Sat, 07 Jan 2006) | 4 lines
+Changed paths:
+   M /trunk/libteredo/peerlist.cpp
+
+Handle peer list signal properly while the list is not empty
+(it should not happen at the moment, but will be needed to implement
+peers list manual emptying)
+
+------------------------------------------------------------------------
+r919 | remi | 2006-01-07 11:57:42 +0100 (Sat, 07 Jan 2006) | 2 lines
+Changed paths:
+   M /trunk/TODO
+
+ToDo updates
+
+------------------------------------------------------------------------
+r918 | remi | 2006-01-06 10:45:41 +0100 (Fri, 06 Jan 2006) | 3 lines
+Changed paths:
+   M /trunk/TODO
+   M /trunk/libteredo/peerlist.cpp
+
+- Also debug pthread_mutex_unlock()
+- Don't use syslog() for debugging
+
+------------------------------------------------------------------------
+r917 | remi | 2006-01-05 23:14:54 +0100 (Thu, 05 Jan 2006) | 3 lines
+Changed paths:
+   M /trunk/libteredo/test/Makefile.am
+   M /trunk/libteredo/test/stresslist.c
+
+- Uniformize/Fix time computation in peer list stress test
+- Compile tests as C99
+
+------------------------------------------------------------------------
+r916 | remi | 2006-01-05 23:04:25 +0100 (Thu, 05 Jan 2006) | 2 lines
+Changed paths:
+   M /trunk/NEWS
+
+Preliminary news for upcoming 0.7.1
+
+------------------------------------------------------------------------
+r915 | remi | 2006-01-05 23:03:06 +0100 (Thu, 05 Jan 2006) | 2 lines
+Changed paths:
+   M /trunk/src/miredo.cpp
+
+Use volatile qualifier for signal handler-altered variables
+
+------------------------------------------------------------------------
+r913 | remi | 2006-01-05 18:57:59 +0100 (Thu, 05 Jan 2006) | 3 lines
+Changed paths:
+   M /trunk/TODO
+   M /trunk/configure.ac
+
+Add configure option --enable-debug to enable debug code
+(that was previously compiled-in inconditionnaly)
+
+------------------------------------------------------------------------
+r912 | remi | 2006-01-05 14:14:01 +0100 (Thu, 05 Jan 2006) | 2 lines
+Changed paths:
+   M /trunk/libteredo/peerlist.cpp
+
+Judy error (malloc) handling
+
+------------------------------------------------------------------------
+r911 | remi | 2006-01-05 11:55:46 +0100 (Thu, 05 Jan 2006) | 3 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+
+- Try to fix peer list deadlock
+- Clean up
+
+------------------------------------------------------------------------
+r910 | remi | 2006-01-04 21:39:53 +0100 (Wed, 04 Jan 2006) | 2 lines
+Changed paths:
+   M /trunk/libteredo/peerlist.cpp
+
+Use error-checking mutex in debug mode for peer list
+
+------------------------------------------------------------------------
+r909 | remi | 2006-01-03 22:42:48 +0100 (Tue, 03 Jan 2006) | 2 lines
+Changed paths:
+   M /trunk/libtun6/tun6.c
+
+Don't use identifier that confuse icc
+
+------------------------------------------------------------------------
+r908 | remi | 2006-01-03 22:35:26 +0100 (Tue, 03 Jan 2006) | 2 lines
+Changed paths:
+   M /trunk/po/en.po
+   M /trunk/po/en_GB.po
+
+Expand $Id$
+
+------------------------------------------------------------------------
+r907 | remi | 2006-01-03 22:33:25 +0100 (Tue, 03 Jan 2006) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog
+
+Don't expand $Id$ et al in ChangeLog
+
+------------------------------------------------------------------------
+r906 | remi | 2006-01-03 22:32:10 +0100 (Tue, 03 Jan 2006) | 2 lines
+Changed paths:
+   M /trunk/src/Makefile.am
+   M /trunk/src/test_conf.cpp
+   D /trunk/src/test_conf.sh
+
+No longer depend on a wrapper shell script for miredo-checkconf test
+
+------------------------------------------------------------------------
+r905 | remi | 2006-01-03 21:41:46 +0100 (Tue, 03 Jan 2006) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+
+Cosmetic + disabled debug messages
+
+------------------------------------------------------------------------
+r904 | remi | 2006-01-03 21:10:01 +0100 (Tue, 03 Jan 2006) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.h
+
+Remove IsClient() from client-less builds
+
+------------------------------------------------------------------------
+r903 | remi | 2006-01-03 21:08:50 +0100 (Tue, 03 Jan 2006) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/relay.h
+
+Avoid always true if() in client-less compilation
+
+------------------------------------------------------------------------
+r902 | remi | 2006-01-03 21:03:51 +0100 (Tue, 03 Jan 2006) | 2 lines
+Changed paths:
+   M /trunk/libtun6/tun6.c
+
+C99 clean up
+
+------------------------------------------------------------------------
+r901 | remi | 2006-01-03 19:11:58 +0100 (Tue, 03 Jan 2006) | 2 lines
+Changed paths:
+   M /trunk/configure.ac
+   M /trunk/libteredo/Makefile.am
+   M /trunk/libteredo/maintain.c
+   M /trunk/libtun6/Makefile.am
+   M /trunk/src/Makefile.am
+
+Use C99 as standard explicitly
+
+------------------------------------------------------------------------
+r900 | remi | 2006-01-03 19:11:00 +0100 (Tue, 03 Jan 2006) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+
+Cosmetic change - connectivity is still broken
+
+------------------------------------------------------------------------
+r899 | remi | 2006-01-02 22:27:02 +0100 (Mon, 02 Jan 2006) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+
+Further attempt to completely solve connectivity regressions
+
+------------------------------------------------------------------------
+r898 | remi | 2006-01-02 21:29:55 +0100 (Mon, 02 Jan 2006) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+
+Cosmetic fix
+
+------------------------------------------------------------------------
+r897 | remi | 2006-01-02 21:25:40 +0100 (Mon, 02 Jan 2006) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+
+Fix connectivity regression introduced by IsValid()
+
+------------------------------------------------------------------------
+r896 | remi | 2006-01-02 20:39:54 +0100 (Mon, 02 Jan 2006) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+
+Attempt to fix various connectivity issues
+
+------------------------------------------------------------------------
+r895 | remi | 2006-01-02 14:04:36 +0100 (Mon, 02 Jan 2006) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+
+Remove a lot of debug messages
+
+------------------------------------------------------------------------
+r894 | remi | 2006-01-02 14:01:03 +0100 (Mon, 02 Jan 2006) | 4 lines
+Changed paths:
+   M /trunk/libteredo/peerlist.h
+   M /trunk/libteredo/relay.cpp
+
+- fix IsValid() check
+- don't call time() within TouchReceive()
+- add lots of temporary debug messages
+
+------------------------------------------------------------------------
+r893 | remi | 2006-01-02 12:13:33 +0100 (Mon, 02 Jan 2006) | 2 lines
+Changed paths:
+   M /trunk/libteredo/test/stresslist.c
+
+Rewrite stress test to a fixed duration
+
+------------------------------------------------------------------------
+r892 | remi | 2006-01-02 11:20:34 +0100 (Mon, 02 Jan 2006) | 2 lines
+Changed paths:
+   M /trunk/libteredo/peerlist.cpp
+
+Fix regression when Judy is NOT used
+
+------------------------------------------------------------------------
+r891 | remi | 2006-01-02 11:02:42 +0100 (Mon, 02 Jan 2006) | 2 lines
+Changed paths:
+   M /trunk/configure.ac
+
+Cosmetic fix for Judy check
+
+------------------------------------------------------------------------
+r890 | remi | 2006-01-02 10:33:54 +0100 (Mon, 02 Jan 2006) | 3 lines
+Changed paths:
+   M /trunk/TODO
+   M /trunk/libteredo/peerlist.cpp
+
+Support for Judy dynamic arrays within peer list
+libteredo/miredo should finally be scalable
+
+------------------------------------------------------------------------
+r889 | remi | 2006-01-02 09:44:49 +0100 (Mon, 02 Jan 2006) | 2 lines
+Changed paths:
+   M /trunk/libteredo/test/Makefile.am
+   M /trunk/libteredo/test/list.c
+   A /trunk/libteredo/test/stresslist.c (from /trunk/libteredo/test/list.c:888)
+
+Add a stress test for peer list
+
+------------------------------------------------------------------------
+r888 | remi | 2006-01-01 20:49:16 +0100 (Sun, 01 Jan 2006) | 2 lines
+Changed paths:
+   M /trunk/libteredo/peerlist.cpp
+
+Remove obsolete TODO comments
+
+------------------------------------------------------------------------
+r887 | remi | 2006-01-01 20:48:56 +0100 (Sun, 01 Jan 2006) | 3 lines
+Changed paths:
+   M /trunk/configure.ac
+
+Err, rewrite previous Judy test so that the result is somehow
+exported at compile-time (shame on me)
+
+------------------------------------------------------------------------
+r886 | remi | 2006-01-01 14:30:07 +0100 (Sun, 01 Jan 2006) | 2 lines
+Changed paths:
+   M /trunk/configure.ac
+
+Check for Judy
+
+------------------------------------------------------------------------
+r885 | remi | 2006-01-01 11:56:46 +0100 (Sun, 01 Jan 2006) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+
+Handle the "safe" race condition for peer creation more properly
+
+------------------------------------------------------------------------
+r884 | remi | 2005-12-31 19:38:11 +0100 (Sat, 31 Dec 2005) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+
+Made my mind about source address filtering -> just don't do it
+
+------------------------------------------------------------------------
+r883 | remi | 2005-12-31 19:12:54 +0100 (Sat, 31 Dec 2005) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+
+Fix previous commit
+
+------------------------------------------------------------------------
+r882 | remi | 2005-12-31 18:40:23 +0100 (Sat, 31 Dec 2005) | 3 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+
+When transmitting packet, only accept a peer as trusted if the last
+transmission is under 30 seconds old, as specified
+
+------------------------------------------------------------------------
+r881 | remi | 2005-12-31 14:44:39 +0100 (Sat, 31 Dec 2005) | 2 lines
+Changed paths:
+   M /trunk/po/fr.po
+
+Fix typo
+
+------------------------------------------------------------------------
+r880 | remi | 2005-12-31 14:43:44 +0100 (Sat, 31 Dec 2005) | 3 lines
+Changed paths:
+   M /trunk/bootstrap
+   M /trunk/libteredo/v4global.c
+
+Update copyright date
+(rather late than never - year changing is a few hours :-) )
+
+------------------------------------------------------------------------
+r879 | remi | 2005-12-31 14:39:45 +0100 (Sat, 31 Dec 2005) | 3 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+
+Ensure we don't hold the state lock while calling EmitICMPv6Error(),
+so that said callback be reentrant.
+
+------------------------------------------------------------------------
+r878 | remi | 2005-12-31 14:35:05 +0100 (Sat, 31 Dec 2005) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+
+Use rwlock instead of mutex for Teredo state
+
+------------------------------------------------------------------------
+r877 | remi | 2005-12-31 14:17:19 +0100 (Sat, 31 Dec 2005) | 3 lines
+Changed paths:
+   M /trunk/TODO
+   M /trunk/libteredo/peerlist.h
+   M /trunk/libteredo/relay.cpp
+
+Fix ping ("direct IPv6 connectivity test") timings
+and consequently improve ICMPv6 unreachable error generation
+
+------------------------------------------------------------------------
+r876 | remi | 2005-12-31 14:01:01 +0100 (Sat, 31 Dec 2005) | 2 lines
+Changed paths:
+   M /trunk/libteredo/peerlist.h
+   M /trunk/libteredo/relay.cpp
+
+Update and fix bubbles transmission timing according to draft 05
+
+------------------------------------------------------------------------
+r875 | remi | 2005-12-31 12:21:32 +0100 (Sat, 31 Dec 2005) | 2 lines
+Changed paths:
+   M /trunk/TODO
+   M /trunk/libteredo/peerlist.h
+   M /trunk/libteredo/relay.cpp
+
+Repair bubbles and pings limitation
+
+------------------------------------------------------------------------
+r874 | remi | 2005-12-30 22:25:52 +0100 (Fri, 30 Dec 2005) | 2 lines
+Changed paths:
+   M /trunk/libteredo/peerlist.cpp
+
+Fix race condition in teredo_list_destroy
+
+------------------------------------------------------------------------
+r873 | remi | 2005-12-30 22:17:05 +0100 (Fri, 30 Dec 2005) | 2 lines
+Changed paths:
+   M /trunk/configure.ac
+
+Working on upcoming version 0.7.1 (or more)
+
+------------------------------------------------------------------------
+r872 | remi | 2005-12-30 22:16:25 +0100 (Fri, 30 Dec 2005) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+
+One FIXME removed
+
+------------------------------------------------------------------------
+r871 | remi | 2005-12-30 22:15:02 +0100 (Fri, 30 Dec 2005) | 2 lines
+Changed paths:
+   M /trunk/libteredo/peerlist.cpp
+   M /trunk/libteredo/peerlist.h
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/test/list.c
+
+Cache time() during peer list lookup
+
+------------------------------------------------------------------------
+r870 | remi | 2005-12-30 21:57:48 +0100 (Fri, 30 Dec 2005) | 2 lines
+Changed paths:
+   M /trunk/libteredo/peerlist.cpp
+
+Fix segmentation fault
+
+------------------------------------------------------------------------
+r869 | remi | 2005-12-30 21:51:11 +0100 (Fri, 30 Dec 2005) | 3 lines
+Changed paths:
+   M /trunk/libteredo/test/list.c
+
+Test garbage collection more thoroughly...
+and uncover a severe segmentation fault
+
+------------------------------------------------------------------------
+r868 | remi | 2005-12-30 21:10:13 +0100 (Fri, 30 Dec 2005) | 3 lines
+Changed paths:
+   M /trunk/libteredo/peerlist.cpp
+   M /trunk/libteredo/peerlist.h
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/test/list.c
+
+- Improved garbage collection
+- In-depth unit test for peers list and garbage collection
+
+------------------------------------------------------------------------
+r867 | remi | 2005-12-30 17:12:53 +0100 (Fri, 30 Dec 2005) | 2 lines
+Changed paths:
+   M /trunk/libteredo/peerlist.cpp
+   M /trunk/libteredo/peerlist.h
+
+Bleeding-edge peer list garbage collector
+
+------------------------------------------------------------------------
+r866 | remi | 2005-12-29 20:33:12 +0100 (Thu, 29 Dec 2005) | 2 lines
+Changed paths:
+   M /trunk/po/fr.po
+
+Fix typo and justify text
+
+------------------------------------------------------------------------
+r865 | remi | 2005-12-29 17:45:01 +0100 (Thu, 29 Dec 2005) | 2 lines
+Changed paths:
+   M /trunk/po/en.po
+   M /trunk/po/en_GB.po
+   M /trunk/po/fr.po
+
+Update PO version number
+
+------------------------------------------------------------------------
+r864 | remi | 2005-12-29 17:39:43 +0100 (Thu, 29 Dec 2005) | 2 lines
+Changed paths:
+   M /trunk/libteredo/test/Makefile.am
+
+Given HMAC depends on MD5, it makes more sense to test MD5 first
+
+------------------------------------------------------------------------
+r863 | remi | 2005-12-29 17:37:17 +0100 (Thu, 29 Dec 2005) | 2 lines
+Changed paths:
+   M /trunk/po/en.po
+   M /trunk/po/en_GB.po
+   M /trunk/po/fr.po
+   M /trunk/po/miredo.pot
+   M /trunk/src/main.c
+
+Cosmetic: New line before big fat warning
+
+------------------------------------------------------------------------
+r862 | remi | 2005-12-29 17:33:40 +0100 (Thu, 29 Dec 2005) | 2 lines
+Changed paths:
+   M /trunk/libteredo/maintain.c
+
+Fix and clean up server DNS resolution
+
+------------------------------------------------------------------------
+r861 | remi | 2005-12-29 12:45:10 +0100 (Thu, 29 Dec 2005) | 2 lines
+Changed paths:
+   M /trunk/po/en.po
+   M /trunk/po/en_GB.po
+   M /trunk/po/fr.po
+   M /trunk/po/miredo.pot
+   M /trunk/src/main.c
+
+Add a big fat notice about the Teredo draft status
+
+------------------------------------------------------------------------
+r860 | remi | 2005-12-28 22:09:36 +0100 (Wed, 28 Dec 2005) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog
+
+ChangeLog for 0.7.0
+
+------------------------------------------------------------------------
 r859 | remi | 2005-12-28 22:08:22 +0100 (Wed, 28 Dec 2005) | 2 lines
 Changed paths:
    M /trunk/po/en.po
@@ -2927,7 +3505,7 @@ Changed paths:
    M /trunk/libteredo/security.h
    M /trunk/misc/Makefile.am
 
-All $Id$ fixes
+All $Id: ChangeLog 860 2005-12-28 21:09:36Z remi $ fixes
 
 ------------------------------------------------------------------------
 r514 | remi | 2005-05-04 11:28:20 +0200 (mer, 04 mai 2005) | 2 lines
@@ -2935,7 +3513,7 @@ Changed paths:
    M /trunk/src/conf.cpp
    M /trunk/src/conf.h
 
-Fix $Id$
+Fix $Id: ChangeLog 860 2005-12-28 21:09:36Z remi $
 
 ------------------------------------------------------------------------
 r513 | remi | 2005-05-04 11:27:10 +0200 (mer, 04 mai 2005) | 2 lines
@@ -3457,7 +4035,7 @@ Changed paths:
    M /trunk/misc/miredo.conf-dist
    M /trunk/misc/miredo.sh
 
-Add/fix $Id$
+Add/fix $Id: ChangeLog 860 2005-12-28 21:09:36Z remi $
 
 ------------------------------------------------------------------------
 r447 | remi | 2005-04-30 11:44:52 +0200 (sam, 30 avr 2005) | 2 lines

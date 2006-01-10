@@ -6,8 +6,8 @@ $Id$
   This is an early release of the program. It underwent some tests and is
 believed to work fine. However, there are still some outstanding issues
 (ie. missing features), though they don't affect core functionnality.
-  Users of previous releases are encouraged to upgrade, as some issues
-were addressed in this new release.
+  Users of previous releases are encouraged to upgrade, as this version
+introduces some important new features, as well as minor fixes.
 
 IMPORTANT NOTE for old users:
 ------------------------------
@@ -38,6 +38,7 @@ BETA RELEASE 0.7.1 : Major features enhancement
 # Better Echo Requests and Teredo bubbles timings as regards draft 05.
 # Add --enable-debug configure option. Without this, debug stuff will no
   longer be included.
+# Reset peers list when Teredo client status changes (bug fix)
 
 =============================================================================
 BETA RELEASE 0.7.0 : Minor features enhancement, security/bugs fixes
