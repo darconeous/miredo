@@ -7,7 +7,7 @@
  */
 
 /***********************************************************************
- *  Copyright (C) 2004-2005 Remi Denis-Courmont.                       *
+ *  Copyright (C) 2004-2006 Remi Denis-Courmont.                       *
  *  This program is free software; you can redistribute and/or modify  *
  *  it under the terms of the GNU General Public License as published  *
  *  by the Free Software Foundation; version 2 of the license.         *
@@ -43,9 +43,7 @@
 extern const struct in6_addr teredo_restrict;
 extern const struct in6_addr teredo_cone;
 
-/* FIXME: put permanent value once assigned by IANA */
-#define TEREDO_PREFIX 0x3ffe831f
-#define TEREDO_PREFIX_STR "3ffe:831f:"
+#define TEREDO_PREFIX 0x20010000
 
 union teredo_addr
 {

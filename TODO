@@ -11,7 +11,6 @@ authoritative.
 (H) help needed - cannot be done unless someone volunteers
 (F) in the distant future - unless someone volunteers
 (?) not sure if it should be done
-(I) whenever IANA and IESG publish Teredo as an RFC
 
 Important features & fixes:
 ----------------------------
@@ -37,7 +36,6 @@ Conformance:
 -------------
 (*) limit sending of bubbles (not completed yet)
 (*) send unreachable in response when dropping previously queued packets
-(I) use permanent Teredo prefix
 
 Security:
 ----------
@@ -47,7 +45,7 @@ Security:
 ( ) automatic/dynamic relay access control list
     (stateful firewall-like)
 
-Performance/scalibility:
+Performance/scalability:
 -------------------------
 ( ) multi-threading in relay/client
 

@@ -7,7 +7,7 @@
  */
 
 /***********************************************************************
- *  Copyright (C) 2004-2005 Remi Denis-Courmont.                       *
+ *  Copyright (C) 2004-2006 Remi Denis-Courmont.                       *
  *  This program is free software; you can redistribute and/or modify  *
  *  it under the terms of the GNU General Public License as published  *
  *  by the Free Software Foundation; version 2 of the license.         *
@@ -292,9 +292,9 @@ ParseRA (const teredo_packet *packet, union teredo_addr *newaddr, bool cone,
 	}
 
 	/*
-	 * FIXME: look for the Teredo prefix once IANA tells the world whatever
-	 * it is (surely *NOT* 3ffe:831f::/32). In the mean time, we'd better
-	 * accept any acceptable prefix.
+	 * FIXME: look for the Teredo prefix (TEREDO_PREFIX).
+	 * At the moment, it is wiser to still accept experimental 3ffe:831f::/32,
+	 * so we accept any "acceptable" prefix.
 	 */
 	if (!is_valid_teredo_prefix (newaddr->teredo.prefix))
 	{

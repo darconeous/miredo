@@ -1,5 +1,5 @@
 .\" ***********************************************************************
-.\" *  Copyright (C) 2004-2005 Remi Denis-Courmont.                       *
+.\" *  Copyright (C) 2004-2006 Remi Denis-Courmont.                       *
 .\" *  This program is free software; you can redistribute and/or modify  *
 .\" *  it under the terms of the GNU General Public License as published  *
 .\" *  by the Free Software Foundation; version 2 of the license.         *
@@ -58,13 +58,13 @@ are believed not to support such setup.
 relay and/or server will advertise.
 .IR "teredo_prefix" " must be a valid IPv6 prefix."
 
-.RB "Currently, the default value is " "3ffe:831f:: but it is subject"
-to change.
+.RB "The default value is " "2001:0000::" " (it was " "3ffe:831f::"
+in pre-0.8.0 versions).
 
 .TP
 .BI "InterfaceMTU " "mtu"
 This directive overrides the value of the MTU that is advertised to
-Terdo clients. The default value is 1280 bytes and should not be
+Teredo clients. The default value is 1280 bytes and should not be
 changed if the default Teredo prefix is used.
 
 .TP

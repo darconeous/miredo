@@ -1,7 +1,7 @@
 Miredo : Teredo for Linux
 ==========================
 $Id$
-Copyright (C) 2004-2005 Remi Denis-Courmont.
+Copyright (C) 2004-2006 Remi Denis-Courmont.
 
   Welcome to Miredo's user's guide!
 
@@ -122,7 +122,7 @@ IPv6 address on the "teredo" networking interface :
 
 # ifconfig teredo
 teredo    Link encap:UNSPEC  HWaddr 00-00-00-00-00-00-00-00-00-00-00...
-          inet6 addr: 3ffe:831f:8ac3:9ddd:0:7ffa:ad80:3464/32 Scope:...
+          inet6 addr: 2001:0:8ac3:9ddd:0:7ffa:ad80:3464/32 Scope:...
           inet6 addr: fe80::5445:5245:444f/64 Scope:Link
           UP POINTOPOINT RUNNING NOARP  MTU:1280  Metric:1
           RX packets:5 errors:0 dropped:0 overruns:0 frame:0

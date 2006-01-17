@@ -1,5 +1,5 @@
 .\" ***********************************************************************
-.\" *  Copyright (C) 2004-2005 Remi Denis-Courmont.                       *
+.\" *  Copyright (C) 2004-2006 Remi Denis-Courmont.                       *
 .\" *  This program is free software; you can redistribute and/or modify  *
 .\" *  it under the terms of the GNU General Public License as published  *
 .\" *  by the Free Software Foundation; version 2 of the license.         *
@@ -127,11 +127,11 @@ Teredo tunneling interface.
 relay and/or server will advertise.
 .IR "teredo_prefix" " must be a valid IPv6 prefix."
 
-.RB "Currently, the default value is " "3ffe:831f:: but it is subject"
-to change.
+.RB "The default value is " "2001:0000::" " (it was " "3ffe:831f::"
+in pre-0.8.0 versions).
 
 .BR "Do not use that directive" " if you don't know what you are"
-doing, as it is more than likely to break your IPv6 connectivity.
+doing, as it is more than likely to break your Teredo connectivity.
 That option must not be used when Miredo serves as a Teredo client.
 
 .TP
