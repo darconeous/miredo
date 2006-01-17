@@ -73,7 +73,7 @@ InterfaceName	teredo
 #
 # IPv4 address to bind to (may be private)
 # Defaults: BindAddress 0.0.0.0
-# Example:  BindAddress 138.195.152.236
+# Example:  BindAddress 192.0.2.236
 #
 #BindAddress 0.0.0.0
 

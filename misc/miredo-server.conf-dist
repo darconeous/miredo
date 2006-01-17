@@ -67,9 +67,9 @@
 # assigned to the system, Miredo will fail to start.
 #
 # Defaults: disabled
-# Example:  ServerBindAddress 138.195.157.221
+# Example:  ServerBindAddress 192.0.2.221
 #
-ServerBindAddress 138.195.157.221
+ServerBindAddress 192.0.2.221
 
 #
 # Server secondary IPv4 address
@@ -79,14 +79,14 @@ ServerBindAddress 138.195.157.221
 # of ease-of-use, Miredo's Teredo client has a similar behavior by
 # default). Hence, it is believed that if you use a secondary server
 # address that is different from the primary address plus one
-# (as in 138.195.157.221 + 1 = 138.195.157.222) that Teredo clients
-# running on Windows XP (at least those from behind restricted NAT)
-# won't be able to qualify with your server. Those running Miredo will
-# need to set the ServerAddress2 option properly. It is only available
-# in Miredo version 0.4.3 and bigger.
+# (as in 192.0.2.221 + 1 = 192.0.2.222) that Teredo clients running on
+# Windows XP (at least those from behind restricted NAT) won't be able
+# to qualify with your server. Those running Miredo will need to set
+# the ServerAddress2 option properly. It is only available in Miredo
+# version 0.4.3 and bigger.
 #
 # Defaults: automatically use ServerBindAddress + 1
-# Example:  ServerBindAddress2 138.195.157.222
+# Example:  ServerBindAddress2 192.0.2.222
 #
-#ServerBindAddress2 138.195.157.222
+#ServerBindAddress2 192.0.2.222
 
