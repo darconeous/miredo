@@ -23,35 +23,21 @@
 # Teredo clients will not be reachable and won't have access to the
 # IPv6 Internet.
 #
-# Defaults: Prefix 3ffe:831f::
-# Example:  Prefix 3ffe:831f::
+# Defaults: Prefix 2001:0::
+# Example:  Prefix 2001:0::
 #
 ######################### BIG FAT WARNING !!! #########################
-# BEWARE: the current prefix is part of an IPv6 space assigned to     #
-# Microsoft Corp., from the 6bone. The default prefix *IS* expected   #
-# to change, probably when the Teredo specification becomes a RFC.    #
-#                                                                     #
-# Besides, the 6bone address space will be deprecated starting        #
-# June 6th 2006. From then on, any IPv6 packet from this space will   #
-# be dropped.                                                         #
-#                                                                     #
-# If you are an early Teredo relaying provider, do NOT forget that    #
-# WILL HAVE to change the prefix some day, if you hardcoded it there. #
-#                                                                     #
-# Future Miredo releases will probably use a different default prefix #
-# once the definitive IANA-assigned Teredo prefix is known.           #
-#######################################################################
-#
-##################### ANOTHER BIG FAT WARNING !!! #####################
 # The Teredo client on Microsoft Windows XP SP2 (or SP1 with Advanced #
 # Networking Pack) does not seem to accept prefix other than the      #
-# current default one (ie. 3ffe:831f::). Miredo's Teredo client works #
-# fine with any global IPv6 prefix.                                   #
+# experimental and formerly Miredo's default: 3ffe:831f::. With no    #
+# updates, Windows-based Teredo clients will refuse to work with a    #
+# Miredo server, unless the prefix is set back to its old value.      #
 #                                                                     #
-# Complaints should be directed to Microsoft.                         #
+# On the other hand, the old experimental value will obviously fail   #
+# from the 6th June 2006 on, as the 6bone will be phased out.         #
 #######################################################################
 #
-#Prefix 3ffe:831f::
+#Prefix 2001:0::
 
 #
 # MTU of the networking interface (in bytes)
