@@ -114,7 +114,7 @@ ServerAddress teredo.via.ecp.fr
 # Whether to create a default IPv6 route through the Teredo tunnel
 #
 # Defaults: DefaultRoute On
-# Example:  DefauktRoute Off
+# Example:  DefaultRoute Off
 #
 #DefaultRoute Off
 
