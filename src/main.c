@@ -476,18 +476,6 @@ main (int argc, char *argv[])
 
 	if (miredo_diagnose ())
 		return 1;
-	puts (_("\n"
-"***********************************************************************\n"
-"*                          IMPORTANT NOTICE                           *\n"
-"*                                                                     *\n"
-"* At the time of release of this version of the program, the IETF had *\n"
-"* not yet published the Teredo protocol specification (RFC). As such, *\n"
-"* this version of the program still uses experimental provisional     *\n"
-"* settings, which will most likely be altered when the specification  *\n"
-"* is published. A new version of the program will then be released to *\n"
-"* take these changes into consideration. Until then, this program     *\n"
-"* might not work properly and should be considered experimental.      *\n"
-"***********************************************************************\n"));
 
 	fd = init_daemon (username, pidfile, flags.foreground);
 	if (fd == -1)
