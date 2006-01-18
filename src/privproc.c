@@ -4,7 +4,7 @@
  */
 
 /***********************************************************************
- *  Copyright (C) 2004-2005 Remi Denis-Courmont.                        *
+ *  Copyright (C) 2004-2006 Remi Denis-Courmont.                        *
  *  This program is free software; you can redistribute and/or modify  *
  *  it under the terms of the GNU General Public License as published  *
  *  by the Free Software Foundation; version 2 of the license.         *
@@ -107,8 +107,6 @@ miredo_privileged_process (struct tun6 *tunnel, bool default_route)
 	for (;;)
 	{
 		struct miredo_tunnel_settings newcfg;
-		const struct in6_addr *p_newloc;
-		/* TODO: set res to -1 in case of error */
 		int res = 0;
 
 		/* Waits until new (changed) settings arrive */
@@ -128,6 +126,8 @@ miredo_privileged_process (struct tun6 *tunnel, bool default_route)
 			/* Adds new addresses */
 			if (memcmp (&newcfg.addr, &in6addr_any, 16))
 			{
+				const struct in6_addr *p_newloc;
+
 				/* Only change link-local if needed */
 				p_newloc = IN6_IS_TEREDO_ADDR_CONE (&newcfg.addr)
 						? &teredo_cone : &teredo_restrict;
@@ -136,13 +136,16 @@ miredo_privileged_process (struct tun6 *tunnel, bool default_route)
 				{
 					if (p_oldloc != NULL)
 						tun6_delAddress (tunnel, p_oldloc, 64);
-					tun6_addAddress (tunnel, p_newloc, 64);
+					if (tun6_addAddress (tunnel, p_newloc, 64))
+						res = -1;
 					p_oldloc = p_newloc;
 				}
 	
-				tun6_addAddress (tunnel, &newcfg.addr, 32);
-				if (default_route)
-					tun6_addRoute (tunnel, &in6addr_any, 0, +5);
+				if (tun6_addAddress (tunnel, &newcfg.addr, 32))
+					res = -1;
+				if (default_route
+				 && tun6_addRoute (tunnel, &in6addr_any, 0, +5))
+					res = -1;
 			}
 
 			/* Saves address */
