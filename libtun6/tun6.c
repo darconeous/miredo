@@ -325,27 +325,7 @@ tun6_setState (tun6 *t, bool up)
 	req.ifr_flags &= ~(IFF_MULTICAST | IFF_BROADCAST);
 
 	if (ioctl (t->reqfd, SIOCSIFFLAGS, &req) == 0)
-	{
-#if defined (HAVE_LINUX)
-		/* FIXME: broken */
-		if (up)
-		{
-			char proc_path[24 + IFNAMSIZ + 16 + 1] =
-					"/proc/sys/net/ipv6/conf/";
-		
-			/* Disable Autoconfiguration and ICMPv6 redirects */
-			sprintf (proc_path + 24, "%s/accept_ra", ifname);
-			proc_write_zero (proc_path);
-			
-			sprintf (proc_path + 24, "%s/accept_redirects", ifname);
-			proc_write_zero (proc_path);
-			
-			sprintf (proc_path + 24, "%s/autoconf", ifname);
-			proc_write_zero (proc_path);
-		}
-#endif
 		return 0;
-	}
 
 	return -1;
 
@@ -569,7 +549,23 @@ tun6_addAddress (tun6 *t, const struct in6_addr *addr, unsigned prefixlen)
 {
 	assert (t != NULL);
 
-	return _iface_addr (t->reqfd, t->name, true, addr, prefixlen);
+	int res = _iface_addr (t->reqfd, t->name, true, addr, prefixlen);
+
+#if defined (HAVE_LINUX)
+	char proc_path[24 + IFNAMSIZ + 16 + 1] = "/proc/sys/net/ipv6/conf/";
+
+	/* Disable Autoconfiguration and ICMPv6 redirects */
+	sprintf (proc_path + 24, "%s/accept_ra", t->name);
+	proc_write_zero (proc_path);
+				
+	sprintf (proc_path + 24, "%s/accept_redirects", t->name);
+	proc_write_zero (proc_path);
+				
+	sprintf (proc_path + 24, "%s/autoconf", t->name);
+	proc_write_zero (proc_path);
+#endif
+
+	return res;
 }
 
 
