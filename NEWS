@@ -1,29 +1,25 @@
 RELEASE NOTES for Miredo
-version 0.7.1 (beta version)
-=============================
+version 0.8.0 (stable version)
+===============================
 $Id$
 
-  This is an early release of the program. It underwent some tests and is
-believed to work fine. However, there are still some outstanding issues
-(ie. missing features), though they don't affect core functionnality.
-  Users of previous releases are encouraged to upgrade, as this version
-introduces some important new features, as well as minor fixes.
-
-IMPORTANT NOTE for old users:
-------------------------------
-  As of version 0.4.0, Miredo uses a configuration file instead of a lot of
-command line options. You cannot install the newer version and expect it to
-work without further configuration.
-
-  There are no known major issues at the moment, but missing features.
-Please report any problem by email at address :
-rdenis (at) simphalempin (dot) com
-Thanks for your help.
+  This is the first officially stable release of the program. The package
+is functional, though it lacks some optional features. There are also no
+known outstanding issues. Users of previous releases are encouraged to
+upgrade, as this version introduces some important updates.
+  Please report any problem by email to rdenis (at) simphalempin (dot) com
 
   You can find major changes since version 0.1.0 below. For more general
 informations on this program, see README. For syntax details and
 changes, run 'miredo -h' to get help. For detailled internal changes, see
 ChangeLog.
+
+=============================================================================
+STABLE RELEASE 0.8.0 : Minor bugfixes
+
+# Now use permanent Teredo prefix 2001:0:: default instead of 3ffe:831f::.
+# (Linux-only) Fix setting of /proc/sys/net/ipv6/conf/<iface>/* entries.
+# Fix some spelling errors in documentation.
 
 =============================================================================
 BETA RELEASE 0.7.1 : Major features enhancement
