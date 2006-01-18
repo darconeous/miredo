@@ -552,17 +552,20 @@ tun6_addAddress (tun6 *t, const struct in6_addr *addr, unsigned prefixlen)
 	int res = _iface_addr (t->reqfd, t->name, true, addr, prefixlen);
 
 #if defined (HAVE_LINUX)
-	char proc_path[24 + IFNAMSIZ + 16 + 1] = "/proc/sys/net/ipv6/conf/";
+	if (res == 0)
+	{
+		char proc_path[24 + IFNAMSIZ + 16 + 1] = "/proc/sys/net/ipv6/conf/";
 
-	/* Disable Autoconfiguration and ICMPv6 redirects */
-	sprintf (proc_path + 24, "%s/accept_ra", t->name);
-	proc_write_zero (proc_path);
+		/* Disable Autoconfiguration and ICMPv6 redirects */
+		sprintf (proc_path + 24, "%s/accept_ra", t->name);
+		proc_write_zero (proc_path);
 				
-	sprintf (proc_path + 24, "%s/accept_redirects", t->name);
-	proc_write_zero (proc_path);
+		sprintf (proc_path + 24, "%s/accept_redirects", t->name);
+		proc_write_zero (proc_path);
 				
-	sprintf (proc_path + 24, "%s/autoconf", t->name);
-	proc_write_zero (proc_path);
+		sprintf (proc_path + 24, "%s/autoconf", t->name);
+		proc_write_zero (proc_path);
+	}
 #endif
 
 	return res;
