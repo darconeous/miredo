@@ -141,8 +141,14 @@ struct tun6
 	int  fd, reqfd;
 };
 
-/*
- * Allocates a tunnel network interface from the kernel
+/**
+ * Tries to allocate a tunnel interface from the kernel.
+ *
+ * @param req_name may be an interface name for the virtual network device
+ * (it might be ignored on some OSes).
+ * If NULL, an internal default will be used.
+ *
+ * @return NULL on error.
  */
 tun6 *tun6_create (const char *req_name)
 {
@@ -258,10 +264,12 @@ error:
 }
 
 
-/*
- * Removes the tunnel interface from the current process context.
- * The tunnel will be removed by the kernel once all processes which have
- * access to it called the destructor or exited.
+/**
+ * Removes a tunnel from the kernel.
+ * BEWARE: if you fork, child processes must call tun6_destroy() too.
+ *
+ * The kernel will destroy the tunnel interface once all processes called
+ * tun6_destroy and/or were terminated.
  */
 void tun6_destroy (tun6* t)
 {
@@ -296,8 +304,10 @@ proc_write_zero (const char *path)
 #endif
 
 
-/*
- * Brings the tunnel interface up or down.
+/**
+ * Brings a tunnel interface up or down.
+ *
+ * @return 0 on success, -1 on error (see errno).
  */
 int
 tun6_setState (tun6 *t, bool up)
@@ -624,14 +634,11 @@ tun6_setMTU (tun6 *t, unsigned mtu)
 }
 
 
-
-/*
- * These functions do not require root privileges:
- */
-
-/*
- * Registers the tunnel file descriptor for select().
- * When selects return, you should call ReceivePacket() with the same fd_set.
+/**
+ * Registers file descriptors in an fd_set for use with select().
+ *
+ * @return the "biggest" file descriptor registered (useful as the
+ * first parameter to select()).
  */
 int
 tun6_registerReadSet (const tun6 *t, fd_set *readset)
@@ -643,10 +650,14 @@ tun6_registerReadSet (const tun6 *t, fd_set *readset)
 }
 
 
-/*
- * Tries to receive a packet from the kernel networking stack.
- * Fails if fd is not in the readset. Call this function when select()
- * returns.
+/**
+ * Checks an fd_set, receives a packet.
+ * @param buffer address to store packet
+ * @param maxlen buffer length in bytes (should be 65535)
+ *
+ * This function will block if there is no input.
+ *
+ * @return the packet length on success, -1 if no packet were to be received.
  */
 int
 tun6_recv (const tun6 *t, const fd_set *readset, void *buffer, size_t maxlen)
@@ -702,8 +713,14 @@ tun6_recv (const tun6 *t, const fd_set *readset, void *buffer, size_t maxlen)
 }
 
 
-/*
- * Sends a packet from userland to the kernel's networking stack.
+
+/**
+ * Sends an IPv6 packet.
+ * @param packet pointer to packet
+ * @param len packet length (bytes)
+ *
+ * @return the number of bytes succesfully transmitted on success,
+ * -1 on error.
  */
 int
 tun6_send (const tun6 *t, const void *packet, size_t len)
@@ -748,7 +765,15 @@ tun6_send (const tun6 *t, const void *packet, size_t len)
 	return val;
 }
 
-
+/**
+ * Checks if libtun6 should be able to tun on system.
+ *
+ * @param errbuf a buffer of at least LIBTUN6_ERRBUF_SIZE bytes
+ * to hold an error message suitable for the user attention.
+ * Also set on success.
+ *
+ * @return 0 on success, -1 if the system seems inadequate.
+ */
 int tun6_driver_diagnose (char *errbuf)
 {
 #if defined (HAVE_LINUX)

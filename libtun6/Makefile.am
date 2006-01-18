@@ -22,7 +22,13 @@ AM_CPPFLAGS = -I@top_srcdir@/include -I@top_srcdir@ \
 AM_CFLAGS = -std=c99
 
 lib_LTLIBRARIES = libtun6.la
+check_PROGRAMS = libtun6-diagnose
+TESTS = $(check_PROGRAMS)
 
 # libtun6.a
 libtun6_la_SOURCES = tun6.c
 include_HEADERS = tun6.h
+
+# libtun6-diagnose
+libtun6_diagnose_SOURCES = diagnose.c
+libtun6_diagnose_LDADD = libtun6.la
