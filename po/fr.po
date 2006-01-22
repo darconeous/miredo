@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: miredo 0.7.0\n"
 "Report-Msgid-Bugs-To: rdenis@simphalempin.com\n"
-"POT-Creation-Date: 2006-01-10 22:11+0100\n"
+"POT-Creation-Date: 2006-01-22 17:40+0100\n"
 "PO-Revision-Date: 2005-12-31 14:44+0100\n"
 "Last-Translator: Rémi Denis-Courmont <rdenis (at) simphalempin (dot) com>\n"
 "Language-Team: N/A\n"
@@ -21,7 +21,7 @@ msgid "Ignoring invalid bubble: your Teredo server is probably buggy."
 msgstr "Bulle invalide ignorée : votre serveur Teredo est probablement bogué."
 
 #: libteredo/security.c:60 libteredo/security.c:123 libteredo/server.c:485
-#: libteredo/server.c:496 libteredo/maintain.c:508 libtun6/tun6.c:557
+#: libteredo/server.c:496 libteredo/maintain.c:508 libtun6/tun6.c:547
 #: src/main.c:309 src/main.c:320 src/main.c:328 src/main.c:356 src/main.c:467
 #: src/miredo.cpp:108 src/miredo.cpp:115 src/miredo.cpp:139 src/miredo.cpp:234
 #, c-format
@@ -96,18 +96,18 @@ msgstr "cône"
 msgid "restricted"
 msgstr "restreint"
 
-#: libtun6/tun6.c:154 libtun6/tun6.c:175 libtun6/tun6.c:189 libtun6/tun6.c:222
-#: libtun6/tun6.c:235
+#: libtun6/tun6.c:160 libtun6/tun6.c:181 libtun6/tun6.c:195 libtun6/tun6.c:228
+#: libtun6/tun6.c:241
 #, c-format
 msgid "Tunneling driver error (%s): %m"
 msgstr "Erreur du pilote de tunneling (%s) : %m"
 
-#: libtun6/tun6.c:255
+#: libtun6/tun6.c:261
 #, c-format
 msgid "%s tunneling interface creation failure"
 msgstr "Échec de création de l'interface de tunneling %s"
 
-#: libtun6/tun6.c:776
+#: libtun6/tun6.c:800
 msgid ""
 "You should run these commands to create it:\n"
 "# mkdir -p /dev/net\n"
@@ -119,7 +119,7 @@ msgstr ""
 "# mknod /dev/net/tun c 10 200\n"
 "(vous devez être root pour cela).\n"
 
-#: libtun6/tun6.c:781 libtun6/tun6.c:806
+#: libtun6/tun6.c:805 libtun6/tun6.c:830
 msgid ""
 "You can obtain a tunnel driver for the Darwin kernel (Mac OS X) from:\n"
 "http://chrisp.de/en/projects/tunnel.html\n"
@@ -127,7 +127,7 @@ msgstr ""
 "Vous pouvez obtenir un pilote de tunnel pour le noyau Darwin (Mac OS X) à :\n"
 "http://chrisp.de/en/projects/tunnel.html\n"
 
-#: libtun6/tun6.c:789
+#: libtun6/tun6.c:813
 #, c-format
 msgid ""
 "Error: %s character device not found or unavailable.\n"
@@ -136,7 +136,7 @@ msgstr ""
 "Erreur : périphérique %s non trouvé ou non disponible.\n"
 "%s"
 
-#: libtun6/tun6.c:802
+#: libtun6/tun6.c:826
 msgid ""
 "Make sure your Linux kernel includes the \"Universal TUNTAP driver\"\n"
 "(CONFIG_TUN option), possibly as a module.\n"
@@ -144,7 +144,7 @@ msgstr ""
 "Vérifiez que votre noyau Linux comporte « l'Universal TUNTAP driver »\n"
 "(option CONFIG_TUN), éventuellement sous forme de module.\n"
 
-#: libtun6/tun6.c:814
+#: libtun6/tun6.c:838
 #, c-format
 msgid ""
 "Error: your operating system does not seem to provide a network tunnneling\n"
@@ -155,7 +155,7 @@ msgstr ""
 "périphérique de tunnel réseau, ce qui est indispensable.\n"
 "%s"
 
-#: libtun6/tun6.c:823
+#: libtun6/tun6.c:847
 #, c-format
 msgid ""
 "Error: cannot open device file %s (%s)\n"
@@ -320,35 +320,6 @@ msgstr "Vérifiez qu'une autre instance du programme n'est pas déjà en marche.
 msgid "Reading configuration from %s: %s\n"
 msgstr "Lecture de la configuration depuis %s : %s\n"
 
-#: src/main.c:479
-msgid ""
-"\n"
-"***********************************************************************\n"
-"*                          IMPORTANT NOTICE                           *\n"
-"*                                                                     *\n"
-"* At the time of release of this version of the program, the IETF had *\n"
-"* not yet published the Teredo protocol specification (RFC). As such, *\n"
-"* this version of the program still uses experimental provisional     *\n"
-"* settings, which will most likely be altered when the specification  *\n"
-"* is published. A new version of the program will then be released to *\n"
-"* take these changes into consideration. Until then, this program     *\n"
-"* might not work properly and should be considered experimental.      *\n"
-"***********************************************************************\n"
-msgstr ""
-"\n"
-"╔══════════════════════════════════════════════════════════════════════╗\n"
-"║                          REMARQUE IMPORTANTE                         ║\n"
-"║                                                                      ║\n"
-"║ Lors  de  la  publication  de cette  version  du  programme,  l'IETF ║\n"
-"║ n'avait  pas encore  publié  la spécification  (RFC) du  protocole   ║\n"
-"║ Teredo.  Aussi,  cette  version  du  programme  utilise  encore  des ║\n"
-"║ réglages expérimentaux temporaires,  qui seront très probablement    ║\n"
-"║ modifiés lors de  la publication de la  spécification. Une version   ║\n"
-"║ mise-à-jour  sera  alors fournie  pour  prendre  en compte  de  ces  ║\n"
-"║ changements.  D'ici  là,  ce  programme  peut  ne  pas  fonctionner  ║\n"
-"║ correctement et devrait être considéré comme expérimental.           ║\n"
-"╚══════════════════════════════════════════════════════════════════════╝\n"
-
 #: src/miredo.cpp:212
 #, c-format
 msgid "Loading configuration from %s failed"
@@ -489,6 +460,34 @@ msgstr "Préfixe Teredo IPv6 invalide : %x::/32"
 #, c-format
 msgid "Unknown syslog facility \"%s\" at line %u"
 msgstr "Catégorie syslog « %s » inconnue à la ligne %u"
+
+#~ msgid ""
+#~ "\n"
+#~ "***********************************************************************\n"
+#~ "*                          IMPORTANT NOTICE                           *\n"
+#~ "*                                                                     *\n"
+#~ "* At the time of release of this version of the program, the IETF had *\n"
+#~ "* not yet published the Teredo protocol specification (RFC). As such, *\n"
+#~ "* this version of the program still uses experimental provisional     *\n"
+#~ "* settings, which will most likely be altered when the specification  *\n"
+#~ "* is published. A new version of the program will then be released to *\n"
+#~ "* take these changes into consideration. Until then, this program     *\n"
+#~ "* might not work properly and should be considered experimental.      *\n"
+#~ "***********************************************************************\n"
+#~ msgstr ""
+#~ "\n"
+#~ "╔══════════════════════════════════════════════════════════════════════╗\n"
+#~ "║                          REMARQUE IMPORTANTE                         ║\n"
+#~ "║                                                                      ║\n"
+#~ "║ Lors  de  la  publication  de cette  version  du  programme,  l'IETF ║\n"
+#~ "║ n'avait  pas encore  publié  la spécification  (RFC) du  protocole   ║\n"
+#~ "║ Teredo.  Aussi,  cette  version  du  programme  utilise  encore  des ║\n"
+#~ "║ réglages expérimentaux temporaires,  qui seront très probablement    ║\n"
+#~ "║ modifiés lors de  la publication de la  spécification. Une version   ║\n"
+#~ "║ mise-à-jour  sera  alors fournie  pour  prendre  en compte  de  ces  ║\n"
+#~ "║ changements.  D'ici  là,  ce  programme  peut  ne  pas  fonctionner  ║\n"
+#~ "║ correctement et devrait être considéré comme expérimental.           ║\n"
+#~ "╚══════════════════════════════════════════════════════════════════════╝\n"
 
 #~ msgid ""
 #~ "%s:\n"
