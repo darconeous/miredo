@@ -28,11 +28,8 @@
 /* UDP Teredo port number */
 #define IPPORT_TEREDO 3544
 
-#if 0
-/* FIXME: put permanent value once assigned */
-#define TEREDO_DISCOVERY_STR	"224.0.0.252"
-#define TEREDO_DISCOVERY_IP	0xe00000fc
-#endif
+/* Multicast IPv4 discovery address */
+#define TEREDO_DISCOVERY_IPV4	0xe00000fd
 
 #include <sys/types.h>
 #include <netinet/in.h>
