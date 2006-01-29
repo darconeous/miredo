@@ -41,6 +41,7 @@
 #include <netinet/ip6.h> /* struct ip6_hdr */
 #include <netinet/icmp6.h> /* router solicication */
 #include <syslog.h>
+#include <sys/uio.h>
 
 #include "teredo.h"
 #include "v4global.h" // is_ipv4_global_unicast()
