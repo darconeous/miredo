@@ -17,6 +17,8 @@
 # *  http://www.gnu.org/copyleft/gpl.html                               *
 # ***********************************************************************
 
+LIBINTL = @LIBINTL@
+
 AM_CPPFLAGS = -I@top_srcdir@ -I@top_srcdir@/libteredo -D_REENTRANT
 AM_CFLAGS = -std=c99
 
@@ -40,7 +42,7 @@ libteredo_stresslist_LDADD = ../libteredo.la
 
 # libteredo-hmac
 libteredo_hmac_SOURCES = hmac.c
-libteredo_hmac_LDADD = ../libteredo.la
+libteredo_hmac_LDADD = $(LIBINTL) ../libteredo.la
 
 # md5main
 md5test_SOURCES = md5test.c ../md5.c
