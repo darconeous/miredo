@@ -28,11 +28,10 @@
 #include <time.h>
 #include <stdlib.h>
 #include <signal.h>
+#include <limits.h>
 
 #if HAVE_STDINT_H
 # include <stdint.h> /* Mac OS X needs that */
-#else
-# include <inttypes.h>
 #endif
 #include <sys/types.h>
 #include <netinet/in.h>
