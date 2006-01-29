@@ -29,6 +29,8 @@
 
 #if HAVE_STDINT_H
 # include <stdint.h> /* Mac OS X needs that */
+#else
+# include <inttypes.h>
 #endif
 #include <sys/types.h>
 #include <netinet/in.h>
