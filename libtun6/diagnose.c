@@ -24,6 +24,7 @@
 #endif
 
 #include <stdio.h>
+#include <syslog.h> /* TODO: do not use syslog within the library */
 #include "tun6.h"
 
 int main (void)
@@ -33,20 +34,19 @@ int main (void)
 	int res = tun6_driver_diagnose (errbuf);
 	fprintf (stderr, "%s\n", errbuf);
 
+	openlog ("libtun6-diagnose", LOG_PERROR, LOG_USER);
 	tun6 *t = tun6_create (NULL);
 	if ((t == NULL) != (res != 0))
 		return 1;
 
-#if 0
 	if (t == NULL)
 	{
 		puts ("Warning: cannot perform full libtun6 test");
 		return 0;
 	}
-#else
 	/* TODO: further testing */
-#endif
 	
 	tun6_destroy (t);
+	closelog ();
 	return 0;
 }
