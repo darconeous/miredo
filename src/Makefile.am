@@ -58,6 +58,7 @@ miredo_server_LDADD = $(LIBINTL) libmiredo.a ../libteredo/libteredo-server.la
 
 # miredo-checkconf
 miredo_checkconf_SOURCES = test_conf.cpp conf.cpp
+miredo_checkconf_LDADD = $(LIBINTL)
 
 # Automake does not support checking for MIREDO_CHROOT || MIREDO_PIDFILE
 # so we always create the directory
