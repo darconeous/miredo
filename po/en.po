@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: miredo 0.7.0\n"
 "Report-Msgid-Bugs-To: rdenis@simphalempin.com\n"
-"POT-Creation-Date: 2006-01-10 22:11+0100\n"
+"POT-Creation-Date: 2006-01-29 18:37+0100\n"
 "PO-Revision-Date: 2005-12-27 19:03+0100\n"
 "Last-Translator: Rémi Denis-Courmont <rdenis (at) simphalempin (dot) com>\n"
 "Language-Team: N/A\n"
@@ -38,11 +38,11 @@ msgid ""
 "Teredo server UDP socket error: Server IPv4 addresses must be global unicast."
 msgstr ""
 
-#: libteredo/packets.c:265
+#: libteredo/packets.c:266
 msgid "Multiple Teredo prefixes received"
 msgstr ""
 
-#: libteredo/packets.c:301
+#: libteredo/packets.c:302
 msgid "Invalid Teredo prefix received"
 msgstr ""
 
@@ -273,7 +273,7 @@ msgid ""
 " %s\n"
 msgstr ""
 
-#: src/main.c:346 src/relay.cpp:406 src/relay.cpp:496 src/server.cpp:167
+#: src/main.c:346 src/relay.cpp:412 src/relay.cpp:502 src/server.cpp:167
 msgid "Make sure another instance of the program is not already running."
 msgstr ""
 
@@ -347,43 +347,43 @@ msgstr ""
 msgid "Terminated with no error."
 msgstr ""
 
-#: src/relay.cpp:150
+#: src/relay.cpp:156
 msgid "Teredo pseudo-tunnel started"
 msgstr ""
 
-#: src/relay.cpp:152
+#: src/relay.cpp:158
 #, c-format
 msgid " (address: %s, MTU: %u)"
 msgstr ""
 
-#: src/relay.cpp:160
+#: src/relay.cpp:166
 msgid "Teredo pseudo-tunnel stopped"
 msgstr ""
 
-#: src/relay.cpp:269
+#: src/relay.cpp:275
 #, c-format
 msgid "Invalid relay type \"%s\" at line %u"
 msgstr "Invalid relay type “%s” at line %u"
 
-#: src/relay.cpp:313 src/relay.cpp:322 src/relay.cpp:338 src/relay.cpp:346
-#: src/relay.cpp:357 src/relay.cpp:366 src/server.cpp:110 src/server.cpp:118
+#: src/relay.cpp:319 src/relay.cpp:328 src/relay.cpp:344 src/relay.cpp:352
+#: src/relay.cpp:363 src/relay.cpp:372 src/server.cpp:110 src/server.cpp:118
 #: src/server.cpp:135
 msgid "Fatal configuration error"
 msgstr ""
 
-#: src/relay.cpp:337 src/server.cpp:117
+#: src/relay.cpp:343 src/server.cpp:117
 msgid "Server address not specified"
 msgstr ""
 
-#: src/relay.cpp:345
+#: src/relay.cpp:351
 msgid "Unsupported Teredo client mode"
 msgstr ""
 
-#: src/relay.cpp:405 src/relay.cpp:431 src/relay.cpp:447 src/relay.cpp:495
+#: src/relay.cpp:411 src/relay.cpp:437 src/relay.cpp:453 src/relay.cpp:501
 msgid "Teredo tunnel fatal error"
 msgstr ""
 
-#: src/relay.cpp:455
+#: src/relay.cpp:461
 msgid "libteredo cannot be initialized"
 msgstr ""
 
