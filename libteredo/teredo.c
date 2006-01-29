@@ -156,7 +156,9 @@ int teredo_sendv (int fd, const struct iovec *iov, size_t count,
 			case EOPNOTSUPP: /* ICMP source route failed
 							- should not happen */
 			case EHOSTDOWN: /* ICMP host unknown */
+#ifdef ENONET
 			case ENONET: /* ICMP host isolated */
+#endif
 				continue;
 	
 			default:
