@@ -152,8 +152,6 @@ struct tun6
  */
 tun6 *tun6_create (const char *req_name)
 {
-	int fd, reqfd;
-
 	tun6 *t = (tun6 *)malloc (sizeof (*t));
 	if (t == NULL)
 	{
@@ -161,7 +159,7 @@ tun6 *tun6_create (const char *req_name)
 		return NULL;
 	}
 
-	t->reqfd = reqfd = socket (AF_INET6, SOCK_DGRAM, 0);
+	int reqfd = t->reqfd = socket (AF_INET6, SOCK_DGRAM, 0);
 	if (reqfd == -1)
 	{
 		free (t);
@@ -175,7 +173,7 @@ tun6 *tun6_create (const char *req_name)
 	static const char tundev[] = "/dev/net/tun";
 	struct ifreq req;
 
-	fd = open (tundev, O_RDWR);
+	int fd = open (tundev, O_RDWR);
 	if (fd == -1)
 	{
 		syslog (LOG_ERR, _("Tunneling driver error (%s): %m"), tundev);
@@ -202,6 +200,7 @@ tun6 *tun6_create (const char *req_name)
 	 * BSD tunnel driver initialization
 	 */
 	char tundev[12];
+	int fd = -1;
 
 	for (unsigned i = 0; (i < 256) && (fd == -1); i++)
 	{
@@ -213,6 +212,18 @@ tun6 *tun6_create (const char *req_name)
 		fd = open (tundev, O_RDWR);
 		if (fd == -1)
 			continue;
+
+# ifdef TUNSIFHEAD
+		/* Enables TUNSIFHEAD */
+		if (ioctl (fd, TUNSIFHEAD, &dummy))
+		{
+			syslog (LOG_ERR, _("Tunneling driver error (%s): %m"),
+			        "TUNSIFHEAD");
+			close (fd);
+			fd = -1;
+			continue;
+		}
+# endif /* TUNSIFHEAD */
 
 # if 0
 		/* TODO: have this work on FreeBSD
@@ -227,29 +238,20 @@ tun6 *tun6_create (const char *req_name)
 			syslog (LOG_ERR,
 			        _("Tunneling driver error (%s): %m"), "SIOCSIFNAME");
 			fd = -1;
+			close (fd);
 			continue;
 		}
-# else /* SIOCSIFNAME */
+# else /* 0 */
 		secure_strncpy (t->name, tundev + 5, sizeof (t->name));
 		/* strlen ("/dev/") == 5 */
-# endif /* SIOCSIFNAME */
-
-# ifdef TUNSIFHEAD
-		/* Enables TUNSIFHEAD */
-		if (ioctl (fd, TUNSIFHEAD, &dummy))
-		{
-			syslog (LOG_ERR, _("Tunneling driver error (%s): %m"),
-			        "TUNSIFHEAD");
-			fd = -1;
-		}
-# endif /* TUNSIFHEAD */
+# endif /* if 0 */
 	}
 
 	if (fd == -1)
 		goto error;
 #else
 # error No tunneling driver implemented on your platform!
-#endif
+#endif /* HAVE_os */
 
 	t->fd = fd;
 	return t;
