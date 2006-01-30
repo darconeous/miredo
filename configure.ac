@@ -134,7 +134,7 @@ AS_IF([test "${with_Judy}" != "no"],
 	[have_Judy=no])
 AC_MSG_CHECKING([whether to use Judy dynamic arrays])
 AC_MSG_RESULT([${have_Judy}])
-AS_IF([test "x${have_Judy}" == "xno" && test "x${with_Judy}" == "xyes"],
+AS_IF([test "x${have_Judy}" = "xno" && test "x${with_Judy}" = "xyes"],
 	[AC_MSG_ERROR([Judy requested while not available])])
 
 # Teredo client
@@ -157,8 +157,8 @@ AC_ARG_ENABLE(debug,
 			       [compile debug code (default disabled)])])
 AH_TEMPLATE(NDEBUG,
 	    [Define to 1 if debug code should NOT be compiled])
-AS_IF([test "x${enable_debug}" == "x"], [enable_debug=no])
-AS_IF([test "x${enable_debug}" == "xno"],
+AS_IF([test "x${enable_debug}" = "x"], [enable_debug=no])
+AS_IF([test "x${enable_debug}" = "xno"],
 	[AC_DEFINE(NDEBUG)], [enable_debug=yes])
 AC_MSG_RESULT(${enable_debug})
 
