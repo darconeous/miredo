@@ -157,7 +157,7 @@ AC_ARG_ENABLE(debug,
 			       [compile debug code (default disabled)])])
 AH_TEMPLATE(NDEBUG,
 	    [Define to 1 if debug code should NOT be compiled])
-AS_IF([test "x${enable_debug}" = "x"], [enable_debug=no])
+AS_IF([test "x${enable_debug}" == "x"], [enable_debug=no])
 AS_IF([test "x${enable_debug}" == "xno"],
 	[AC_DEFINE(NDEBUG)], [enable_debug=yes])
 AC_MSG_RESULT(${enable_debug})
