@@ -26,10 +26,11 @@ changes, run 'miredo -h' to get help. For detailled internal changes, see
 ChangeLog.
 
 =============================================================================
-BETA RELEASE 0.7.2 : Minor bugfixes
+BETA RELEASE 0.7.3 : Minor bugfixes
 
 # Fix flawed --enable-debug configure script options.
 # Several compilation fixes for BSD (tested on FreeBSD 6.0).
+# Fix crash in tunneling driver for BSD.
 
 =============================================================================
 BETA RELEASE 0.7.1 : Major features enhancement
