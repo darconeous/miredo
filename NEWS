@@ -22,6 +22,7 @@ STABLE RELEASE 0.8.0 : Minor bugfixes
 # Fix some spelling errors in documentation.
 # Many compilation fixes for FreeBSD 6.0 (also backported in v0.7.2).
 # Fix --enable-debug configure option (also in v0.7.2).
+# Use RFC 4380 as reference instead of Teredo ultimate draft 05.
 
 =============================================================================
 BETA RELEASE 0.7.1 : Major features enhancement

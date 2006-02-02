@@ -33,16 +33,16 @@ Summary[fr]: Démon de tunneling IPv6 Teredo.
 
 [Description]
 Miredo is an Unix daemon program which implements the "Teredo: Tunneling IPv6
-over UDP through NATs" Internet draft specification. It can provide either
+over UDP through NATs" Internet proposed standard. It can provide either
 Teredo client, relay and server functionnality. Miredo can be used to provide
 IPv6 connectivity to users behind NAT which do not support IPv6, and not even
 proto-41 forwarding (6to4).
 
 [Description:fr]
-Miredo est un programme démon Unix program qui fournit une implémentation de
-draft Internet "Teredo: Tunneling IPv6 over UDP through NATs". Il peut servir
-de client Teredo, de relais et/ou de serveur. Miredo peut être utilisé pour
-fournir une connectivité IPv6 aux utilisateurs derrière un NAT, lequel ne
+Miredo est un programme démon Unix program qui fournit une implémentation du
+standard Internet "Teredo: Tunneling IPv6 over UDP through NATs". Il peut
+servir de client Teredo, de relais et/ou de serveur. Miredo peut être utilisé
+pour fournir une connectivité IPv6 aux utilisateurs derrière un NAT, lequel ne
 supporte pas IPv6, ni même le proto-41 forwarding (6to4).
 
 [BuildPrepare]
