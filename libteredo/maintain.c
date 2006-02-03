@@ -88,9 +88,10 @@ struct teredo_maintenance
 
 static int getipv4byname (const char *name, uint32_t *ipv4)
 {
-	struct addrinfo hints = { }, *res;
+	struct addrinfo hints, *res;
 	int val;
 
+	memset (&hints, 0, sizeof (hints));
 	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_DGRAM;
 
@@ -222,7 +223,7 @@ static inline void maintenance_thread (teredo_maintenance *m)
 	{
 		uint8_t value[8];
 		struct timeval expiry;
-	} nonce = { { 0, 0 } };
+	} nonce = { { }, { 0, 0 } };
 	struct timespec deadline = { 0, 0 };
 	teredo_state *c_state = &m->state.state;
 	uint32_t server_ip = 0, server_ip2 = 0;
