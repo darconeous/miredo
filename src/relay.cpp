@@ -113,8 +113,9 @@ class MiredoRelay : public TeredoRelay
 		virtual void EmitICMPv6Error (const void *packet, size_t length,
 		                              const struct in6_addr *dst)
 		{
-			struct sockaddr_in6 addr = { };
+			struct sockaddr_in6 addr;
 
+			memset (&addr, 0, sizeof (addr));
 			/* TODO: use sendmsg and don't memcpy in BuildICMPv6Error */
 			addr.sin6_family = AF_INET6;
 			memcpy (&addr.sin6_addr, dst, sizeof (addr.sin6_addr));

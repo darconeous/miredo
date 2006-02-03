@@ -228,9 +228,10 @@ libteredo_forward_udp (int fd, const struct teredo_packet *packet,
 static bool
 libteredo_send_ipv6 (const void *p, size_t len)
 {
-	struct sockaddr_in6 dst = { };
+	struct sockaddr_in6 dst;
 	int tries, res;
 
+	memset (&dst, 0, sizeof (dst));
 	dst.sin6_family = AF_INET6;
 #ifdef HAVE_SA_LEN
 	dst.sin6_len = sizeof (dst);

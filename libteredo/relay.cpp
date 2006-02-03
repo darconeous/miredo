@@ -212,6 +212,10 @@ TeredoRelay::EmitICMPv6Error (const void *packet, size_t length,
 	size_t outlen = BuildIPv6Error (&buf.hdr, &state.addr.ip6,
 	                                ICMP6_DST_UNREACH, code, in, inlen);
 	(void)SendIPv6Packet (&buf, outlen);
+#else
+	(void) packet;
+	(void) length;
+	(void) dst;
 #endif
 }
 

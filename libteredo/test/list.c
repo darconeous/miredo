@@ -40,7 +40,7 @@
 int main (void)
 {
 	teredo_peerlist *l;
-	struct in6_addr addr = { };
+	struct in6_addr addr = { { } };
 	unsigned i;
 	time_t now;
 

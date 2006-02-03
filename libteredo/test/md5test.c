@@ -94,7 +94,7 @@ do_test(void)
 
 /* Main program */
 int
-main(int argc, char *argv[])
+main(void)
 {
     return do_test();
 }

@@ -61,9 +61,10 @@ const struct in6_addr teredo_cone =
  */
 int teredo_socket (uint32_t bind_ip, uint16_t port)
 {
-	struct sockaddr_in myaddr = { };
+	struct sockaddr_in myaddr;
 	int fd, flags;
 
+	memset (&myaddr, 0, sizeof (myaddr));
 	myaddr.sin_family = AF_INET;
 	myaddr.sin_port = port;
 	myaddr.sin_addr.s_addr = bind_ip;
@@ -105,9 +106,10 @@ int teredo_sendv (int fd, const struct iovec *iov, size_t count,
                   uint32_t dest_ip, uint16_t dest_port)
 {
 	struct msghdr msg;
-	struct sockaddr_in addr = { };
+	struct sockaddr_in addr;
 	int res, tries;
 
+	memset (&addr, 0, sizeof (addr));
 	addr.sin_family = AF_INET;
 	addr.sin_port = dest_port;
 	addr.sin_addr.s_addr = dest_ip;

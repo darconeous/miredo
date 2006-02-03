@@ -64,7 +64,7 @@ static void alarm_handler (int sig)
 int main (void)
 {
 	teredo_peerlist *l;
-	struct in6_addr addr = { };
+	struct in6_addr addr = { { } };
 	unsigned long i;
 	time_t seed;
 	clock_t t;

@@ -112,7 +112,11 @@ class TeredoRelay
 		 * This function might be called from a separate thread.
 		 */
 		virtual void NotifyUp (const struct in6_addr *addr,
-		                      uint16_t mtu = 1280) { }
+		                      uint16_t mtu = 1280)
+		{
+			(void) addr;
+			(void) mtu;
+		}
 
 		/*
 		 * Indicates that the Teredo tunneling interface is no longer
