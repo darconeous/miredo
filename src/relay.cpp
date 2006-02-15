@@ -56,7 +56,6 @@
 #endif
 
 #include <string.h>
-#include <netdb.h> // gai_strerror()
 
 #include <libtun6/tun6.h>
 
@@ -305,7 +304,7 @@ miredo_run (int sigfd, MiredoConf& conf, const char *cmd_server_name)
 		0;
 #endif
 #ifdef MIREDO_TEREDO_CLIENT
-	char *server_name, *server_name2;
+	char *server_name = NULL, *server_name2 = NULL;
 	bool default_route = true;
 #endif
 	bool ignore_cone = true;
@@ -333,7 +332,7 @@ miredo_run (int sigfd, MiredoConf& conf, const char *cmd_server_name)
 		if (cmd_server_name != NULL)
 		{
 			server_name = strdup (cmd_server_name);
-			if (cmd_server_name == NULL)
+			if (server_name == NULL)
 				return -1;
 		}
 		else
@@ -432,6 +431,9 @@ miredo_run (int sigfd, MiredoConf& conf, const char *cmd_server_name)
 
 	if (mode == TEREDO_CLIENT)
 	{
+		/*
+		 * FIXME: minor memory leak of server_name and server_name2
+		 */
 		fd = miredo_privileged_process (tunnel, default_route);
 		if (fd == -1)
 		{
@@ -460,7 +462,7 @@ miredo_run (int sigfd, MiredoConf& conf, const char *cmd_server_name)
 	 || ((mode == TEREDO_CLIENT) && libteredo_client_preinit ()))
 	{
 		syslog (LOG_ALERT, _("libteredo cannot be initialized"));
-		return -1;
+		goto abort;
 	}
 
 	MiredoRelay::GlobalInit ();
