@@ -38,7 +38,8 @@ if TEREDO_CLIENT
 libteredo_la_SOURCES += security.c security.h maintain.c maintain.h \
 			md5.c md5.h
 endif
+libteredo_la_LDFLAGS = -no-undefined
 
 # libteredo-server.la
 libteredo_server_la_SOURCES =	$(common_SOURCES) server.c server.h
-
+libteredo_server_la_LDFLAGS = -no-undefined
