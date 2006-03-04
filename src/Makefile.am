@@ -36,31 +36,33 @@ AM_CPPFLAGS += -DMIREDO_CHROOT=\"$(miredo_chroot)\"
 endif
 
 sbin_PROGRAMS = miredo miredo-server
-noinst_LIBRARIES = libmiredo.a
+noinst_LTLIBRARIES = libmiredo.la
 check_PROGRAMS = miredo-checkconf
 TESTS = $(check_PROGRAMS)
 
 #BUILT_SOURCES = $(srcdir)/svnversion.stamp
 
-libmiredo_a_SOURCES = main.c miredo.cpp miredo.h \
+libmiredo_la_SOURCES = main.c miredo.cpp miredo.h \
 			conf.cpp conf.h prefix.c prefix.h
+libmiredo_la_LIBADD = $(LIBCAP)
+libmiredo_la_LDFLAGS = -static -no-undefined
 
 # miredo
 miredo_SOURCES = relay.cpp
 if TEREDO_CLIENT
 miredo_SOURCES += privproc.c privproc.h
 endif
-miredo_LDADD = $(LIBINTL) $(LIBCAP) libmiredo.a \
+miredo_LDADD = $(LIBINTL) $(LIBCAP) libmiredo.la \
 		../libtun6/libtun6.la ../libteredo/libteredo.la
 
 # miredo-server
 miredo_server_SOURCES = server.cpp
-miredo_server_LDADD = $(LIBINTL) $(LIBCAP) libmiredo.a \
+miredo_server_LDADD = $(LIBINTL) $(LIBCAP) libmiredo.la \
 			../libteredo/libteredo-server.la
 
 # miredo-checkconf
-miredo_checkconf_SOURCES = test_conf.cpp conf.cpp
-miredo_checkconf_LDADD = $(LIBINTL)
+miredo_checkconf_SOURCES = test_conf.cpp
+miredo_checkconf_LDADD = libmiredo.la
 
 # Automake does not support checking for MIREDO_CHROOT || MIREDO_PIDFILE
 # so we always create the directory
