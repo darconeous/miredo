@@ -90,7 +90,7 @@ AC_DEFINE_UNQUOTED(PACKAGE_HOST, "$host",
 
 # Checks for header files.
 AS_MESSAGE([checking header files...])
-AC_CHECK_HEADERS([sys/capability.h libintl.h Judy.h])
+AC_CHECK_HEADERS([sys/capability.h libintl.h])
 
 
 # Checks for typedefs, structures, and compiler characteristics.
@@ -128,10 +128,18 @@ AS_MESSAGE([checking optional features...])
 AC_ARG_WITH(Judy,
 	    [AS_HELP_STRING(--without-Judy,
 	    		    [do not use Judy dynamic arrays (default automatic)])])
-AS_IF([test "${with_Judy}" != "no"],
-	[have_Judy=yes
-	AC_CHECK_LIB(Judy, JudyHSIns,, [have_Judy=no])],
-	[have_Judy=no])
+have_Judy=no
+AS_IF([test "${with_Judy}" != "no"], [
+	AC_CHECK_HEADERS([Judy.h], [
+		AC_CHECK_LIB(Judy, JudyHSIns, [
+			have_Judy=yes
+			LIBJUDY="-lJudy"
+			AC_SUBST(LIBJUDY)
+			AC_DEFINE(HAVE_LIBJUDY, 1,
+				  [Define to 1 if you the `Judy' library -lJudy).])
+		])
+	])
+])
 AC_MSG_CHECKING([whether to use Judy dynamic arrays])
 AC_MSG_RESULT([${have_Judy}])
 AS_IF([test "x${have_Judy}" = "xno" && test "x${with_Judy}" = "xyes"],
