@@ -22,6 +22,7 @@ localedir = $(datadir)/locale
 top_srcdir = @top_srcdir@
 sysconfdir = @sysconfdir@
 LIBINTL = @LIBINTL@
+LIBCAP = @LIBCAP@
 
 AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir) -D_REENTRANT \
 	-D_GNU_SOURCE \
@@ -49,12 +50,13 @@ miredo_SOURCES = relay.cpp
 if TEREDO_CLIENT
 miredo_SOURCES += privproc.c privproc.h
 endif
-miredo_LDADD = $(LIBINTL) libmiredo.a \
+miredo_LDADD = $(LIBINTL) $(LIBCAP) libmiredo.a \
 		../libtun6/libtun6.la ../libteredo/libteredo.la
 
 # miredo-server
 miredo_server_SOURCES = server.cpp
-miredo_server_LDADD = $(LIBINTL) libmiredo.a ../libteredo/libteredo-server.la
+miredo_server_LDADD = $(LIBINTL) $(LIBCAP) libmiredo.a \
+			../libteredo/libteredo-server.la
 
 # miredo-checkconf
 miredo_checkconf_SOURCES = test_conf.cpp conf.cpp

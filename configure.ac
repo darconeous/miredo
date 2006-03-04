@@ -90,7 +90,7 @@ AC_DEFINE_UNQUOTED(PACKAGE_HOST, "$host",
 
 # Checks for header files.
 AS_MESSAGE([checking header files...])
-AC_CHECK_HEADERS([sys/capability.h libintl.h])
+AC_CHECK_HEADERS([libintl.h])
 
 
 # Checks for typedefs, structures, and compiler characteristics.
@@ -113,13 +113,15 @@ dnl AC_SEARCH_LIBS(inet_aton, [resolv])
 AC_SEARCH_LIBS(pthread_create, [pthread c_r])
 
 # POSIX capabilities
-AC_CHECK_LIB(cap, cap_set_proc)
-AH_BOTTOM([
-#ifndef HAVE_SYS_CAPABILITY_H
-# undef HAVE_LIBCAP
-#endif
+LIBCAP=""
+AC_CHECK_HEADERS([sys/capability.h], [
+	AC_CHECK_LIB(cap, cap_set_proc, [
+		LIBCAP="-lcap"
+		AC_DEFINE(HAVE_LIBCAP, 1,
+			  [Define to 1 if you have the `cap' library (-lcap).])
+	])
 ])
-
+AC_SUBST(LIBCAP)
 
 # Checks for optionnal features
 AS_MESSAGE([checking optional features...])
@@ -129,17 +131,18 @@ AC_ARG_WITH(Judy,
 	    [AS_HELP_STRING(--without-Judy,
 	    		    [do not use Judy dynamic arrays (default automatic)])])
 have_Judy=no
+LIBJUDY=""
 AS_IF([test "${with_Judy}" != "no"], [
 	AC_CHECK_HEADERS([Judy.h], [
 		AC_CHECK_LIB(Judy, JudyHSIns, [
 			have_Judy=yes
 			LIBJUDY="-lJudy"
-			AC_SUBST(LIBJUDY)
 			AC_DEFINE(HAVE_LIBJUDY, 1,
-				  [Define to 1 if you the `Judy' library -lJudy).])
+				  [Define to 1 if you the `Judy' library (-lJudy).])
 		])
 	])
 ])
+AC_SUBST(LIBJUDY)
 AC_MSG_CHECKING([whether to use Judy dynamic arrays])
 AC_MSG_RESULT([${have_Judy}])
 AS_IF([test "x${have_Judy}" = "xno" && test "x${with_Judy}" = "xyes"],
