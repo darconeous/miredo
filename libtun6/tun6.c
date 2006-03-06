@@ -730,10 +730,10 @@ tun6_send (const tun6 *t, const void *packet, size_t len)
 {
 #if defined (HAVE_LINUX)
 	struct
-{
-	uint16_t flags;
-	uint16_t proto;
-} head = { 0, htons (ETH_P_IPV6) };
+	{
+		uint16_t flags;
+		uint16_t proto;
+	} head = { 0, htons (ETH_P_IPV6) };
 #elif defined (HAVE_FREEBSD) || defined (HAVE_OPENBSD)
 	uint32_t head = htonl (AF_INET6);
 #endif
