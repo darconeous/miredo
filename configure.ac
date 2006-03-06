@@ -208,7 +208,7 @@ AS_IF([test "${enable_miredo_user}" != "root"],
 
 # Defines for <config.h>
 AH_BOTTOM([
-#define _( str )		gettext (str)
+#define _( str )		dgettext (PACKAGE_NAME, str)
 #define N_( str )		gettext_noop (str)
 ])
 

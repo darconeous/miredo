@@ -24,11 +24,12 @@
 #endif
 
 #include <stdbool.h>
+#include <gettext.h>
 
 #ifdef HAVE_STDINT_H
 # include <stdint.h>
 #else
-# include <inttypes.h>
+# include <inttypes.h>
 #endif
 
 #ifdef MIREDO_TEREDO_CLIENT
@@ -45,6 +46,7 @@
  */
 int libteredo_preinit (void)
 {
+	bindtextdomain (PACKAGE_NAME, LOCALEDIR);
 	return 0;
 }
 

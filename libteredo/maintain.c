@@ -402,7 +402,7 @@ static inline void maintenance_thread (teredo_maintenance *m)
 				/* DO NOT break; */
 			case PROBE_CONE:
 				syslog (LOG_INFO, _("Qualified (NAT type: %s)"),
-				        gettext (c_state->cone
+				        dgettext (PACKAGE_NAME, c_state->cone
 			                      ? N_("cone") : N_("restricted")));
 				count = 0;
 				state = QUALIFIED;

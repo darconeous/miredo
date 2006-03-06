@@ -423,7 +423,7 @@ static void *thread_secondary (void *data)
  */
 libteredo_server *libteredo_server_create (uint32_t ip1, uint32_t ip2)
 {
-	libteredo_server *s;
+	bindtextdomain (PACKAGE_NAME, LOCALEDIR);
 
 	/* Initializes shared raw IPv6 socket */
 	pthread_mutex_lock (&raw_mutex);
@@ -461,7 +461,7 @@ libteredo_server *libteredo_server_create (uint32_t ip1, uint32_t ip2)
 		return NULL;
 	}
 
-	s = (libteredo_server *)malloc (sizeof (*s));
+	libteredo_server *s = (libteredo_server *)malloc (sizeof (*s));
 
 	if (s != NULL)
 	{

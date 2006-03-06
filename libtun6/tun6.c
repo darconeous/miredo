@@ -152,6 +152,7 @@ struct tun6
  */
 tun6 *tun6_create (const char *req_name)
 {
+	bindtextdomain (PACKAGE_NAME, LOCALEDIR);
 	tun6 *t = (tun6 *)malloc (sizeof (*t));
 	if (t == NULL)
 	{
@@ -778,6 +779,8 @@ tun6_send (const tun6 *t, const void *packet, size_t len)
  */
 int tun6_driver_diagnose (char *errbuf)
 {
+	bindtextdomain (PACKAGE_NAME, LOCALEDIR);
+
 #if defined (HAVE_LINUX)
 	const char *const tundev = "/dev/net/tun";
 #else
@@ -814,7 +817,7 @@ int tun6_driver_diagnose (char *errbuf)
 		snprintf (errbuf, LIBTUN6_ERRBUF_SIZE - 1,
 			_("Error: %s character device "
 			"not found or unavailable.\n%s"), tundev,
-			specific != NULL ? gettext (specific) : "");
+			specific != NULL ? dgettext (PACKAGE_NAME, specific) : "");
 		errbuf[LIBTUN6_ERRBUF_SIZE - 1] = '\0';
 		return -1;
 	}
