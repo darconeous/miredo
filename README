@@ -69,10 +69,8 @@ support IPv6 yet. It should work as soon as NetBSD kernel gets fixed.
   Miredo is believed to be architecture-independant, but it was only
 properly tested on i386.
 
-
 Dependencies:
 --------------
-
   When available, Miredo can use the following optional libraries :
  - GNU gettext for localization,
  - libcap (or non-Linux equivalent) for POSIX capabilities.
@@ -176,7 +174,6 @@ non trivial and non portable, they cannot be done automatically. That
 is why miredo defaults to using "nobody" user account which is
 available on any POSIX-like operating system.
 
-
 1) System user:
 ----------------
   Miredo should run with its own user account rather than common user
@@ -212,7 +209,6 @@ shared objects within the chroot.
   If you intend to use miredo only as a Teredo relay and/or server,
 you should really enable the chroot, as it is safer and should work
 fine "out of the box".
-
 
 3) POSIX capabilities:
 -----------------------
