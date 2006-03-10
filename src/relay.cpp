@@ -7,7 +7,7 @@
  */
 
 /***********************************************************************
- *  Copyright (C) 2004-2005 Remi Denis-Courmont.                       *
+ *  Copyright (C) 2004-2006 Remi Denis-Courmont.                       *
  *  This program is free software; you can redistribute and/or modify  *
  *  it under the terms of the GNU General Public License as published  *
  *  by the Free Software Foundation; version 2 of the license.         *
@@ -285,40 +285,25 @@ ParseRelayType (MiredoConf& conf, const char *name, int *type)
 extern int
 miredo_run (int sigfd, MiredoConf& conf, const char *cmd_server_name)
 {
-	int mode = TEREDO_CLIENT;
-	char *ifname = NULL;
-	union teredo_addr prefix = { 0 };
-	uint32_t bind_ip = INADDR_ANY;
-	uint16_t mtu = 1280, bind_port = 
-#if 0
-		/*
-		 * We use 3545 as a Teredo service port.
-		 * It is better to use a fixed port number for the
-		 * purpose of firewalling, rather than a pseudo-random
-		 * one (all the more as it might be a "dangerous"
-		 * often firewalled port, such as 1214 as it happened
-		 * to me once).
-		 */
-		IPPORT_TEREDO + 1;
-#else
-		0;
-#endif
-#ifdef MIREDO_TEREDO_CLIENT
-	char *server_name = NULL, *server_name2 = NULL;
-	bool default_route = true;
-#endif
-	bool ignore_cone = true;
-
 	/*
 	 * CONFIGURATION
 	 */
+	union teredo_addr prefix;
+	memset (&prefix, 0, sizeof (prefix));
 	prefix.teredo.prefix = htonl (TEREDO_PREFIX);
 
+	int mode = TEREDO_CLIENT;
 	if (!ParseRelayType (conf, "RelayType", &mode))
 	{
 		syslog (LOG_ALERT, _("Fatal configuration error"));
 		return -2;
 	}
+
+#ifdef MIREDO_TEREDO_CLIENT
+	char *server_name = NULL, *server_name2 = NULL;
+	bool default_route = true;
+#endif
+	uint16_t mtu = 1280;
 
 	if (mode == TEREDO_CLIENT)
 	{
@@ -365,6 +350,23 @@ miredo_run (int sigfd, MiredoConf& conf, const char *cmd_server_name)
 		}
 	}
 
+	uint32_t bind_ip = INADDR_ANY;
+	uint16_t bind_port = 
+#if 0
+		/*
+		 * We use 3545 as a Teredo service port.
+		 * It is better to use a fixed port number for the
+		 * purpose of firewalling, rather than a pseudo-random
+		 * one (all the more as it might be a "dangerous"
+		 * often firewalled port, such as 1214 as it happened
+		 * to me once).
+		 */
+		IPPORT_TEREDO + 1;
+#else
+		0;
+#endif
+	bool ignore_cone = true;
+
 	if (!ParseIPv4 (conf, "BindAddress", &bind_ip)
 	 || !conf.GetInt16 ("BindPort", &bind_port)
 	 || !conf.GetBoolean ("IgnoreConeBit", &ignore_cone))
@@ -381,7 +383,7 @@ miredo_run (int sigfd, MiredoConf& conf, const char *cmd_server_name)
 
 	bind_port = htons (bind_port);
 
-	ifname = conf.GetRawValue ("InterfaceName");
+	char *ifname = conf.GetRawValue ("InterfaceName");
 
 	conf.Clear (5);
 
@@ -406,132 +408,130 @@ miredo_run (int sigfd, MiredoConf& conf, const char *cmd_server_name)
 	if (ifname != NULL)
 		free (ifname);
 
+	int retval = -1;
+
 	if (tunnel == NULL)
 	{
 		syslog (LOG_ALERT, _("Teredo tunnel fatal error"));
 		syslog (LOG_NOTICE, _("Make sure another instance of the program is "
 		                      "not already running."));
-#ifdef MIREDO_TEREDO_CLIENT
-		if (server_name != NULL)
-			free (server_name);
-		if (server_name2 != NULL)
-			free (server_name2);
-#endif
-		return -1;
-	}
-
-	MiredoRelay *relay = NULL;
-	int retval = -1;
-
-	/*
-	 * Must be root to do that.
-	 */
-#ifdef MIREDO_TEREDO_CLIENT
-	int fd = -1;
-
-	if (mode == TEREDO_CLIENT)
-	{
-		/*
-		 * FIXME: minor memory leak of server_name and server_name2
-		 */
-		fd = miredo_privileged_process (tunnel, default_route);
-		if (fd == -1)
-		{
-			syslog (LOG_ALERT, "%s: %m", _("Teredo tunnel fatal error"));
-			goto abort;
-		}
 	}
 	else
-#endif
 	{
-		/*
-		 * FIXME: breaks on NetBSD whereby tunnel is always preserved
-		 * on exit.
-		 */
-		if (tun6_setMTU (tunnel, mtu) || tun6_bringUp (tunnel)
-		 || tun6_addAddress (tunnel, (mode == TEREDO_RESTRICT
-				 ? &teredo_restrict : &teredo_cone), 64)
-		 || tun6_addRoute (tunnel, &prefix.ip6, 32, 0))
-		{
-			syslog (LOG_ALERT, _("Teredo tunnel fatal error"));
-			goto abort;
-		}
-	}
-
-	if (libteredo_preinit ()
-	 || ((mode == TEREDO_CLIENT) && libteredo_client_preinit ()))
-	{
-		syslog (LOG_ALERT, _("libteredo cannot be initialized"));
-		goto abort;
-	}
-
-	MiredoRelay::GlobalInit ();
-
-	if (drop_privileges ())
-		goto abort;
-
+		/* Must be root to do that */
 #ifdef MIREDO_TEREDO_CLIENT
-	if (mode == TEREDO_CLIENT)
-	{
-		// Sets up client
-		try
+		int fd;
+	
+		if (mode == TEREDO_CLIENT)
 		{
-			relay = new MiredoRelay (fd, tunnel, server_name, server_name2,
-			                         bind_port, bind_ip);
+			/*
+			 * FIXME: minor memory leak of server_name and server_name2
+			 */
+			fd = miredo_privileged_process (tunnel, default_route);
+			if (fd == -1)
+				syslog (LOG_ALERT, "%s: %m", _("Teredo tunnel fatal error"));
 		}
-		catch (...)
+		else
+#endif
 		{
-			relay = NULL;
+			/*
+			 * FIXME: breaks on NetBSD whereby tunnel is always preserved
+			 * on exit.
+			 */
+			if (tun6_setMTU (tunnel, mtu) || tun6_bringUp (tunnel)
+			 || tun6_addAddress (tunnel, (mode == TEREDO_RESTRICT)
+			                           ? &teredo_restrict : &teredo_cone, 64)
+			 || tun6_addRoute (tunnel, &prefix.ip6, 32, 0))
+			{
+				syslog (LOG_ALERT, _("Teredo tunnel fatal error"));
+				fd = -1;
+			}
+			else
+				fd = 0;
 		}
-	}
-	else
+
+		if (fd != -1)
+		{
+			if (libteredo_preinit (mode == TEREDO_CLIENT))
+				syslog (LOG_ALERT, _("libteredo cannot be initialized"));
+			else
+			{
+				MiredoRelay::GlobalInit (); // FIXME: check for error
+			
+				if (drop_privileges ())
+					goto out;
+
+				MiredoRelay *relay;
+#ifdef MIREDO_TEREDO_CLIENT
+				if (mode == TEREDO_CLIENT)
+				{
+					// Sets up client
+					try
+					{
+						relay = new MiredoRelay (fd, tunnel,
+						                         server_name, server_name2,
+						                         bind_port, bind_ip);
+					}
+					catch (...)
+					{
+						relay = NULL;
+					}
+				}
+				else
 # endif /* ifdef MIREDO_TEREDO_CLIENT */
-	{
-		// Sets up relay
-		try
-		{
-			relay = new MiredoRelay (tunnel, prefix.teredo.prefix,
-			                         bind_port, bind_ip, mode == TEREDO_CONE);
+				{
+					// Sets up relay
+					try
+					{
+						relay = new MiredoRelay (tunnel, prefix.teredo.prefix,
+						                         bind_port, bind_ip,
+						                         mode == TEREDO_CONE);
+					}
+					catch (...)
+					{
+						relay = NULL;
+					}
+				}
+
+				if (relay == NULL)
+				{
+					syslog (LOG_ALERT, _("Teredo tunnel fatal error"));
+					syslog (LOG_NOTICE, _(
+						"Make sure another instance of the program is "
+						"not already running."));
+				}
+				else
+				{
+					retval = 0;
+
+					relay->SetConeIgnore (ignore_cone);
+					teredo_relay (sigfd, tunnel, relay);
+
+					// THE END
+					delete relay;
+				}
+
+			out:
+				MiredoRelay::GlobalDeinit ();
+				libteredo_terminate (mode == TEREDO_CLIENT);
+			}
+
+#ifdef MIREDO_TEREDO_CLIENT
+			if (mode == TEREDO_CLIENT)
+			{
+				close (fd);
+				wait (NULL); // wait for privsep process
+			}
+#endif
 		}
-		catch (...)
-		{
-			relay = NULL;
-		}
+		tun6_destroy (tunnel);
 	}
-
-	if (relay == NULL)
-	{
-		syslog (LOG_ALERT, _("Teredo tunnel fatal error"));
-		syslog (LOG_NOTICE, _("Make sure another instance of the program is "
-		        "not already running."));
-		goto abort;
-	}
-
-	relay->SetConeIgnore (ignore_cone);
-
-	retval = 0;
-	teredo_relay (sigfd, tunnel, relay);
-
-abort:
-	if (relay != NULL)
-		delete relay;
-	MiredoRelay::GlobalDeinit ();
-
-	tun6_destroy (tunnel);
-
 #ifdef MIREDO_TEREDO_CLIENT
 	if (server_name != NULL)
 		free (server_name);
 	if (server_name2 != NULL)
 		free (server_name2);
-
-	if (fd != -1)
-	{
-		close (fd);
-		wait (NULL); // wait for privsep process
-	}
 #endif
-	libteredo_terminate ();
 
 	return retval;
 }

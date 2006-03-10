@@ -42,41 +42,47 @@
  * thread-safe. If the process is to be chrooted(), it should be called
  * before chroot().
  *
- * @return 0 on success, -1 on failure.
- */
-int libteredo_preinit (void)
-{
-	bindtextdomain (PACKAGE_NAME, LOCALEDIR);
-	return 0;
-}
-
-/**
- * Performs client-mode specific libteredo initialization.
- * Must be called before any Teredo client is to be created.
- * Thread-safe, can be called multiple times. Should be called
- * before chroot() if it is used.
+ * @param use_client true if libteredo is to be used in client-mode
  *
  * @return 0 on success, -1 on failure.
+ * -1 is also returned when use_client is true while libteredo was
+ *  compiled without client support.
  */
-int libteredo_client_preinit (void)
+int libteredo_preinit (bool use_client)
 {
+	bindtextdomain (PACKAGE_NAME, LOCALEDIR);
+
+	if (use_client)
+	{
 #ifdef MIREDO_TEREDO_CLIENT
-	return (InitHMAC () && InitNonceGenerator ()) ? 0 : -1;
-#else
-	return -1;
+		if (InitHMAC ())
+		{
+			if (libteredo_init_nonce_generator () == 0)
+				return 0;
+			DeinitHMAC();
+		}
+	}
 #endif
+	return -1;
 }
 
-
 /**
- * Releases resources allocated with libteredo_preinit() and
- * libteredo_client_preinit(). Should be called as many times as
- * libteredo_preinit() was called. Thread-safe.
+ * Releases resources allocated with libteredo_preinit().
+ * Should be called as many times as libteredo_preinit() was called.
+ * Thread-safe.
+ *
+ * @param use_client true if the matching libteredo_preinit call
+ * had the use_client parameter set.
  */
-void libteredo_terminate (void)
+void libteredo_terminate (bool use_client)
 {
 #ifdef MIREDO_TEREDO_CLIENT
-	DeinitHMAC ();
-	DeinitNonceGenerator ();
+	if (use_client)
+	{
+		DeinitHMAC ();
+		libteredo_deinit_nonce_generator ();
+	}
+#else
+	assert (!use_client);
 #endif
 }

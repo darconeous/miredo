@@ -31,9 +31,8 @@
 extern "C" {
 # endif
 
-int libteredo_preinit (void);
-int libteredo_client_preinit (void);
-void libteredo_terminate (void);
+int libteredo_preinit (bool use_client);
+void libteredo_terminate (bool use_client);
 
 struct in6_addr;
 

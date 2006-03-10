@@ -27,6 +27,7 @@
 
 #include <stdbool.h>
 #include <string.h>
+#include <assert.h>
 
 #include <sys/types.h>
 #include <fcntl.h> /* open() */
@@ -65,30 +66,35 @@ random_open (bool critical)
 }
 
 
-bool
-InitNonceGenerator (void)
+int
+libteredo_init_nonce_generator (void)
 {
-	bool res;
+	bool ok;
 
 	pthread_mutex_lock (&nonce_mutex);
+	if (refs < UINT_MAX)
+	{
+		refs++;
+		if (devfd[0] == -1)
+			devfd[0] = random_open (true);
+		if (devfd[1] == -1)
+			devfd[1] = random_open (false);
 
-	refs++;
-	if (devfd[0] == -1)
-		devfd[0] = random_open (true);
-	if (devfd[1] == -1)
-		devfd[1] = random_open (false);
-
-	res = (devfd[0] != -1) && (devfd[1] != -1);
+		ok = (devfd[0] != -1) && (devfd[1] != -1);
+	}
+	else
+		ok = false;
 	pthread_mutex_unlock (&nonce_mutex);
 
-	return res;
+	return ok ? 0 : -1;
 }
 
 
 void
-DeinitNonceGenerator (void)
+libteredo_deinit_nonce_generator (void)
 {
 	pthread_mutex_lock (&nonce_mutex);
+	assert (refs > 0);
 
 	if (--refs == 0)
 	{

@@ -36,13 +36,13 @@ extern "C" {
  * It should additionnaly be called before calling chroot().
  * Thread-safe. Can be called multiple times with no side effect.
  */
-bool InitNonceGenerator (void);
+int libteredo_init_nonce_generator (void);
 
 /**
  * Should be called after use of GenerateNonce().
  * Thread-safe. Can be called as many times.
  */
-void DeinitNonceGenerator (void);
+void libteredo_deinit_nonce_generator (void);
 
 /**
  * Generates a random nonce value (8 bytes). Thread-safe.
