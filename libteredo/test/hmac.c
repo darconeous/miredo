@@ -23,6 +23,8 @@
 # include <config.h>
 #endif
 
+#undef NDEBUG
+#include <assert.h>
 #include <stdbool.h>
 #include <string.h>
 #include <stdio.h>
@@ -45,8 +47,7 @@ int main (void)
 
 	puts ("Checking libteredo HMAC...");
 	puts ("That should take about 30 seconds...");
-	libteredo_preinit ();
-	libteredo_client_preinit ();
+	assert (libteredo_preinit (true) == 0);
 
 	memcpy (&src, "\x3f\xfe\x83\x1f\x8a\xc3\x9d\xdd"
 			"\x80\x00\xf2\x27\x75\x3c\x67\x74", 16);
@@ -85,7 +86,7 @@ int main (void)
 	if (CompareHMAC (&dst, &src, hmac))
 		return -1;
 
-	libteredo_terminate ();
+	libteredo_terminate (true);
 
 	return 0;
 }
