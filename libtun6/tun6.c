@@ -842,7 +842,7 @@ int tun6_driver_diagnose (char *errbuf)
 
 		snprintf (errbuf, LIBTUN6_ERRBUF_SIZE - 1,
 			_("Error: your operating system does not "
-			"seem to provide a network tunnneling\n"
+			"seem to provide a network tunneling\n"
 			"device driver, which is required.\n%s"),
 			specific != NULL ? gettext (specific) : "");
 		errbuf[LIBTUN6_ERRBUF_SIZE - 1] = '\0';
