@@ -40,7 +40,7 @@ AS_MESSAGE([checking required programs...])
 AC_PROG_CC
 dnl AC_PROG_CC_C99
 AC_PROG_CXX
-AC_DISABLE_SHARED
+AC_DISABLE_STATIC
 AC_PROG_LIBTOOL
 AM_INIT_AUTOMAKE([check-news dist-bzip2 no-dist-gzip no-exeext std-options])
 
