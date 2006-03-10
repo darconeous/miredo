@@ -39,6 +39,9 @@
 #include <netinet/in.h>
 #include "conf.h"
 
+#ifdef HAVE_GETOPT_H
+# include <getopt.h>
+#endif
 
 class MiredoCheckConf : public MiredoConf
 {
@@ -98,15 +101,45 @@ static int miredo_checkconffile (const char *filename)
 }
 
 
+static int usage (const char *path)
+{
+	printf ("Usage: %s [CONF_FILE]\n", path);
+	return 0;
+}
+
+int version (void)
+{
+	puts (PACKAGE_NAME" v"PACKAGE_VERSION);
+	return 0;
+}
+
 int main(int argc, char *argv[])
 {
 	(void)setlocale (LC_ALL, "");
 	(void)bindtextdomain (PACKAGE_NAME, LOCALEDIR);
 
+	static const struct option opts[] =
+	{
+		{ "help",       no_argument,       NULL, 'h' },
+		{ "version",    no_argument,       NULL, 'V' },
+		{ NULL,         no_argument,       NULL, '\0'}
+	};
+
+	int c;
+	while ((c = getopt_long (argc, argv, "hV", opts, NULL)) != -1)
+		switch (c)
+		{
+			case 'h':
+				return usage(argv[0]);
+
+			case 'V':
+				return version();
+		}
+
 	const char *filename = NULL;
 	char *str = NULL;
 
-	if (argc <= 1)
+	if (optind < argc)
 	{
 		/* No parameters provided - attempt in source tree test */
 		const char *srcdir = getenv ("srcdir");
