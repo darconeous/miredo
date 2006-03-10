@@ -31,6 +31,7 @@
 #else
 # include <inttypes.h>
 #endif
+#include <assert.h>
 
 #ifdef MIREDO_TEREDO_CLIENT
 # include "security.h"
