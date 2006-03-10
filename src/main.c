@@ -373,7 +373,7 @@ main (int argc, char *argv[])
 		unsigned foreground:1; /* Run in the foreground */
 	} flags;
 
-	const struct option opts[] =
+	static const struct option opts[] =
 	{
 		{ "conf",       required_argument, NULL, 'c' },
 		{ "config",     required_argument, NULL, 'c' },
