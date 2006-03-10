@@ -42,7 +42,7 @@ dnl AC_PROG_CC_C99
 AC_PROG_CXX
 AC_DISABLE_SHARED
 AC_PROG_LIBTOOL
-AM_INIT_AUTOMAKE([check-news dist-bzip2 std-options])
+AM_INIT_AUTOMAKE([check-news dist-bzip2 no-dist-gzip std-options])
 
 
 # Checks for libraries.
