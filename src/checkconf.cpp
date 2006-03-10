@@ -1,5 +1,5 @@
 /*
- * test_conf.cpp - Miredo conf parser unit test
+ * checkconf.cpp - Miredo conf parser unit test
  * $Id$
  */
 
@@ -23,7 +23,13 @@
 # include <config.h>
 #endif
 
+#include <gettext.h>
+#include <locale.h>
+
+#include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
+
 #include <unistd.h>
 #ifdef HAVE_STDINT_H
 # include <stdint.h>
@@ -32,6 +38,15 @@
 #endif
 #include <netinet/in.h>
 #include "conf.h"
+
+class MiredoCheckConf : public MiredoConf
+{
+	virtual void Log (bool, const char *fmt, va_list ap)
+	{
+		vfprintf (stderr, fmt, ap);
+		fputc ('\n', stderr);
+	}
+};
 
 int main(int argc, char *argv[])
 {
@@ -42,10 +57,14 @@ int main(int argc, char *argv[])
 	uint16_t u16;
 	bool b;
 
-	MiredoConf conf;
+	(void)setlocale (LC_ALL, "");
+	(void)bindtextdomain (PACKAGE_NAME, LOCALEDIR);
+
+	MiredoCheckConf conf;
 
 	if (argc <= 1)
 	{
+		/* No parameters provided - attempt in source tree test */
 		const char *srcdir = getenv ("srcdir");
 
 		if ((srcdir == NULL)

@@ -35,10 +35,9 @@ if MIREDO_CHROOT
 AM_CPPFLAGS += -DMIREDO_CHROOT=\"$(miredo_chroot)\"
 endif
 
-sbin_PROGRAMS = miredo miredo-server
+sbin_PROGRAMS = miredo miredo-server miredo-checkconf
 noinst_LTLIBRARIES = libmiredo.la
-check_PROGRAMS = miredo-checkconf
-TESTS = $(check_PROGRAMS)
+TESTS = miredo-checkconf
 
 #BUILT_SOURCES = $(srcdir)/svnversion.stamp
 
@@ -61,7 +60,7 @@ miredo_server_LDADD = $(LIBINTL) $(LIBCAP) libmiredo.la \
 			../libteredo/libteredo-server.la
 
 # miredo-checkconf
-miredo_checkconf_SOURCES = test_conf.cpp
+miredo_checkconf_SOURCES = checkconf.cpp
 miredo_checkconf_LDADD = libmiredo.la
 
 # Automake does not support checking for MIREDO_CHROOT || MIREDO_PIDFILE
