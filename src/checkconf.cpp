@@ -39,6 +39,7 @@
 #include <netinet/in.h>
 #include "conf.h"
 
+
 class MiredoCheckConf : public MiredoConf
 {
 	virtual void Log (bool, const char *fmt, va_list ap)
@@ -51,13 +52,56 @@ class MiredoCheckConf : public MiredoConf
 
 static const char conffile[] = SYSCONFDIR"/miredo.conf";
 
+static int miredo_checkconf (MiredoConf& conf)
+{
+	int i;
+	if (!ParseSyslogFacility (conf, "SyslogFacility", &i))
+		return -1;
+
+	bool b;
+	if (!conf.GetBoolean ("DefaultRoute", &b))
+		return -1;
+
+	uint32_t u32;
+	uint16_t u16;
+	if (!ParseIPv4 (conf, "ServerAddress", &u32)
+			|| !ParseIPv4 (conf, "ServerAddress2", &u32))
+		return -1;
+
+	struct in6_addr ip6;
+	if (!ParseIPv6 (conf, "Prefix", &ip6)
+			|| !conf.GetInt16 ("InterfaceMTU", &u16))
+		return -1;
+
+	if (!ParseIPv4 (conf, "BindAddress", &u32)
+			|| !conf.GetInt16 ("BindPort", &u16)
+			|| !conf.GetBoolean ("IgnoreConeBit", &b))
+		return -1;
+
+	char *str = conf.GetRawValue ("InterfaceName");
+	if (str != NULL)
+		free (str);
+
+	conf.Clear (0);
+	return 0;
+}
+
+
+static int miredo_checkconffile (const char *filename)
+{
+	MiredoCheckConf conf;
+
+	if (!conf.ReadFile (filename))
+		return -1;
+
+	return miredo_checkconf (conf);
+}
+
 
 int main(int argc, char *argv[])
 {
 	(void)setlocale (LC_ALL, "");
 	(void)bindtextdomain (PACKAGE_NAME, LOCALEDIR);
-
-	MiredoCheckConf conf;
 
 	const char *filename = NULL;
 	char *str = NULL;
@@ -82,43 +126,10 @@ int main(int argc, char *argv[])
 	else
 		filename = argv[1];
 
-	if (!conf.ReadFile (filename))
-	{
-		if (str != NULL)
-			free (str);
-		return 1;
-	}
+	int res = miredo_checkconffile (filename);
+
 	if (str != NULL)
 		free (str);
 
-	int i;
-	if (!ParseSyslogFacility (conf, "SyslogFacility", &i))
-		return 1;
-
-	bool b;
-	if (!conf.GetBoolean ("DefaultRoute", &b))
-		return 1;
-
-	uint32_t u32;
-	uint16_t u16;
-	if (!ParseIPv4 (conf, "ServerAddress", &u32)
-	 || !ParseIPv4 (conf, "ServerAddress2", &u32))
-		return 1;
-
-	struct in6_addr ip6;
-	if (!ParseIPv6 (conf, "Prefix", &ip6)
-	 || !conf.GetInt16 ("InterfaceMTU", &u16))
-		return 1;
-
-	if (!ParseIPv4 (conf, "BindAddress", &u32)
-	 || !conf.GetInt16 ("BindPort", &u16)
-	 || !conf.GetBoolean ("IgnoreConeBit", &b))
-		return 1;
-
-	str = conf.GetRawValue ("InterfaceName");
-	if (str != NULL)
-		free (str);
-
-	conf.Clear (0);
-	return 0;
+	return res;
 }
