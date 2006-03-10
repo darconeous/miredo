@@ -419,9 +419,9 @@ miredo_run (int sigfd, MiredoConf& conf, const char *cmd_server_name)
 	else
 	{
 		/* Must be root to do that */
-#ifdef MIREDO_TEREDO_CLIENT
 		int fd;
-	
+
+#ifdef MIREDO_TEREDO_CLIENT
 		if (mode == TEREDO_CLIENT)
 		{
 			/*

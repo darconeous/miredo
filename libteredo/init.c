@@ -62,9 +62,10 @@ int libteredo_preinit (bool use_client)
 				return 0;
 			DeinitHMAC();
 		}
-	}
 #endif
-	return -1;
+		return -1;
+	}
+	return 0;
 }
 
 /**
