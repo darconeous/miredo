@@ -1,15 +1,15 @@
 # Miredo french translation.
-# Copyright (C) 2004-2005 Rémi Denis-Courmont
+# Copyright (C) 2004-2006 Rémi Denis-Courmont
 # This file is distributed under the same license as the miredo package.
 # Rémi Denis-Courmont <rdenis@simphalempin.com>, 2004.
 # $Id$
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: miredo 0.7.0\n"
+"Project-Id-Version: miredo 0.8.1\n"
 "Report-Msgid-Bugs-To: rdenis@simphalempin.com\n"
-"POT-Creation-Date: 2006-03-08 17:40+0100\n"
-"PO-Revision-Date: 2005-12-31 14:44+0100\n"
+"POT-Creation-Date: 2006-03-10 14:30+0100\n"
+"PO-Revision-Date: 2006-03-10 14:31+0100\n"
 "Last-Translator: Rémi Denis-Courmont <rdenis (at) simphalempin (dot) com>\n"
 "Language-Team: N/A\n"
 "MIME-Version: 1.0\n"
@@ -20,8 +20,8 @@ msgstr ""
 msgid "Ignoring invalid bubble: your Teredo server is probably buggy."
 msgstr "Bulle invalide ignorée : votre serveur Teredo est probablement bogué."
 
-#: libteredo/security.c:60 libteredo/security.c:123 libteredo/server.c:486
-#: libteredo/server.c:497 libteredo/maintain.c:509 libtun6/tun6.c:550
+#: libteredo/security.c:61 libteredo/security.c:129 libteredo/server.c:486
+#: libteredo/server.c:497 libteredo/maintain.c:509 libtun6/tun6.c:551
 #: src/main.c:309 src/main.c:320 src/main.c:328 src/main.c:356 src/main.c:467
 #: src/miredo.cpp:108 src/miredo.cpp:115 src/miredo.cpp:139 src/miredo.cpp:234
 #, c-format
@@ -96,18 +96,18 @@ msgstr "cône"
 msgid "restricted"
 msgstr "restreint"
 
-#: libtun6/tun6.c:159 libtun6/tun6.c:180 libtun6/tun6.c:194 libtun6/tun6.c:221
-#: libtun6/tun6.c:240
+#: libtun6/tun6.c:160 libtun6/tun6.c:181 libtun6/tun6.c:195 libtun6/tun6.c:222
+#: libtun6/tun6.c:241
 #, c-format
 msgid "Tunneling driver error (%s): %m"
 msgstr "Erreur du pilote de tunneling (%s) : %m"
 
-#: libtun6/tun6.c:264
+#: libtun6/tun6.c:265
 #, c-format
 msgid "%s tunneling interface creation failure"
 msgstr "Échec de création de l'interface de tunneling %s"
 
-#: libtun6/tun6.c:805
+#: libtun6/tun6.c:806
 msgid ""
 "You should run these commands to create it:\n"
 "# mkdir -p /dev/net\n"
@@ -119,7 +119,7 @@ msgstr ""
 "# mknod /dev/net/tun c 10 200\n"
 "(vous devez être root pour cela).\n"
 
-#: libtun6/tun6.c:810 libtun6/tun6.c:835
+#: libtun6/tun6.c:811 libtun6/tun6.c:836
 msgid ""
 "You can obtain a tunnel driver for the Darwin kernel (Mac OS X) from:\n"
 "http://chrisp.de/en/projects/tunnel.html\n"
@@ -127,7 +127,7 @@ msgstr ""
 "Vous pouvez obtenir un pilote de tunnel pour le noyau Darwin (Mac OS X) à :\n"
 "http://chrisp.de/en/projects/tunnel.html\n"
 
-#: libtun6/tun6.c:818
+#: libtun6/tun6.c:819
 #, c-format
 msgid ""
 "Error: %s character device not found or unavailable.\n"
@@ -136,7 +136,7 @@ msgstr ""
 "Erreur : périphérique %s non trouvé ou non disponible.\n"
 "%s"
 
-#: libtun6/tun6.c:831
+#: libtun6/tun6.c:832
 msgid ""
 "Make sure your Linux kernel includes the \"Universal TUNTAP driver\"\n"
 "(CONFIG_TUN option), possibly as a module.\n"
@@ -144,7 +144,7 @@ msgstr ""
 "Vérifiez que votre noyau Linux comporte « l'Universal TUNTAP driver »\n"
 "(option CONFIG_TUN), éventuellement sous forme de module.\n"
 
-#: libtun6/tun6.c:843
+#: libtun6/tun6.c:844
 #, c-format
 msgid ""
 "Error: your operating system does not seem to provide a network tunnneling\n"
@@ -155,7 +155,7 @@ msgstr ""
 "périphérique de tunnel réseau, ce qui est indispensable.\n"
 "%s"
 
-#: libtun6/tun6.c:852
+#: libtun6/tun6.c:853
 #, c-format
 msgid ""
 "Error: cannot open device file %s (%s)\n"
@@ -212,16 +212,17 @@ msgid "Written by Remi Denis-Courmont.\n"
 msgstr "Écrit par Rémi Denis-Courmont.\n"
 
 #: src/main.c:102
+#, c-format
 msgid ""
-"Copyright (C) 2004-2005 Remi Denis-Courmont\n"
+"Copyright (C) 2004-%u Remi Denis-Courmont\n"
 "This is free software; see the source for copying conditions.\n"
 "There is NO warranty; not even for MERCHANTABILITY or\n"
-"FITNESS FOR A PARTICULAR PURPOSE."
+"FITNESS FOR A PARTICULAR PURPOSE.\n"
 msgstr ""
-"Copyright © 2004-2005 Rémi Denis-Courmont\n"
+"Copyright © 2004-%u Rémi Denis-Courmont\n"
 "Ce logiciel est libre; voir les sources pour les conditions de\n"
 "reproduction. Il n'y a AUCUNE garantie; pas même pour la\n"
-"COMMERCIALISATION ou l'ADÉQUATION POUR UNE UTILISATION PARTICULIÈRE."
+"COMMERCIALISATION ou l'ADÉQUATION POUR UNE UTILISATION PARTICULIÈRE.\n"
 
 #: src/main.c:114
 #, c-format
@@ -311,7 +312,7 @@ msgstr ""
 "Impossible de créer le fichier de PID %s :\n"
 " %s\n"
 
-#: src/main.c:346 src/relay.cpp:412 src/relay.cpp:505 src/server.cpp:167
+#: src/main.c:346 src/relay.cpp:416 src/relay.cpp:500 src/server.cpp:167
 msgid "Make sure another instance of the program is not already running."
 msgstr "Vérifiez qu'une autre instance du programme n'est pas déjà en marche."
 
@@ -375,25 +376,25 @@ msgstr "Pseudo-tunnel Teredo arrêté"
 msgid "Invalid relay type \"%s\" at line %u"
 msgstr "Type de relais invalide « %s » à la ligne %u"
 
-#: src/relay.cpp:319 src/relay.cpp:328 src/relay.cpp:344 src/relay.cpp:352
-#: src/relay.cpp:363 src/relay.cpp:372 src/server.cpp:110 src/server.cpp:118
+#: src/relay.cpp:298 src/relay.cpp:313 src/relay.cpp:329 src/relay.cpp:337
+#: src/relay.cpp:348 src/relay.cpp:374 src/server.cpp:110 src/server.cpp:118
 #: src/server.cpp:135
 msgid "Fatal configuration error"
 msgstr "Erreur fatale de configuration"
 
-#: src/relay.cpp:343 src/server.cpp:117
+#: src/relay.cpp:328 src/server.cpp:117
 msgid "Server address not specified"
 msgstr "Adresse du serveur non indiquée"
 
-#: src/relay.cpp:351
+#: src/relay.cpp:336
 msgid "Unsupported Teredo client mode"
 msgstr "Mode client Teredo non supporté"
 
-#: src/relay.cpp:411 src/relay.cpp:440 src/relay.cpp:456 src/relay.cpp:504
+#: src/relay.cpp:415 src/relay.cpp:432 src/relay.cpp:446 src/relay.cpp:498
 msgid "Teredo tunnel fatal error"
 msgstr "Erreur fatal du tunnel Teredo"
 
-#: src/relay.cpp:464
+#: src/relay.cpp:456
 msgid "libteredo cannot be initialized"
 msgstr "Impossible d'initialiser libteredo"
 

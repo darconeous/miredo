@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: rdenis@simphalempin.com\n"
-"POT-Creation-Date: 2006-03-08 17:40+0100\n"
+"POT-Creation-Date: 2006-03-10 14:30+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -20,8 +20,8 @@ msgstr ""
 msgid "Ignoring invalid bubble: your Teredo server is probably buggy."
 msgstr ""
 
-#: libteredo/security.c:60 libteredo/security.c:123 libteredo/server.c:486
-#: libteredo/server.c:497 libteredo/maintain.c:509 libtun6/tun6.c:550
+#: libteredo/security.c:61 libteredo/security.c:129 libteredo/server.c:486
+#: libteredo/server.c:497 libteredo/maintain.c:509 libtun6/tun6.c:551
 #: src/main.c:309 src/main.c:320 src/main.c:328 src/main.c:356 src/main.c:467
 #: src/miredo.cpp:108 src/miredo.cpp:115 src/miredo.cpp:139 src/miredo.cpp:234
 #, c-format
@@ -92,18 +92,18 @@ msgstr ""
 msgid "restricted"
 msgstr ""
 
-#: libtun6/tun6.c:159 libtun6/tun6.c:180 libtun6/tun6.c:194 libtun6/tun6.c:221
-#: libtun6/tun6.c:240
+#: libtun6/tun6.c:160 libtun6/tun6.c:181 libtun6/tun6.c:195 libtun6/tun6.c:222
+#: libtun6/tun6.c:241
 #, c-format
 msgid "Tunneling driver error (%s): %m"
 msgstr ""
 
-#: libtun6/tun6.c:264
+#: libtun6/tun6.c:265
 #, c-format
 msgid "%s tunneling interface creation failure"
 msgstr ""
 
-#: libtun6/tun6.c:805
+#: libtun6/tun6.c:806
 msgid ""
 "You should run these commands to create it:\n"
 "# mkdir -p /dev/net\n"
@@ -111,26 +111,26 @@ msgid ""
 "(you must be root to do that).\n"
 msgstr ""
 
-#: libtun6/tun6.c:810 libtun6/tun6.c:835
+#: libtun6/tun6.c:811 libtun6/tun6.c:836
 msgid ""
 "You can obtain a tunnel driver for the Darwin kernel (Mac OS X) from:\n"
 "http://chrisp.de/en/projects/tunnel.html\n"
 msgstr ""
 
-#: libtun6/tun6.c:818
+#: libtun6/tun6.c:819
 #, c-format
 msgid ""
 "Error: %s character device not found or unavailable.\n"
 "%s"
 msgstr ""
 
-#: libtun6/tun6.c:831
+#: libtun6/tun6.c:832
 msgid ""
 "Make sure your Linux kernel includes the \"Universal TUNTAP driver\"\n"
 "(CONFIG_TUN option), possibly as a module.\n"
 msgstr ""
 
-#: libtun6/tun6.c:843
+#: libtun6/tun6.c:844
 #, c-format
 msgid ""
 "Error: your operating system does not seem to provide a network tunnneling\n"
@@ -138,7 +138,7 @@ msgid ""
 "%s"
 msgstr ""
 
-#: libtun6/tun6.c:852
+#: libtun6/tun6.c:853
 #, c-format
 msgid ""
 "Error: cannot open device file %s (%s)\n"
@@ -181,11 +181,12 @@ msgid "Written by Remi Denis-Courmont.\n"
 msgstr ""
 
 #: src/main.c:102
+#, c-format
 msgid ""
-"Copyright (C) 2004-2005 Remi Denis-Courmont\n"
+"Copyright (C) 2004-%u Remi Denis-Courmont\n"
 "This is free software; see the source for copying conditions.\n"
 "There is NO warranty; not even for MERCHANTABILITY or\n"
-"FITNESS FOR A PARTICULAR PURPOSE."
+"FITNESS FOR A PARTICULAR PURPOSE.\n"
 msgstr ""
 
 #: src/main.c:114
@@ -258,7 +259,7 @@ msgid ""
 " %s\n"
 msgstr ""
 
-#: src/main.c:346 src/relay.cpp:412 src/relay.cpp:505 src/server.cpp:167
+#: src/main.c:346 src/relay.cpp:416 src/relay.cpp:500 src/server.cpp:167
 msgid "Make sure another instance of the program is not already running."
 msgstr ""
 
@@ -322,25 +323,25 @@ msgstr ""
 msgid "Invalid relay type \"%s\" at line %u"
 msgstr ""
 
-#: src/relay.cpp:319 src/relay.cpp:328 src/relay.cpp:344 src/relay.cpp:352
-#: src/relay.cpp:363 src/relay.cpp:372 src/server.cpp:110 src/server.cpp:118
+#: src/relay.cpp:298 src/relay.cpp:313 src/relay.cpp:329 src/relay.cpp:337
+#: src/relay.cpp:348 src/relay.cpp:374 src/server.cpp:110 src/server.cpp:118
 #: src/server.cpp:135
 msgid "Fatal configuration error"
 msgstr ""
 
-#: src/relay.cpp:343 src/server.cpp:117
+#: src/relay.cpp:328 src/server.cpp:117
 msgid "Server address not specified"
 msgstr ""
 
-#: src/relay.cpp:351
+#: src/relay.cpp:336
 msgid "Unsupported Teredo client mode"
 msgstr ""
 
-#: src/relay.cpp:411 src/relay.cpp:440 src/relay.cpp:456 src/relay.cpp:504
+#: src/relay.cpp:415 src/relay.cpp:432 src/relay.cpp:446 src/relay.cpp:498
 msgid "Teredo tunnel fatal error"
 msgstr ""
 
-#: src/relay.cpp:464
+#: src/relay.cpp:456
 msgid "libteredo cannot be initialized"
 msgstr ""
 

@@ -5,7 +5,7 @@
  */
 
 /***********************************************************************
- *  Copyright (C) 2004-2005 Remi Denis-Courmont.                       *
+ *  Copyright (C) 2004-2006 Remi Denis-Courmont.                       *
  *  This program is free software; you can redistribute and/or modify  *
  *  it under the terms of the GNU General Public License as published  *
  *  by the Free Software Foundation; version 2 of the license.         *
@@ -99,10 +99,10 @@ version (void)
 	printf (_("Configured with: %s\n"), PACKAGE_CONFIGURE_INVOCATION);
 	puts (_("Written by Remi Denis-Courmont.\n"));
 
-	puts (_("Copyright (C) 2004-2005 Remi Denis-Courmont\n"
+	printf (_("Copyright (C) 2004-%u Remi Denis-Courmont\n"
 "This is free software; see the source for copying conditions.\n"
 "There is NO warranty; not even for MERCHANTABILITY or\n"
-"FITNESS FOR A PARTICULAR PURPOSE."));
+"FITNESS FOR A PARTICULAR PURPOSE.\n"), 2006);
         return 0;
 }
 
