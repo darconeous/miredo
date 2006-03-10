@@ -122,7 +122,7 @@ static const char *os_driver = "Generic";
 # define ETH_P_IPV6 0x86DD
 #endif
 
-#include "tun6.h"
+#include <libtun6/tun6.h>
 
 static inline void
 secure_strncpy (char *tgt, const char *src, size_t len)
