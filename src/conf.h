@@ -4,7 +4,7 @@
  */
 
 /***********************************************************************
- *  Copyright (C) 2004-2005 Remi Denis-Courmont.                       *
+ *  Copyright (C) 2004-2006 Remi Denis-Courmont.                       *
  *  This program is free software; you can redistribute and/or modify  *
  *  it under the terms of the GNU General Public License as published  *
  *  by the Free Software Foundation; version 2 of the license.         *
@@ -25,6 +25,7 @@
 # endif
 
 # include <stdio.h>
+# include <stdarg.h>
 
 class MiredoConf
 {
@@ -37,9 +38,12 @@ class MiredoConf
 			struct setting *next;
 		} *head, *tail;
 
+	protected:
+		virtual void Log (bool error, const char *fmt, va_list ap);
+		
 	public:
 		MiredoConf (void);
-		~MiredoConf (void);
+		virtual ~MiredoConf (void);
 		MiredoConf (const MiredoConf& src); /* not implemented */
 		MiredoConf& operator= (const MiredoConf& src); /* not implemented */
 
@@ -57,6 +61,9 @@ class MiredoConf
 		 * Otherwise, return value must be free()d by caller.
 		 */
 		char *GetRawValue (const char *name, unsigned *line = NULL);
+
+		void LogError (const char *fmt, ...);
+		void LogWarning (const char *fmt, ...);
 
 		/*
 		 * Looks up an unsigned 16-bits integer. Returns false if the

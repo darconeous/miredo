@@ -4,7 +4,7 @@
  */
 
 /***********************************************************************
- *  Copyright (C) 2004-2005 Remi Denis-Courmont.                       *
+ *  Copyright (C) 2004-2006 Remi Denis-Courmont.                       *
  *  This program is free software; you can redistribute and/or modify  *
  *  it under the terms of the GNU General Public License as published  *
  *  by the Free Software Foundation; version 2 of the license.         *
@@ -28,12 +28,15 @@
 
 #include <stdio.h>
 #include <stdlib.h> // malloc(), free()
+#include <stdarg.h>
 #if HAVE_STDINT_H
 # include <stdint.h>
 #elif HAVE_INTTYPES_H
 # include <inttypes.h>
 #endif
 #include <string.h>
+
+#include <errno.h>
 #include <syslog.h>
 
 #include <sys/types.h>
@@ -56,6 +59,34 @@ MiredoConf::~MiredoConf (void)
 
 
 void
+MiredoConf::LogError (const char *fmt, ...)
+{
+	va_list ap;
+
+	va_start (ap, fmt);
+	Log (true, fmt, ap);
+	va_end (ap);
+}
+
+
+void
+MiredoConf::LogWarning (const char *fmt, ...)
+{
+	va_list ap;
+
+	va_start (ap, fmt);
+	Log (false, fmt, ap);
+	va_end (ap);
+}
+
+
+void
+MiredoConf::Log (bool, const char *, va_list)
+{
+}
+
+
+void
 MiredoConf::Clear (unsigned show)
 {
 	struct setting *ptr = head;
@@ -67,9 +98,8 @@ MiredoConf::Clear (unsigned show)
 		struct setting *buf = ptr->next;
 		if (show > 0)
 		{
-			syslog (LOG_WARNING,
-				_("Superfluous directive %s at line %u"),
-				ptr->name, ptr->line);
+			LogWarning (_("Superfluous directive %s at line %u"),
+			            ptr->name, ptr->line);
 			show--;
 		}
 		free (ptr->name);
@@ -114,8 +144,8 @@ MiredoConf::Set (const char *name, const char *value, unsigned line)
 		}
 		free (parm);
 	}
-	syslog (LOG_ALERT, _("Memory problem: %m"));
 
+	LogError (_("Memory problem: %s"), strerror (errno));
 	return false;
 }
 
@@ -136,8 +166,8 @@ MiredoConf::ReadFile (FILE *stream)
 			while (fgetc (stream) != '\n')
 				if (feof (stream) || ferror (stream))
 					break;
-			syslog (LOG_WARNING,
-				_("Skipped overly long line %u"), line);
+
+			LogWarning (_("Skipped overly long line %u"), line);
 			continue;
 		}
 
@@ -154,16 +184,16 @@ MiredoConf::ReadFile (FILE *stream)
 
 			case 1:
 				if (*nbuf != '#')
-					syslog (LOG_WARNING,
-						_("Ignoring line %u: %s"),
-						line, nbuf);
+					LogWarning (_("Ignoring line %u: %s"),
+					            line, nbuf);
 				break;
 		}
 	}
 
 	if (ferror (stream))
 	{
-		syslog (LOG_ERR, _("Error reading configuration file: %m"));
+		LogError (_("Error reading configuration file: %s"),
+		          strerror (errno));
 		return false;
 	}
 	return true;
@@ -180,7 +210,9 @@ MiredoConf::ReadFile (const char *path)
 		fclose (stream);
 		return ret;
 	}
-	syslog (LOG_ERR, _("Error opening configuration file %s: %m"), path);
+
+	LogError (_("Error opening configuration file %s: %s"), path,
+	          strerror (errno));
 	return false;
 }
 
@@ -230,9 +262,8 @@ MiredoConf::GetInt16 (const char *name, uint16_t *value, unsigned *line)
 	
 	if ((*end) || (l > 65535))
 	{
-		syslog (LOG_ERR,
-			_("Invalid integer value \"%s\" for %s: %m"),
-			val, name);
+		LogError (_("Invalid integer value \"%s\" for %s: %s"),
+		          val, name, strerror (errno));
 		free (val);
 		return false;
 	}
@@ -286,7 +317,7 @@ MiredoConf::GetBoolean (const char *name, bool *value, unsigned *line)
 			return true;
 		}
 
-	syslog (LOG_ERR, _("Invalid boolean value \"%s\" for %s"), val, name);
+	LogError (_("Invalid boolean value \"%s\" for %s"), val, name);
 	free (val);
 	return false;
 }
@@ -327,8 +358,8 @@ ParseIPv4 (MiredoConf& conf, const char *name, uint32_t *ipv4)
 
 	if (check)
 	{
-		syslog (LOG_ERR, _("Invalid hostname \"%s\" at line %u: %s"),
-			val, line, gai_strerror (check));
+		conf.LogError (_("Invalid hostname \"%s\" at line %u: %s"),
+		               val, line, gai_strerror (check));
 		free (val);
 		return false;
 	}
@@ -358,15 +389,14 @@ ParseIPv6 (MiredoConf& conf, const char *name, struct in6_addr *value)
 
 	if (check)
 	{
-		syslog (LOG_ERR, _("Invalid hostname \"%s\" at line %u: %s"),
-			val, line, gai_strerror (check));
+		conf.LogError (_("Invalid hostname \"%s\" at line %u: %s"),
+		               val, line, gai_strerror (check));
 		free (val);
 		return false;
 	}
 
-	memcpy (value,
-		&((const struct sockaddr_in6*)(res->ai_addr))->sin6_addr,
-		sizeof (struct in6_addr));
+	memcpy (value, &((const struct sockaddr_in6*)(res->ai_addr))->sin6_addr,
+	        sizeof (struct in6_addr));
 
 	freeaddrinfo (res);
 	free (val);
@@ -383,9 +413,8 @@ ParseTeredoPrefix (MiredoConf& conf, const char *name, uint32_t *value)
 	{
 		if (!is_valid_teredo_prefix (addr.teredo.prefix))
 		{
-			syslog (LOG_ALERT,
-				_("Invalid Teredo IPv6 prefix: %x::/32"),
-				addr.teredo.prefix);
+			conf.LogError (_("Invalid Teredo IPv6 prefix: %x::/32"),
+			               addr.teredo.prefix);
 			return false;
 		}
 
@@ -458,16 +487,18 @@ ParseSyslogFacility (MiredoConf& conf, const char *name, int *facility)
 		return true;
 
 	for (const struct miredo_conf_syslog_facility *ptr = facilities;
-						ptr->str != NULL; ptr++)
+	     ptr->str != NULL; ptr++)
+	{
 		if (!strcasecmp (str, ptr->str))
 		{
 			*facility = ptr->facility;
 			free (str);
 			return true;
 		}
+	}
 
-	syslog (LOG_ERR, _("Unknown syslog facility \"%s\" at line %u"),
-		str, line);
+	conf.LogError (_("Unknown syslog facility \"%s\" at line %u"),
+	               str, line);
 	free (str);
 	return false;
 }
