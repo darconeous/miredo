@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: miredo 0.8.1\n"
 "Report-Msgid-Bugs-To: rdenis@simphalempin.com\n"
-"POT-Creation-Date: 2006-03-10 15:17+0100\n"
+"POT-Creation-Date: 2006-03-10 22:55+0100\n"
 "PO-Revision-Date: 2006-03-10 14:32+0100\n"
 "Last-Translator: Rémi Denis-Courmont <rdenis (at) simphalempin (dot) com>\n"
 "Language-Team: N/A\n"
@@ -23,7 +23,7 @@ msgstr ""
 #: libteredo/security.c:67 libteredo/security.c:135 libteredo/server.c:487
 #: libteredo/server.c:498 libteredo/maintain.c:509 libtun6/tun6.c:551
 #: src/main.c:309 src/main.c:320 src/main.c:328 src/main.c:356 src/main.c:467
-#: src/miredo.cpp:108 src/miredo.cpp:115 src/miredo.cpp:139 src/miredo.cpp:234
+#: src/miredo.cpp:109 src/miredo.cpp:116 src/miredo.cpp:140 src/miredo.cpp:244
 #, c-format
 msgid "Error (%s): %s\n"
 msgstr ""
@@ -306,40 +306,40 @@ msgstr "Make sure another instance of the programme is not already running."
 msgid "Reading configuration from %s: %s\n"
 msgstr ""
 
-#: src/miredo.cpp:212
+#: src/miredo.cpp:222
 #, c-format
 msgid "Loading configuration from %s failed"
 msgstr ""
 
-#: src/miredo.cpp:226
+#: src/miredo.cpp:236
 msgid "Starting..."
 msgstr ""
 
-#: src/miredo.cpp:259
+#: src/miredo.cpp:269
 #, c-format
 msgid "Exiting on signal %d (%s)"
 msgstr ""
 
-#: src/miredo.cpp:267
+#: src/miredo.cpp:277
 #, c-format
 msgid "Reloading configuration on signal %d (%s)"
 msgstr ""
 
-#: src/miredo.cpp:275
+#: src/miredo.cpp:285
 #, c-format
 msgid "Terminated (exit code: %d)"
 msgstr ""
 
-#: src/miredo.cpp:283
+#: src/miredo.cpp:293
 #, c-format
 msgid "Child %d killed by signal %d (%s)"
 msgstr ""
 
-#: src/miredo.cpp:294
+#: src/miredo.cpp:304
 msgid "Terminated with error(s)."
 msgstr ""
 
-#: src/miredo.cpp:296
+#: src/miredo.cpp:306
 msgid "Terminated with no error."
 msgstr ""
 
@@ -392,57 +392,57 @@ msgstr "Invalid server host name “%s”: %s"
 msgid "Teredo server fatal error"
 msgstr ""
 
-#: src/conf.cpp:71
+#: src/conf.cpp:101
 #, c-format
 msgid "Superfluous directive %s at line %u"
 msgstr ""
 
-#: src/conf.cpp:117
+#: src/conf.cpp:148
 #, c-format
-msgid "Memory problem: %m"
+msgid "Error (%s): %s"
 msgstr ""
 
-#: src/conf.cpp:140
+#: src/conf.cpp:170
 #, c-format
 msgid "Skipped overly long line %u"
 msgstr ""
 
-#: src/conf.cpp:158
+#: src/conf.cpp:187
 #, c-format
 msgid "Ignoring line %u: %s"
 msgstr ""
 
-#: src/conf.cpp:166
+#: src/conf.cpp:195
 #, c-format
-msgid "Error reading configuration file: %m"
+msgid "Error reading configuration file: %s"
 msgstr ""
 
-#: src/conf.cpp:183
+#: src/conf.cpp:214
 #, c-format
-msgid "Error opening configuration file %s: %m"
+msgid "Error opening configuration file %s: %s"
 msgstr ""
 
-#: src/conf.cpp:234
+#: src/conf.cpp:265
 #, c-format
-msgid "Invalid integer value \"%s\" for %s: %m"
-msgstr "Invalid integer value “%s” for %s: %m"
+msgid "Invalid integer value \"%s\" for %s: %s"
+msgstr "Invalid integer value “%s” for %s: %s"
 
-#: src/conf.cpp:289
+#: src/conf.cpp:320
 #, c-format
 msgid "Invalid boolean value \"%s\" for %s"
 msgstr "Invalid Boolean value “%s” for %s"
 
-#: src/conf.cpp:330 src/conf.cpp:361
+#: src/conf.cpp:361 src/conf.cpp:392
 #, c-format
 msgid "Invalid hostname \"%s\" at line %u: %s"
 msgstr "Invalid host name “%s” at line %u: %s"
 
-#: src/conf.cpp:387
+#: src/conf.cpp:416
 #, c-format
 msgid "Invalid Teredo IPv6 prefix: %x::/32"
 msgstr ""
 
-#: src/conf.cpp:469
+#: src/conf.cpp:500
 #, c-format
 msgid "Unknown syslog facility \"%s\" at line %u"
 msgstr "Unknown syslog facility “%s” at line %u"
