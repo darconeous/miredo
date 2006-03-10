@@ -140,6 +140,8 @@ int main(int argc, char *argv[])
 	char *str = NULL;
 
 	if (optind < argc)
+		filename = argv[optind++];
+	else
 	{
 		/* No parameters provided - attempt in source tree test */
 		const char *srcdir = getenv ("srcdir");
@@ -156,8 +158,6 @@ int main(int argc, char *argv[])
 		else
 			filename = conffile;
 	}
-	else
-		filename = argv[1];
 
 	int res = miredo_checkconffile (filename);
 
