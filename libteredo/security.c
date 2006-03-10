@@ -27,6 +27,7 @@
 
 #include <stdbool.h>
 #include <string.h>
+#include <limits.h>
 #include <assert.h>
 
 #include <sys/types.h>

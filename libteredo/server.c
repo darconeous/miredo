@@ -32,6 +32,7 @@
 #elif HAVE_INTTYPES_H
 # include <inttypes.h>
 #endif
+#include <limits.h>
 
 #include <stdbool.h>
 #include <errno.h> // errno
