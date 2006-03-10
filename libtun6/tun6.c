@@ -81,7 +81,7 @@ static const char *os_driver = "Linux";
 # if defined (HAVE_FREEBSD)
 #  include <net/if_var.h>
 #  include <net/if_tun.h> // TUNSIFHEAD - FreeBSD tunnel driver
-# define USE_TUNHEAD
+#  define USE_TUNHEAD
 static const char *os_driver = "FreeBSD";
 
 # elif defined (HAVE_OPENBSD)
@@ -89,6 +89,7 @@ static const char *os_driver = "FreeBSD";
 static const char *os_driver = "OpenBSD";
 
 # elif defined (HAVE_NETBSD)
+#  define USE_TUNHEAD
 static const char *os_driver = "NetBSD";
 
 # elif defined (HAVE_DARWIN)
@@ -695,22 +696,22 @@ tun6_recv (const tun6 *t, const fd_set *readset, void *buffer, size_t maxlen)
 
 	if (len == -1)
 		return -1;
+
 #if defined (USE_TUNHEAD)
 	len -= sizeof (head);
-
 	if (len < 0)
 		return -1;
-#endif /* USE_TUNHEAD */
 
-#if defined (HAVE_LINUX)
+# if defined (HAVE_LINUX)
 	/* TUNTAP driver */
 	if (head.tun_linux.proto != htons (ETH_P_IPV6))
 		return -1; /* only accept IPv6 packets */
-#elif defined (HAVE_FREEBSD) || defined (HAVE_OPENBSD)
-	/* FreeBSD driver */
+# elif defined (HAVE_BSD)
+	/* BSD tun driver */
 	if (head.tun_bsd != htonl (AF_INET6))
 		return -1;
-#endif
+# endif
+#endif /* USE_TUNHEAD */
 
 	return len;
 }
@@ -728,22 +729,22 @@ tun6_recv (const tun6 *t, const fd_set *readset, void *buffer, size_t maxlen)
 int
 tun6_send (const tun6 *t, const void *packet, size_t len)
 {
-#if defined (HAVE_LINUX)
-	struct
-	{
-		uint16_t flags;
-		uint16_t proto;
-	} head = { 0, htons (ETH_P_IPV6) };
-#elif defined (HAVE_FREEBSD) || defined (HAVE_OPENBSD)
-	uint32_t head = htonl (AF_INET6);
-#endif
-
 	assert (t != NULL);
 
 	if (len > 65535)
 		return -1;
 
 #if defined (USE_TUNHEAD)
+# if defined (HAVE_LINUX)
+	struct
+	{
+		uint16_t flags;
+		uint16_t proto;
+	} head = { 0, htons (ETH_P_IPV6) };
+# elif defined (HAVE_BSD)
+	uint32_t head = htonl (AF_INET6);
+# endif
+
 	struct iovec vect[2];
 	vect[0].iov_base = (char *)&head;
 	vect[0].iov_len = sizeof (head);
