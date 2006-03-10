@@ -1,4 +1,4 @@
-# Miredo english/british english localisation.
+# Miredo English/British English localisation.
 # Copyright (C) 2004-2006 Rémi Denis-Courmont
 # This file is distributed under the same licence as the miredo package.
 # Rémi Denis-Courmont <rdenis@simphalempin.com>, 2004.
@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: miredo 0.8.1\n"
 "Report-Msgid-Bugs-To: rdenis@simphalempin.com\n"
-"POT-Creation-Date: 2006-03-10 14:30+0100\n"
+"POT-Creation-Date: 2006-03-10 15:17+0100\n"
 "PO-Revision-Date: 2006-03-10 14:32+0100\n"
 "Last-Translator: Rémi Denis-Courmont <rdenis (at) simphalempin (dot) com>\n"
 "Language-Team: N/A\n"
@@ -20,20 +20,20 @@ msgstr ""
 msgid "Ignoring invalid bubble: your Teredo server is probably buggy."
 msgstr ""
 
-#: libteredo/security.c:61 libteredo/security.c:129 libteredo/server.c:486
-#: libteredo/server.c:497 libteredo/maintain.c:509 libtun6/tun6.c:551
+#: libteredo/security.c:67 libteredo/security.c:135 libteredo/server.c:487
+#: libteredo/server.c:498 libteredo/maintain.c:509 libtun6/tun6.c:551
 #: src/main.c:309 src/main.c:320 src/main.c:328 src/main.c:356 src/main.c:467
 #: src/miredo.cpp:108 src/miredo.cpp:115 src/miredo.cpp:139 src/miredo.cpp:234
 #, c-format
 msgid "Error (%s): %s\n"
 msgstr ""
 
-#: libteredo/server.c:383 libteredo/server.c:451
+#: libteredo/server.c:384 libteredo/server.c:452
 #, c-format
 msgid "Raw IPv6 socket not working: %s"
 msgstr ""
 
-#: libteredo/server.c:459
+#: libteredo/server.c:460
 msgid ""
 "Teredo server UDP socket error: Server IPv4 addresses must be global unicast."
 msgstr ""
@@ -96,12 +96,12 @@ msgstr ""
 #: libtun6/tun6.c:241
 #, c-format
 msgid "Tunneling driver error (%s): %m"
-msgstr ""
+msgstr "Tunnelling driver error (%s): %m"
 
 #: libtun6/tun6.c:265
 #, c-format
 msgid "%s tunneling interface creation failure"
-msgstr ""
+msgstr "%s tunnelling interface creation failure"
 
 #: libtun6/tun6.c:806
 msgid ""
@@ -135,10 +135,13 @@ msgstr ""
 #: libtun6/tun6.c:844
 #, c-format
 msgid ""
-"Error: your operating system does not seem to provide a network tunnneling\n"
+"Error: your operating system does not seem to provide a network tunneling\n"
 "device driver, which is required.\n"
 "%s"
 msgstr ""
+"Error: your operating system does not seem to provide a network tunnelling\n"
+"device driver, which is required.\n"
+"%s"
 
 #: libtun6/tun6.c:853
 #, c-format
@@ -146,6 +149,8 @@ msgid ""
 "Error: cannot open device file %s (%s)\n"
 "IPv6 tunneling will not work.\n"
 msgstr ""
+"Error: cannot open device file %s (%s)\n"
+"IPv6 tunnelling will not work.\n"
 
 #: src/main.c:66
 #, c-format
@@ -166,7 +171,7 @@ msgid ""
 "  -V, --version    display program version and exit\n"
 msgstr ""
 "Usage: %s [OPTIONS] [SERVER_NAME]\n"
-"Creates a Teredo tunneling interface for encapsulation of IPv6 over UDP.\n"
+"Creates a Teredo tunnelling interface for encapsulation of IPv6 over UDP.\n"
 "\n"
 "  -c, --config     specify an configuration file\n"
 "  -f, --foreground run in the foreground\n"
@@ -181,6 +186,8 @@ msgid ""
 "Miredo: Teredo IPv6 tunneling software %s (%s)\n"
 " built %s on %s (%s)\n"
 msgstr ""
+"Miredo: Teredo IPv6 tunnelling software %s (%s)\n"
+" built %s on %s (%s)\n"
 
 #: src/main.c:99
 #, c-format
@@ -257,7 +264,7 @@ msgstr ""
 "security context of system user “%s”, but it\n"
 "does not seem to exist on your system.\n"
 "\n"
-"Use command line option “-u <username>” to run\n"
+"Use command line option “-u <user name>” to run\n"
 "this programme in the security context of another\n"
 "user.\n"
 
@@ -379,7 +386,7 @@ msgstr "libteredo cannot be initialised"
 #: src/server.cpp:100
 #, c-format
 msgid "Invalid server hostname \"%s\": %s"
-msgstr "Invalid server hostname “%s”: %s"
+msgstr "Invalid server host name “%s”: %s"
 
 #: src/server.cpp:166
 msgid "Teredo server fatal error"
@@ -423,12 +430,12 @@ msgstr "Invalid integer value “%s” for %s: %m"
 #: src/conf.cpp:289
 #, c-format
 msgid "Invalid boolean value \"%s\" for %s"
-msgstr "Invalid boolean value “%s” for %s"
+msgstr "Invalid Boolean value “%s” for %s"
 
 #: src/conf.cpp:330 src/conf.cpp:361
 #, c-format
 msgid "Invalid hostname \"%s\" at line %u: %s"
-msgstr "Invalid hostname “%s” at line %u: %s"
+msgstr "Invalid host name “%s” at line %u: %s"
 
 #: src/conf.cpp:387
 #, c-format

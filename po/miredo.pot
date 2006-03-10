@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: rdenis@simphalempin.com\n"
-"POT-Creation-Date: 2006-03-10 14:30+0100\n"
+"POT-Creation-Date: 2006-03-10 15:17+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -20,20 +20,20 @@ msgstr ""
 msgid "Ignoring invalid bubble: your Teredo server is probably buggy."
 msgstr ""
 
-#: libteredo/security.c:61 libteredo/security.c:129 libteredo/server.c:486
-#: libteredo/server.c:497 libteredo/maintain.c:509 libtun6/tun6.c:551
+#: libteredo/security.c:67 libteredo/security.c:135 libteredo/server.c:487
+#: libteredo/server.c:498 libteredo/maintain.c:509 libtun6/tun6.c:551
 #: src/main.c:309 src/main.c:320 src/main.c:328 src/main.c:356 src/main.c:467
 #: src/miredo.cpp:108 src/miredo.cpp:115 src/miredo.cpp:139 src/miredo.cpp:234
 #, c-format
 msgid "Error (%s): %s\n"
 msgstr ""
 
-#: libteredo/server.c:383 libteredo/server.c:451
+#: libteredo/server.c:384 libteredo/server.c:452
 #, c-format
 msgid "Raw IPv6 socket not working: %s"
 msgstr ""
 
-#: libteredo/server.c:459
+#: libteredo/server.c:460
 msgid ""
 "Teredo server UDP socket error: Server IPv4 addresses must be global unicast."
 msgstr ""
@@ -133,7 +133,7 @@ msgstr ""
 #: libtun6/tun6.c:844
 #, c-format
 msgid ""
-"Error: your operating system does not seem to provide a network tunnneling\n"
+"Error: your operating system does not seem to provide a network tunneling\n"
 "device driver, which is required.\n"
 "%s"
 msgstr ""
