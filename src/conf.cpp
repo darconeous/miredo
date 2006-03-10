@@ -113,6 +113,9 @@ MiredoConf::Clear (unsigned show)
 bool
 MiredoConf::Set (const char *name, const char *value, unsigned line)
 {
+	assert (name != NULL);
+	assert (value != NULL);
+
 	struct setting *parm =
 		(struct setting *)malloc (sizeof (struct setting));
 
@@ -145,7 +148,7 @@ MiredoConf::Set (const char *name, const char *value, unsigned line)
 		free (parm);
 	}
 
-	LogError (_("Memory problem: %s"), strerror (errno));
+	LogError (_("Error (%s): %s"), "strdup", strerror (errno));
 	return false;
 }
 
@@ -203,6 +206,8 @@ MiredoConf::ReadFile (FILE *stream)
 bool
 MiredoConf::ReadFile (const char *path)
 {
+	assert (path != NULL);
+
 	FILE *stream = fopen (path, "r");
 	if (stream != NULL)
 	{

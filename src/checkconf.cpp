@@ -48,47 +48,62 @@ class MiredoCheckConf : public MiredoConf
 	}
 };
 
+
+static const char conffile[] = SYSCONFDIR"/miredo.conf";
+
+
 int main(int argc, char *argv[])
 {
-	struct in6_addr ip6;
-	char *str;
-	int i;
-	uint32_t u32;
-	uint16_t u16;
-	bool b;
-
 	(void)setlocale (LC_ALL, "");
 	(void)bindtextdomain (PACKAGE_NAME, LOCALEDIR);
 
 	MiredoCheckConf conf;
+
+	const char *filename = NULL;
+	char *str = NULL;
 
 	if (argc <= 1)
 	{
 		/* No parameters provided - attempt in source tree test */
 		const char *srcdir = getenv ("srcdir");
 
-		if ((srcdir == NULL)
-		 || (asprintf (&str, "%s/../misc/miredo.conf-dist",
-		               srcdir) == -1))
-			return 1;
-		if (!conf.ReadFile (str))
-			return 1;
-		free (str);
+		if (srcdir != NULL)
+		{
+
+			if (asprintf (&str, "%s/../misc/miredo.conf-dist",
+			              srcdir) == -1)
+				filename = str = NULL;
+		}
+		else
+			filename = conffile;
 	}
 	else
-	if (!conf.ReadFile (argv[1]))
-		return 1;
+		filename = argv[1];
 
+	if (!conf.ReadFile (filename))
+	{
+		if (str != NULL)
+			free (str);
+		return 1;
+	}
+	if (str != NULL)
+		free (str);
+
+	int i;
 	if (!ParseSyslogFacility (conf, "SyslogFacility", &i))
 		return 1;
 
+	bool b;
 	if (!conf.GetBoolean ("DefaultRoute", &b))
 		return 1;
 
+	uint32_t u32;
+	uint16_t u16;
 	if (!ParseIPv4 (conf, "ServerAddress", &u32)
 	 || !ParseIPv4 (conf, "ServerAddress2", &u32))
 		return 1;
 
+	struct in6_addr ip6;
 	if (!ParseIPv6 (conf, "Prefix", &ip6)
 	 || !conf.GetInt16 ("InterfaceMTU", &u16))
 		return 1;
