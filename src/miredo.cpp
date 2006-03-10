@@ -36,6 +36,7 @@
 # include <inttypes.h>
 #endif
 #include <signal.h> // sigaction()
+#include <stdarg.h>
 
 #include <errno.h>
 #include <sys/types.h>
@@ -190,6 +191,15 @@ DeinitSignals (void)
 /*
  * Configuration and respawning stuff
  */
+class MiredoSyslogConf : public MiredoConf
+{
+	protected:
+		virtual void Log (bool error, const char *fmt, va_list ap)
+		{
+			vsyslog (error ? LOG_ERR : LOG_WARNING, fmt, ap);
+		}
+};
+
 static const char *const ident = "miredo";
 
 
@@ -206,7 +216,7 @@ miredo (const char *confpath, const char *server_name, int pidfd)
 		if (!InitSignals ())
 			continue;
 
-		MiredoConf cnf;
+		MiredoSyslogConf cnf;
 		if (!cnf.ReadFile (confpath))
 		{
 			syslog (LOG_WARNING, _("Loading configuration from %s failed"),
