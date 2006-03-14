@@ -179,7 +179,7 @@ tun6 *tun6_create (const char *req_name)
 	if (fd == -1)
 	{
 		syslog (LOG_ERR, _("Tunneling driver error (%s): %m"), tundev);
-		close (reqfd);
+		(void)close (reqfd);
 		free (t);
 		return NULL;
 	}
@@ -206,8 +206,6 @@ tun6 *tun6_create (const char *req_name)
 
 	for (unsigned i = 0; (i < 256) && (fd == -1); i++)
 	{
-		const int dummy = 1;
-
 		snprintf (tundev, sizeof (tundev), "/dev/tun%u", i);
 		tundev[sizeof (tundev) - 1] = '\0';
 
@@ -215,13 +213,14 @@ tun6 *tun6_create (const char *req_name)
 		if (fd == -1)
 			continue;
 
+		const int dummy = 1;
 # ifdef TUNSIFHEAD
 		/* Enables TUNSIFHEAD */
 		if (ioctl (fd, TUNSIFHEAD, &dummy))
 		{
 			syslog (LOG_ERR, _("Tunneling driver error (%s): %m"),
 			        "TUNSIFHEAD");
-			close (fd);
+			(void)close (fd);
 			fd = -1;
 			continue;
 		}
@@ -240,7 +239,7 @@ tun6 *tun6_create (const char *req_name)
 			syslog (LOG_ERR,
 			        _("Tunneling driver error (%s): %m"), "SIOCSIFNAME");
 			fd = -1;
-			close (fd);
+			(void)close (fd);
 			continue;
 		}
 # else /* 0 */
@@ -259,9 +258,9 @@ tun6 *tun6_create (const char *req_name)
 	return t;
 
 error:
-	close (reqfd);
+	(void)close (reqfd);
 	if (fd != -1)
-		close (fd);
+		(void)close (fd);
 	syslog (LOG_ERR, _("%s tunneling interface creation failure"), os_driver);
 	free (t);
 	return NULL;
@@ -281,8 +280,8 @@ void tun6_destroy (tun6* t)
 	assert (t->fd != -1);
 	assert (t->reqfd != -1);
 
-	close (t->fd);
-	close (t->reqfd);
+	(void)close (t->fd);
+	(void)close (t->reqfd);
 	free (t);
 }
 
@@ -302,7 +301,7 @@ proc_write_zero (const char *path)
 	if (fd != -1)
 	{
 		write (fd, "0", 1);
-		close (fd);
+		(void)close (fd);
 	}
 }
 #endif
@@ -545,7 +544,7 @@ _iface_route (int reqfd, const char *ifname, bool add,
 		 && (errno == 0))
 			retval = 0;
 
-		close (s);
+		(void)close (s);
 	}
 	else
 		syslog (LOG_ERR, _("Error (%s): %s\n"), "socket (AF_ROUTE)",
@@ -782,16 +781,26 @@ int tun6_driver_diagnose (char *errbuf)
 {
 	bindtextdomain (PACKAGE_NAME, LOCALEDIR);
 
+	int fd = socket (AF_INET6, SOCK_DGRAM, 0);
+	if (fd == -1)
+	{
+		strncpy (errbuf, "Error: IPv6 stack not available.\n",
+				LIBTUN6_ERRBUF_SIZE - 1);
+		errbuf[LIBTUN6_ERRBUF_SIZE - 1] = '\0';
+		return -1;
+	}
+	(void)close (fd);
+
 #if defined (HAVE_LINUX)
 	const char *const tundev = "/dev/net/tun";
 #else
 	const char *const tundev = "/dev/tun0";
 #endif
 
-	int fd = open (tundev, O_RDWR);
+	fd = open (tundev, O_RDWR);
 	if (fd >= 0)
 	{
-		close (fd);
+		(void)close (fd);
 		snprintf (errbuf, LIBTUN6_ERRBUF_SIZE - 1,
 				"%s tunneling driver found.", os_driver);
 		errbuf[LIBTUN6_ERRBUF_SIZE - 1] = '\0';
