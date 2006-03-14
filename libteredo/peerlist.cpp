@@ -93,7 +93,8 @@ static void teredo_peer_destroy (teredo_peer *peer)
 }
 
 
-void teredo_peer_queue (teredo_peer *peer, const void *data, size_t len,
+extern "C" void
+teredo_peer_queue (teredo_peer *peer, const void *data, size_t len,
                         bool incoming)
 {
 	packet *p;
@@ -112,7 +113,8 @@ void teredo_peer_queue (teredo_peer *peer, const void *data, size_t len,
 }
 
 
-void teredo_peer_dequeue (teredo_peer *peer, int fd, void *r)
+extern "C" void
+teredo_peer_dequeue (teredo_peer *peer, int fd, void *r)
 {
 	/* lock peer */
 	packet *ptr = peer->queue;
