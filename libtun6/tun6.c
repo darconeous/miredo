@@ -505,6 +505,7 @@ _iface_route (int reqfd, const char *ifname, bool add,
 	if (s != -1)
 	{
 		static int rtm_seq = 0;
+		static pthread_mutex rtm_seq_mutex = PTHREAD_MUTEX_INITIALIZER;
 		struct
 		{
 			struct rt_msghdr hdr;
@@ -526,7 +527,9 @@ _iface_route (int reqfd, const char *ifname, bool add,
 			msg.hdr.rtm_flags |= RTF_HOST;
 		msg.hdr.rtm_pid = getpid ();
 
+		pthread_mutex_lock (&rtm_seq_mutex);
 		msg.hdr.rtm_seq = ++rtm_seq;
+		pthread_mutex_unlock (&rtm_seq_mutex);
 
 		msg.dst.sin6_family = AF_INET6;
 		msg.dst.sin6_len = sizeof (msg.dst);
