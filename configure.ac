@@ -48,6 +48,7 @@ AM_INIT_AUTOMAKE([check-news dist-bzip2 no-dist-gzip no-exeext std-options])
 # Checks for libraries.
 AS_MESSAGE([checking required libraries...])
 AM_BINRELOC
+AM_GNU_GETTEXT_VERSION([0.12.1])
 AM_GNU_GETTEXT([external])
 AH_TEMPLATE(HAVE_LINUX,
 		[Define to 1 if the host kernel is Linux.])

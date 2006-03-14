@@ -26,25 +26,13 @@ fi
 echo "Creating admin directory ..."
 test -d admin || mkdir admin || exit 1
 
-echo "Backing up SVN files ..."
-for f in m4/Makefile.am Makefile.am configure.ac; do
-	cp -f $f $f-svn
-done
-
-echo "Running \`gettextize' ..."
-gettextize -f --no-changelog || {
+echo "Running \`autopoint' ..."
+autopoint -f || {
 echo "Error: gettext is probably not on your system, or it does not work."
 echo "You need GNU gettext version 0.12.1 or higher."
 exit 1
 }
 
-echo "Restoring SVN files ..."
-for f in m4/Makefile.am Makefile.am configure.ac; do
-	mv -f $f-svn $f
-done
-
-echo "Removing backups ..."
-rm -f m4/Makefile.am~ Makefile.am~ configure.ac~ m4/*.m4~ po/*~
 unlink po/Makevars.template
 
 # Official <gettext.h> currently has a bug whereby it includes <libintl.h>
