@@ -89,16 +89,16 @@ InterfaceName	teredo
 # Server primary IPv4 address (possibly an hostname)
 # This setting is *REQUIRED* if Miredo is in client mode (RelayType).
 #
-# Public Teredo servers:
+# Public Teredo servers (as of March 2006):
 #  - teredo.ipv6.microsoft.com (defaults on Microsoft Windows)
 #  - teredo.autotrans.consulintel.com (another Windows-based server)
-#  - teredo.via.ecp.fr (Linux-based Miredo testing server)
+#  - teredo.remlab.net (Linux-based Miredo testing server)
 #  - 203.233.154.10 (unknown buggy server)
 #
 # Defaults: unset - will fail unless RelayType is not "client".
 # Example:  ServerAddress teredo.ipv6.microsoft.com
 #
-ServerAddress teredo.via.ecp.fr
+ServerAddress teredo.remlab.net
 
 #
 # (Client-only)
