@@ -29,6 +29,20 @@
 
 # define LIBTUN6_ERRBUF_SIZE 4096
 
+# ifdef __GNUC__
+#  define LIBTUN6_NONNULL __attribute__ ((nonnull))
+#  define LIBTUN6_WARN_UNUSED __attribute__ ((warn_unused_result))
+#  if __GNUC__ >= 3
+#   define LIBTUN6_PURE __attribute__ ((pure))
+#  else
+#   define LIBTUN6_PURE
+#  endif
+# else
+#  define LIBTUN6_NONNULL
+#  define LIBTUN6_WARN_UNUSED
+#  define LIBTUN6_PURE
+# endif
+
 struct ip6_hdr;
 struct in6_addr;
 
@@ -37,7 +51,7 @@ typedef struct tun6 tun6;
 # ifdef __cplusplus
 extern "C" {
 # endif
-int tun6_driver_diagnose (char *errbuf);
+int tun6_driver_diagnose (char *errbuf) LIBTUN6_NONNULL;
 
 /*
  * All functions are thread-safe.
@@ -46,10 +60,10 @@ int tun6_driver_diagnose (char *errbuf);
  * openlog() before you create a tunnel.
  */
 
-tun6 *tun6_create (const char *req_name);
-void tun6_destroy (tun6 *t);
+tun6 *tun6_create (const char *req_name) LIBTUN6_WARN_UNUSED;
+void tun6_destroy (tun6 *t) LIBTUN6_NONNULL;
 
-int tun6_setState (tun6 *t, bool up);
+int tun6_setState (tun6 *t, bool up) LIBTUN6_NONNULL;
 static inline int tun6_bringUp (tun6 *t)
 {
 	return tun6_setState (t, true);
@@ -61,21 +75,23 @@ static inline int tun6_bringDown (tun6 *t)
 }
 
 int tun6_addAddress (tun6 *t, const struct in6_addr *addr,
-                     unsigned prefix_len);
+                     unsigned prefix_len) LIBTUN6_NONNULL;
 int tun6_delAddress (tun6 *t, const struct in6_addr *addr,
-                     unsigned prefix_len);
+                     unsigned prefix_len) LIBTUN6_NONNULL;
 
-int tun6_setMTU (tun6 *t, unsigned mtu);
+int tun6_setMTU (tun6 *t, unsigned mtu) LIBTUN6_NONNULL;
 
 int tun6_addRoute (tun6 *t, const struct in6_addr *addr, unsigned prefix_len,
-                   int relative_metric);
+                   int relative_metric) LIBTUN6_NONNULL;
 int tun6_delRoute (tun6 *t, const struct in6_addr *addr, unsigned prefix_len,
-                   int relative_metric);
+                   int relative_metric) LIBTUN6_NONNULL;
 
-int tun6_registerReadSet (const tun6 *t, fd_set *readset);
+int tun6_registerReadSet (const tun6 *t, fd_set *readset)
+	LIBTUN6_NONNULL LIBTUN6_PURE;
 
-int tun6_recv (const tun6 *t, const fd_set *readset, void *buf, size_t len);
-int tun6_send (const tun6 *t, const void *packet, size_t len);
+int tun6_recv (const tun6 *t, const fd_set *readset, void *buf, size_t len)
+	LIBTUN6_NONNULL;
+int tun6_send (const tun6 *t, const void *packet, size_t len) LIBTUN6_NONNULL;
 
 # ifdef __cplusplus
 }
