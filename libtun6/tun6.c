@@ -330,12 +330,12 @@ tun6_setState (tun6 *t, bool up)
 
 	secure_strncpy (req.ifr_name, ifname, IFNAMSIZ);
 	/* settings we want/don't want: */
-	req.ifr_flags |= IFF_NOARP | IFF_POINTOPOINT;
+	req.ifr_flags |= IFF_NOARP;
+	req.ifr_flags &= ~(IFF_MULTICAST | IFF_BROADCAST);
 	if (up)
 		req.ifr_flags |= IFF_UP | IFF_RUNNING;
 	else
-		req.ifr_flags &= ~IFF_UP | IFF_RUNNING;
-	req.ifr_flags &= ~(IFF_MULTICAST | IFF_BROADCAST);
+		req.ifr_flags &= ~(IFF_UP | IFF_RUNNING);
 
 	if (ioctl (t->reqfd, SIOCSIFFLAGS, &req) == 0)
 		return 0;
