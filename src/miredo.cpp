@@ -158,7 +158,7 @@ InitSignals (void)
 	// or maybe not, GNU/kFreeBSD use these for pthread
 	//sigaction (SIGUSR1, &sa, NULL);
 	//sigaction (SIGUSR2, &sa, NULL);
-	
+
 	sa.sa_handler = reload_handler;
 	sigaction (SIGHUP, &sa, NULL);
 

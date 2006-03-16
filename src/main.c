@@ -137,7 +137,7 @@ error_extra (const char *extra)
 }
 
 
-/*
+/**
  * Creates a Process-ID file.
  */
 static int
@@ -204,16 +204,12 @@ setuid_notice (void)
 }
 
 
-/*
+/**
  * Initialize daemon context.
  */
 static int
 init_daemon (const char *username, const char *pidfile, int nodetach)
 {
-	struct passwd *pw;
-	struct rlimit lim;
-	int fd;
-
 	/* Clears environment */
 	(void)clearenv ();
 
@@ -225,10 +221,11 @@ init_daemon (const char *username, const char *pidfile, int nodetach)
 	 * Those last 3 handles will be opened as /dev/null
 	 * by later daemon().
 	 */
+	struct rlimit lim;
 	if (getrlimit (RLIMIT_NOFILE, &lim))
 		return -1;
 
-	for (fd = 3; (unsigned)fd < lim.rlim_cur; fd++)
+	for (int fd = 3; (unsigned)fd < lim.rlim_cur; fd++)
 		(void)close (fd);
 
 	/*
@@ -243,7 +240,7 @@ init_daemon (const char *username, const char *pidfile, int nodetach)
 
 	/* Determines unpriviledged user */
 	errno = 0;
-	pw = getpwnam (username);
+	struct passwd *pw = getpwnam (username);
 	if (pw == NULL)
 	{
 		fprintf (stderr, _("User \"%s\": %s\n"),
@@ -336,7 +333,7 @@ init_daemon (const char *username, const char *pidfile, int nodetach)
 #endif
 
 	/* Opens pidfile */
-	fd = open_pidfile (pidfile);
+	int fd = open_pidfile (pidfile);
 	if (fd == -1)
 	{
 		fprintf (stderr, _("Cannot create PID file %s:\n %s\n"),
@@ -348,7 +345,7 @@ init_daemon (const char *username, const char *pidfile, int nodetach)
 		return -1;
 	}
 
-	/* 
+	/*
 	 * Detaches. While not security-related, it fits well here.
 	 */
 	if (!nodetach && daemon (0, 0))
