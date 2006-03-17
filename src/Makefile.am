@@ -22,6 +22,7 @@ localedir = $(datadir)/locale
 top_srcdir = @top_srcdir@
 sysconfdir = @sysconfdir@
 LIBINTL = @LIBINTL@
+LTLIBINTL = @LTLIBINTL@
 LIBCAP = @LIBCAP@
 
 AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir) -D_REENTRANT \
@@ -43,7 +44,7 @@ TESTS = miredo-checkconf
 
 libmiredo_la_SOURCES = main.c miredo.cpp miredo.h \
 			conf.cpp conf.h prefix.c prefix.h
-libmiredo_la_LIBADD = $(LIBCAP)
+libmiredo_la_LIBADD = $(LTLIBINTL) $(LIBCAP)
 libmiredo_la_LDFLAGS = -static -no-undefined
 
 # miredo
@@ -61,7 +62,7 @@ miredo_server_LDADD = $(LIBINTL) $(LIBCAP) libmiredo.la \
 
 # miredo-checkconf
 miredo_checkconf_SOURCES = checkconf.cpp
-miredo_checkconf_LDADD = libmiredo.la $(LIBINTL)
+miredo_checkconf_LDADD = $(LIBINTL) libmiredo.la
 
 # Automake does not support checking for MIREDO_CHROOT || MIREDO_PIDFILE
 # so we always create the directory
