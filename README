@@ -1,7 +1,7 @@
-Miredo : Teredo for Linux
-==========================
+Miredo : open-source Teredo
+============================
 $Id$
-Copyright (C) 2004-2006 Remi Denis-Courmont.
+Copyright (C) 2004-2006 Rémi Denis-Courmont.
 
   Welcome to Miredo's user's guide!
 
@@ -45,9 +45,10 @@ the package; it consists of a Teredo server.
   Miredo can be used to provide IPv6 connectivity to users behind NAT
 which do not support IPv6, and not even proto-41 forwarding. For this
 to work, users need to have a Teredo client running on their system.
-That can be Miredo itself on Linux/FreeBSD/OpenBSD. Microsoft provides
-a Teredo client built-in with Windows XP SP2 IPv6 stack, and in its
-"Advanced Networking pack" for Windows XP SP1.
+That can be Miredo itself on Linux/FreeBSD/OpenBSD/NetBSD/Darwin.
+Microsoft provides a Teredo client built-in with Windows XP SP2, 2003
+and Vista IPv6 stacks, and in its "Advanced Networking pack" for
+Windows XP SP1.
 
   For more informations on the Teredo technology, please refer to the
 Microsoft IPv6 : Teredo overview.
@@ -56,25 +57,50 @@ Microsoft IPv6 : Teredo overview.
 System requirements
 ====================
 
-  Miredo runs fine on Linux kernel 2.6.9, FreeBSD 5.x and OpenBSD 3.7;
-it should also work with Linux 2.4.x, and older releases of FreeBSD
-(4.x) and OpenBSD, provided they support IPv6, but these configurations
-were not tested.
-
-  Mac OS X might work, with a third pary-provided tunneling driver, but
-it could not be tested.
-  NetBSD is *NOT* supported since its tunneling driver does not
-support IPv6 yet. It should work as soon as NetBSD kernel gets fixed.
+  Miredo aims to support all POSIX-like open-source operating system
+kernels with IPv6 and userland layer-3 tunneling support. See below
+for system specific notes.
 
   Miredo is believed to be architecture-independant, but it was only
 properly tested on i386.
 
-Dependencies:
---------------
   When available, Miredo can use the following optional libraries :
  - GNU gettext for localization,
  - libcap (or non-Linux equivalent) for POSIX capabilities.
-  They should be detected automatically.
+  They should be detected automatically by the configure script.
+
+Linux:
+-------
+  Miredo runs fine on Linux kernel 2.6.9; if possible, kernel version
+2.6.12 or more recent is recommended. It can run with older versions as
+well (including 2.4.x) but you might be bitten by the IPv6 onlink
+assumption issue (fixed in 2.6.9).
+
+  Miredo requires the Universal TUNTAP driver (CONFIG_TUN) and IPv6
+(CONFIG_IPV6).
+
+FreeBSD:
+---------
+  Miredo works fine with FreeBSD 6.0, but there should be no problem
+with the branch 5.x either. You might have some compilation issues with
+the old 4.x branch.
+
+OpenBSD:
+---------
+  OpenBSD 3.7 is supported. Older versions should also work, insofar as
+IPv6 is enabled.
+
+NetBSD:
+--------
+  NetBSD 4.0 (work-in-progress “current” branch at the time of writing)
+is reportedly supported. NetBSD 3.0 and older are definitely not
+supported because their userland tunneling driver did not support IPv6.
+
+Darwin:
+--------
+  Miredo could not be tested on Mac OS X or any other Darwin variant.
+It should work with a third pary-provided tunneling driver (that is not
+provided with Apple Mac OS X).
 
 
 Quick usage
@@ -228,5 +254,5 @@ Feedback:
     rdenis (at) simphalempin (dot) com
 
 -- 
-Remi Denis-Courmont <rdenis (at) simphalempin (dot) com>
+Rémi Denis-Courmont <rdenis (at) simphalempin (dot) com>
 http://www.simphalempin.com/dev/miredo/
