@@ -4,7 +4,7 @@
  */
 
 /***********************************************************************
- *  Copyright (C) 2004-2006 Remi Denis-Courmont.                       *
+ *  Copyright (C) 2004-2006 Rémi Denis-Courmont.                       *
  *  This program is free software; you can redistribute and/or modify  *
  *  it under the terms of the GNU General Public License as published  *
  *  by the Free Software Foundation; version 2 of the license.         *
@@ -105,6 +105,8 @@ static const char *os_driver = "Darwin";
 
 # include <netinet6/in6_var.h> // struct in6_aliasreq
 # include <netinet6/nd6.h> // ND6_INFINITE_LIFETIME
+
+# include <pthread.h>
 
 # define HAVE_BSD
 
@@ -505,7 +507,7 @@ _iface_route (int reqfd, const char *ifname, bool add,
 	if (s != -1)
 	{
 		static int rtm_seq = 0;
-		static pthread_mutex rtm_seq_mutex = PTHREAD_MUTEX_INITIALIZER;
+		static pthread_mutex_t rtm_seq_mutex = PTHREAD_MUTEX_INITIALIZER;
 		struct
 		{
 			struct rt_msghdr hdr;
