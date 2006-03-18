@@ -140,22 +140,31 @@ error_extra (const char *extra)
 /**
  * Creates a Process-ID file.
  */
+#ifndef O_NOFOLLOW
+# define O_NOFOLLOW 0
+#endif
 static int
 open_pidfile (const char *path)
 {
 	int fd;
 
-	fd = open (path, O_WRONLY|O_CREAT, 0644);
+	fd = open (path, O_WRONLY|O_CREAT|O_NOFOLLOW, 0644);
 	if (fd != -1)
 	{
 		struct stat s;
 
+		errno = 0;
+		/* We only check the lock. The actual locking occurs
+		 * after (possibly) calling daemon(). */
 		if ((fstat (fd, &s) == 0)
 		 && S_ISREG(s.st_mode)
-		 && (lockf (fd, F_TLOCK, 0) == 0))
+		 && (lockf (fd, F_TEST, 0) == 0))
 			return fd;
 
 		close (fd);
+
+		if (errno == 0) /* !S_ISREG */
+			errno = EACCES;
 	}
 	return -1;
 }
@@ -165,11 +174,14 @@ static int
 write_pid (int fd)
 {
 	char buf[20]; // enough for > 2^64
-	size_t len;
+
+	/* Actually lock the file */
+	if (lockf (fd, F_TLOCK, 0))
+		return -1;
 
 	(void)snprintf (buf, sizeof (buf), "%d", (int)getpid ());
 	buf[sizeof (buf) - 1] = '\0';
-	len = strlen (buf);
+	size_t len = strlen (buf);
 	return write (fd, buf, len) == (int)len ? 0 : -1;
 }
 
@@ -354,7 +366,11 @@ init_daemon (const char *username, const char *pidfile, int nodetach)
 		return -1;
 	}
 
-	(void)write_pid (fd);
+	if (write_pid (fd))
+	{
+		close (fd);
+		return -1;
+	}
 
 	return fd;
 }
