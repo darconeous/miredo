@@ -27,8 +27,8 @@ man8_MANS = doc/miredo.8 doc/miredo-server.8
 noinst_HEADERS = include/gettext.h
 dist_sysconf_DATA = misc/miredo.conf-dist misc/miredo-server.conf-dist
 
-EXTRA_DIST = admin/config.rpath admin/mkinstalldirs \
-		$(man5_MANS) $(man8_MANS) autopackage/default.apspec.in \
+EXTRA_DIST = bootstrap $(man5_MANS) $(man8_MANS) \
+		autopackage/default.apspec.in \
 		misc/miredo misc/miredo.sh misc/miredo-server.sh
 
 miredo_conf = $(sysconfdir)/miredo.conf
