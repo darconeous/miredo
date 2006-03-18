@@ -1,5 +1,5 @@
 # sockaddr.m4
-# Copyright (C) 2003-2005 Remi Denis-Courmont
+# Copyright (C) 2003-2006 Remi Denis-Courmont
 # <rdenis (at) simphalempin (dot) com>.
 # This file (sockaddr.m4) is free software; unlimited permission to
 # copy and/or distribute it , with or without modifications, as long
@@ -10,6 +10,7 @@
 # even the implied warranty of MERCHANTABILITY or FITNESS FOR A
 # PARTICULAR PURPOSE.
 
+dnl SHOULD check <sys/socket.h>, <winsock2.h> before that
 AC_DEFUN([RDC_STRUCT_SOCKADDR_LEN],
 [AC_LANG_ASSERT(C)
 AH_TEMPLATE(HAVE_SA_LEN, [Define to 1 if `struct sockaddr' has a `sa_len' member.])
@@ -19,8 +20,11 @@ rdc_cv_struct_sockaddr_len,
 [#if HAVE_SYS_TYPES_H
 # include <sys/types.h>
 #endif
-#include <sys/socket.h>]],
-[[struct sockaddr addr; addr.sa_len = 0;]])],
+#if HAVE_SYS_SOCKET_H
+# include <sys/socket.h>
+#elif HAVE_WINSOCK2_H
+# include <winsock2.h>
+#endif]], [[struct sockaddr addr; addr.sa_len = 0;]])],
 rdc_cv_struct_sockaddr_len=yes,
 rdc_cv_struct_sockaddr_len=no)])
 AS_IF([test $rdc_cv_struct_sockaddr_len = yes],
@@ -42,7 +46,7 @@ rdc_cv_struct_sockaddr_storage,
 # include <sys/socket.h>
 #elif HAVE_WINSOCK2_H
 # include <winsock2.h>
-#endif]], [[struct sockaddr_storage addr;]])],
+#endif]], [[struct sockaddr_storage addr; addr.ss_family = 0;]])],
 rdc_cv_struct_sockaddr_storage=yes,
 rdc_cv_struct_sockaddr_storage=no)])
 AS_IF([test $rdc_cv_struct_sockaddr_storage = no],
@@ -64,7 +68,7 @@ rdc_cv_type_socklen_t,
 # include <sys/socket.h>
 #elif HAVE_WINSOCK2_H
 # include <winsock2.h>
-#endif]], [[socklen_t len;]])],
+#endif]], [[socklen_t len; len = 0;]])],
 rdc_cv_type_socklen_t=yes,
 rdc_cv_type_socklen_t=no)])
 AS_IF([test "$rdc_cv_type_socklen_t" = no],
