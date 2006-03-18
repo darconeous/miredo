@@ -2,7 +2,7 @@
 # $Id$
 
 # ***********************************************************************
-# *  Copyright (C) 2004-2005 Remi Denis-Courmont.                       *
+# *  Copyright (C) 2004-2006 Remi Denis-Courmont.                       *
 # *  This program is free software; you can redistribute and/or modify  *
 # *  it under the terms of the GNU General Public License as published  *
 # *  by the Free Software Foundation; version 2 of the license.         *
@@ -17,7 +17,8 @@
 # *  http://www.gnu.org/copyleft/gpl.html                               *
 # ***********************************************************************
 
-SUBDIRS = m4 po libtun6 libteredo src misc
+SUBDIRS = po libtun6 libteredo src misc
+DIST_SUBDIRS = m4 $(SUBDIRS)
 
 man5_MANS = doc/miredo.conf.5 doc/miredo-server.conf.5
 man8_MANS = doc/miredo.8 doc/miredo-server.8
