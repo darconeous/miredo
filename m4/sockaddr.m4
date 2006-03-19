@@ -20,11 +20,7 @@ rdc_cv_struct_sockaddr_len,
 [#if HAVE_SYS_TYPES_H
 # include <sys/types.h>
 #endif
-#if HAVE_SYS_SOCKET_H
-# include <sys/socket.h>
-#elif HAVE_WINSOCK2_H
-# include <winsock2.h>
-#endif]], [[struct sockaddr addr; addr.sa_len = 0;]])],
+#include <sys/socket.h>]], [[struct sockaddr addr; addr.sa_len = 0;]])],
 rdc_cv_struct_sockaddr_len=yes,
 rdc_cv_struct_sockaddr_len=no)])
 AS_IF([test $rdc_cv_struct_sockaddr_len = yes],
