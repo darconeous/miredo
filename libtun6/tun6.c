@@ -202,6 +202,7 @@ tun6 *tun6_create (const char *req_name)
 #elif defined (HAVE_BSD)
 	/*
 	 * BSD tunnel driver initialization
+	 * (see BSD src/sys/net/if_tun.{c,h})
 	 */
 	char tundev[12];
 	int fd = -1;
@@ -348,7 +349,7 @@ tun6_setState (tun6 *t, bool up)
 
 
 #ifdef HAVE_BSD
-/*
+/**
  * Converts a prefix length to a netmask (used for the BSD routing)
  */
 static void
@@ -380,9 +381,7 @@ plen_to_sin6 (unsigned plen, struct sockaddr_in6 *sin6)
 }
 #endif /* ifdef SOCAIFADDR_IN6 */
 
-/*
- * Adds or removes an address and a prefix to the tunnel interface.
- */
+
 static int
 _iface_addr (int reqfd, const char *ifname, bool add,
              const struct in6_addr *addr, unsigned prefix_len)
@@ -460,10 +459,6 @@ _iface_addr (int reqfd, const char *ifname, bool add,
 }
 
 
-/*
- * Adds or removes a route to the tunnel interface from the kernel routing
- * table.
- */
 static int
 _iface_route (int reqfd, const char *ifname, bool add,
               const struct in6_addr *addr, unsigned prefix_len,
@@ -562,6 +557,12 @@ _iface_route (int reqfd, const char *ifname, bool add,
 }
 
 
+/**
+ * Adds an address with a netmask to a tunnel.
+ * Requires CAP_NET_ADMIN or root privileges.
+ *
+ * @return 0 on success, -1 in case error.
+ */
 int
 tun6_addAddress (tun6 *t, const struct in6_addr *addr, unsigned prefixlen)
 {
@@ -589,7 +590,12 @@ tun6_addAddress (tun6 *t, const struct in6_addr *addr, unsigned prefixlen)
 	return res;
 }
 
-
+/**
+ * Deletes an address from a tunnel.
+ * Requires CAP_NET_ADMIN or root privileges.
+ *
+ * @return 0 on success, -1 in case error.
+ */
 int
 tun6_delAddress (tun6 *t, const struct in6_addr *addr, unsigned prefixlen)
 {
@@ -599,6 +605,16 @@ tun6_delAddress (tun6 *t, const struct in6_addr *addr, unsigned prefixlen)
 }
 
 
+/**
+ * Inserts a route through a tunnel into the IPv6 routing table.
+ * Requires CAP_NET_ADMIN or root privileges.
+ *
+ * @param rel_metric difference between the system's default metric
+ * for route with the speficied prefix length (positive = higher priority,
+ * negative = lower priority).
+ *
+ * @return 0 on success, -1 in case error.
+ */
 int
 tun6_addRoute (tun6 *t, const struct in6_addr *addr, unsigned prefix_len,
                int rel_metric)
@@ -610,6 +626,12 @@ tun6_addRoute (tun6 *t, const struct in6_addr *addr, unsigned prefix_len,
 }
 
 
+/**
+ * Removes a route through a tunnel from the IPv6 routing table.
+ * Requires CAP_NET_ADMIN or root privileges.
+ *
+ * @return 0 on success, -1 in case error.
+ */
 int
 tun6_delRoute (tun6 *t, const struct in6_addr *addr, unsigned prefix_len,
                int rel_metric)
@@ -621,8 +643,10 @@ tun6_delRoute (tun6 *t, const struct in6_addr *addr, unsigned prefix_len,
 }
 
 
-/*
+/**
  * Defines the tunnel interface Max Transmission Unit (bytes).
+ *
+ * @return 0 on success, -1 in case of error.
  */
 int
 tun6_setMTU (tun6 *t, unsigned mtu)
