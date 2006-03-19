@@ -3670,7 +3670,7 @@ Changed paths:
    M /trunk/libteredo/security.h
    M /trunk/misc/Makefile.am
 
-All $Id: ChangeLog 860 2005-12-28 21:09:36Z remi $ fixes
+All $Id$ fixes
 
 ------------------------------------------------------------------------
 r514 | remi | 2005-05-04 11:28:20 +0200 (mer, 04 mai 2005) | 2 lines
@@ -3678,7 +3678,7 @@ Changed paths:
    M /trunk/src/conf.cpp
    M /trunk/src/conf.h
 
-Fix $Id: ChangeLog 860 2005-12-28 21:09:36Z remi $
+Fix $Id$
 
 ------------------------------------------------------------------------
 r513 | remi | 2005-05-04 11:27:10 +0200 (mer, 04 mai 2005) | 2 lines
@@ -4200,7 +4200,7 @@ Changed paths:
    M /trunk/misc/miredo.conf-dist
    M /trunk/misc/miredo.sh
 
-Add/fix $Id: ChangeLog 860 2005-12-28 21:09:36Z remi $
+Add/fix $Id$
 
 ------------------------------------------------------------------------
 r447 | remi | 2005-04-30 11:44:52 +0200 (sam, 30 avr 2005) | 2 lines
