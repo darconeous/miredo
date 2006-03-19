@@ -117,6 +117,9 @@ class MiredoRelay : public TeredoRelay
 			memset (&addr, 0, sizeof (addr));
 			/* TODO: use sendmsg and don't memcpy in BuildICMPv6Error */
 			addr.sin6_family = AF_INET6;
+#ifdef HAVE_SA_LEN
+			addr.sin6_len = sizeof (addr);
+#endif
 			memcpy (&addr.sin6_addr, dst, sizeof (addr.sin6_addr));
 			sendto (icmp6_fd, packet, length, 0,
 					(struct sockaddr *)&addr, sizeof (addr));
