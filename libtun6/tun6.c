@@ -240,8 +240,8 @@ tun6 *tun6_create (const char *req_name)
 		{
 			syslog (LOG_ERR,
 			        _("Tunneling driver error (%s): %m"), "SIOCSIFNAME");
-			fd = -1;
 			(void)close (fd);
+			fd = -1;
 			continue;
 		}
 # else /* 0 */
