@@ -7,7 +7,7 @@
  */
 
 /***********************************************************************
- *  Copyright (C) 2004-2005 Remi Denis-Courmont.                       *
+ *  Copyright (C) 2004-2006 Remi Denis-Courmont.                       *
  *  This program is free software; you can redistribute and/or modify  *
  *  it under the terms of the GNU General Public License as published  *
  *  by the Free Software Foundation; version 2 of the license.         *
@@ -66,31 +66,25 @@
 static volatile int should_exit;
 static volatile int should_reload;
 
-/*
- * Pipe file descriptors (the right way to interrupt select() on Linux
- * from a signal handler, as pselect() is not supported).
- */
-static int signalfd[2];
-
 static void
 exit_handler (int signum)
 {
-	if (should_exit || signalfd[1] == -1)
+	if (should_exit)
 		return;
 
-	write (signalfd[1], &signum, sizeof (signum));
 	should_exit = signum;
+	kill (0, signum);
 }
 
 
 static void
 reload_handler (int signum)
 {
-	if (should_reload || signalfd[1] == -1)
+	if (should_reload)
 		return;
 
-	write (signalfd[1], &signum, sizeof (signum));
 	should_reload = signum;
+	kill (0, signum);
 }
 
 
@@ -129,62 +123,58 @@ drop_privileges (void)
 }
 
 
-// Defines signal handlers
-static bool
+/**
+ * Defines signal handlers.
+ */
+static void
 InitSignals (void)
 {
 	struct sigaction sa;
+	sigset_t set;
 
-	if (pipe (signalfd))
-	{
-		syslog (LOG_ALERT, _("Error (%s): %s\n"), "pipe", strerror (errno));
-		return false;
-	}
 	should_exit = 0;
 	should_reload = 0;
 
 	memset (&sa, 0, sizeof (sa));
 	sigemptyset (&sa.sa_mask); // -- can that really fail ?!?
+	sigemptyset (&set);
 
+	/* Signals that trigger a clean exit */
 	sa.sa_handler = exit_handler;
-	sigaction (SIGINT, &sa, NULL);
-	sigaction (SIGQUIT, &sa, NULL);
-	sigaction (SIGTERM, &sa, NULL);
 
+	sigaction (SIGINT, &sa, NULL);
+	sigaddset (&set, SIGINT);
+
+	sigaction (SIGQUIT, &sa, NULL);
+	sigaddset (&set, SIGQUIT);
+
+	sigaction (SIGTERM, &sa, NULL);
+	sigaddset (&set, SIGTERM);
+
+	/* Signals that are ignored */
 	sa.sa_handler = SIG_IGN;
-	// We check for EPIPE in errno instead:
-	sigaction (SIGPIPE, &sa, NULL);
+
+	sigaction (SIGPIPE, &sa, NULL); // We check errno == EPIPE instead
+	sigaddset (&set, SIGPIPE);
+
+#if 0
 	// might use these for other purpose in later versions:
 	// or maybe not, GNU/kFreeBSD use these for pthread
-	//sigaction (SIGUSR1, &sa, NULL);
-	//sigaction (SIGUSR2, &sa, NULL);
+	sigaction (SIGUSR1, &sa, NULL);
+	sigaddset (&set, SIGUSR1);
 
+	sigaction (SIGUSR2, &sa, NULL);
+	sigaddset (&set, SIGUSR2);
+#endif
+
+	/* Signals that trigger a configuration reload */
 	sa.sa_handler = reload_handler;
+
 	sigaction (SIGHUP, &sa, NULL);
+	sigaddset (&set, SIGHUP);
 
-	return true;
-}
-
-
-static void
-asyncsafe_close (int& fd)
-{
-	int buf_fd = fd;
-
-	// Prevents the signal handler from trying to write to a closed pipe
-	fd = -1;
-	(void)close (buf_fd);
-}
-
-
-static void
-DeinitSignals (void)
-{
-	asyncsafe_close (signalfd[1]);
-
-	// Keeps read fd open until now to prevent SIGPIPE if the
-	// child process crashes and we receive a signal.
-	(void)close (signalfd[0]);
+	/* Block all handled signals */
+	pthread_sigmask (SIG_SETMASK, &set, NULL);
 }
 
 
@@ -213,8 +203,7 @@ miredo (const char *confpath, const char *server_name, int pidfd)
 	{
 		retval = 1;
 
-		if (!InitSignals ())
-			continue;
+		InitSignals ();
 
 		MiredoSyslogConf cnf;
 		if (!cnf.ReadFile (confpath))
@@ -247,56 +236,60 @@ miredo (const char *confpath, const char *server_name, int pidfd)
 
 			case 0:
 				close (pidfd);
-				asyncsafe_close (signalfd[1]);
-				retval = miredo_run (signalfd[0], cnf, server_name);
+				retval = miredo_run (cnf, server_name);
 		}
 
 		cnf.Clear (0);
 
-		if (pid == 0)
+		switch (pid)
 		{
-			closelog ();
-			exit (-retval);
+			case -1:
+				continue;
+
+			case 0:
+				closelog ();
+				exit (-retval);
 		}
 
-		if (pid != -1)
+		sigset_t set, saved_set;
+		sigemptyset (&set);
+		pthread_sigmask (SIG_SETMASK, &set, &saved_set);
+
+		// Waits until the miredo process terminates
+		while (waitpid (pid, &retval, 0) == -1);
+
+		pthread_sigmask (SIG_SETMASK, &saved_set, NULL);
+
+		if (should_exit)
 		{
-			// Waits until the miredo process terminates
-			while (waitpid (pid, &retval, 0) == -1);
-
-			if (should_exit)
-			{
-				syslog (LOG_NOTICE, _("Exiting on signal %d (%s)"),
-				        should_exit, strsignal (should_exit));
-				retval = 0;
-			}
-			else
-			if (should_reload)
-			{
-				syslog (LOG_NOTICE,
-				        _("Reloading configuration on signal %d (%s)"),
-				        should_reload, strsignal (should_reload));
-				retval = 2;
-			}
-			else
-			if (WIFEXITED (retval))
-			{
-				retval = WEXITSTATUS (retval);
-				syslog (LOG_NOTICE, _("Terminated (exit code: %d)"),
-				        retval);
-				retval = retval != 0;
-			}
-			else
-			if (WIFSIGNALED (retval))
-			{
-				retval = WTERMSIG (retval);
-				syslog (LOG_INFO, _("Child %d killed by signal %d (%s)"),
-				        (int)pid, retval, strsignal (retval));
-				retval = 2;
-			}
+			syslog (LOG_NOTICE, _("Exiting on signal %d (%s)"),
+			        should_exit, strsignal (should_exit));
+			retval = 0;
 		}
-
-		DeinitSignals ();
+		else
+		if (should_reload)
+		{
+			syslog (LOG_NOTICE,
+			        _("Reloading configuration on signal %d (%s)"),
+			        should_reload, strsignal (should_reload));
+			retval = 2;
+		}
+		else
+		if (WIFEXITED (retval))
+		{
+			retval = WEXITSTATUS (retval);
+			syslog (LOG_NOTICE, _("Terminated (exit code: %d)"),
+			        retval);
+			retval = retval != 0;
+		}
+		else
+		if (WIFSIGNALED (retval))
+		{
+			retval = WTERMSIG (retval);
+			syslog (LOG_INFO, _("Child %d killed by signal %d (%s)"),
+			        (int)pid, retval, strsignal (retval));
+			retval = 2;
+		}
 	}
 	while (retval == 2);
 

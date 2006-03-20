@@ -26,7 +26,7 @@
 # define MIREDO_MIREDO_H
 
 # ifdef __cplusplus
-extern int miredo_run (int fd, MiredoConf& conf, const char *server = NULL);
+extern int miredo_run (MiredoConf& conf, const char *server = NULL);
 
 extern "C"
 {

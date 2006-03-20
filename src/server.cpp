@@ -1,13 +1,10 @@
 /*
- * server.cpp - Unix Teredo server implementation core functions
+ * server.cpp - Unix Teredo server implementation daemon
  * $Id$
- *
- * See "Teredo: Tunneling IPv6 over UDP through NATs"
- * for more information
  */
 
 /***********************************************************************
- *  Copyright (C) 2004-2005 Remi Denis-Courmont.                       *
+ *  Copyright (C) 2004-2006 Remi Denis-Courmont.                       *
  *  This program is free software; you can redistribute and/or modify  *
  *  it under the terms of the GNU General Public License as published  *
  *  by the Free Software Foundation; version 2 of the license.         *
@@ -83,7 +80,7 @@ miredo_diagnose (void)
 
 
 extern int
-miredo_run (int fd, MiredoConf& conf, const char *server_name)
+miredo_run (MiredoConf& conf, const char *server_name)
 {
 	libteredo_server *server;
 	union teredo_addr prefix = { 0 };
@@ -150,9 +147,7 @@ miredo_run (int fd, MiredoConf& conf, const char *server_name)
 		 && (libteredo_server_set_MTU (server, mtu) == 0)
 		 && (libteredo_server_start (server) == 0))
 		{
-			int dummy;
-	
-			while (read (fd, &dummy, sizeof (dummy)) < 0);
+			while (/*read (fd, &dummy, sizeof (dummy)) < 0*/ 1);
 
 			libteredo_server_stop (server);
 			libteredo_server_destroy (server);

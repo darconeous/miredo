@@ -26,6 +26,7 @@
 # include <config.h>
 #endif
 
+#include <assert.h>
 #include <gettext.h>
 
 #if HAVE_STDINT_H
@@ -40,6 +41,7 @@
 #include <errno.h>
 #include <unistd.h> // close()
 #include <sys/wait.h> // wait()
+#include <sys/select.h> // pselect()
 #include <syslog.h>
 
 #include <sys/socket.h>
@@ -202,22 +204,21 @@ void MiredoRelay::GlobalDeinit (void)
  * Main server function, with UDP datagrams receive loop.
  */
 static void
-teredo_relay (int sigfd, tun6 *tunnel, TeredoRelay *relay = NULL)
+teredo_relay (tun6 *tunnel, TeredoRelay *relay = NULL)
 {
 	fd_set refset;
 
 	FD_ZERO (&refset);
-	FD_SET (sigfd, &refset);
-	int maxfd = sigfd;
-	int val = tun6_registerReadSet (tunnel, &refset);
-	if (val > maxfd)
-		maxfd = val;
+	int maxfd = tun6_registerReadSet (tunnel, &refset);
 
-	val = relay->RegisterReadSet (&refset);
+	int val = relay->RegisterReadSet (&refset);
 	if (val > maxfd)
 		maxfd = val;
 
 	maxfd++;
+
+	sigset_t sigset;
+	sigemptyset (&sigset);
 
 	/* Main loop */
 	while (1)
@@ -226,12 +227,12 @@ teredo_relay (int sigfd, tun6 *tunnel, TeredoRelay *relay = NULL)
 		memcpy (&readset, &refset, sizeof (readset));
 
 		/* Wait until one of them is ready for read */
-		val = select (maxfd, &readset, NULL, NULL, NULL);
+		val = pselect (maxfd, &readset, NULL, NULL, NULL, &sigset);
 		if (val < 0)
-			continue;
-		if (FD_ISSET (sigfd, &readset))
-			// parent's been signaled or died 
+		{
+			assert (errno == EINTR);
 			break;
+		}
 
 		/* Handle incoming data */
 		union
@@ -286,7 +287,7 @@ ParseRelayType (MiredoConf& conf, const char *name, int *type)
 
 
 extern int
-miredo_run (int sigfd, MiredoConf& conf, const char *cmd_server_name)
+miredo_run (MiredoConf& conf, const char *cmd_server_name)
 {
 	/*
 	 * CONFIGURATION
@@ -506,7 +507,7 @@ miredo_run (int sigfd, MiredoConf& conf, const char *cmd_server_name)
 					retval = 0;
 
 					relay->SetConeIgnore (ignore_cone);
-					teredo_relay (sigfd, tunnel, relay);
+					teredo_relay (tunnel, relay);
 
 					// THE END
 					delete relay;
