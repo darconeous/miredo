@@ -74,8 +74,11 @@ const char *const miredo_pidfile = LOCALSTATEDIR"/run/miredo.pid";
 #ifdef HAVE_LIBCAP
 static const cap_value_t capv[] =
 {
-	CAP_SYS_CHROOT,
+	CAP_KILL, /* required by the signal handler */
 	CAP_SETUID,
+# ifdef MIREDO_CHROOT
+	CAP_SYS_CHROOT,
+# endif
 	CAP_NET_ADMIN, /* required by libtun6 */
 	CAP_NET_RAW /* required for raw ICMPv6 socket */
 };
