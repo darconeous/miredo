@@ -36,6 +36,8 @@
 
 #include <stdlib.h> // free()
 #include <sys/types.h>
+#include <string.h> // strerror()
+#include <errno.h>
 #include <unistd.h> // close()
 #include <sys/wait.h> // wait()
 #include <syslog.h>
@@ -54,8 +56,6 @@
 #ifndef SOL_ICMPV6
 # define SOL_ICMPV6 IPPROTO_ICMPV6
 #endif
-
-#include <string.h>
 
 #include <libtun6/tun6.h>
 
@@ -415,9 +415,8 @@ miredo_run (int sigfd, MiredoConf& conf, const char *cmd_server_name)
 
 	if (tunnel == NULL)
 	{
-		syslog (LOG_ALERT, _("Teredo tunnel fatal error"));
-		syslog (LOG_NOTICE, _("Make sure another instance of the program is "
-		                      "not already running."));
+		syslog (LOG_ALERT, _("Miredo setup failure: %s"),
+		        _("Cannot create IPv6 tunnel"));
 	}
 	else
 	{
@@ -431,8 +430,6 @@ miredo_run (int sigfd, MiredoConf& conf, const char *cmd_server_name)
 			 * FIXME: minor memory leak of server_name and server_name2
 			 */
 			fd = miredo_privileged_process (tunnel, default_route);
-			if (fd == -1)
-				syslog (LOG_ALERT, "%s: %m", _("Teredo tunnel fatal error"));
 		}
 		else
 #endif
@@ -445,18 +442,21 @@ miredo_run (int sigfd, MiredoConf& conf, const char *cmd_server_name)
 			 || tun6_addAddress (tunnel, (mode == TEREDO_RESTRICT)
 			                           ? &teredo_restrict : &teredo_cone, 64)
 			 || tun6_addRoute (tunnel, &prefix.ip6, 32, 0))
-			{
-				syslog (LOG_ALERT, _("Teredo tunnel fatal error"));
 				fd = -1;
-			}
 			else
 				fd = 0;
 		}
 
-		if (fd != -1)
+		if (fd == -1)
+		{
+			syslog (LOG_ALERT, _("Miredo setup failure: %s"),
+			        strerror (errno));
+		}
+		else
 		{
 			if (libteredo_preinit (mode == TEREDO_CLIENT))
-				syslog (LOG_ALERT, _("libteredo cannot be initialized"));
+				syslog (LOG_ALERT, _("Miredo setup failure: %s"),
+				        _("libteredo cannot be initialized"));
 			else
 			{
 				MiredoRelay::GlobalInit (); // FIXME: check for error
@@ -498,10 +498,8 @@ miredo_run (int sigfd, MiredoConf& conf, const char *cmd_server_name)
 
 				if (relay == NULL)
 				{
-					syslog (LOG_ALERT, _("Teredo tunnel fatal error"));
-					syslog (LOG_NOTICE, _(
-						"Make sure another instance of the program is "
-						"not already running."));
+					syslog (LOG_ALERT, _("Miredo setup failure: %s"),
+					        _("libteredo cannot be initialized"));
 				}
 				else
 				{
