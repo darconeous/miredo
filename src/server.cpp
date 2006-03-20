@@ -58,8 +58,11 @@ const char *const miredo_pidfile =
 #ifdef HAVE_LIBCAP
 static const cap_value_t capv[] =
 {
-	CAP_SYS_CHROOT,
+	CAP_KILL, /* required by the signal handler */
 	CAP_SETUID,
+# ifdef MIREDO_CHROOT
+	CAP_SYS_CHROOT,
+# endif
 	CAP_NET_RAW /* required by libteredo_server */
 };
 
@@ -152,8 +155,6 @@ miredo_run (MiredoConf& conf, const char *server_name)
 			sigset_t set;
 			int dummy;
 
-			sigemptyset (&set);
-			pthread_sigmask (SIG_SETMASK, &set, NULL);
 			sigfillset (&set);
 			sigwait (&set, &dummy);
 
