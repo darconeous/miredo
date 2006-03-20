@@ -29,7 +29,7 @@
 
 #include <stdio.h>
 #include <stdlib.h> /* strtoul(), clearenv() */
-#include <string.h> /* strerrno() */
+#include <string.h> /* strerror() */
 
 #include <locale.h>
 
