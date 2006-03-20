@@ -35,6 +35,7 @@
 #elif HAVE_INTTYPES_H
 # include <inttypes.h>
 #endif
+#include <pthread.h> // pthread_sigmask()
 #include <signal.h> // sigaction()
 #include <stdarg.h>
 

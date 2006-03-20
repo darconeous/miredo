@@ -40,6 +40,8 @@
 #ifdef HAVE_SYS_CAPABILITY_H
 # include <sys/capability.h>
 #endif
+#include <pthread.h> // pthread_sigmask()
+#include <signal.h> // sigwait()
 
 #include <libteredo/teredo.h>
 
@@ -118,8 +120,8 @@ miredo_run (MiredoConf& conf, const char *server_name)
 
 	/*
 	 * NOTE:
-	 * While it is not specified in the draft Teredo
-	 * specification, it really seems that the secondary
+	 * While it is not specified in the Teredo RFC,
+	 * it really seems that the secondary
 	 * server IPv4 address has to be the one just after
 	 * the primary server IPv4 address.
 	 */
@@ -147,7 +149,13 @@ miredo_run (MiredoConf& conf, const char *server_name)
 		 && (libteredo_server_set_MTU (server, mtu) == 0)
 		 && (libteredo_server_start (server) == 0))
 		{
-			while (/*read (fd, &dummy, sizeof (dummy)) < 0*/ 1);
+			sigset_t set;
+			int dummy;
+
+			sigemptyset (&set);
+			pthread_sigmask (SIG_SETMASK, &set, NULL);
+			sigfillset (&set);
+			sigwait (&set, &dummy);
 
 			libteredo_server_stop (server);
 			libteredo_server_destroy (server);
