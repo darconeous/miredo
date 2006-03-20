@@ -73,14 +73,11 @@ static const char *os_driver = "Linux";
 	defined (HAVE_NETBSD) || defined (HAVE_DARWIN)
 /*
  * BSD tunneling driver
- * NOTE: the driver does NOT really work on NetBSD
- * because NetBSD tun driver only accepts IPv4 packets.
  * NOTE: the driver is NOT tested on Darwin (Mac OS X).
  */
 
 # if defined (HAVE_FREEBSD)
 #  include <net/if_var.h>
-#  include <net/if_tun.h> // TUNSIFHEAD - FreeBSD tunnel driver
 #  define USE_TUNHEAD
 static const char *os_driver = "FreeBSD";
 
@@ -97,8 +94,9 @@ static const char *os_driver = "Darwin";
 
 # else
 # error FIXME: Unknown BSD variant!
-# endif /* if HAVE_*BSD */
+# endif /* if HAVE_xxxBSD */
 
+# include <net/if_tun.h> // TUNSIFHEAD, TUNSLMODE
 # include <net/if_dl.h> // struct sockaddr_dl
 # include <net/route.h> // AF_ROUTE things
 # include <errno.h> // errno
@@ -204,30 +202,42 @@ tun6 *tun6_create (const char *req_name)
 	 * BSD tunnel driver initialization
 	 * (see BSD src/sys/net/if_tun.{c,h})
 	 */
-	char tundev[12];
+	const char *errmsg;
 	int fd = -1;
 
-	for (unsigned i = 0; (i < 256) && (fd == -1); i++)
+	for (unsigned i = 0; (i <= 255) && (fd == -1); i++)
 	{
+		char tundev[12];
 		snprintf (tundev, sizeof (tundev), "/dev/tun%u", i);
 		tundev[sizeof (tundev) - 1] = '\0';
 
-		fd = open (tundev, O_RDWR);
-		if (fd == -1)
+		int tunfd = open (tundev, O_RDWR);
+		if (tunfd == -1)
 			continue;
 
-		const int dummy = 1;
-# ifdef TUNSIFHEAD
-		/* Enables TUNSIFHEAD */
-		if (ioctl (fd, TUNSIFHEAD, &dummy))
+		int value = IFF_BROADCAST;
+		if (ioctl (tunfd, TUNSIFMODE, &value))
 		{
-			syslog (LOG_ERR, _("Tunneling driver error (%s): %m"),
-			        "TUNSIFHEAD");
-			(void)close (fd);
-			fd = -1;
-			continue;
+			errmsg = "TUNSIFMODE";
+			goto next;
 		}
-# endif /* TUNSIFHEAD */
+# if defined TUNSIFHEAD
+		/* Enables TUNSIFHEAD */
+		value = 1;
+		if (ioctl (tunfd, TUNSIFHEAD, &value))
+		{
+			errmsg = "TUNSIFHEAD";;
+			goto next;
+		}
+# elif defined TUNSLMODE
+		/* Disables TUNSLMODE (deprecated opposite of TUNSIFHEAD) */
+		value = 0;
+		if (ioctl (tunfd, TUNSLMODE, &value))
+		{
+			errmsg = "TUNSLMODE";
+			goto next;
+		}
+#endif
 
 # if 0
 		/* TODO: have this work on FreeBSD
@@ -239,20 +249,27 @@ tun6 *tun6_create (const char *req_name)
 
 		if (ioctl (reqfd, SIOCSIFNAME, &req))
 		{
-			syslog (LOG_ERR,
-			        _("Tunneling driver error (%s): %m"), "SIOCSIFNAME");
-			(void)close (fd);
-			fd = -1;
-			continue;
+			errmsg = "SIOCSIFNAME";
+			goto next;
 		}
 # else /* 0 */
 		secure_strncpy (t->name, tundev + 5, sizeof (t->name));
 		/* strlen ("/dev/") == 5 */
 # endif /* if 0 */
+
+		fd = tunfd;
+		break;
+
+	next:
+		(void)close (tunfd);
 	}
 
 	if (fd == -1)
+	{
+		syslog (LOG_ERR, _("Tunneling driver error (%s): %m"),
+		        errmsg);
 		goto error;
+	}
 #else
 # error No tunneling driver implemented on your platform!
 #endif /* HAVE_os */
