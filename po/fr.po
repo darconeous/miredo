@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: miredo 0.8.1\n"
 "Report-Msgid-Bugs-To: rdenis@simphalempin.com\n"
-"POT-Creation-Date: 2006-03-10 22:55+0100\n"
-"PO-Revision-Date: 2006-03-10 14:31+0100\n"
+"POT-Creation-Date: 2006-03-20 15:35+0100\n"
+"PO-Revision-Date: 2006-03-20 15:36+0100\n"
 "Last-Translator: Rémi Denis-Courmont <rdenis (at) simphalempin (dot) com>\n"
 "Language-Team: N/A\n"
 "MIME-Version: 1.0\n"
@@ -21,8 +21,8 @@ msgid "Ignoring invalid bubble: your Teredo server is probably buggy."
 msgstr "Bulle invalide ignorée : votre serveur Teredo est probablement bogué."
 
 #: libteredo/security.c:67 libteredo/security.c:135 libteredo/server.c:487
-#: libteredo/server.c:498 libteredo/maintain.c:509 libtun6/tun6.c:551
-#: src/main.c:309 src/main.c:320 src/main.c:328 src/main.c:356 src/main.c:467
+#: libteredo/server.c:498 libteredo/maintain.c:509 libtun6/tun6.c:566
+#: src/main.c:318 src/main.c:329 src/main.c:337 src/main.c:365 src/main.c:480
 #: src/miredo.cpp:109 src/miredo.cpp:116 src/miredo.cpp:140 src/miredo.cpp:244
 #, c-format
 msgid "Error (%s): %s\n"
@@ -96,18 +96,17 @@ msgstr "cône"
 msgid "restricted"
 msgstr "restreint"
 
-#: libtun6/tun6.c:160 libtun6/tun6.c:181 libtun6/tun6.c:195 libtun6/tun6.c:222
-#: libtun6/tun6.c:241
+#: libtun6/tun6.c:178 libtun6/tun6.c:193 libtun6/tun6.c:268
 #, c-format
-msgid "Tunneling driver error (%s): %m"
-msgstr "Erreur du pilote de tunneling (%s) : %m"
+msgid "Tunneling driver error (%s): %s"
+msgstr "Erreur du pilote de tunneling (%s) : %s"
 
-#: libtun6/tun6.c:265
+#: libtun6/tun6.c:283
 #, c-format
 msgid "%s tunneling interface creation failure"
 msgstr "Échec de création de l'interface de tunneling %s"
 
-#: libtun6/tun6.c:806
+#: libtun6/tun6.c:860
 msgid ""
 "You should run these commands to create it:\n"
 "# mkdir -p /dev/net\n"
@@ -119,7 +118,7 @@ msgstr ""
 "# mknod /dev/net/tun c 10 200\n"
 "(vous devez être root pour cela).\n"
 
-#: libtun6/tun6.c:811 libtun6/tun6.c:836
+#: libtun6/tun6.c:865 libtun6/tun6.c:890
 msgid ""
 "You can obtain a tunnel driver for the Darwin kernel (Mac OS X) from:\n"
 "http://chrisp.de/en/projects/tunnel.html\n"
@@ -127,7 +126,7 @@ msgstr ""
 "Vous pouvez obtenir un pilote de tunnel pour le noyau Darwin (Mac OS X) à :\n"
 "http://chrisp.de/en/projects/tunnel.html\n"
 
-#: libtun6/tun6.c:819
+#: libtun6/tun6.c:873
 #, c-format
 msgid ""
 "Error: %s character device not found or unavailable.\n"
@@ -136,7 +135,7 @@ msgstr ""
 "Erreur : périphérique %s non trouvé ou non disponible.\n"
 "%s"
 
-#: libtun6/tun6.c:832
+#: libtun6/tun6.c:886
 msgid ""
 "Make sure your Linux kernel includes the \"Universal TUNTAP driver\"\n"
 "(CONFIG_TUN option), possibly as a module.\n"
@@ -144,7 +143,7 @@ msgstr ""
 "Vérifiez que votre noyau Linux comporte « l'Universal TUNTAP driver »\n"
 "(option CONFIG_TUN), éventuellement sous forme de module.\n"
 
-#: libtun6/tun6.c:844
+#: libtun6/tun6.c:898
 #, c-format
 msgid ""
 "Error: your operating system does not seem to provide a network tunneling\n"
@@ -155,7 +154,7 @@ msgstr ""
 "périphérique de tunnel réseau, ce qui est indispensable.\n"
 "%s"
 
-#: libtun6/tun6.c:853
+#: libtun6/tun6.c:907
 #, c-format
 msgid ""
 "Error: cannot open device file %s (%s)\n"
@@ -243,7 +242,7 @@ msgstr "Nombre invalide (ou capacité dépassée) « %s » pour l'option -%c\n
 msgid "%s: unexpected extra parameter\n"
 msgstr "%s : paramètre en trop\n"
 
-#: src/main.c:201
+#: src/main.c:213
 msgid ""
 "That is usually an indication that you are trying to start\n"
 "the program as an user with insufficient system privileges.\n"
@@ -253,16 +252,16 @@ msgstr ""
 "en tant qu'utilisateur avec des privilèges systèmes insuffisants.\n"
 "Normalement, ce programme devrait être démarré par root.\n"
 
-#: src/main.c:249
+#: src/main.c:258
 #, c-format
 msgid "User \"%s\": %s\n"
 msgstr "Utilisateur « %s » : %s\n"
 
-#: src/main.c:251
+#: src/main.c:260
 msgid "User not found"
 msgstr "Utilisateur non trouvé"
 
-#: src/main.c:253
+#: src/main.c:262
 #, c-format
 msgid ""
 "Error: This program was asked to run in the\n"
@@ -281,7 +280,7 @@ msgstr ""
 "ce\n"
 "programme  dans le contexte de sécurité d'un autre utilisateur.\n"
 
-#: src/main.c:267
+#: src/main.c:276
 msgid ""
 "Error: This program is not supposed to keep root\n"
 "privileges. That is potentially very dangerous\n"
@@ -293,17 +292,17 @@ msgstr ""
 "code de qualité « beta » qui n'a jamais été audité à la recherche de\n"
 "failles de sécurité).\n"
 
-#: src/main.c:284
+#: src/main.c:293
 #, c-format
 msgid "SetGID to group ID %u: %s\n"
 msgstr "SetGID vers l'ID de groupe %u : %s\n"
 
-#: src/main.c:297
+#: src/main.c:306
 #, c-format
 msgid "SetUID to root: %s\n"
 msgstr "SetUID vers root : %s\n"
 
-#: src/main.c:342
+#: src/main.c:351
 #, c-format
 msgid ""
 "Cannot create PID file %s:\n"
@@ -312,11 +311,11 @@ msgstr ""
 "Impossible de créer le fichier de PID %s :\n"
 " %s\n"
 
-#: src/main.c:346 src/relay.cpp:416 src/relay.cpp:500 src/server.cpp:167
+#: src/main.c:355 src/server.cpp:167
 msgid "Make sure another instance of the program is not already running."
 msgstr "Vérifiez qu'une autre instance du programme n'est pas déjà en marche."
 
-#: src/main.c:449
+#: src/main.c:462
 #, c-format
 msgid "Reading configuration from %s: %s\n"
 msgstr "Lecture de la configuration depuis %s : %s\n"
@@ -358,43 +357,48 @@ msgstr "Terminé avec une/des erreur(s)."
 msgid "Terminated with no error."
 msgstr "Terminé sans erreur."
 
-#: src/relay.cpp:156
+#: src/relay.cpp:159
 msgid "Teredo pseudo-tunnel started"
 msgstr "Pseudo-tunnel Teredo démarré"
 
-#: src/relay.cpp:158
+#: src/relay.cpp:161
 #, c-format
 msgid " (address: %s, MTU: %u)"
 msgstr " (adresse : %s, MTU : %u)"
 
-#: src/relay.cpp:166
+#: src/relay.cpp:169
 msgid "Teredo pseudo-tunnel stopped"
 msgstr "Pseudo-tunnel Teredo arrêté"
 
-#: src/relay.cpp:275
+#: src/relay.cpp:278
 #, c-format
 msgid "Invalid relay type \"%s\" at line %u"
 msgstr "Type de relais invalide « %s » à la ligne %u"
 
-#: src/relay.cpp:298 src/relay.cpp:313 src/relay.cpp:329 src/relay.cpp:337
-#: src/relay.cpp:348 src/relay.cpp:374 src/server.cpp:110 src/server.cpp:118
+#: src/relay.cpp:301 src/relay.cpp:316 src/relay.cpp:332 src/relay.cpp:340
+#: src/relay.cpp:351 src/relay.cpp:377 src/server.cpp:110 src/server.cpp:118
 #: src/server.cpp:135
 msgid "Fatal configuration error"
 msgstr "Erreur fatale de configuration"
 
-#: src/relay.cpp:328 src/server.cpp:117
+#: src/relay.cpp:331 src/server.cpp:117
 msgid "Server address not specified"
 msgstr "Adresse du serveur non indiquée"
 
-#: src/relay.cpp:336
+#: src/relay.cpp:339
 msgid "Unsupported Teredo client mode"
 msgstr "Mode client Teredo non supporté"
 
-#: src/relay.cpp:415 src/relay.cpp:432 src/relay.cpp:446 src/relay.cpp:498
-msgid "Teredo tunnel fatal error"
-msgstr "Erreur fatal du tunnel Teredo"
+#: src/relay.cpp:418 src/relay.cpp:452 src/relay.cpp:458 src/relay.cpp:501
+#, c-format
+msgid "Miredo setup failure: %s"
+msgstr "Échec du démarrage de Miredo : %s"
 
-#: src/relay.cpp:456
+#: src/relay.cpp:419
+msgid "Cannot create IPv6 tunnel"
+msgstr "Impossible de créer le tunnel IPv6"
+
+#: src/relay.cpp:459 src/relay.cpp:502
 msgid "libteredo cannot be initialized"
 msgstr "Impossible d'initialiser libteredo"
 
@@ -412,142 +416,52 @@ msgstr "Erreur fatale du serveur Teredo"
 msgid "Superfluous directive %s at line %u"
 msgstr "Directive %s superflue à la ligne %u"
 
-#: src/conf.cpp:148
+#: src/conf.cpp:151
 #, c-format
 msgid "Error (%s): %s"
 msgstr "Erreur (%s) : %s"
 
-#: src/conf.cpp:170
+#: src/conf.cpp:173
 #, c-format
 msgid "Skipped overly long line %u"
 msgstr "Ligne %u trop longue ignorée"
 
-#: src/conf.cpp:187
+#: src/conf.cpp:190
 #, c-format
 msgid "Ignoring line %u: %s"
 msgstr "Line %u ignorée : %s"
 
-#: src/conf.cpp:195
+#: src/conf.cpp:198
 #, c-format
 msgid "Error reading configuration file: %s"
 msgstr "Erreur de lecture du fichier de configuration : %s"
 
-#: src/conf.cpp:214
+#: src/conf.cpp:219
 #, c-format
 msgid "Error opening configuration file %s: %s"
 msgstr "Erreur d'ouverture du fichier de configuration %s : %s"
 
-#: src/conf.cpp:265
+#: src/conf.cpp:270
 #, c-format
 msgid "Invalid integer value \"%s\" for %s: %s"
 msgstr "Valeur entière invalide « %s » pour %s : %s"
 
-#: src/conf.cpp:320
+#: src/conf.cpp:325
 #, c-format
 msgid "Invalid boolean value \"%s\" for %s"
 msgstr "Valeur booléenne incorrecte « %s » pour %s"
 
-#: src/conf.cpp:361 src/conf.cpp:392
+#: src/conf.cpp:366 src/conf.cpp:397
 #, c-format
 msgid "Invalid hostname \"%s\" at line %u: %s"
 msgstr "Nom d'hôte invalide « %s » à la ligne %u : %s"
 
-#: src/conf.cpp:416
+#: src/conf.cpp:421
 #, c-format
 msgid "Invalid Teredo IPv6 prefix: %x::/32"
 msgstr "Préfixe Teredo IPv6 invalide : %x::/32"
 
-#: src/conf.cpp:500
+#: src/conf.cpp:505
 #, c-format
 msgid "Unknown syslog facility \"%s\" at line %u"
 msgstr "Catégorie syslog « %s » inconnue à la ligne %u"
-
-#, fuzzy
-#~ msgid "Fatal configuration error: %s"
-#~ msgstr "Erreur fatale de configuration"
-
-#~ msgid "Memory problem: %s"
-#~ msgstr "Problème de mémoire : %s"
-
-#~ msgid ""
-#~ "\n"
-#~ "***********************************************************************\n"
-#~ "*                          IMPORTANT NOTICE                           *\n"
-#~ "*                                                                     *\n"
-#~ "* At the time of release of this version of the program, the IETF had *\n"
-#~ "* not yet published the Teredo protocol specification (RFC). As such, *\n"
-#~ "* this version of the program still uses experimental provisional     *\n"
-#~ "* settings, which will most likely be altered when the specification  *\n"
-#~ "* is published. A new version of the program will then be released to *\n"
-#~ "* take these changes into consideration. Until then, this program     *\n"
-#~ "* might not work properly and should be considered experimental.      *\n"
-#~ "***********************************************************************\n"
-#~ msgstr ""
-#~ "\n"
-#~ "╔══════════════════════════════════════════════════════════════════════╗\n"
-#~ "║                          REMARQUE IMPORTANTE                         ║\n"
-#~ "║                                                                      ║\n"
-#~ "║ Lors  de  la  publication  de cette  version  du  programme,  l'IETF ║\n"
-#~ "║ n'avait  pas encore  publié  la spécification  (RFC) du  protocole   ║\n"
-#~ "║ Teredo.  Aussi,  cette  version  du  programme  utilise  encore  des ║\n"
-#~ "║ réglages expérimentaux temporaires,  qui seront très probablement    ║\n"
-#~ "║ modifiés lors de  la publication de la  spécification. Une version   ║\n"
-#~ "║ mise-à-jour  sera  alors fournie  pour  prendre  en compte  de  ces  ║\n"
-#~ "║ changements.  D'ici  là,  ce  programme  peut  ne  pas  fonctionner  ║\n"
-#~ "║ correctement et devrait être considéré comme expérimental.           ║\n"
-#~ "╚══════════════════════════════════════════════════════════════════════╝\n"
-
-#~ msgid ""
-#~ "%s:\n"
-#~ " cannot open UDP port %u"
-#~ msgstr ""
-#~ "%s :\n"
-#~ " impossible d'ouvrir le port UDP %u"
-
-#~ msgid ""
-#~ "%s:\n"
-#~ " cannot open an UDP port"
-#~ msgstr ""
-#~ "%s :\n"
-#~ " impossible d'ouvrir un port UDP"
-
-#~ msgid "Libgcrypt version mismatch."
-#~ msgstr "Erreur de version de Libgcrypt"
-
-#~ msgid "IPv6 stack not available: %m"
-#~ msgstr "Pile IPv6 non disponible : %m"
-
-#~ msgid "%s tunneling interface %s created"
-#~ msgstr "Interface %1$s de tunneling %2$s créée"
-
-#~ msgid "Tunneling interface %s removed"
-#~ msgstr "Interface %s de tunneling supprimée"
-
-#~ msgid "%s tunnel address %s/%u setup error: %m"
-#~ msgstr "Erreur de réglage de l'adresse %2$s/%3$u pour le tunnel %1$s : %m"
-
-#~ msgid "%s tunnel address %s/%u removal error: %m"
-#~ msgstr ""
-#~ "Erreur de suppression de l'adresse %2$s/%3$u pour le tunnel %1$s : %m"
-
-#~ msgid "%s tunnel address added: %s/%u"
-#~ msgstr "Adresse ajoutée au tunnel %s : %s/%u"
-
-#~ msgid "%s tunnel address deleted: %s/%u"
-#~ msgstr "Adresse du tunnel %s supprimée : %s/%u"
-
-#~ msgid "%s tunnel route %s/%u setup error: %m"
-#~ msgstr "Erreur de réglage de la route %2$s/%3$u pour le tunnel %1$s : %m"
-
-#~ msgid "%s tunnel route %s/%u removal error: %m"
-#~ msgstr ""
-#~ "Erreur de suppression de la route %2$s/%3$u pour le tunnel %1$s : %m"
-
-#~ msgid "%s tunnel route set: %s/%u"
-#~ msgstr "Route définie sur le tunnel %s : %s/%u"
-
-#~ msgid "%s tunnel route removed: %s/%u"
-#~ msgstr "Route retirée du tunnel %s : %s/%u"
-
-#~ msgid "%s tunnel MTU (%u bytes) change failed: %m"
-#~ msgstr "Échec du changement du MTU du tunnel %s (%u octets) : %m"
