@@ -156,10 +156,7 @@ tun6 *tun6_create (const char *req_name)
 	bindtextdomain (PACKAGE_NAME, LOCALEDIR);
 	tun6 *t = (tun6 *)malloc (sizeof (*t));
 	if (t == NULL)
-	{
-		syslog (LOG_ERR, _("Tunneling driver error (%s): %m"), "malloc");
 		return NULL;
-	}
 
 	int reqfd = t->reqfd = socket (AF_INET6, SOCK_DGRAM, 0);
 	if (reqfd == -1)
@@ -178,7 +175,8 @@ tun6 *tun6_create (const char *req_name)
 	int fd = open (tundev, O_RDWR);
 	if (fd == -1)
 	{
-		syslog (LOG_ERR, _("Tunneling driver error (%s): %m"), tundev);
+		syslog (LOG_ERR, _("Tunneling driver error (%s): %s"), tundev,
+		        strerror (errno));
 		(void)close (reqfd);
 		free (t);
 		return NULL;
@@ -192,7 +190,8 @@ tun6 *tun6_create (const char *req_name)
 
 	if (ioctl (fd, TUNSETIFF, (void *)&req))
 	{
-		syslog (LOG_ERR, _("Tunneling driver error (%s): %m"), "TUNSETIFF");
+		syslog (LOG_ERR, _("Tunneling driver error (%s): %s"), "TUNSETIFF",
+		        strerror (errno));
 		goto error;
 	}
 
@@ -266,8 +265,8 @@ tun6 *tun6_create (const char *req_name)
 
 	if (fd == -1)
 	{
-		syslog (LOG_ERR, _("Tunneling driver error (%s): %m"),
-		        errmsg);
+		syslog (LOG_ERR, _("Tunneling driver error (%s): %s"),
+		        errmsg, strerror (errno));
 		goto error;
 	}
 #else
