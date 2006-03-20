@@ -193,7 +193,7 @@ miredo_configure_tunnel (int fd, const struct in6_addr *addr, unsigned mtu)
 
 	memset (&s, 0, sizeof (s));
 	memcpy (&s.addr, addr, sizeof (s.addr));
-	s.mtu = mtu;
+	s.mtu = (uint16_t)mtu;
 
 	if ((send (fd, &s, sizeof (s), 0) != sizeof (s))
 	 || (recv (fd, &res, sizeof (res), 0) != sizeof (res)))
