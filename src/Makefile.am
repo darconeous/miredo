@@ -21,6 +21,7 @@ datadir = @datadir@
 localedir = $(datadir)/locale
 top_srcdir = @top_srcdir@
 sysconfdir = @sysconfdir@
+
 LIBINTL = @LIBINTL@
 LTLIBINTL = @LTLIBINTL@
 LIBCAP = @LIBCAP@
@@ -64,16 +65,16 @@ miredo_server_LDADD = $(LIBINTL) $(LIBCAP) libmiredo.la \
 miredo_checkconf_SOURCES = checkconf.cpp
 miredo_checkconf_LDADD = $(LIBINTL) libmiredo.la
 
-# Automake does not support checking for MIREDO_CHROOT || MIREDO_PIDFILE
-# so we always create the directory
 install-exec-local:
-	test -z "$(DESTDIR)$(localstatedir)/run/miredo" || \
-	$(install_sh) -d "$(DESTDIR)$(localstatedir)/run/miredo"
+	$(install_sh) -d "$(DESTDIR)$(localstatedir)/run"
+if MIREDO_CHROOT
+	$(install_sh) -d "$(DESTDIR)$(miredo_chroot)"
+endif
 
 uninstall-local:
-	-rmdir "$(DESTDIR)$(localstatedir)/run/miredo"
-	-rmdir "$(DESTDIR)$(localstatedir)/run"
-	-rmdir "$(DESTDIR)$(localstatedir)"
+if MIREDO_CHROOT
+	-rmdir "$(DESTDIR)$(miredo_chroot)"
+endif
 
 # SVN version
 #$(srcdir)/svnversion.stamp:
