@@ -45,7 +45,7 @@ TESTS = miredo-checkconf
 
 libmiredo_la_SOURCES = main.c miredo.cpp miredo.h \
 			conf.cpp conf.h prefix.c prefix.h
-libmiredo_la_LIBADD = $(LTLIBINTL) $(LIBCAP)
+libmiredo_la_LIBADD = ../libtun6/libtun6.la $(LTLIBINTL) $(LIBCAP)
 libmiredo_la_LDFLAGS = -static -no-undefined
 
 # miredo
@@ -53,17 +53,15 @@ miredo_SOURCES = relay.cpp
 if TEREDO_CLIENT
 miredo_SOURCES += privproc.c privproc.h
 endif
-miredo_LDADD = $(LIBINTL) $(LIBCAP) libmiredo.la \
-		../libtun6/libtun6.la ../libteredo/libteredo.la
-
+miredo_LDADD = ../libteredo/libteredo.la libmiredo.la $(LIBINTL)
+		
 # miredo-server
 miredo_server_SOURCES = server.cpp
-miredo_server_LDADD = $(LIBINTL) $(LIBCAP) libmiredo.la \
-			../libteredo/libteredo-server.la
-
+miredo_server_LDADD = ../libteredo/libteredo-server.la libmiredo.la $(LIBINTL)
+			
 # miredo-checkconf
 miredo_checkconf_SOURCES = checkconf.cpp
-miredo_checkconf_LDADD = $(LIBINTL) libmiredo.la
+miredo_checkconf_LDADD = libmiredo.la $(LIBINTL)
 
 install-exec-local:
 	$(install_sh) -d "$(DESTDIR)$(localstatedir)/run"
