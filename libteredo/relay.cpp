@@ -411,14 +411,14 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 		if ((dst->teredo.prefix != s.addr.teredo.prefix)
 		 && (src->teredo.prefix != s.addr.teredo.prefix))
 		{
-				/*
-			* Routing packets not from a Teredo client,
-			* neither toward a Teredo client is NOT allowed through a
-			* Teredo tunnel. The Teredo server will reject the packet.
-			*
-			* We also drop link-local unicast and multicast packets as
-			* they can't be routed through Teredo properly.
-				*/
+			/*
+			 * Routing packets not from a Teredo client,
+			 * neither toward a Teredo client is NOT allowed through a
+			 * Teredo tunnel. The Teredo server will reject the packet.
+			 *
+			 * We also drop link-local unicast and multicast packets as
+			 * they can't be routed through Teredo properly.
+			 */
 			SendUnreach (ICMP6_DST_UNREACH_ADMIN, packet, length);
 			return 0;
 		}
@@ -469,16 +469,16 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 	bool created;
 	time_t now = time (NULL);
 
-// 	syslog (LOG_DEBUG, "packet to be sent");
+//	syslog (LOG_DEBUG, "packet to be sent");
 	teredo_peer *p = teredo_list_lookup (list, now, &dst->ip6, &created);
 	if (p == NULL)
 		return -1; /* error */
 
 	if (!created)
 	{
-// 		syslog (LOG_DEBUG, " peer is %strusted", p->trusted ? "" : "NOT ");
-// 		syslog (LOG_DEBUG, " peer is %svalid", p->IsValid (now) ? "" : "NOT ");
-// 		syslog (LOG_DEBUG, " pings = %u, bubbles = %u", p->pings, p->bubbles);
+//		syslog (LOG_DEBUG, " peer is %strusted", p->trusted ? "" : "NOT ");
+//		syslog (LOG_DEBUG, " peer is %svalid", IsValid (p, now) ? "" : "NOT ");
+//		syslog (LOG_DEBUG, " pings = %u, bubbles = %u", p->pings, p->bubbles);
 
 		/* Case 1 (paragraphs 5.2.4 & 5.4.1): trusted peer */
 		if (p->trusted && IsValid (p, now))
@@ -493,8 +493,11 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 			return res;
 		}
 	}
-// 	else
-// 		syslog (LOG_DEBUG, " peer unknown and created");
+ 	else
+	{
+ 		p->trusted = p->bubbles = p->pings = 0;
+//		syslog (LOG_DEBUG, " peer unknown and created");
+	}
 
 	// Unknown, untrusted, or too old peer
 	// (thereafter refered to as simply "untrusted")
@@ -513,7 +516,6 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 		{
 			p->mapped_port = 0;
 			p->mapped_addr = 0;
-			p->trusted = p->bubbles = p->pings = 0;
 		}
 
 		QueueOutgoing (p, packet, length);
@@ -533,11 +535,8 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 	/* Client case 3: TODO: implement local discovery */
 
 	if (created)
-	{
 		/* Unknown Teredo clients */
 		SetMapping (p, IN6_TEREDO_IPV4 (dst), IN6_TEREDO_PORT (dst));
-		p->trusted = p->bubbles = p->pings = 0;
-	}
 
 	/* Client case 4 & relay case 2: new cone peer */
 	if (allowCone && IN6_IS_TEREDO_ADDR_CONE (dst))
@@ -741,9 +740,9 @@ int TeredoRelay::ReceivePacket (void)
 
 	if (p != NULL)
 	{
-// 		syslog (LOG_DEBUG, " peer is %strusted", p->trusted ? "" : "NOT ");
-// 		syslog (LOG_DEBUG, " not checking validity");
-// 		syslog (LOG_DEBUG, " pings = %u, bubbles = %u", p->pings, p->bubbles);
+//		syslog (LOG_DEBUG, " peer is %strusted", p->trusted ? "" : "NOT ");
+//		syslog (LOG_DEBUG, " not checking validity");
+//		syslog (LOG_DEBUG, " pings = %u, bubbles = %u", p->pings, p->bubbles);
 
 		// Client case 1 (trusted node or (trusted) Teredo client):
 		if (p->trusted
@@ -773,7 +772,7 @@ int TeredoRelay::ReceivePacket (void)
 #endif /* ifdef MIREDO_TEREDO_CLIENT */
 	}
 //	else
-// 		syslog (LOG_DEBUG, " unknown peer");
+//		syslog (LOG_DEBUG, " unknown peer");
 
 	/*
 	 * At this point, we have either a trusted mapping mismatch,
@@ -868,10 +867,10 @@ int TeredoRelay::ReceivePacket (void)
 			}
 			//else race condition - peer already created by another thread
 				// -> nothing to set in that case
-// 			syslog (LOG_DEBUG, " peer created");
+//			syslog (LOG_DEBUG, " peer created");
 		}
 
-// 		syslog (LOG_DEBUG, " packet queued pending Echo Reply");
+//		syslog (LOG_DEBUG, " packet queued pending Echo Reply");
 		QueueIncoming (p, buf, length);
 		TouchReceive (p, now);
 	
