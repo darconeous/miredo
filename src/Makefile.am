@@ -45,7 +45,7 @@ TESTS = miredo-checkconf
 
 libmiredo_la_SOURCES = main.c miredo.cpp miredo.h \
 			conf.cpp conf.h prefix.c prefix.h
-libmiredo_la_LIBADD = ../libtun6/libtun6.la $(LTLIBINTL) $(LIBCAP)
+libmiredo_la_LIBADD = $(LTLIBINTL) $(LIBCAP)
 libmiredo_la_LDFLAGS = -static -no-undefined
 
 # miredo
@@ -53,7 +53,8 @@ miredo_SOURCES = relay.cpp
 if TEREDO_CLIENT
 miredo_SOURCES += privproc.c privproc.h
 endif
-miredo_LDADD = ../libteredo/libteredo.la libmiredo.la $(LIBINTL)
+miredo_LDADD = ../libtun6/libtun6.la ../libteredo/libteredo.la libmiredo.la \
+		$(LIBINTL)
 		
 # miredo-server
 miredo_server_SOURCES = server.cpp
