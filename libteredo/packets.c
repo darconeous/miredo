@@ -356,15 +356,13 @@ SendPing (int fd, const union teredo_addr *src, const struct in6_addr *dst)
 
 
 /**
- * Checks that the packet is an ICMPv6 Echo reply and that it matches the
- * specified nonce value.
+ * Checks that the packet is an ICMPv6 Echo reply and authenticates it.
  *
  * @return 0 if that is the case, -1 otherwise.
  */
 int CheckPing (const teredo_packet *packet)
 {
 	const struct ip6_hdr *ip6 = (const struct ip6_hdr *)packet->ip6;
-	const struct icmp6_hdr *icmp6;
 	size_t length = packet->ip6_len;
 
 	// Only read bytes, so no need to align
@@ -372,12 +370,10 @@ int CheckPing (const teredo_packet *packet)
 	 || (length < (sizeof (*ip6) + sizeof (struct icmp6_hdr) + PING_PAYLOAD)))
 		return -1;
 
-	icmp6 = (const struct icmp6_hdr *)(ip6 + 1);
+    const struct icmp6_hdr *icmp6 = (const struct icmp6_hdr *)(ip6 + 1);
 
 	if (icmp6->icmp6_type == ICMP6_DST_UNREACH)
 	{
-		uint16_t plen;
-
 		/*
 		 * NOTE:
 		 * Some brain-dead IPv6 nodes/firewalls don't reply to pings (which is
@@ -385,7 +381,7 @@ int CheckPing (const teredo_packet *packet)
 		 * of these brain-dead hosts reply with ICMPv6 unreachable messages.
 		 * We can authenticate them by looking at the payload of the message
 		 * and see if it is an ICMPv6 Echo request with the matching nonce in
-		 * it. (Yes, it is a nasty kludge)
+		 * it (Yes, this is a nasty kludge).
 		 *
 		 * NOTE 2:
 		 * We don't check source and destination addresses there...
@@ -397,6 +393,7 @@ int CheckPing (const teredo_packet *packet)
 		 || (ip6->ip6_nxt != IPPROTO_ICMPV6))
 			return -1;
 
+		uint16_t plen;
 		memcpy (&plen, &ip6->ip6_plen, sizeof (plen));
 		if (ntohs (plen) != (sizeof (*icmp6) + PING_PAYLOAD))
 			return -1; // not a ping from us
@@ -414,7 +411,7 @@ int CheckPing (const teredo_packet *packet)
 		return -1;
 	
 	return CompareHMAC (&ip6->ip6_dst, &ip6->ip6_src,
-						 (uint8_t *)&icmp6->icmp6_id) ? 0 : -1;
+	                    (uint8_t *)&icmp6->icmp6_id) ? 0 : -1;
 	/* TODO: check the sum(?) */
 }
 #endif
