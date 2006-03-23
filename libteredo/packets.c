@@ -401,7 +401,33 @@ int CheckPing (const teredo_packet *packet)
 
 		icmp6 = (const struct icmp6_hdr *)(ip6 + 1);
 
-		if (icmp6->icmp6_type != ICMP6_ECHO_REQUEST)
+		if (memcmp (&ip6->ip6_src, me, sizeof (*me))
+		 || (icmp6->icmp6_type != ICMP6_ECHO_REQUEST))
+			return -1;
+
+		/*
+		 * The callers wants to check the ping as regards the Unreachable
+		 * error packet's source, not as regards the inner Echo Request
+		 * packet destination. Sometimes, firewalls send error with their
+		 * own address (as a router) as source. In that case, we must not
+		 * accept the packet. If we did, the core relaying logic would
+		 * believe that we have authenticated the firewall address, while
+		 * we really authenticated the inner packet destination address.
+		 * In practice, this would potentially be a way to bypass the HMAC
+		 * authentication of Teredo relays: once a relays catches one valid
+		 * HMAC authentified Echo reply from an IPv6 node, it could fake
+		 * error message and spoof any other non-Teredo IPv6 node, by setting
+		 * the ICMPv6 Destination Unreachable packet IPv6 source address to
+		 * that of a host to be spoofed.
+		 *
+		 * An alternive to simply dropping these packets would be to implement
+		 * a complex interaction between the caller and CheckPing(), so that
+		 * CheckPing() could notify the caller that the authenticated IPv6
+		 * node is not the packet's source. However, this is probably
+		 * overkill, and might not even work properly depending on the cuplrit
+		 * firewall rules.
+		 */
+		if (memcmp (&ip6->ip6_dst, it, sizeof (*it)))
 			return -1;
 
 		me = &ip6->ip6_src;
