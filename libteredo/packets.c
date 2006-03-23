@@ -351,7 +351,7 @@ SendPing (int fd, const union teredo_addr *src, const struct in6_addr *dst)
 
 	return teredo_send (fd, &ping, sizeof (ping.ip6) + sizeof (ping.icmp6)
 	                    + PING_PAYLOAD, IN6_TEREDO_SERVER (src),
-						htons (IPPORT_TEREDO)) > 0 ? 0 : -1;
+	                    htons (IPPORT_TEREDO)) > 0 ? 0 : -1;
 }
 
 
