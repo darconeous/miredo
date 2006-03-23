@@ -1,18 +1,33 @@
 RELEASE NOTES for Miredo
-version 0.8.0 (stable version)
+version 0.8.1 (stable version)
 ===============================
 $Id$
 
-  This is the first officially stable release of the program. The package
-is functional, though it lacks some optional features. There are also no
-known outstanding issues. Users of previous releases are encouraged to
-upgrade, as this version introduces some important updates.
+  This is an officially stable release of the program. The package is
+functional, though it lacks some optional features. There are also no
+known outstanding issues. Users of previous releases are STRONGLY ADVISED
+to upgrade, as this version includes a fix for a potential security
+vulnerability (as well as some other minor bugs).
   Please report any problem by email to rdenis (at) simphalempin (dot) com
 
   You can find major changes since version 0.1.0 below. For more general
 informations on this program, see README. For syntax details and
 changes, run 'miredo -h' to get help. For detailled internal changes, see
 ChangeLog.
+
+=============================================================================
+STABLE RELEASE 0.8.1 : Security/bug fixes
+
+# Fix possible non-Teredo IPv6 node impersonation toward Teredo client
+  due to an input validation error.
+# Change sample configuration default Teredo server to “teredo.remlab.net”.
+# Fix segmentation fault at exit when specifying a server name from the
+  command line.
+# Fix locking and deletion of PID file in background (default) mode.
+# New program: miredo-checkconf to verify configuration file syntax.
+# Partial support for NetBSD 4.0 (still not completely working).
+# libtun6 is now a reusable shared library.
+# Code clean up and other minor bug fixes.
 
 =============================================================================
 STABLE RELEASE 0.8.0 : Minor bugfixes
