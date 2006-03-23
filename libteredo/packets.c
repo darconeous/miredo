@@ -370,7 +370,8 @@ int CheckPing (const teredo_packet *packet)
 	 || (length < (sizeof (*ip6) + sizeof (struct icmp6_hdr) + PING_PAYLOAD)))
 		return -1;
 
-    const struct icmp6_hdr *icmp6 = (const struct icmp6_hdr *)(ip6 + 1);
+	const struct icmp6_hdr *icmp6 = (const struct icmp6_hdr *)(ip6 + 1);
+	const struct in6_addr *me = &ip6->ip6_dst, *it = &ip6->ip6_src;
 
 	if (icmp6->icmp6_type == ICMP6_DST_UNREACH)
 	{
@@ -402,6 +403,9 @@ int CheckPing (const teredo_packet *packet)
 
 		if (icmp6->icmp6_type != ICMP6_ECHO_REQUEST)
 			return -1;
+
+		me = &ip6->ip6_src;
+		it = &ip6->ip6_dst;
 	}
 	else
 	if (icmp6->icmp6_type != ICMP6_ECHO_REPLY)
@@ -409,9 +413,8 @@ int CheckPing (const teredo_packet *packet)
 
 	if (icmp6->icmp6_code != 0)
 		return -1;
-	
-	return CompareHMAC (&ip6->ip6_dst, &ip6->ip6_src,
-	                    (uint8_t *)&icmp6->icmp6_id) ? 0 : -1;
+
+	return CompareHMAC (me, it, (uint8_t *)&icmp6->icmp6_id) ? 0 : -1;
 	/* TODO: check the sum(?) */
 }
 #endif
