@@ -84,7 +84,7 @@ static const cap_value_t capv[] =
 };
 
 const cap_value_t *miredo_capv = capv;
-const int miredo_capc = 4;
+const int miredo_capc = sizeof (capv) / sizeof (capv[0]);
 #endif
 
 
