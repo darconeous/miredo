@@ -21,17 +21,17 @@
 
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
 NAME=miredo
-DAEMON=/usr/sbin/$NAME
+DAEMON=@sbindir@/$NAME
 DESC="Teredo IPv6 tunneling daemon"
 DAEMON_ARGS=""
-PIDFILE=/var/run/$NAME.pid
+PIDFILE=@localstatedir@/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
 
 # Source defaults.
 [ -r /etc/default/$NAME ] && . /etc/default/$NAME
 
 # Ensure configuration is readable.
-test -r /etc/$NAME.conf || exit 0
+test -r @sysconfdir@/$NAME.conf || exit 0
 
 test -x $DAEMON || exit 0
 

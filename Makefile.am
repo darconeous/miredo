@@ -19,17 +19,15 @@
 
 ACLOCAL_AMFLAGS = -I m4
 
-SUBDIRS = po libtun6 libteredo src
+SUBDIRS = po misc libtun6 libteredo src
 DIST_SUBDIRS = m4 $(SUBDIRS)
 
 man5_MANS = doc/miredo.conf.5 doc/miredo-server.conf.5
 man8_MANS = doc/miredo.8 doc/miredo-server.8
 noinst_HEADERS = include/gettext.h
-dist_sysconf_DATA = misc/miredo.conf-dist misc/miredo-server.conf-dist
 
 EXTRA_DIST = bootstrap $(man5_MANS) $(man8_MANS) \
-		autopackage/default.apspec.in \
-		misc/miredo misc/miredo.sh misc/miredo-server.sh
+		autopackage/default.apspec.in
 
 miredo_conf = $(sysconfdir)/miredo.conf
 
