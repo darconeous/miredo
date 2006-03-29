@@ -35,6 +35,7 @@
 #include <sys/types.h>
 #include <sys/select.h>
 #include <syslog.h>
+#include <signal.h> // sigemptyset()
 #include <netdb.h> // gai_strerror()
 #include <unistd.h> // for broken libc which don't know about sys/select.h
 #ifdef HAVE_SYS_CAPABILITY_H
