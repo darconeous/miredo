@@ -37,7 +37,7 @@ msgstr "Socket IPv6 brute (« raw ») non disponible : %s"
 msgid ""
 "Teredo server UDP socket error: Server IPv4 addresses must be global unicast."
 msgstr ""
-"Erreur de socket UDP de serveur Teredo : l'adresse IPv4 de serveur doit être "
+"Erreur de socket UDP de serveur Teredo : l’adresse IPv4 de serveur doit être "
 "globale unicast."
 
 #: libteredo/packets.c:266
@@ -59,7 +59,7 @@ msgstr "Décalage temporel trop important. Re-synchronisation."
 #: libteredo/maintain.c:264
 #, c-format
 msgid "Cannot resolve Teredo server address \"%s\": %s"
-msgstr "Impossible de déterminer l'adresse du serveur Teredo « %s » : %s"
+msgstr "Impossible de déterminer l’adresse du serveur Teredo « %s » : %s"
 
 #: libteredo/maintain.c:281
 msgid "Server has a non global IPv4 address. It will most likely not work."
@@ -104,7 +104,7 @@ msgstr "Erreur du pilote de tunneling (%s) : %s"
 #: libtun6/tun6.c:283
 #, c-format
 msgid "%s tunneling interface creation failure"
-msgstr "Échec de création de l'interface de tunneling %s"
+msgstr "Échec de création de l’interface de tunneling %s"
 
 #: libtun6/tun6.c:860
 msgid ""
@@ -140,7 +140,7 @@ msgid ""
 "Make sure your Linux kernel includes the \"Universal TUNTAP driver\"\n"
 "(CONFIG_TUN option), possibly as a module.\n"
 msgstr ""
-"Vérifiez que votre noyau Linux comporte « l'Universal TUNTAP driver »\n"
+"Vérifiez que votre noyau Linux comporte « l’Universal TUNTAP driver »\n"
 "(option CONFIG_TUN), éventuellement sous forme de module.\n"
 
 #: libtun6/tun6.c:898
@@ -150,7 +150,7 @@ msgid ""
 "device driver, which is required.\n"
 "%s"
 msgstr ""
-"Erreur : votre système d'exploitation semble ne pas fournir de pilote de\n"
+"Erreur : votre système d’exploitation semble ne pas fournir de pilote de\n"
 "périphérique de tunnel réseau, ce qui est indispensable.\n"
 "%s"
 
@@ -182,13 +182,13 @@ msgid ""
 "  -V, --version    display program version and exit\n"
 msgstr ""
 "Usage : %s [OPTIONS] [NOM_SERVEUR]\n"
-"Crée une interface de tunneling Teredo pour l'encapsulation d'IPv6 sur UDP.\n"
+"Crée une interface de tunneling Teredo pour l’encapsulation d’IPv6 sur UDP.\n"
 "\n"
 "  -c, --config     spécife un fichier de configuration\n"
-"  -f, --foreground s'exécute en avant plan\n"
+"  -f, --foreground s’exécute en avant plan\n"
 "  -h, --help       affiche cette aide et se termine\n"
-"  -p, --pidfile    redéfinit l'emplacement du fichier de PID\n"
-"  -u, --user       redéfinit l'utilisateur qui exécute le programme "
+"  -p, --pidfile    redéfinit l’emplacement du fichier de PID\n"
+"  -u, --user       redéfinit l’utilisateur qui exécute le programme "
 "(setuid)\n"
 "  -V, --version    affiche la version du programme et se termine\n"
 
@@ -220,8 +220,8 @@ msgid ""
 msgstr ""
 "Copyright © 2004-%u Rémi Denis-Courmont\n"
 "Ce logiciel est libre; voir les sources pour les conditions de\n"
-"reproduction. Il n'y a AUCUNE garantie; pas même pour la\n"
-"COMMERCIALISATION ou l'ADÉQUATION POUR UNE UTILISATION PARTICULIÈRE.\n"
+"reproduction. Il n’y a AUCUNE garantie; pas même pour la\n"
+"COMMERCIALISATION ou l’ADÉQUATION POUR UNE UTILISATION PARTICULIÈRE.\n"
 
 #: src/main.c:114
 #, c-format
@@ -229,13 +229,13 @@ msgid ""
 "Duplicate parameter \"%s\" for option -%c\n"
 "would override previous value \"%s\".\n"
 msgstr ""
-"Le paramètre doublon « %s » pour l'option -%c\n"
+"Le paramètre doublon « %s » pour l’option -%c\n"
 "redéfinirait la valeur précédente « %s ».\n"
 
 #: src/main.c:126
 #, c-format
 msgid "Invalid number (or capacity exceeded) \"%s\" for option -%c\n"
-msgstr "Nombre invalide (ou capacité dépassée) « %s » pour l'option -%c\n"
+msgstr "Nombre invalide (ou capacité dépassée) « %s » pour l’option -%c\n"
 
 #: src/main.c:135
 #, c-format
@@ -249,7 +249,7 @@ msgid ""
 "This program should normally be started by root.\n"
 msgstr ""
 "Cela signifie, en général, que vous tentez de démarrer le programme\n"
-"en tant qu'utilisateur avec des privilèges systèmes insuffisants.\n"
+"en tant qu’utilisateur avec des privilèges systèmes insuffisants.\n"
 "Normalement, ce programme devrait être démarré par root.\n"
 
 #: src/main.c:258
@@ -272,13 +272,13 @@ msgid ""
 "this program in the security context of another\n"
 "user.\n"
 msgstr ""
-"Erreur : L'exécution de ce programme dans le contexte de sécurité de\n"
-"l'utilisateur système « %s » a été demandée, mais celui-ci semble ne pas\n"
+"Erreur : L’exécution de ce programme dans le contexte de sécurité de\n"
+"l’utilisateur système « %s » a été demandée, mais celui-ci semble ne pas\n"
 "exister sur votre système.\n"
 "\n"
-"Utilisez l'option de ligne de commande « -u <utilisateur> » afin d'exécuter "
+"Utilisez l’option de ligne de commande « -u <utilisateur> » afin d’exécuter "
 "ce\n"
-"programme  dans le contexte de sécurité d'un autre utilisateur.\n"
+"programme  dans le contexte de sécurité d’un autre utilisateur.\n"
 
 #: src/main.c:276
 msgid ""
@@ -287,15 +287,15 @@ msgid ""
 "(all the more as it is beta quality code that has\n"
 "never been audited for security vulnerabilities).\n"
 msgstr ""
-"Erreur : Ce programme n'est pas censé conserver les privilèges root.\n"
-"Cela est potentiellement très dangereux (d'autant plus qu'il s'agit de\n"
-"code de qualité « beta » qui n'a jamais été audité à la recherche de\n"
+"Erreur : Ce programme n’est pas censé conserver les privilèges root.\n"
+"Cela est potentiellement très dangereux (d’autant plus qu’il s’agit de\n"
+"code de qualité « beta » qui n’a jamais été audité à la recherche de\n"
 "failles de sécurité).\n"
 
 #: src/main.c:293
 #, c-format
 msgid "SetGID to group ID %u: %s\n"
-msgstr "SetGID vers l'ID de groupe %u : %s\n"
+msgstr "SetGID vers l’ID de groupe %u : %s\n"
 
 #: src/main.c:306
 #, c-format
@@ -313,7 +313,7 @@ msgstr ""
 
 #: src/main.c:355 src/server.cpp:171
 msgid "Make sure another instance of the program is not already running."
-msgstr "Vérifiez qu'une autre instance du programme n'est pas déjà en marche."
+msgstr "Vérifiez qu’une autre instance du programme n’est pas déjà en marche."
 
 #: src/main.c:462
 #, c-format
@@ -400,12 +400,12 @@ msgstr "Impossible de créer le tunnel IPv6"
 
 #: src/relay.cpp:463 src/relay.cpp:506
 msgid "libteredo cannot be initialized"
-msgstr "Impossible d'initialiser libteredo"
+msgstr "Impossible d’initialiser libteredo"
 
 #: src/server.cpp:102
 #, c-format
 msgid "Invalid server hostname \"%s\": %s"
-msgstr "Nom d'hôte invalide « %s » : %s"
+msgstr "Nom d’hôte invalide « %s » : %s"
 
 #: src/server.cpp:170
 msgid "Teredo server fatal error"
@@ -439,7 +439,7 @@ msgstr "Erreur de lecture du fichier de configuration : %s"
 #: src/conf.cpp:219
 #, c-format
 msgid "Error opening configuration file %s: %s"
-msgstr "Erreur d'ouverture du fichier de configuration %s : %s"
+msgstr "Erreur d’ouverture du fichier de configuration %s : %s"
 
 #: src/conf.cpp:270
 #, c-format
@@ -454,7 +454,7 @@ msgstr "Valeur booléenne incorrecte « %s » pour %s"
 #: src/conf.cpp:366 src/conf.cpp:397
 #, c-format
 msgid "Invalid hostname \"%s\" at line %u: %s"
-msgstr "Nom d'hôte invalide « %s » à la ligne %u : %s"
+msgstr "Nom d’hôte invalide « %s » à la ligne %u : %s"
 
 #: src/conf.cpp:421
 #, c-format
