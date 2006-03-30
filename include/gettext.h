@@ -1,6 +1,6 @@
 /* Convenience header for conditional use of GNU <libintl.h>.
    Copyright (C) 1995-1998, 2000-2002, 2004 Free Software Foundation, Inc.
-   Copyright (C) 2005 Remi Denis-Courmont.
+   Copyright (C) 2005 Rémi Denis-Courmont.
 
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU Library General Public License as published
