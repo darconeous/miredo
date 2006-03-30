@@ -62,10 +62,6 @@ miredo_checkconf_LDADD = libmiredo.la $(LIBINTL)
 
 install-exec-local:
 	$(install_sh) -d "$(DESTDIR)$(localstatedir)/run"
-	$(install_sh) -d "$(DESTDIR)$(miredo_chroot)"
-
-uninstall-local:
-	-rmdir "$(DESTDIR)$(miredo_chroot)"
 
 # SVN version
 #$(srcdir)/svnversion.stamp:
