@@ -1,5 +1,5 @@
 # sockaddr.m4
-# Copyright (C) 2003-2006 Remi Denis-Courmont
+# Copyright (C) 2003-2006 Rémi Denis-Courmont
 # <rdenis (at) simphalempin (dot) com>.
 # This file (sockaddr.m4) is free software; unlimited permission to
 # copy and/or distribute it , with or without modifications, as long

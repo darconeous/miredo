@@ -2,7 +2,7 @@ dnl Check for binary relocation support
 dnl Hongli Lai
 dnl http://autopackage.org/
 dnl
-dnl with fixes and modifications by Remi Denis-Courmont
+dnl with fixes and modifications by Rémi Denis-Courmont
 
 AC_DEFUN([AM_BINRELOC],
 [
