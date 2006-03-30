@@ -1,5 +1,5 @@
 # hostname.m4
-dnl Copyright (C) 2003-2004 Rémi Denis-Courmont
+dnl Copyright © 2003-2004 Rémi Denis-Courmont
 dnl From Rémi Denis-Courmont
 
 AC_DEFUN([RDC_BUILD_HOSTNAME],

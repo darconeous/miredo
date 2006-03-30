@@ -1,5 +1,5 @@
 # Miredo English/British English localisation.
-# Copyright (C) 2004-2006 Rémi Denis-Courmont
+# Copyright © 2004-2006 Rémi Denis-Courmont
 # This file is distributed under the same licence as the miredo package.
 # Rémi Denis-Courmont <rdenis@simphalempin.com>, 2004.
 # $Id$
