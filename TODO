@@ -23,14 +23,14 @@ Not so important features:
 ---------------------------
 ( ) relay IPv6 access control lists:
     can be done with the OS firewall
-( ) support for reading kernel's gatewayed route through the tunnel
+( ) support for reading kernel’s gatewayed route through the tunnel
     (TUNSLMODE on NetBSD, but NetBSD has no userland IPv6 tunnel)
 (*) some statistics
 (H) other localizations
 ( ) support for UPnP IGD to open an UDP port on supporting NATs
 ( ) support for detecting networking changes with either /proc
     or Netlink
-(?) "automatic sunset" / "exit strategy
+(?) “automatic sunset” / “exit strategy”
 
 Conformance:
 -------------
