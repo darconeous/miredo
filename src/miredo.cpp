@@ -90,20 +90,23 @@ reload_handler (int signum)
 
 
 uid_t unpriv_uid = 0;
+const char *miredo_chrootdir = NULL;
 
 extern "C" int
 drop_privileges (void)
 {
-#ifdef MIREDO_CHROOT
 	/*
 	 * We could chroot earlier, but we do it know to keep compatibility with
 	 * grsecurity Linux kernel patch that automatically removes capabilities
 	 * when chrooted.
 	 */
-	if (chroot (MIREDO_CHROOT) || chdir ("/"))
-		syslog (LOG_WARNING, _("Error (%s): %s\n"),
-				"chroot(\""MIREDO_CHROOT"\")", strerror (errno));
-#endif
+	if ((miredo_chrootdir != NULL)
+	 && (chroot (miredo_chrootdir) || chdir ("/")))
+	{
+		syslog (LOG_ALERT, _("Error (%s): %s\n"),
+				"chroot", strerror (errno));
+		return -1;
+	}
 
 	// Definitely drops privileges
 	if (setuid (unpriv_uid))

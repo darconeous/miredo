@@ -61,9 +61,7 @@ static const cap_value_t capv[] =
 {
 	CAP_KILL, /* required by the signal handler */
 	CAP_SETUID,
-# ifdef MIREDO_CHROOT
 	CAP_SYS_CHROOT,
-# endif
 	CAP_NET_RAW /* required by libteredo_server */
 };
 

@@ -43,6 +43,7 @@ int miredo_diagnose (void);
 # endif
 
 extern uid_t unpriv_uid;
+extern const char *miredo_chrootdir;
 extern const char *const miredo_pidfile;
 extern const char *const miredo_conffile;
 

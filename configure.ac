@@ -174,27 +174,11 @@ AS_IF([test "x${enable_debug}" = "xno"],
 	[AC_DEFINE(NDEBUG)], [enable_debug=yes])
 AC_MSG_RESULT(${enable_debug})
 
-# chroot path
-AC_MSG_CHECKING([directory to chroot to])
-AC_ARG_ENABLE(chroot,
-	      [AS_HELP_STRING(--enable-chroot,
-	      		      [path to chroot to (default disabled)])])
-AS_IF([test "${enable_chroot}" = ""],
-	[AS_IF([test "${enable_teredo_client}" = "no"],
-		[enable_chroot=yes], [enable_chroot=no])])
-AS_IF([test "${enable_chroot}" = "yes"],
-	[enable_chroot='${localstatedir}/run/miredo'])
-AM_CONDITIONAL(MIREDO_CHROOT, [test "${enable_chroot}" != "no"])
-AS_IF([test "${enable_chroot}" != "no"],
-	[AC_SUBST(miredo_chroot, "${enable_chroot}")
-	AC_MSG_RESULT(${enable_chroot})],
-	[AC_MSG_RESULT(not using chroot)])
-
 # unprivileged user
 AC_MSG_CHECKING([user to run as])
 AC_ARG_ENABLE(miredo-user,
 	      [AS_HELP_STRING(--enable-miredo-user,
-			      [run as a specific user (default disabled)])])
+			      [run as a user (default nobody)])])
 AS_IF([test "${enable_miredo_user}" = "yes"],
 	[enable_miredo_user="miredo"])
 AS_IF([test "x${enable_miredo_user}" = "x" || test "${enable_miredo_user}" = "no"],

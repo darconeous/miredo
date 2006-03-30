@@ -33,10 +33,6 @@ AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir) -D_REENTRANT \
 	-DBR_PTHREADS=0
 AM_CFLAGS = -std=c99
 
-if MIREDO_CHROOT
-AM_CPPFLAGS += -DMIREDO_CHROOT=\"$(miredo_chroot)\"
-endif
-
 sbin_PROGRAMS = miredo miredo-server miredo-checkconf
 noinst_LTLIBRARIES = libmiredo.la
 TESTS = miredo-checkconf
@@ -55,25 +51,21 @@ miredo_SOURCES += privproc.c privproc.h
 endif
 miredo_LDADD = ../libtun6/libtun6.la ../libteredo/libteredo.la libmiredo.la \
 		$(LIBINTL)
-		
+
 # miredo-server
 miredo_server_SOURCES = server.cpp
 miredo_server_LDADD = ../libteredo/libteredo-server.la libmiredo.la $(LIBINTL)
-			
+
 # miredo-checkconf
 miredo_checkconf_SOURCES = checkconf.cpp
 miredo_checkconf_LDADD = libmiredo.la $(LIBINTL)
 
 install-exec-local:
 	$(install_sh) -d "$(DESTDIR)$(localstatedir)/run"
-if MIREDO_CHROOT
 	$(install_sh) -d "$(DESTDIR)$(miredo_chroot)"
-endif
 
 uninstall-local:
-if MIREDO_CHROOT
 	-rmdir "$(DESTDIR)$(miredo_chroot)"
-endif
 
 # SVN version
 #$(srcdir)/svnversion.stamp:

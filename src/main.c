@@ -380,7 +380,7 @@ int
 main (int argc, char *argv[])
 {
 	const char *username = NULL, *conffile = NULL, *servername = NULL,
-	           *pidfile = NULL;
+	           *pidfile = NULL, *chrootdir = NULL;
 	struct
 	{
 		unsigned foreground:1; /* Run in the foreground */
@@ -392,8 +392,11 @@ main (int argc, char *argv[])
 		{ "config",     required_argument, NULL, 'c' },
 		{ "foreground", no_argument,       NULL, 'f' },
 		{ "help",       no_argument,       NULL, 'h' },
-		{ "user",       required_argument, NULL, 'u' },
 		{ "pidfile",    required_argument, NULL, 'p' },
+		{ "chroot",     required_argument, NULL, 't' },
+		{ "chrootdir",  required_argument, NULL, 't' },
+		{ "user",       required_argument, NULL, 'u' },
+		{ "username",   required_argument, NULL, 'u' },
 		{ "version",    no_argument,       NULL, 'V' },
 		{ NULL,         no_argument,       NULL, '\0'}
 	};
@@ -412,7 +415,7 @@ main (int argc, char *argv[])
 
 	memset (&flags, 0, sizeof (flags));
 
-	while ((c = getopt_long (argc, argv, "c:fhp:u:V", opts,
+	while ((c = getopt_long (argc, argv, "c:fhp:t:u:V", opts,
 					NULL)) != -1)
 		switch (c)
 		{
@@ -434,6 +437,10 @@ main (int argc, char *argv[])
 
 			case 'u':
 				ONETIME_SETTING (username);
+				break;
+
+			case 't':
+				ONETIME_SETTING (chrootdir);
 				break;
 
 			case 'V':
@@ -463,26 +470,24 @@ main (int argc, char *argv[])
 				conffile, strerror (errno));
 		return 1;
 	}
-#ifdef MIREDO_CHROOT
-	else
+
+	if (chrootdir != NULL)
 	{
 		struct stat s;
-		const char path[] = MIREDO_CHROOT;
-
 		errno = 0;
 
-		if (stat (path, &s) || !S_ISDIR(s.st_mode)
-		 || access (path, X_OK))
+		if (stat (chrootdir, &s) || !S_ISDIR(s.st_mode)
+		 || access (chrootdir, X_OK))
 		{
 			if (errno == 0)
 				errno = ENOTDIR;
 
 			fprintf (stderr, _("Error (%s): %s\n"),
-			         path, strerror (errno));
+			         chrootdir, strerror (errno));
 			return 1;
 		}
 	}
-#endif
+	miredo_chrootdir = chrootdir;
 
 	if (pidfile == NULL)
 		pidfile = miredo_pidfile;
