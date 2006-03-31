@@ -310,6 +310,17 @@ void tun6_destroy (tun6* t)
  * error, and 0 on success. Similarly, they should require root privileges.
  */
 
+/**
+ * @return the name of the tunnel device
+ */
+const char *tun6_getName (const tun6 *t)
+{
+	assert (t != NULL);
+
+	return t->name;
+}
+
+
 #if defined (HAVE_LINUX)
 static void
 proc_write_zero (const char *path)
