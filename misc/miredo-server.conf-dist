@@ -80,7 +80,7 @@ ServerBindAddress 192.0.2.221
 # default). Hence, it is believed that if you use a secondary server
 # address that is different from the primary address plus one
 # (as in 192.0.2.221 + 1 = 192.0.2.222) that Teredo clients running on
-# Windows XP (at least those from behind restricted NAT) won't be able
+# Windows XP (at least those from behind restricted NAT) won't be able
 # to qualify with your server. Those running Miredo will need to set
 # the ServerAddress2 option properly. It is only available in Miredo
 # version 0.4.3 and bigger.
