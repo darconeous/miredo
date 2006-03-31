@@ -70,9 +70,8 @@ struct libteredo_server
 	uint32_t server_ip, prefix, advLinkMTU;
 };
 
-/*
+/**
  * Sends a Teredo-encapsulated Router Advertisement.
- * Returns -1 on error, 0 on success.
  */
 static bool
 SendRA (const libteredo_server *s, const struct teredo_packet *p,
@@ -176,7 +175,7 @@ SendRA (const libteredo_server *s, const struct teredo_packet *p,
 	                     iov, 3, p->source_ipv4, p->source_port) > 0;
 }
 
-/*
+/**
  * Forwards a Teredo packet to a client
  */
 static bool
@@ -222,9 +221,8 @@ libteredo_forward_udp (int fd, const struct teredo_packet *packet,
 }
 
 
-/*
+/**
  * Sends an IPv6 packet of *payload* length <plen> with a raw IPv6 socket.
- * Returns 0 on success, -1 on error.
  */
 static bool
 libteredo_send_ipv6 (const void *p, size_t len)
@@ -270,12 +268,16 @@ libteredo_send_ipv6 (const void *p, size_t len)
 static const struct in6_addr in6addr_allrouters =
 	{ { { 0xff, 0x02, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x2 } } };
 
-/*
+/**
  * Checks and handles an Teredo-encapsulated packet.
  * Thread-safety note: prefix and advLinkMTU might be changed by another
- * thread
+ * thread.
+ * @return -1 in case of I/O error, -2 if the packet was discarded,
+ * 1 if it was processed as a qualification probe,
+ * 2 if it was processed as a request for direct IPv6 connectivity check,
+ * 3 if it was forwarded over UDP/IPv4 (hole punching).
  */
-static bool
+static int
 libteredo_process_packet (const libteredo_server *s, bool sec)
 {
 	const uint8_t *ptr;
@@ -286,18 +288,18 @@ libteredo_process_packet (const libteredo_server *s, bool sec)
 	uint8_t proto;
 
 	if (teredo_wait_recv (sec ? s->fd_secondary : s->fd_primary, &packet))
-		return false;
+		return -1;
 
 	// Teredo server case number 3
 	if (!is_ipv4_global_unicast (packet.source_ipv4))
-		return true;
+		return -2;
 
 	// Check IPv6 packet (Teredo server check number 1)
 	ptr = packet.ip6;
 	ip6len = packet.ip6_len;
 
 	if (ip6len < sizeof (ip6))
-		return 0; // too small
+		return -2; // too small
 
 	memcpy (&ip6, ptr, sizeof (ip6));
 	ip6len -= sizeof (ip6);
@@ -305,7 +307,7 @@ libteredo_process_packet (const libteredo_server *s, bool sec)
 
 	if (((ip6.ip6_vfc >> 4) != 6)
 	 || (ntohs (ip6.ip6_plen) != ip6len))
-		return true; // not an IPv6 packet
+		return -2; // not an IPv6 packet
 
 	// NOTE: ptr is not aligned => read single bytes only
 
@@ -313,7 +315,7 @@ libteredo_process_packet (const libteredo_server *s, bool sec)
 	proto = ip6.ip6_nxt;
 	if (((proto != IPPROTO_NONE) || (ip6len > 0)) // neither a bubble...
 	 && (proto != IPPROTO_ICMPV6)) // nor an ICMPv6 message
-		return true; // packet not allowed through server
+		return -2; // packet not allowed through server
 
 	// Teredo server case number 4
 	if (IN6_IS_ADDR_LINKLOCAL (&ip6.ip6_src)
@@ -322,7 +324,7 @@ libteredo_process_packet (const libteredo_server *s, bool sec)
 	 && (ip6len > sizeof (struct nd_router_solicit))
 	 && (((struct icmp6_hdr *)ptr)->icmp6_type == ND_ROUTER_SOLICIT))
 		// sends a Router Advertisement
-		return SendRA (s, &packet, &ip6.ip6_src, sec);
+		return SendRA (s, &packet, &ip6.ip6_src, sec) ? 1 : -1;
 
 	myprefix = s->prefix;
 
@@ -332,7 +334,7 @@ libteredo_process_packet (const libteredo_server *s, bool sec)
 
 		if (!IN6_MATCHES_TEREDO_CLIENT (&ip6.ip6_src, packet.source_ipv4,
 		                                packet.source_port))
-			return true; // case 7
+			return -2; // case 7
 
 		// Teredo server case number 5
 		/*
@@ -344,10 +346,10 @@ libteredo_process_packet (const libteredo_server *s, bool sec)
 		// Ensures that the packet destination has a global scope
 		// (ie 2000::/3) - as specified.
 		if ((ip6.ip6_dst.s6_addr[0] & 0xe0) != 0x20)
-			return true; // must be discarded
+			return -2; // must be discarded
 
 		if (IN6_TEREDO_PREFIX(&ip6.ip6_dst) != myprefix)
-			return libteredo_send_ipv6 (packet.ip6, packet.ip6_len);
+			return libteredo_send_ipv6 (packet.ip6, packet.ip6_len) ? 2 : -1;
 
 		/*
 		 * If the IPv6 destination is a Teredo address, the packet
@@ -359,7 +361,7 @@ libteredo_process_packet (const libteredo_server *s, bool sec)
 		// Source address is not Teredo
 		if ((IN6_TEREDO_PREFIX (&ip6.ip6_dst) != myprefix)
 		 || (IN6_TEREDO_SERVER (&ip6.ip6_dst) != s->server_ip))
-			return true; // case 7
+			return -2; // case 7
 
 		// Teredo server case number 6
 	}
@@ -367,7 +369,7 @@ libteredo_process_packet (const libteredo_server *s, bool sec)
 	// forwards packet over Teredo:
 	// (destination is a Teredo IPv6 address)
 	return libteredo_forward_udp (s->fd_primary, &packet,
-		IN6_TEREDO_SERVER (&ip6.ip6_dst) == s->server_ip);
+		IN6_TEREDO_SERVER (&ip6.ip6_dst) == s->server_ip) ? 3 : -1;
 }
 
 
