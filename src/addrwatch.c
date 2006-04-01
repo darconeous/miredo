@@ -44,7 +44,8 @@ struct miredo_addrwatch
 	pthread_mutex_t mutex;
 	pthread_cond_t cond;
 
-	void (*callback) (int up);
+	void (*callback) (void *opaque, int up);
+	void *callback_data;
 	int self_scope, status;
 	int if_inet6_fd;
 };
@@ -99,7 +100,7 @@ static void *addrwatch (void *opaque)
 		{
 			data->status = found;
 			if (data->callback != NULL)
-				data->callback (found);
+				data->callback (data->callback_data, found);
 		}
 
 	wait:
@@ -177,13 +178,17 @@ void miredo_addrwatch_stop (miredo_addrwatch *data)
 
 /**
  * Defines a callback to be called whenever a state change is detected.
+ * The callback cannot perform any operation on the calling mireod_addrwatch
+ * structure (this is a deadlock condition).
  */
-void miredo_addrwatch_set_callback (miredo_addrwatch *self, void (*cb) (int))
+void miredo_addrwatch_set_callback (miredo_addrwatch *self,
+                                    void (*cb) (void *, int), void *opaque)
 {
 	assert (self != NULL);
 
 	pthread_mutex_lock (&self->mutex);
 	self->callback = cb;
+	self->callback_data = opaque;
 	pthread_mutex_unlock (&self->mutex);
 }
 

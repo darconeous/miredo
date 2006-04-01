@@ -32,7 +32,7 @@ miredo_addrwatch *miredo_addrwatch_start (int self_scope);
 void miredo_addrwatch_stop (miredo_addrwatch *self);
 
 void miredo_addrwatch_set_callback (miredo_addrwatch *self,
-                                    void (*cb) (int));
+                                    void (*cb) (void *, int), void *opaque);
 int miredo_addrwatch_available (miredo_addrwatch *self);
 
 # ifdef __cplusplus
