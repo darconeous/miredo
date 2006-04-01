@@ -291,6 +291,27 @@ ParseRelayType (MiredoConf& conf, const char *name, int *type)
 
 
 #ifdef MIREDO_TEREDO_CLIENT
+/* FIXME: default_route is probably useless nowadays */
+static tun6 *
+create_dynamic_tunnel (const char *ifname, int *fd, bool default_route)
+{
+	tun6 *tunnel = tun6_create (ifname);
+
+	if (tunnel == NULL)
+		return NULL;
+
+	/* FIXME: we leak all heap-allocated settings in the child process */
+	int res = miredo_privileged_process (tunnel, default_route);
+	if (res == -1)
+	{
+		tun6_destroy (tunnel);
+		return NULL;
+	}
+	*fd = res;
+	return tunnel;
+}
+
+
 static int
 miredo_client (tun6 *tunnel, int fd, const char *server, const char *server2,
                uint32_t bind_ip, uint16_t bind_port, bool ignore_cone)
@@ -313,8 +334,30 @@ miredo_client (tun6 *tunnel, int fd, const char *server, const char *server2,
 	return 0;
 }
 #else
+# define create_dynamic_tunnel( a, b, c ) NULL
 # define miredo_client( a, b, c, d, e, f, g ) (-1)
 #endif
+
+
+static tun6 *
+create_static_tunnel (const char *ifname, const struct in6_addr *prefix,
+					  uint16_t mtu, bool cone)
+{
+	tun6 *tunnel = tun6_create (ifname);
+
+	if (tunnel == NULL)
+		return NULL;
+
+	if (tun6_setMTU (tunnel, mtu) || tun6_bringUp (tunnel)
+		   || tun6_addAddress (tunnel, cone ? &teredo_cone : &teredo_restrict, 64)
+		   || tun6_addRoute (tunnel, prefix, 32, 0))
+	{
+		tun6_destroy (tunnel);
+		return NULL;
+	}
+	return tunnel;
+}
+
 
 
 static int
@@ -458,12 +501,11 @@ miredo_run (MiredoConf& conf, const char *cmd_server_name)
 	 * inability to set a link-scope address for the interface, as it
 	 * lacks an hardware layer address.
 	 */
+	int fd;
+	tun6 *tunnel = (mode == TEREDO_CLIENT)
+		? create_dynamic_tunnel (ifname, &fd, default_route)
+		: create_static_tunnel (ifname, &prefix.ip6, mtu, mode == TEREDO_CONE);
 
-	/*
-	 * Must likely be root (unless the user was granted access to the
-	 * device file).
-	 */
-	tun6 *tunnel = tun6_create (ifname);
 	if (ifname != NULL)
 		free (ifname);
 
@@ -476,80 +518,48 @@ miredo_run (MiredoConf& conf, const char *cmd_server_name)
 	}
 	else
 	{
-		int fd;
+		if (libteredo_preinit (mode == TEREDO_CLIENT))
+			syslog (LOG_ALERT, _("Miredo setup failure: %s"),
+			        _("libteredo cannot be initialized"));
+		else
+		{
+			MiredoRelay::GlobalInit ();
 
-#ifdef MIREDO_TEREDO_CLIENT
+/*#ifdef MIREDO_TEREDO_CLIENT
+			miredo_addrwatch *watch;
+			if (mode == TEREDO_CLIENT)
+				watch = miredo_addrwatch_start (tun6_getId (tunnel));
+			else
+				watch = NULL;
+#endif*/
+
+			if (drop_privileges () == 0)
+			{
+				retval = (mode == TEREDO_CLIENT)
+					? miredo_client (tunnel, fd, server_name,
+					                 server_name2, bind_ip, bind_port,
+					                 ignore_cone)
+					: miredo_relay (tunnel, prefix.teredo.prefix, bind_ip,
+					                bind_port, mode == TEREDO_CONE,
+					                ignore_cone);
+			}
+
+/*#ifdef MIREDO_TEREDO_CLIENT
+			if (watch != NULL)
+				miredo_addrwatch_stop (watch);
+#endif*/
+			MiredoRelay::GlobalDeinit ();
+			libteredo_terminate (mode == TEREDO_CLIENT);
+		}
+
 		if (mode == TEREDO_CLIENT)
 		{
-			/*
-			 * FIXME: minor memory leak of server_name and server_name2
-			 */
-			fd = miredo_privileged_process (tunnel, default_route);
-		}
-		else
-#endif
-		{
-			if (tun6_setMTU (tunnel, mtu) || tun6_bringUp (tunnel)
-			 || tun6_addAddress (tunnel, (mode == TEREDO_RESTRICT)
-			                           ? &teredo_restrict : &teredo_cone, 64)
-			 || tun6_addRoute (tunnel, &prefix.ip6, 32, 0))
-				fd = -1;
-			else
-				fd = 0;
-		}
-
-		if (fd == -1)
-		{
-			syslog (LOG_ALERT, _("Miredo setup failure: %s"),
-			        strerror (errno));
-		}
-		else
-		{
-			if (libteredo_preinit (mode == TEREDO_CLIENT))
-				syslog (LOG_ALERT, _("Miredo setup failure: %s"),
-				        _("libteredo cannot be initialized"));
-			else
-			{
-				MiredoRelay::GlobalInit ();
-
-/*#ifdef MIREDO_TEREDO_CLIENT
-				miredo_addrwatch *watch;
-				if (mode == TEREDO_CLIENT)
-					watch = miredo_addrwatch_start (tun6_getId (tunnel));
-				else
-					watch = NULL;
-#endif*/
-
-				if (drop_privileges () == 0)
-				{
-
-					retval = (mode == TEREDO_CLIENT)
-						? miredo_client (tunnel, fd, server_name,
-						                 server_name2, bind_ip, bind_port,
-						                 ignore_cone)
-						: miredo_relay (tunnel, prefix.teredo.prefix, bind_ip,
-						                bind_port, mode == TEREDO_CONE,
-						                ignore_cone);
-				}
-
-/*#ifdef MIREDO_TEREDO_CLIENT
-				if (watch != NULL)
-					miredo_addrwatch_stop (watch);
-#endif*/
-				MiredoRelay::GlobalDeinit ();
-				libteredo_terminate (mode == TEREDO_CLIENT);
-			}
-
-#ifdef MIREDO_TEREDO_CLIENT
-			if (mode == TEREDO_CLIENT)
-			{
-				close (fd);
-				wait (NULL); // wait for privsep process
-			}
-#endif
+			close (fd);
+			wait (NULL); // wait for privsep process
 		}
 		tun6_destroy (tunnel);
 	}
+
 #ifdef MIREDO_TEREDO_CLIENT
 	if (server_name != NULL)
 		free (server_name);
