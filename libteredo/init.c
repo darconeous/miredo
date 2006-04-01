@@ -86,5 +86,6 @@ void libteredo_terminate (bool use_client)
 	}
 #else
 	assert (!use_client);
+	(void)use_client;
 #endif
 }
