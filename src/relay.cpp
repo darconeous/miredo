@@ -117,9 +117,6 @@ class MiredoRelay : public TeredoRelay
 		virtual void EmitICMPv6Error (const void *packet, size_t length,
 		                              const struct in6_addr *dst)
 		{
-			if (icmp6_fd == -1)
-				return;
-
 			struct sockaddr_in6 addr;
 
 			memset (&addr, 0, sizeof (addr));
@@ -142,8 +139,8 @@ class MiredoRelay : public TeredoRelay
 		{
 		}
 
-		static int GlobalInit (void);
-		static void GlobalDeinit (void);
+		static int GlobalInit (bool client);
+		static void GlobalDeinit (bool cloent);
 
 		//virtual void ~MiredoRelay (void);
 
@@ -180,8 +177,11 @@ class MiredoRelay : public TeredoRelay
 
 int MiredoRelay::icmp6_fd = -1;
 
-int MiredoRelay::GlobalInit (void)
+int MiredoRelay::GlobalInit (bool client)
 {
+	if (libteredo_preinit (client))
+		return -1;
+
 	struct icmp6_filter filt;
 	int val;
 
@@ -198,10 +198,11 @@ int MiredoRelay::GlobalInit (void)
 	return 0;
 }
 
-void MiredoRelay::GlobalDeinit (void)
+void MiredoRelay::GlobalDeinit (bool client)
 {
-	if (icmp6_fd != -1)
-		close (icmp6_fd);
+	assert (icmp6_fd != -1);
+	close (icmp6_fd);
+	libteredo_terminate (client);
 }
 
 /*
@@ -510,13 +511,11 @@ miredo_run (MiredoConf& conf, const char *cmd_server_name)
 	}
 	else
 	{
-		if (libteredo_preinit (mode == TEREDO_CLIENT))
+		if (MiredoRelay::GlobalInit (mode == TEREDO_CLIENT))
 			syslog (LOG_ALERT, _("Miredo setup failure: %s"),
 			        _("libteredo cannot be initialized"));
 		else
 		{
-			MiredoRelay::GlobalInit ();
-
 /*#ifdef MIREDO_TEREDO_CLIENT
 			miredo_addrwatch *watch;
 			if (mode == TEREDO_CLIENT)
@@ -540,8 +539,7 @@ miredo_run (MiredoConf& conf, const char *cmd_server_name)
 			if (watch != NULL)
 				miredo_addrwatch_stop (watch);
 #endif*/
-			MiredoRelay::GlobalDeinit ();
-			libteredo_terminate (mode == TEREDO_CLIENT);
+			MiredoRelay::GlobalDeinit (mode == TEREDO_CLIENT);
 		}
 
 		if (mode == TEREDO_CLIENT)
