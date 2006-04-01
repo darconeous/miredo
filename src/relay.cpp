@@ -69,7 +69,7 @@
 #include "conf.h"
 #include "miredo.h"
 
-const char *const miredo_conffile = SYSCONFDIR"/miredo.conf";
+const char *const miredo_name = "miredo";
 const char *const miredo_pidfile = LOCALSTATEDIR"/run/miredo.pid";
 
 #ifdef HAVE_LIBCAP

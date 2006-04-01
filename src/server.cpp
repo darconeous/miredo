@@ -51,8 +51,7 @@
 
 #include <libteredo/server.h>
 
-const char *const miredo_conffile =
-		SYSCONFDIR"/miredo-server.conf";
+const char *const miredo_name = "miredo-server";
 const char *const miredo_pidfile =
 		LOCALSTATEDIR"/run/miredo-server.pid";
 

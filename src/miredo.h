@@ -7,7 +7,7 @@
  */
 
 /***********************************************************************
- *  Copyright © 2004-2005 Rémi Denis-Courmont.                         *
+ *  Copyright © 2004-2006 Rémi Denis-Courmont.                         *
  *  This program is free software; you can redistribute and/or modify  *
  *  it under the terms of the GNU General Public License as published  *
  *  by the Free Software Foundation; version 2 of the license.         *
@@ -45,7 +45,7 @@ int miredo_diagnose (void);
 extern uid_t unpriv_uid;
 extern const char *miredo_chrootdir;
 extern const char *const miredo_pidfile;
-extern const char *const miredo_conffile;
+extern const char *const miredo_name;
 
 # ifdef HAVE_LIBCAP
 extern const cap_value_t *miredo_capv;

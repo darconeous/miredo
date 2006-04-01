@@ -53,7 +53,7 @@ class MiredoCheckConf : public MiredoConf
 	}
 };
 
-
+/* FIXME: use same more clever code as in main.c */
 static const char conffile[] = SYSCONFDIR"/miredo.conf";
 
 static int miredo_checkconf (MiredoConf& conf)

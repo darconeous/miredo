@@ -462,8 +462,22 @@ main (int argc, char *argv[])
 	if (username == NULL)
 		username = MIREDO_DEFAULT_USERNAME;
 
+	size_t conffile_len;
 	if (conffile == NULL)
-		conffile = miredo_conffile;
+	{
+		path = br_find_etc_dir (SYSCONFDIR);
+		conffile_len = strlen (path) + strlen (miredo_name) + 7;
+	}
+	else
+		conffile_len = -1;
+
+	char conffile_buf[conffile_len];
+	if (conffile == NULL)
+	{
+		sprintf (conffile_buf, "%s/%s.conf", path, miredo_name);
+		free (path);
+		conffile = conffile_buf;
+	}
 
 	/* Check if config file and chroot dir are present */
 	if ((servername == NULL) && access (conffile, R_OK))
