@@ -259,10 +259,10 @@ teredo_relay (tun6 *tunnel, TeredoRelay *relay = NULL)
 }
 
 
-#define TEREDO_CLIENT   1
-#define TEREDO_RELAY    2
-#define TEREDO_CONE     2
-#define TEREDO_RESTRICT 3
+#define TEREDO_CONE     0
+#define TEREDO_RESTRICT 1
+#define TEREDO_CLIENT   2
+#define TEREDO_EXCLIENT 3
 
 static bool
 ParseRelayType (MiredoConf& conf, const char *name, int *type)
@@ -405,7 +405,7 @@ miredo_run (MiredoConf& conf, const char *cmd_server_name)
 #endif
 	uint16_t mtu = 1280;
 
-	if (mode == TEREDO_CLIENT)
+	if (mode & TEREDO_CLIENT)
 	{
 #ifdef MIREDO_TEREDO_CLIENT
 		if (cmd_server_name != NULL)
@@ -495,7 +495,7 @@ miredo_run (MiredoConf& conf, const char *cmd_server_name)
 	 * lacks an hardware layer address.
 	 */
 	int fd;
-	tun6 *tunnel = (mode == TEREDO_CLIENT)
+	tun6 *tunnel = (mode & TEREDO_CLIENT)
 		? create_dynamic_tunnel (ifname, &fd)
 		: create_static_tunnel (ifname, &prefix.ip6, mtu, mode == TEREDO_CONE);
 
@@ -511,14 +511,14 @@ miredo_run (MiredoConf& conf, const char *cmd_server_name)
 	}
 	else
 	{
-		if (MiredoRelay::GlobalInit (mode == TEREDO_CLIENT))
+		if (MiredoRelay::GlobalInit ((mode & TEREDO_CLIENT) != 0))
 			syslog (LOG_ALERT, _("Miredo setup failure: %s"),
 			        _("libteredo cannot be initialized"));
 		else
 		{
 /*#ifdef MIREDO_TEREDO_CLIENT
 			miredo_addrwatch *watch;
-			if (mode == TEREDO_CLIENT)
+			if (mode == TEREDO_EXCLIENT)
 				watch = miredo_addrwatch_start (tun6_getId (tunnel));
 			else
 				watch = NULL;
@@ -526,7 +526,7 @@ miredo_run (MiredoConf& conf, const char *cmd_server_name)
 
 			if (drop_privileges () == 0)
 			{
-				retval = (mode == TEREDO_CLIENT)
+				retval = (mode & TEREDO_CLIENT)
 					? miredo_client (tunnel, fd, server_name,
 					                 server_name2, bind_ip, bind_port,
 					                 ignore_cone)
@@ -539,10 +539,10 @@ miredo_run (MiredoConf& conf, const char *cmd_server_name)
 			if (watch != NULL)
 				miredo_addrwatch_stop (watch);
 #endif*/
-			MiredoRelay::GlobalDeinit (mode == TEREDO_CLIENT);
+			MiredoRelay::GlobalDeinit ((mode & TEREDO_CLIENT) != 0);
 		}
 
-		if (mode == TEREDO_CLIENT)
+		if (mode & TEREDO_CLIENT)
 		{
 			close (fd);
 			wait (NULL); // wait for privsep process
