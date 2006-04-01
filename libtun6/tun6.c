@@ -320,6 +320,16 @@ const char *tun6_getName (const tun6 *t)
 	return t->name;
 }
 
+/**
+ * @return the scope id of the tunnel device
+ */
+int tun6_getId (const tun6 *t)
+{
+	assert (t != NULL);
+
+	return if_nametoindex (tun6_getName (t));
+}
+
 
 #if defined (HAVE_LINUX)
 static void

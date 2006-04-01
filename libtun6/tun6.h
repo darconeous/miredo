@@ -64,6 +64,7 @@ tun6 *tun6_create (const char *req_name) LIBTUN6_WARN_UNUSED;
 void tun6_destroy (tun6 *t) LIBTUN6_NONNULL;
 
 const char *tun6_getName (const tun6 *t) LIBTUN6_NONNULL;
+int tun6_getId (const tun6 *t) LIBTUN6_NONNULL;
 
 int tun6_setState (tun6 *t, bool up) LIBTUN6_NONNULL;
 static inline int tun6_bringUp (tun6 *t)
