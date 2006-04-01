@@ -201,5 +201,5 @@ int miredo_addrwatch_available (miredo_addrwatch *self)
 	pthread_mutex_lock (&self->mutex);
 	val = self->status;
 	pthread_mutex_unlock (&self->mutex);
-	return val;
+	return (val != -1) ? val : 0;
 }

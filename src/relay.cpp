@@ -66,6 +66,7 @@
 #include <libteredo/relay.h>
 
 #include "privproc.h"
+#include "addrwatch.h"
 #include "conf.h"
 #include "miredo.h"
 
@@ -101,12 +102,12 @@ miredo_diagnose (void)
 }
 
 
-
 class MiredoRelay : public TeredoRelay
 {
 	private:
 		const tun6 *tunnel;
 		int priv_fd;
+		static int icmp6_fd;
 
 		virtual int SendIPv6Packet (const void *packet, size_t length)
 		{
@@ -116,6 +117,9 @@ class MiredoRelay : public TeredoRelay
 		virtual void EmitICMPv6Error (const void *packet, size_t length,
 		                              const struct in6_addr *dst)
 		{
+			if (icmp6_fd == -1)
+				return;
+
 			struct sockaddr_in6 addr;
 
 			memset (&addr, 0, sizeof (addr));
@@ -128,8 +132,6 @@ class MiredoRelay : public TeredoRelay
 			sendto (icmp6_fd, packet, length, 0,
 					(struct sockaddr *)&addr, sizeof (addr));
 		}
-
-		static int icmp6_fd;
 
 	public:
 		MiredoRelay (const tun6 *tun, uint32_t prefix,
@@ -279,12 +281,62 @@ ParseRelayType (MiredoConf& conf, const char *name, int *type)
 	else
 	{
 		syslog (LOG_ERR, _("Invalid relay type \"%s\" at line %u"),
-			val, line);
+		        val, line);
 		free (val);
 		return false;
 	}
 	free (val);
 	return true;
+}
+
+
+#ifdef MIREDO_TEREDO_CLIENT
+static int
+miredo_client (tun6 *tunnel, int fd, const char *server, const char *server2,
+               uint32_t bind_ip, uint16_t bind_port, bool ignore_cone)
+{
+	try
+	{
+		MiredoRelay client (fd, tunnel, server, server2, bind_port, bind_ip);
+		client.SetConeIgnore (ignore_cone);
+
+		// Processing...
+		teredo_relay (tunnel, &client);
+	}
+	catch (...)
+	{
+		syslog (LOG_ALERT, _("Miredo setup failure: %s"),
+		        _("libteredo cannot be initialized"));
+		return -1;
+	}
+
+	return 0;
+}
+#else
+# define miredo_client( a, b, c, d, e, f, g ) (-1)
+#endif
+
+
+static int
+miredo_relay (tun6 *tunnel, uint32_t prefix, bool cone,
+              uint32_t bind_ip, uint16_t bind_port, bool ignore_cone)
+{
+	try
+	{
+		MiredoRelay relay (tunnel, prefix, bind_port, bind_ip, cone);
+		relay.SetConeIgnore (ignore_cone);
+
+		// Processing...
+		teredo_relay (tunnel, &relay);
+	}
+	catch (...)
+	{
+		syslog (LOG_ALERT, _("Miredo setup failure: %s"),
+		        _("libteredo cannot be initialized"));
+		return -1;
+	}
+
+	return 0;
 }
 
 
@@ -339,6 +391,7 @@ miredo_run (MiredoConf& conf, const char *cmd_server_name)
 			server_name2 = conf.GetRawValue ("ServerAddress2");
 		}
 #else
+		(void)cmd_server_name;
 		syslog (LOG_ALERT, _("Unsupported Teredo client mode"));
 		syslog (LOG_ALERT, _("Fatal configuration error"));
 		return -2;
@@ -423,7 +476,6 @@ miredo_run (MiredoConf& conf, const char *cmd_server_name)
 	}
 	else
 	{
-		/* Must be root to do that */
 		int fd;
 
 #ifdef MIREDO_TEREDO_CLIENT
@@ -437,10 +489,6 @@ miredo_run (MiredoConf& conf, const char *cmd_server_name)
 		else
 #endif
 		{
-			/*
-			 * FIXME: breaks on NetBSD whereby tunnel is always preserved
-			 * on exit.
-			 */
 			if (tun6_setMTU (tunnel, mtu) || tun6_bringUp (tunnel)
 			 || tun6_addAddress (tunnel, (mode == TEREDO_RESTRICT)
 			                           ? &teredo_restrict : &teredo_cone, 64)
@@ -462,60 +510,32 @@ miredo_run (MiredoConf& conf, const char *cmd_server_name)
 				        _("libteredo cannot be initialized"));
 			else
 			{
-				MiredoRelay::GlobalInit (); // FIXME: check for error
+				MiredoRelay::GlobalInit ();
 
-				if (drop_privileges ())
-					goto out;
-
-				MiredoRelay *relay;
-#ifdef MIREDO_TEREDO_CLIENT
+/*#ifdef MIREDO_TEREDO_CLIENT
+				miredo_addrwatch *watch;
 				if (mode == TEREDO_CLIENT)
-				{
-					// Sets up client
-					try
-					{
-						relay = new MiredoRelay (fd, tunnel,
-						                         server_name, server_name2,
-						                         bind_port, bind_ip);
-					}
-					catch (...)
-					{
-						relay = NULL;
-					}
-				}
+					watch = miredo_addrwatch_start (tun6_getId (tunnel));
 				else
-# endif /* ifdef MIREDO_TEREDO_CLIENT */
+					watch = NULL;
+#endif*/
+
+				if (drop_privileges () == 0)
 				{
-					// Sets up relay
-					try
-					{
-						relay = new MiredoRelay (tunnel, prefix.teredo.prefix,
-						                         bind_port, bind_ip,
-						                         mode == TEREDO_CONE);
-					}
-					catch (...)
-					{
-						relay = NULL;
-					}
+
+					retval = (mode == TEREDO_CLIENT)
+						? miredo_client (tunnel, fd, server_name,
+						                 server_name2, bind_ip, bind_port,
+						                 ignore_cone)
+						: miredo_relay (tunnel, prefix.teredo.prefix, bind_ip,
+						                bind_port, mode == TEREDO_CONE,
+						                ignore_cone);
 				}
 
-				if (relay == NULL)
-				{
-					syslog (LOG_ALERT, _("Miredo setup failure: %s"),
-					        _("libteredo cannot be initialized"));
-				}
-				else
-				{
-					retval = 0;
-
-					relay->SetConeIgnore (ignore_cone);
-					teredo_relay (tunnel, relay);
-
-					// THE END
-					delete relay;
-				}
-
-			out:
+/*#ifdef MIREDO_TEREDO_CLIENT
+				if (watch != NULL)
+					miredo_addrwatch_stop (watch);
+#endif*/
 				MiredoRelay::GlobalDeinit ();
 				libteredo_terminate (mode == TEREDO_CLIENT);
 			}

@@ -46,7 +46,7 @@ libmiredo_la_LDFLAGS = -static -no-undefined
 # miredo
 miredo_SOURCES = relay.cpp
 if TEREDO_CLIENT
-miredo_SOURCES += privproc.c privproc.h
+miredo_SOURCES += privproc.c privproc.h addrwatch.c addrwatch.h
 endif
 miredo_LDADD = ../libtun6/libtun6.la ../libteredo/libteredo.la libmiredo.la \
 		$(LIBINTL)
