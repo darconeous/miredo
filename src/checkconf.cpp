@@ -25,6 +25,7 @@
 
 #include <gettext.h>
 #include <locale.h>
+#include "binreloc.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -115,8 +116,11 @@ int version (void)
 
 int main(int argc, char *argv[])
 {
+	(void)br_init (NULL);
 	(void)setlocale (LC_ALL, "");
-	(void)bindtextdomain (PACKAGE_NAME, LOCALEDIR);
+	char *path = br_find_locale_dir (LOCALEDIR);
+	(void)bindtextdomain (PACKAGE_NAME, path);
+	free (path);
 
 	static const struct option opts[] =
 	{

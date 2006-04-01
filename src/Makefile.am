@@ -29,8 +29,7 @@ LIBCAP = @LIBCAP@
 AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir) -D_REENTRANT \
 	-D_GNU_SOURCE \
 	-DLOCALEDIR=\"$(localedir)\" -DSYSCONFDIR=\"$(sysconfdir)\" \
-	-DLOCALSTATEDIR=\"$(localstatedir)\" \
-	-DBR_PTHREADS=0
+	-DLOCALSTATEDIR=\"$(localstatedir)\"
 AM_CFLAGS = -std=c99
 
 sbin_PROGRAMS = miredo miredo-server miredo-checkconf
@@ -40,8 +39,8 @@ TESTS = miredo-checkconf
 #BUILT_SOURCES = $(srcdir)/svnversion.stamp
 
 libmiredo_la_SOURCES = main.c miredo.cpp miredo.h \
-			conf.cpp conf.h prefix.c prefix.h
-libmiredo_la_LIBADD = $(LTLIBINTL) $(LIBCAP)
+			conf.cpp conf.h binreloc.c binreloc.h
+libmiredo_la_LIBADD = $(LTLIBINTL) $(LIBCAP) $(BINRELOC_LIBS)
 libmiredo_la_LDFLAGS = -static -no-undefined
 
 # miredo

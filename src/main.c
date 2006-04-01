@@ -25,7 +25,7 @@
 #endif
 
 #include <gettext.h>
-#include "prefix.h"
+#include "binreloc.h"
 
 #include <stdio.h>
 #include <stdlib.h> /* strtoul(), clearenv() */
@@ -401,10 +401,11 @@ main (int argc, char *argv[])
 		{ NULL,         no_argument,       NULL, '\0'}
 	};
 
-	int c, fd;
-
+	(void)br_init (NULL);
 	(void)setlocale (LC_ALL, "");
-	(void)bindtextdomain (PACKAGE, LOCALEDIR);
+	char *path = br_find_locale_dir (LOCALEDIR);
+	(void)bindtextdomain (PACKAGE, path);
+	free (path);
 	(void)textdomain (PACKAGE);
 
 #define ONETIME_SETTING( setting ) \
@@ -415,6 +416,7 @@ main (int argc, char *argv[])
 
 	memset (&flags, 0, sizeof (flags));
 
+	int c;
 	while ((c = getopt_long (argc, argv, "c:fhp:t:u:V", opts,
 					NULL)) != -1)
 		switch (c)
@@ -495,7 +497,7 @@ main (int argc, char *argv[])
 	if (miredo_diagnose ())
 		return 1;
 
-	fd = init_daemon (username, pidfile, flags.foreground);
+	int fd = init_daemon (username, pidfile, flags.foreground);
 	if (fd == -1)
 		return 1;
 
