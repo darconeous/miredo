@@ -65,24 +65,24 @@ to say a lower priority) than the other network interfaces.
 .BR "cone" " mode"
 .RB "In " "cone" " mode, " "Miredo" " acts as a "
 .IR "Teredo relay" ". It will assume that it has public global " "IPv4"
-.RI "connectivity or from behind a " "cone" " NAT device. Miredo will"
-create a virtual networking interface with a route toward Teredo
-clients.
+.RI "connectivity or is localted behind a " "cone" " NAT device. "
+Miredo will create a virtual networking interface with a route toward
+Teredo clients.
 
 .IR "Teredo relays" " forward IPv6 packets between " "Teredo clients"
 .RB "and the IPv6 Internet. For that to work, Teredo relays " "MUST"
 have a working IPv6 connectivity through a way other than Teredo
 tunneling.
 
-This mode can be used if the node has a public IPv4 address or if it is
-.RI "behind a NAT router of " "cone" " type. If the type of NAT is not"
-.RI "known, " "restricted" " mode should be used instead."
+This mode can only be used if the node has a public IPv4 address or if
+.RI "it is behind a NAT router of " "cone" " type. If the type of NAT "
+.RI "is not known, " "restricted" " mode should be used instead."
 
 .TP
 .BR "restricted" " mode"
 .RB "In " "restricted" " mode, " "Miredo" " acts as a "
 .IR "Teredo relay" ", as in " "cone" " mode. However, optimizations "
-for Teredo relaying behind a cone NAT are disabled.
+for Teredo relaying from behind a cone NAT are disabled.
 
 .BR "NOTE:" " NAT devices of type"
 .IR "symmetric" " are not supported by the " "Teredo protocol" "."
@@ -157,6 +157,13 @@ automatically.
 
 Use this option if you have firewalling constraints which can cause
 Miredo to fail when not using a fixed predefined port.
+
+.TP
+.BI "IgnoreConeBit "true/false"
+Unless this option is disabled (ie. set to false), Miredo will ignore
+.RI " the " "cone bit" " of other Teredo clients. That is thought to "
+improve reliability, at the expense of additionnal latencies while
+establishing a connection.
 
 .TP
 .BI "SyslogFacility " "facility"
