@@ -463,7 +463,7 @@ miredo_run (MiredoConf& conf, const char *cmd_server_name)
 			else
 			{
 				MiredoRelay::GlobalInit (); // FIXME: check for error
-			
+
 				if (drop_privileges ())
 					goto out;
 
