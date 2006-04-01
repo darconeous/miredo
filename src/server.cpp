@@ -87,10 +87,11 @@ extern int
 miredo_run (MiredoConf& conf, const char *server_name)
 {
 	libteredo_server *server;
-	union teredo_addr prefix = { 0 };
+	union teredo_addr prefix;
 	uint32_t server_ip = INADDR_ANY, server_ip2 = INADDR_ANY;
 	uint16_t mtu = 1280;
 
+	memset (&prefix, 0, sizeof (prefix));
 	prefix.teredo.prefix = htonl (TEREDO_PREFIX);
 
 	if (server_name != NULL)
