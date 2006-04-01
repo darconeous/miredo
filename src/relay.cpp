@@ -291,9 +291,8 @@ ParseRelayType (MiredoConf& conf, const char *name, int *type)
 
 
 #ifdef MIREDO_TEREDO_CLIENT
-/* FIXME: default_route is probably useless nowadays */
 static tun6 *
-create_dynamic_tunnel (const char *ifname, int *fd, bool default_route)
+create_dynamic_tunnel (const char *ifname, int *fd)
 {
 	tun6 *tunnel = tun6_create (ifname);
 
@@ -301,7 +300,7 @@ create_dynamic_tunnel (const char *ifname, int *fd, bool default_route)
 		return NULL;
 
 	/* FIXME: we leak all heap-allocated settings in the child process */
-	int res = miredo_privileged_process (tunnel, default_route);
+	int res = miredo_privileged_process (tunnel);
 	if (res == -1)
 	{
 		tun6_destroy (tunnel);
@@ -402,19 +401,12 @@ miredo_run (MiredoConf& conf, const char *cmd_server_name)
 
 #ifdef MIREDO_TEREDO_CLIENT
 	char *server_name = NULL, *server_name2 = NULL;
-	bool default_route = true;
 #endif
 	uint16_t mtu = 1280;
 
 	if (mode == TEREDO_CLIENT)
 	{
 #ifdef MIREDO_TEREDO_CLIENT
-		if (!conf.GetBoolean ("DefaultRoute", &default_route))
-		{
-			syslog (LOG_ALERT, _("Fatal configuration error"));
-			return -2;
-		}
-
 		if (cmd_server_name != NULL)
 		{
 			server_name = strdup (cmd_server_name);
@@ -503,7 +495,7 @@ miredo_run (MiredoConf& conf, const char *cmd_server_name)
 	 */
 	int fd;
 	tun6 *tunnel = (mode == TEREDO_CLIENT)
-		? create_dynamic_tunnel (ifname, &fd, default_route)
+		? create_dynamic_tunnel (ifname, &fd)
 		: create_static_tunnel (ifname, &prefix.ip6, mtu, mode == TEREDO_CONE);
 
 	if (ifname != NULL)

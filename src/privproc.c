@@ -54,7 +54,7 @@ struct miredo_tunnel_settings
 
 
 int
-miredo_privileged_process (struct tun6 *tunnel, bool default_route)
+miredo_privileged_process (struct tun6 *tunnel)
 {
 	int fd[2];
 	if (socketpair (AF_LOCAL, SOCK_STREAM, 0, fd))
@@ -118,8 +118,7 @@ miredo_privileged_process (struct tun6 *tunnel, bool default_route)
 			/* Removes old addresses */
 			if (memcmp (&oldcfg.addr, &in6addr_any, 16))
 			{
-				if (default_route)
-					tun6_delRoute (tunnel, &in6addr_any, 0, +5);
+				tun6_delRoute (tunnel, &in6addr_any, 0, +5);
 				tun6_delAddress (tunnel, &oldcfg.addr, 32);
 			}
 
@@ -141,10 +140,8 @@ miredo_privileged_process (struct tun6 *tunnel, bool default_route)
 					p_oldloc = p_newloc;
 				}
 	
-				if (tun6_addAddress (tunnel, &newcfg.addr, 32))
-					res = -1;
-				if (default_route
-				 && tun6_addRoute (tunnel, &in6addr_any, 0, +5))
+				if (tun6_addAddress (tunnel, &newcfg.addr, 32)
+				 || tun6_addRoute (tunnel, &in6addr_any, 0, +5))
 					res = -1;
 			}
 
@@ -165,8 +162,7 @@ miredo_privileged_process (struct tun6 *tunnel, bool default_route)
 	/* Removes old addresses */
 	if (memcmp (&oldcfg.addr, &in6addr_any, 16))
 	{
-		if (default_route)
-			tun6_delRoute (tunnel, &in6addr_any, 0, +5);
+		tun6_delRoute (tunnel, &in6addr_any, 0, +5);
 		tun6_delAddress (tunnel, &oldcfg.addr, 32);
 	}
 

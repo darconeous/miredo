@@ -30,7 +30,7 @@ extern "C" {
 # endif
 
 int
-miredo_privileged_process (struct tun6 *tunnel, bool default_route);
+miredo_privileged_process (struct tun6 *tunnel);
 
 int
 miredo_configure_tunnel (int fd, const struct in6_addr *addr, unsigned mtu);
