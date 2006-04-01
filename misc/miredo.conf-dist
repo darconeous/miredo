@@ -1,164 +1,48 @@
-#
 # Sample configuration file for Miredo
 # by Remi Denis-Courmont
 # $Id$
-#
 
-#
-# GENERAL PARAMETERS
-#
-
-#
-# Type of Teredo relay/client to run
-#
-# There are currently three supported types:
-# - client     : Teredo client
-# - cone       : Teredo relay (with public IPv4 or behind cone NAT)
-# - restricted : Teredo relay (behind a restricted NAT)
-#
-# "client" will run Miredo as a Teredo client. Use this if you have no
-# IPv6 connectivity and wish to use Miredo to tunnel IPv6 over UDP/IPV4
-# through a NAT device. That is the default, as it should work fine in
-# any case.
-#
-# If there is no NAT behind Miredo and the IPv4 Internet, or if you
-# know you are behind a "cone" NAT (see the Teredo specification for
-# detailled reference), you can use the "cone" type.
-#
-# If you run a Teredo relay, and you are located behind a "restricted"
-# NAT or you don't know what kind of NAT stands behind you and the
-# Internet, use "restricted".
-#
-# Defaults: RelayType client
-# Examples: RelayType restricted
-#           RelayType cone
-#
-#RelayType restricted
-
-#
-# Name of the networking interface
-# (ignored on non-Linux systems)
-# Defaults: interface name given by the OS kernel
-# Example:  InterfaceName teredo
-#
+# Name of the network interface (only works on Linux).
 InterfaceName	teredo
 
-#
-# Syslog facility to use
-# (see miredo.conf(5) manpage for possible values)
-#
-# Defaults: SyslogFacility daemon
-# Example:  SyslogFacility local4
-#
-#SyslogFacility user
+# You might need to set the following values explicitly depending on
+# your firewall/NAT settings. BindPort is particularly useful when
+# using manual UDP port forwarding rules on NAT boxes. By default,
+# the kernel can assign any available UDP port.
+#BindPort	3545
+#BindAddress	0.0.0.0
 
-#
-# Whether to ignore Teredo peers cone bit
-#
-# If this parameter is enabled, commnunication with all Teredo clients
-# will be handled as if they were behind a restricted NAT, even if they
-# supposedly aren't. That is supposed to improve reliability at the
-# cost of a bit more UDP traffic and longer latencies when first
-# contacting a given Teredo client.
-#
-# Defaults: IgnoreConeBit true
-# Example:  IgnoreConeBit false
-#
-#IgnoreConeBit false
+# For additionnal options, see the miredo.conf(5) man page.
+#SyslogFacility	user
+#IgnoreConeBit	false
 
-#
-# CLIENT & RELAY PARAMETERS
-#
+# By default, Miredo runs as a Teredo client, which should be safe in
+# any case, including if there is another -supposedly better- interface
+# from which to access the IPv6 Internet. Please refer to the
+# miredo.conf(5) man page for details and other available modes.
+#RelayType client
 
-#
-# IPv4 address to bind to (may be private)
-# Defaults: BindAddress 0.0.0.0
-# Example:  BindAddress 192.0.2.236
-#
-#BindAddress 0.0.0.0
 
-#
-# Teredo service (UDP/IPv4) port to bind to
-# Defaults: automatic
-# Example:  BindPort 3544
-#
-#BindPort 3545
+## CLIENT-SPECIFIC OPTIONS
 
-#
-# (Client-only)
-# Server primary IPv4 address (possibly an hostname)
-# This setting is *REQUIRED* if Miredo is in client mode (RelayType).
-#
-# Public Teredo servers (as of March 2006):
+# The hostname or primary IPv4 address of the Teredo server.
+# This setting is *REQUIRED* if Miredo runs as a Teredo client.
+ServerAddress teredo.remlab.net
+
+# Known public Teredo servers (as of March 2006):
 #  - teredo.ipv6.microsoft.com (defaults on Microsoft Windows)
 #  - teredo.autotrans.consulintel.com (another Windows-based server)
 #  - teredo.remlab.net (Linux-based Miredo testing server)
 #  - 203.233.154.10 (unknown buggy server)
-#
-# Defaults: unset - will fail unless RelayType is not "client".
-# Example:  ServerAddress teredo.ipv6.microsoft.com
-#
-ServerAddress teredo.remlab.net
+# See also http://www.sixxs.net/tools/aiccu/brokers/
 
-#
-# (Client-only)
-# Server secondary IPv4 address (possibly an hostname)
-#
-# Defaults: automatically use the server primary address + 1
-# Example:  ServerAddress miredo.via.ecp.fr
-#
-#ServerAddress2 miredo.via.ecp.fr
+# For additionnal options, see the miredo.conf(5) man page.
+#ServerAddress2 teredo2.remlab.net
 
-#
-# RELAY PARAMETERS
-#
-# If the ServerAddress option is set, Miredo runs as a Teredo client
-# and all the setting above are ignored.
-#
 
-#
-# (Relay-only)
-# Teredo IPv6 prefix (32 bits)
-# The Teredo server will advertise this prefix to Teredo clients.
-# The Teredo relay needs know the prefix if ServerAddress is not set.
-#
-# For this to work, the specified prefix must be advertised world-wide
-# by one or several Teredo relays through BGP. If it is not the case
-# Teredo clients will not be reachable and won't have access to the
-# IPv6 Internet.
-#
-# Defaults: Prefix 2001:0::
-# Example:  Prefix 2001:0::
-#
-######################### BIG FAT WARNING !!! #########################
-# The Teredo client on Microsoft Windows XP SP2 (or SP1 with Advanced #
-# Networking Pack) does not seem to accept prefix other than the      #
-# experimental and formerly Miredo's default: 3ffe:831f::. With no    #
-# updates, Windows-based Teredo clients will refuse to work with a    #
-# Miredo server, unless the prefix is set back to its old value.      #
-#                                                                     #
-# On the other hand, the old experimental value will obviously fail   #
-# from the 6th June 2006 on, as the 6bone will be phased out.         #
-#######################################################################
-#
+## RELAY-SPECIFIC OPTIONS
+
+# You should not (have to) change any of these options.
+# See the miredo.conf(5) man page for details.
 #Prefix 2001:0::
-
-#
-# (Relay-only)
-# MTU of the networking interface (in bytes)
-# 
-# It *SHOULD* normally be 1280 bytes. If you use another (bigger) value,
-# you'd have to ensure that all Teredo serves & manually configured
-# relays using the same Teredo prefix as you have the same MTU value in
-# their configuration. Teredo clients will either default to a MTU of
-# 1280 bytes or use the MTU specified by the Teredo server (as of
-# Miredo version 0.4.4). Don't alter this setting unless you know what
-# you are doing.
-#
-# MTU below 1280 bytes are illegal for any kind of IPv6 interface.
-#
-# Defaults: InterfaceMTU 1280
-# Example:  InterfaceMTU 1452
-#
 #InterfaceMTU 1280
-
