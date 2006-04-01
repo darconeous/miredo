@@ -57,9 +57,9 @@ from behind them.
 .BR "NOTE:" " Use of " "Miredo" " as a"
 .IR "Teredo client" " is possible even if the system already has IPv6"
 connectivity through another way (native, 6to4, TSP, etc). In that
-case, Miredo will only be used to reach other Teredo clients. Care
-should be taken that default IPv6 routes metrics are adequate
-.RB "(see also " "DefaultRoute" ")."
+case, Miredo will only be used to reach other Teredo clients, as its
+tunneling interface has a default route with a higher metric (which is
+to say a lower priority) than the other network interfaces.
 
 .TP
 .BR "cone" " mode"
@@ -108,12 +108,6 @@ the command line when starting miredo either, the program will fail.
 Miredo assumes that the secondary Teredo server address equals the
 primary server address plus one. If that is not the case, this
 directive must be used.
-
-.TP
-.BR "DefaultRoute " "on/off"
-Enable or disable the creation of a default IPv6 route through the
-Teredo tunneling interface.
-.RB "Defaults to " "on" "."
 
 
 .SH RELAY OPTIONS

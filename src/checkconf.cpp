@@ -62,10 +62,6 @@ static int miredo_checkconf (MiredoConf& conf)
 	if (!ParseSyslogFacility (conf, "SyslogFacility", &i))
 		return -1;
 
-	bool b;
-	if (!conf.GetBoolean ("DefaultRoute", &b))
-		return -1;
-
 	uint32_t u32;
 	uint16_t u16;
 	if (!ParseIPv4 (conf, "ServerAddress", &u32)
@@ -77,6 +73,7 @@ static int miredo_checkconf (MiredoConf& conf)
 			|| !conf.GetInt16 ("InterfaceMTU", &u16))
 		return -1;
 
+	bool b;
 	if (!ParseIPv4 (conf, "BindAddress", &u32)
 			|| !conf.GetInt16 ("BindPort", &u16)
 			|| !conf.GetBoolean ("IgnoreConeBit", &b))

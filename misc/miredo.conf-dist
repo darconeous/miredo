@@ -110,15 +110,6 @@ ServerAddress teredo.remlab.net
 #ServerAddress2 miredo.via.ecp.fr
 
 #
-# (Client-only)
-# Whether to create a default IPv6 route through the Teredo tunnel
-#
-# Defaults: DefaultRoute On
-# Example:  DefaultRoute Off
-#
-#DefaultRoute Off
-
-#
 # RELAY PARAMETERS
 #
 # If the ServerAddress option is set, Miredo runs as a Teredo client
