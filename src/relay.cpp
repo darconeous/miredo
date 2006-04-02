@@ -334,7 +334,7 @@ miredo_client (tun6 *tunnel, int fd, const char *server, const char *server2,
 	return 0;
 }
 #else
-# define create_dynamic_tunnel( a, b, c ) NULL
+# define create_dynamic_tunnel( a, b ) NULL
 # define miredo_client( a, b, c, d, e, f, g ) (-1)
 #endif
 
@@ -494,7 +494,7 @@ miredo_run (MiredoConf& conf, const char *cmd_server_name)
 	 * inability to set a link-scope address for the interface, as it
 	 * lacks an hardware layer address.
 	 */
-	int fd;
+	int fd = -1;
 	tun6 *tunnel = (mode & TEREDO_CLIENT)
 		? create_dynamic_tunnel (ifname, &fd)
 		: create_static_tunnel (ifname, &prefix.ip6, mtu, mode == TEREDO_CONE);
@@ -542,7 +542,7 @@ miredo_run (MiredoConf& conf, const char *cmd_server_name)
 			MiredoRelay::GlobalDeinit ((mode & TEREDO_CLIENT) != 0);
 		}
 
-		if (mode & TEREDO_CLIENT)
+		if (fd != -1)
 		{
 			close (fd);
 			wait (NULL); // wait for privsep process
