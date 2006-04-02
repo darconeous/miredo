@@ -36,7 +36,7 @@ clients and Teredo relays on UDP port 3544.
 .TP
 .BR "\-c config_file" " or " "\-\-config config_file"
 Specify an alternate configuration file for Miredo instead of the
-.RI "default, " "/usr/local/etc/miredo-server.conf" "."
+.RI "default, " "@sysconfdir@/miredo-server.conf" "."
 
 .TP
 .BR "\-f" " or " "\-\-foreground"
@@ -78,11 +78,11 @@ versions.
 
 .SH FILES
 .TP
-.I /usr/local/etc/miredo-server.conf
+.I @sysconfdir@/miredo-server.conf
 The default configuration file.
 
 .TP
-.I /usr/local/var/run/miredo-server.pid
+.I @localstatedir@/run/miredo-server.pid
 The process-id file.
 
 .SH "SEE ALSO"

@@ -50,7 +50,7 @@ receives packets from Teredo clients and Teredo relays on UDP port
 .TP
 .BR "\-c config_file" " or " "\-\-config config_file"
 Specify an alternate configuration file for Miredo instead of the
-.RI "default, " "/usr/local/etc/miredo.conf" "."
+.RI "default, " "@sysconfdir@/miredo.conf" "."
 
 .TP
 .BR "\-f" " or " "\-\-foreground"
@@ -124,11 +124,11 @@ versions.
 
 .SH FILES
 .TP
-.I /usr/local/etc/miredo.conf
+.I @sysconfdir@/miredo.conf
 The default configuration file.
 
 .TP
-.I /usr/local/var/run/miredo.pid
+.I @localstatedir@/run/miredo.pid
 The process-id file.
 
 .SH "SEE ALSO"
