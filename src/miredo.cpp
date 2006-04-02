@@ -229,6 +229,7 @@ miredo (const char *confpath, const char *server_name, int pidfd)
 		syslog (LOG_INFO, _("Starting..."));
 
 		// Starts the main miredo process
+#define fork( ) 0
 		pid_t pid = fork ();
 
 		switch (pid)

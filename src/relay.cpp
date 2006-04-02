@@ -275,6 +275,8 @@ ParseRelayType (MiredoConf& conf, const char *name, int *type)
 
 	if (strcasecmp (val, "client") == 0)
 		*type = TEREDO_CLIENT;
+	else if (strcasecmp (val, "exclusive") == 0)
+		*type = TEREDO_EXCLIENT;
 	else if (strcasecmp (val, "cone") == 0)
 		*type = TEREDO_CONE;
 	else if (strcasecmp (val, "restricted") == 0)
@@ -516,13 +518,13 @@ miredo_run (MiredoConf& conf, const char *cmd_server_name)
 			        _("libteredo cannot be initialized"));
 		else
 		{
-/*#ifdef MIREDO_TEREDO_CLIENT
+#ifdef MIREDO_TEREDO_CLIENT
 			miredo_addrwatch *watch;
 			if (mode == TEREDO_EXCLIENT)
 				watch = miredo_addrwatch_start (tun6_getId (tunnel));
 			else
 				watch = NULL;
-#endif*/
+#endif
 
 			if (drop_privileges () == 0)
 			{
@@ -535,10 +537,10 @@ miredo_run (MiredoConf& conf, const char *cmd_server_name)
 					                ignore_cone);
 			}
 
-/*#ifdef MIREDO_TEREDO_CLIENT
+#ifdef MIREDO_TEREDO_CLIENT
 			if (watch != NULL)
 				miredo_addrwatch_stop (watch);
-#endif*/
+#endif
 			MiredoRelay::GlobalDeinit ((mode & TEREDO_CLIENT) != 0);
 		}
 

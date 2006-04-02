@@ -1,4 +1,4 @@
-# Makefile.am - master Makefile for miredo
+# Makefile.am - doc Makefile for miredo
 # $Id$
 
 # ***********************************************************************
@@ -17,37 +17,19 @@
 # *  http://www.gnu.org/copyleft/gpl.html                               *
 # ***********************************************************************
 
-ACLOCAL_AMFLAGS = -I m4
+man5_MANS = miredo.conf.5 miredo-server.conf.5
+man8_MANS = miredo.8 miredo-server.8
 
-SUBDIRS = po doc misc libtun6 libteredo src
-DIST_SUBDIRS = m4 $(SUBDIRS)
+EXTRA_DIST = $(man5_MANS) miredo.8-in miredo.server.8-in
+CLEANFILES = $(man8_MANS)
 
-noinst_HEADERS = include/gettext.h
+edit = sed \
+	-e 's,@localstatedir\@,$(localstatedir),g' \
+	-e 's,@sysconfdir\@,$(sysconfdir),g'
 
-EXTRA_DIST = bootstrap $(man5_MANS) $(man8_MANS) \
-		autopackage/default.apspec.in
+$(man8_MANS): Makefile
 
-miredo_conf = $(sysconfdir)/miredo.conf
-
-install-data-hook:
-	@echo "************************"
-	@echo "* Miredo configuration *"
-	@echo "************************"
-	@echo " "
-	@echo "A sample configuration file has been installed at:"
-	@echo "  $(miredo_conf)-dist"
-	@echo " "
-	@if test ! -e "$(DESTDIR)$(miredo_conf)"; then \
-		cp -- "$(DESTDIR)$(miredo_conf)-dist" "$(DESTDIR)$(miredo_conf)" ; \
-		echo "No pre-existing configuration file for Miredo" ; \
-		echo "could be found, so the sample as been copied as" ; \
-		echo "  $(miredo_conf) too." ; \
-	else \
-		echo "There was already a configuration file at:" ; \
-		echo "  $(miredo_conf) - it was not modified." ; \
-	fi
-	@echo " "
-	@echo "Please take time to review the settings and adjust them"
-	@echo "if necessary. Once finished, save the file as:"
-	@echo "  $(miredo_conf) and run miredo (as root)."
+.8-in.8:
+	rm -f -- $@
+	$(edit) $< > $@
 
