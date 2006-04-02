@@ -1,5 +1,5 @@
 .\" ***********************************************************************
-.\" *  Copyright © 2004-2005 Rémi Denis-Courmont.                         *
+.\" *  Copyright © 2004-2006 Rémi Denis-Courmont.                         *
 .\" *  This program is free software; you can redistribute and/or modify  *
 .\" *  it under the terms of the GNU General Public License as published  *
 .\" *  by the Free Software Foundation; version 2 of the license.         *
@@ -17,12 +17,12 @@
 .SH NAME
 miredo \- Teredo IPv6 tunneling for Unix
 .SH SYNOPSIS
-.BR "miredo" " [" "-c config_file" "] [" "-f" "] [" "-u user" "]"
-.RB "[" "server_name" "]"
+.BR "miredo" " [" "-c config_file" "] [" "-f" "] [" "-u user" "] ["
+.BR "-t chrootdir" "] [" "server_name" "]"
 
 .SH DESCRIPTON
 .B Miredo
-is an Unix daemon program providing a Teredo tunnel service compatible
+is a daemon program providing a Teredo tunnel service compatible
 with the "Teredo: Tunneling IPv6 over UDP through NATs" Internet
 proposed standard (RFC 4380). It can provide either Teredo client or
 Teredo relay functionnality.
@@ -32,7 +32,8 @@ do not support IPv6, and not even proto-41 forwarding. For this to
 work, users need to have a Teredo client running on their system.
 
 A Teredo relay is an IPv6 router which forwards IPv6 packets between
-the IPv6 Internet and Teredo clients through UDP/IPv4.
+the IPv6 Internet and Teredo clients by encapsulating these IPv6
+packets over UDP/IPv4.
 
 A Teredo client is an IPv6-enabled host which is located behind an
 IPv4-only Network Address Translator (a.k.a. NAT), and encapsulates its
@@ -58,6 +59,13 @@ Do not detach from the console. Run the program in the foreground.
 .TP
 .BR "\-h" " or " "\-\-help"
 Display some help and exit.
+
+.TP
+.BR "\-t" " or " "\-\-chrootdir"
+Specify a directory to use as a root after initialization is completed.
+When used as a Teredo client, the hostname resolver library files must
+be present in the chroot. The directory can safely be left empty for a
+Teredo relay.
 
 .TP
 .BR "\-u username" " or " "\-\-user username"
