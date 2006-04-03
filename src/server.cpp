@@ -41,9 +41,9 @@
 #ifdef HAVE_SYS_CAPABILITY_H
 # include <sys/capability.h>
 #endif
-#include <pthread.h> // pthread_sigmask()
 #include <signal.h> // sigwait()
 
+#include <netinet/in.h>
 #include <libteredo/teredo.h>
 
 #include "conf.h"

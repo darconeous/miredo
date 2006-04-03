@@ -31,9 +31,6 @@
 /* Multicast IPv4 discovery address */
 #define TEREDO_DISCOVERY_IPV4	0xe00000fd
 
-#include <sys/types.h>
-#include <netinet/in.h>
-
 /*
  * Teredo addresses
  */
