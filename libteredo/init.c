@@ -51,7 +51,7 @@
  */
 int libteredo_preinit (bool use_client)
 {
-	bindtextdomain (PACKAGE_NAME, LOCALEDIR);
+	(void)bindtextdomain (PACKAGE_NAME, LOCALEDIR);
 
 	if (use_client)
 	{
