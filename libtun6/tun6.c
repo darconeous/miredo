@@ -149,7 +149,7 @@ struct tun6
  */
 tun6 *tun6_create (const char *req_name)
 {
-	bindtextdomain (PACKAGE_NAME, LOCALEDIR);
+	(void)bindtextdomain (PACKAGE_NAME, LOCALEDIR);
 	tun6 *t = (tun6 *)malloc (sizeof (*t));
 	if (t == NULL)
 		return NULL;
@@ -805,7 +805,7 @@ tun6_send (const tun6 *t, const void *packet, size_t len)
  */
 int tun6_driver_diagnose (char *errbuf)
 {
-	bindtextdomain (PACKAGE_NAME, LOCALEDIR);
+	(void)bindtextdomain (PACKAGE_NAME, LOCALEDIR);
 
 	int fd = socket (AF_INET6, SOCK_DGRAM, 0);
 	if (fd == -1)
