@@ -429,7 +429,7 @@ static void *thread_secondary (void *data)
  */
 libteredo_server *libteredo_server_create (uint32_t ip1, uint32_t ip2)
 {
-	bindtextdomain (PACKAGE_NAME, LOCALEDIR);
+	(void)bindtextdomain (PACKAGE_NAME, LOCALEDIR);
 
 	/* Initializes shared raw IPv6 socket */
 	pthread_mutex_lock (&raw_mutex);
