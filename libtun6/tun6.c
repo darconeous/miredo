@@ -75,36 +75,33 @@ static const char *os_driver = "Linux";
  * BSD tunneling driver
  * NOTE: the driver is NOT tested on Darwin (Mac OS X).
  */
-
-# if defined (HAVE_FREEBSD)
-#  include <net/if_var.h>
-#  define USE_TUNHEAD
-static const char *os_driver = "FreeBSD";
-
-# elif defined (HAVE_OPENBSD)
-#  define USE_TUNHEAD
-static const char *os_driver = "OpenBSD";
-
-# elif defined (HAVE_NETBSD)
-#  define USE_TUNHEAD
-static const char *os_driver = "NetBSD";
-
-# elif defined (HAVE_DARWIN)
-static const char *os_driver = "Darwin";
-
-# else
-# error FIXME: Unknown BSD variant!
-# endif /* if HAVE_xxxBSD */
-
 # include <net/if_tun.h> // TUNSIFHEAD, TUNSLMODE
 # include <net/if_dl.h> // struct sockaddr_dl
 # include <net/route.h> // AF_ROUTE things
-# include <errno.h> // errno
-
 # include <netinet6/in6_var.h> // struct in6_aliasreq
 # include <netinet6/nd6.h> // ND6_INFINITE_LIFETIME
 
 # include <pthread.h>
+
+# define USE_TUNHEAD
+
+# if defined (HAVE_FREEBSD)
+#  include <net/if_var.h>
+static const char *os_driver = "FreeBSD";
+
+# elif defined (HAVE_OPENBSD)
+static const char *os_driver = "OpenBSD";
+
+# elif defined (HAVE_NETBSD)
+static const char *os_driver = "NetBSD";
+
+# elif defined (HAVE_DARWIN)
+# undef USE_TUNHEAD
+static const char *os_driver = "Darwin";
+
+# else
+#  error FIXME: Inconsistent BSD variant!
+# endif /* if HAVE_xxxBSD */
 
 # define HAVE_BSD
 
