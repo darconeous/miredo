@@ -31,11 +31,15 @@
 
 # ifdef __GNUC__
 #  define LIBTUN6_NONNULL __attribute__ ((nonnull))
-#  define LIBTUN6_WARN_UNUSED __attribute__ ((warn_unused_result))
 #  if __GNUC__ >= 3
 #   define LIBTUN6_PURE __attribute__ ((pure))
 #  else
 #   define LIBTUN6_PURE
+#  endif
+#  if __GNUC__ >= 4
+#   define LIBTUN6_WARN_UNUSED __attribute__ ((warn_unused_result))
+#  else
+#   define LIBTUN6_WARN_UNUSED
 #  endif
 # else
 #  define LIBTUN6_NONNULL
