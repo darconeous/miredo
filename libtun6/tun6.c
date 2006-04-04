@@ -43,9 +43,9 @@
 #include <unistd.h>
 #include <syslog.h>
 #include <errno.h>
+#include <netinet/in.h> // htons(), struct in6_addr
 
 #include <sys/socket.h> // socket(AF_INET6, SOCK_DGRAM, 0)
-#include <netinet/in.h> // htons()
 
 #include <net/if.h> // struct ifreq, if_nametoindex()
 
@@ -53,6 +53,8 @@
 /*
  * Linux tunneling driver
  */
+static const char *os_driver = "Linux";
+
 # include <linux/if_tun.h> // TUNSETIFF - Linux tunnel driver
 /*
  * <linux/ipv6.h> conflicts with <netinet/in.h> and <arpa/inet.h>,
@@ -65,9 +67,16 @@ struct in6_ifreq {
 };
 
 # include <net/route.h> // struct in6_rtmsg
+# include <netinet/if_ether.h> // ETH_P_IPV6
 
-# define USE_TUNHEAD
-static const char *os_driver = "Linux";
+typedef struct
+{
+	uint16_t flags;
+	uint16_t proto;
+} tun_head_t;
+
+# define TUN_HEAD_IPV6_INITIALIZER { 0, htons (ETH_P_IPV6) }
+# define tun_head_is_ipv6( h ) (h.proto == htons (ETH_P_IPV6))
 
 #elif defined (HAVE_FREEBSD) || defined (HAVE_OPENBSD) || \
 	defined (HAVE_NETBSD) || defined (HAVE_DARWIN)
@@ -75,7 +84,16 @@ static const char *os_driver = "Linux";
  * BSD tunneling driver
  * NOTE: the driver is NOT tested on Darwin (Mac OS X).
  */
-# include <net/if_tun.h> // TUNSIFHEAD, TUNSLMODE
+static const char *os_driver = "BSD";
+# define HAVE_BSD
+
+# ifdef HAVE_NET_IF_TUN_H
+#  include <net/if_tun.h> // TUNSIFHEAD, TUNSLMODE
+# endif
+# ifdef HAVE_NET_IF_VAR_H
+#  include <net/if_var.h>
+# endif
+
 # include <net/if_dl.h> // struct sockaddr_dl
 # include <net/route.h> // AF_ROUTE things
 # include <netinet6/in6_var.h> // struct in6_aliasreq
@@ -83,27 +101,10 @@ static const char *os_driver = "Linux";
 
 # include <pthread.h>
 
-# define USE_TUNHEAD
+typedef uint32_t tun_head_t;
 
-# if defined (HAVE_FREEBSD)
-#  include <net/if_var.h>
-static const char *os_driver = "FreeBSD";
-
-# elif defined (HAVE_OPENBSD)
-static const char *os_driver = "OpenBSD";
-
-# elif defined (HAVE_NETBSD)
-static const char *os_driver = "NetBSD";
-
-# elif defined (HAVE_DARWIN)
-# undef USE_TUNHEAD
-static const char *os_driver = "Darwin";
-
-# else
-#  error FIXME: Inconsistent BSD variant!
-# endif /* if HAVE_xxxBSD */
-
-# define HAVE_BSD
+# define TUN_HEAD_IPV6_INITIALIZER htonl (AF_INET6)
+# define tun_head_is_ipv6( h ) (h == htonl (AF_INET6))
 
 #else
 static const char *os_driver = "Generic";
@@ -111,9 +112,7 @@ static const char *os_driver = "Generic";
 # warn Unknown host OS. The driver will probably not work.
 #endif
 
-#ifdef USE_TUNHEAD
-# include <sys/uio.h> // readv() & writev()
-#endif
+#include <sys/uio.h> // readv() & writev()
 
 #ifndef ETH_P_IPV6
 # define ETH_P_IPV6 0x86DD
@@ -211,12 +210,15 @@ tun6 *tun6_create (const char *req_name)
 		if (tunfd == -1)
 			continue;
 
-		int value = IFF_BROADCAST;
+		int value;
+# ifdef TUNSIFMODE
+		value = IFF_BROADCAST;
 		if (ioctl (tunfd, TUNSIFMODE, &value))
 		{
 			errmsg = "TUNSIFMODE";
 			goto next;
 		}
+# endif
 # if defined TUNSIFHEAD
 		/* Enables TUNSIFHEAD */
 		value = 1;
@@ -734,17 +736,8 @@ tun6_recv (const tun6 *t, const fd_set *readset, void *buffer, size_t maxlen)
 	if (!FD_ISSET (fd, readset))
 		return -1;
 
-#if defined (USE_TUNHEAD)
 	struct iovec vect[2];
-	union
-	{
-		struct
-		{
-			uint16_t flags;
-			uint16_t proto;
-		} tun_linux;
-		uint32_t tun_bsd;
-	} head;
+	tun_head_t head;
 
 	vect[0].iov_base = (char *)&head;
 	vect[0].iov_len = sizeof (head);
@@ -752,28 +745,15 @@ tun6_recv (const tun6 *t, const fd_set *readset, void *buffer, size_t maxlen)
 	vect[1].iov_len = maxlen;
 
 	int len = readv (fd, vect, 2);
-#else /* USE_TUNHEAD */
-	int len = read (fd, buffer, maxlen);
-#endif /* USE_TUNHEAD */
-
 	if (len == -1)
 		return -1;
 
-#if defined (USE_TUNHEAD)
 	len -= sizeof (head);
 	if (len < 0)
 		return -1;
 
-# if defined (HAVE_LINUX)
-	/* TUNTAP driver */
-	if (head.tun_linux.proto != htons (ETH_P_IPV6))
+	if (!tun_head_is_ipv6 (head))
 		return -1; /* only accept IPv6 packets */
-# elif defined (HAVE_BSD)
-	/* BSD tun driver */
-	if (head.tun_bsd != htonl (AF_INET6))
-		return -1;
-# endif
-#endif /* USE_TUNHEAD */
 
 	return len;
 }
@@ -796,17 +776,7 @@ tun6_send (const tun6 *t, const void *packet, size_t len)
 	if (len > 65535)
 		return -1;
 
-#if defined (USE_TUNHEAD)
-# if defined (HAVE_LINUX)
-	struct
-	{
-		uint16_t flags;
-		uint16_t proto;
-	} head = { 0, htons (ETH_P_IPV6) };
-# elif defined (HAVE_BSD)
-	uint32_t head = htonl (AF_INET6);
-# endif
-
+	tun_head_t head = TUN_HEAD_IPV6_INITIALIZER;
 	struct iovec vect[2];
 	vect[0].iov_base = (char *)&head;
 	vect[0].iov_len = sizeof (head);
@@ -814,19 +784,12 @@ tun6_send (const tun6 *t, const void *packet, size_t len)
 	vect[1].iov_len = len;
 
 	int val = writev (t->fd, vect, 2);
-#else /* USE_TUNHEAD */
-	int val = write (t->fd, packet, len);
-#endif /* USE_TUNHEAD */
-
 	if (val == -1)
 		return -1;
 
-#if defined (USE_TUNHEAD)
 	val -= sizeof (head);
-
 	if (val < 0)
 		return -1;
-#endif
 
 	return val;
 }

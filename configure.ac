@@ -91,7 +91,7 @@ AC_DEFINE_UNQUOTED(PACKAGE_HOST, "$host",
 
 # Checks for header files.
 AS_MESSAGE([checking header files...])
-AC_CHECK_HEADERS([libintl.h])
+AC_CHECK_HEADERS([libintl.h net/if_tun.h net/if_var.h])
 
 
 # Checks for typedefs, structures, and compiler characteristics.
