@@ -53,7 +53,7 @@ AM_GNU_GETTEXT([external])
 AH_TEMPLATE(HAVE_LINUX,
 		[Define to 1 if the host kernel is Linux.])
 AH_TEMPLATE(HAVE_FREEBSD,
-		[Define to 1 if the host kernel is FreeBSD.])
+		[Define to 1 if the host kernel is FreeBSD (or derivative).])
 AH_TEMPLATE(HAVE_OPENBSD,
 		[Define to 1 if the host kernel is OpenBSD.])
 AH_TEMPLATE(HAVE_NETBSD,
@@ -67,7 +67,7 @@ case $host_os in
   *linux*)
 	AC_DEFINE(HAVE_LINUX)
 	;;
-  *freebsd*)
+  *freebsd*|*dragonfly*)
 	AC_DEFINE(HAVE_FREEBSD)
 	;;
   *openbsd*)
