@@ -254,7 +254,9 @@ libteredo_send_ipv6 (const void *p, size_t len)
 				               /* ICMPv6 time exceeded */
 			case ECONNREFUSED: /* ICMPv6 unreach port unreachable */
 			case EMSGSIZE: /* ICMPv6 packet too big */
+#ifdef EPROTO
 			case EPROTO: /* ICMPv6 param prob (and other errors) */
+#endif
 				break;
 
 			default:
