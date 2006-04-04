@@ -54,6 +54,7 @@
 #include "v4global.h"
 #include "checksum.h"
 #include "teredo.h"
+#include <sys/uio.h>
 #include "teredo-udp.h"
 
 static pthread_mutex_t raw_mutex = PTHREAD_MUTEX_INITIALIZER;
