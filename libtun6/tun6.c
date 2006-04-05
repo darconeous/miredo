@@ -203,8 +203,8 @@ tun6 *tun6_create (const char *req_name)
 	 * BSD tunnel driver initialization
 	 * (see BSD src/sys/net/if_tun.{c,h})
 	 */
-	const char *errmsg;
-	int fd = -1;
+	const char *errmsg = NULL;
+	int fd = -1, errval = 0;
 
 	for (unsigned i = 0; (i <= 255) && (fd == -1); i++)
 	{
@@ -230,7 +230,7 @@ tun6 *tun6_create (const char *req_name)
 		value = 1;
 		if (ioctl (tunfd, TUNSIFHEAD, &value))
 		{
-			errmsg = "TUNSIFHEAD";;
+			errmsg = "TUNSIFHEAD";
 			goto next;
 		}
 # elif defined TUNSLMODE
@@ -263,6 +263,7 @@ tun6 *tun6_create (const char *req_name)
 # endif /* if 0 */
 
 		fd = tunfd;
+		errval = errno;
 		break;
 
 	next:
@@ -271,8 +272,13 @@ tun6 *tun6_create (const char *req_name)
 
 	if (fd == -1)
 	{
+		if (errmsg == NULL)
+		{
+			errmsg = "/dev/tun0";
+			errval = errno;
+		}
 		syslog (LOG_ERR, _("Tunneling driver error (%s): %s"),
-		        errmsg, strerror (errno));
+		        errmsg, strerror (errval));
 		goto error;
 	}
 #else
