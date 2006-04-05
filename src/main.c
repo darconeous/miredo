@@ -205,37 +205,6 @@ clearenv (void)
 }
 #endif
 
-#ifndef HAVE_CLOSEFROM
-/**
- * BSD closefrom() replacement.
- *
- * We don't handle EINTR error properly;
- * this replacement is obviously not atomic.
- */
-static int
-closefrom (int fd)
-{
-	struct rlimit lim;
-	unsigned found = 0;
-
-	if (getrlimit (RLIMIT_NOFILE, &lim))
-		return -1;
-
-	int saved_errno = errno;
-	while ((unsigned)fd < lim.rlim_max)
-		if (close (fd++) == 0)
-			found++;
-
-	if (found == 0)
-	{
-		errno = EBADF;
-		return -1;
-	}
-	errno = saved_errno;
-	return 0;
-}
-#endif
-
 
 static void
 setuid_notice (void)

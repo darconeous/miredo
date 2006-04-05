@@ -28,6 +28,7 @@ AS_MESSAGE(checking system...)
 AC_CONFIG_SRCDIR(configure.ac)
 AC_CONFIG_AUX_DIR(admin)
 AC_CONFIG_MACRO_DIR(m4)
+AC_CONFIG_LIBOBJ_DIR(compat)
 AC_CONFIG_HEADERS(config.h)
 
 AC_DEFINE_UNQUOTED(PACKAGE_CONFIGURE_INVOCATION, "$INVOCATION",
@@ -103,7 +104,8 @@ RDC_STRUCT_SOCKADDR_LEN
 # Checks for library functions.
 AS_MESSAGE([checking library functions...])
 RDC_REPLACE_FUNC_GETOPT_LONG
-AC_CHECK_FUNCS([clearenv strlcpy closefrom])
+AC_CHECK_FUNCS([clearenv strlcpy])
+AC_REPLACE_FUNCS([closefrom])
 
 # Socket stuff
 RDC_FUNC_SOCKET
@@ -112,6 +114,7 @@ dnl AC_SEARCH_LIBS(inet_aton, [resolv])
 
 # POSIX threads
 AC_SEARCH_LIBS(pthread_create, [pthread c_r])
+AC_CHECK_FUNC([pthread_barrier_wait],, [AC_LIBOBJ([barrier])])
 
 # POSIX capabilities
 LIBCAP=""
@@ -195,10 +198,20 @@ AS_IF([test "${enable_miredo_user}" != "root"],
 AH_BOTTOM([
 #define _( str )		dgettext (PACKAGE_NAME, str)
 #define N_( str )		gettext_noop (str)
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+#if !HAVE_CLOSEFROM
+extern int closefrom (int lowfd);
+#endif
+#ifdef __cplusplus
+}
+#endif
 ])
 
 
 # END
 AS_MESSAGE(writing results...)
-AC_CONFIG_FILES([Makefile m4/Makefile libtun6/Makefile libteredo/Makefile libteredo/test/Makefile doc/Makefile misc/Makefile src/Makefile po/Makefile.in ])
+AC_CONFIG_FILES([Makefile m4/Makefile doc/Makefile misc/Makefile compat/Makefile libtun6/Makefile libteredo/Makefile libteredo/test/Makefile src/Makefile po/Makefile.in ])
 AC_OUTPUT

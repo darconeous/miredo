@@ -19,10 +19,13 @@
 
 SUBDIRS = . test
 localedir = @datadir@/locale
+LTLIBINTL = @LTLIBINTL@
 
 AM_CPPFLAGS = -I@top_srcdir@/include -I@top_srcdir@ \
 	-D_REENTRANT -D_GNU_SOURCE -DLOCALEDIR=\"$(localedir)\"
 AM_CFLAGS = -std=c99
+
+LIBADD = $(LTLIBINTL) ../compat/libcompat.la
 
 noinst_LTLIBRARIES = libteredo-server.la
 lib_LTLIBRARIES = libteredo.la
@@ -39,13 +42,13 @@ if TEREDO_CLIENT
 libteredo_la_SOURCES += security.c security.h maintain.c maintain.h \
 			md5.c md5.h
 endif
-libteredo_la_LIBADD = @LTLIBINTL@ @LIBJUDY@
+libteredo_la_LIBADD = @LIBJUDY@ $(LIBADD)
 libteredo_la_LDFLAGS = -no-undefined -static
 # will be static as long as the API is not quite stabilized
 
 # libteredo-server.la
 libteredo_server_la_SOURCES =	$(common_SOURCES) server.c server.h
-libteredo_server_la_LIBADD = @LTLIBINTL@
+libteredo_server_la_LIBADD = $(LIBADD)
 libteredo_server_la_LDFLAGS = -no-undefined -static
 # libteredo-server is static given it hardly make sense to reuse it
 # outside miredo-server (which is itself way les commonly used

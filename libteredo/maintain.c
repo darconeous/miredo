@@ -59,6 +59,8 @@
 #include "maintain.h"
 #include "v4global.h" // is_ipv4_global_unicast()
 
+#include <compat/barrier.h>
+
 #define QUALIFIED	0
 #define PROBE_CONE	1
 #define PROBE_RESTRICT	2

@@ -19,13 +19,10 @@
 
 ACLOCAL_AMFLAGS = -I m4
 
-SUBDIRS = po doc misc libtun6 libteredo src
+SUBDIRS = po doc misc compat libtun6 libteredo src
 DIST_SUBDIRS = m4 $(SUBDIRS)
-
 noinst_HEADERS = include/gettext.h
-
-EXTRA_DIST = bootstrap $(man5_MANS) $(man8_MANS) \
-		autopackage/default.apspec.in
+EXTRA_DIST = bootstrap autopackage/default.apspec.in
 
 miredo_conf = $(sysconfdir)/miredo.conf
 

@@ -40,7 +40,8 @@ TESTS = miredo-checkconf
 
 libmiredo_la_SOURCES = main.c miredo.cpp miredo.h \
 			conf.cpp conf.h binreloc.c binreloc.h
-libmiredo_la_LIBADD = $(LTLIBINTL) $(LIBCAP) $(BINRELOC_LIBS)
+libmiredo_la_LIBADD = $(LTLIBINTL) $(LIBCAP) $(BINRELOC_LIBS) \
+			../compat/libcompat.la
 libmiredo_la_LDFLAGS = -static -no-undefined
 
 # miredo
