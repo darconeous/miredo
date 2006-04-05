@@ -41,6 +41,7 @@
 #include <fcntl.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
+#include <sys/uio.h> // readv() & writev()
 #include <syslog.h>
 #include <errno.h>
 #include <netinet/in.h> // htons(), struct in6_addr
@@ -112,25 +113,29 @@ static const char *os_driver = "Generic";
 # warn Unknown host OS. The driver will probably not work.
 #endif
 
-#include <sys/uio.h> // readv() & writev()
-
-#ifndef ETH_P_IPV6
-# define ETH_P_IPV6 0x86DD
-#endif
-
 #include <libtun6/tun6.h>
 
-static inline void
-secure_strncpy (char *tgt, const char *src, size_t len)
-{
-#ifndef HAVE_STRLCPY
-	strncpy (tgt, src, --len);
-	tgt[len] = '\0';
-#else
-	strlcpy (tgt, src, len);
-#endif
-}
 
+#ifndef HAVE_STRLCPY
+static size_t strlcpy (char *tgt, const char *src, size_t len)
+{
+	if (len < 1)
+		return strlen (src);
+	len--;
+
+	size_t olen;
+	for (olen = 0; *src && (olen < len); olen++)
+		*tgt++ = *src++;
+
+	tgt[len] = '\0';
+	while (*src++)
+		olen++;
+
+	return olen;
+}
+#endif
+#define safe_strcpy( tgt, src ) \
+	((strlcpy (tgt, src, sizeof (tgt)) >= sizeof (tgt)) ? -1 : 0)
 
 struct tun6
 {
@@ -168,6 +173,11 @@ tun6 *tun6_create (const char *req_name)
 	static const char tundev[] = "/dev/net/tun";
 	struct ifreq req;
 
+	memset (&req, 0, sizeof (req));
+	req.ifr_flags = IFF_TUN;
+	if ((req_name != NULL) && safe_strcpy (req.ifr_name, req_name))
+		return NULL;
+
 	int fd = open (tundev, O_RDWR);
 	if (fd == -1)
 	{
@@ -179,11 +189,6 @@ tun6 *tun6_create (const char *req_name)
 	}
 
 	// Allocates the tunneling virtual network interface
-	memset (&req, 0, sizeof (req));
-	if (req_name != NULL)
-		secure_strncpy (req.ifr_name, req_name, IFNAMSIZ);
-	req.ifr_flags = IFF_TUN;
-
 	if (ioctl (fd, TUNSETIFF, (void *)&req))
 	{
 		syslog (LOG_ERR, _("Tunneling driver error (%s): %s"), "TUNSETIFF",
@@ -191,7 +196,8 @@ tun6 *tun6_create (const char *req_name)
 		goto error;
 	}
 
-	secure_strncpy (t->name, req.ifr_name, sizeof (t->name));
+	if (safe_strcpy (t->name, req.ifr_name))
+		goto error;
 #elif defined (HAVE_BSD)
 	/*
 	 * BSD tunnel driver initialization
@@ -251,8 +257,9 @@ tun6 *tun6_create (const char *req_name)
 			goto next;
 		}
 # else /* 0 */
-		secure_strncpy (t->name, tundev + 5, sizeof (t->name));
-		/* strlen ("/dev/") == 5 */
+		/* Skips "/dev/" (5 bytes) */
+		if (safe_strcpy (t->name, tundev + 5))
+			goto next;
 # endif /* if 0 */
 
 		fd = tunfd;
@@ -355,19 +362,17 @@ int
 tun6_setState (tun6 *t, bool up)
 {
 	struct ifreq req;
-	const char *ifname;
 
 	assert (t != NULL);
 
-	ifname = t->name;
+	const char *ifname = t->name;
 
 	/* Sets up the interface */
 	memset (&req, 0, sizeof (req));	
-	secure_strncpy (req.ifr_name, ifname, IFNAMSIZ);
-	if (ioctl (t->reqfd, SIOCGIFFLAGS, &req))
+	if (safe_strcpy (req.ifr_name, ifname)
+	 || ioctl (t->reqfd, SIOCGIFFLAGS, &req))
 		return -1;
 
-	secure_strncpy (req.ifr_name, ifname, IFNAMSIZ);
 	/* settings we want/don't want: */
 	req.ifr_flags |= IFF_NOARP;
 	req.ifr_flags &= ~(IFF_MULTICAST | IFF_BROADCAST);
@@ -376,11 +381,11 @@ tun6_setState (tun6 *t, bool up)
 	else
 		req.ifr_flags &= ~(IFF_UP | IFF_RUNNING);
 
-	if (ioctl (t->reqfd, SIOCSIFFLAGS, &req) == 0)
-		return 0;
+	if (safe_strcpy (req.ifr_name, ifname)
+	 || ioctl (t->reqfd, SIOCSIFFLAGS, &req))
+		return -1;
 
-	return -1;
-
+	return 0;
 }
 
 
@@ -461,11 +466,12 @@ _iface_addr (int reqfd, const char *ifname, bool add,
 	if (add)
 	{
 		memset (&r.addreq6, 0, sizeof (r.addreq6));
-		secure_strncpy (r.addreq6.ifra_name, ifname, IFNAMSIZ);
+		if (strlcpy (r.addreq6.ifra_name, ifname))
+			return -1;
 		r.addreq6.ifra_addr.sin6_family = AF_INET6;
 		r.addreq6.ifra_addr.sin6_len = sizeof (r.addreq6.ifra_addr);
 		memcpy (&r.addreq6.ifra_addr.sin6_addr, addr,
-			sizeof (r.addreq6.ifra_addr.sin6_addr));
+		        sizeof (r.addreq6.ifra_addr.sin6_addr));
 
 		plen_to_sin6 (prefix_len, &r.addreq6.ifra_prefixmask);
 
@@ -478,11 +484,12 @@ _iface_addr (int reqfd, const char *ifname, bool add,
 	else
 	{
 		memset (&r.delreq6, 0, sizeof (r.delreq6));
-		secure_strncpy (r.delreq6.ifr_name, ifname, IFNAMSIZ);
+		if (safe_strcpy (r.delreq6.ifr_name, ifname))
+			return -1;
 		r.delreq6.ifr_addr.sin6_family = AF_INET6;
 		r.delreq6.ifr_addr.sin6_len = sizeof (r.delreq6.ifr_addr);
 		memcpy (&r.delreq6.ifr_addr.sin6_addr, addr,
-			sizeof (r.delreq6.ifr_addr.sin6_addr));
+		        sizeof (r.delreq6.ifr_addr.sin6_addr));
 
 		cmd = SIOCDIFADDR_IN6;
 		req = &r.delreq6;
@@ -695,8 +702,9 @@ tun6_setMTU (tun6 *t, unsigned mtu)
 		return -1;
 
 	memset (&req, 0, sizeof (req));
-	secure_strncpy (req.ifr_name, t->name, IFNAMSIZ);
 	req.ifr_mtu = mtu;
+	if (safe_strcpy (req.ifr_name, t->name))
+		return -1;
 
 	return ioctl (t->reqfd, SIOCSIFMTU, &req) ? -1 : 0;
 }
@@ -810,8 +818,8 @@ int tun6_driver_diagnose (char *errbuf)
 	int fd = socket (AF_INET6, SOCK_DGRAM, 0);
 	if (fd == -1)
 	{
-		strncpy (errbuf, "Error: IPv6 stack not available.\n",
-				LIBTUN6_ERRBUF_SIZE - 1);
+		strlcpy (errbuf, "Error: IPv6 stack not available.\n",
+		         LIBTUN6_ERRBUF_SIZE - 1);
 		errbuf[LIBTUN6_ERRBUF_SIZE - 1] = '\0';
 		return -1;
 	}
@@ -828,7 +836,7 @@ int tun6_driver_diagnose (char *errbuf)
 	{
 		(void)close (fd);
 		snprintf (errbuf, LIBTUN6_ERRBUF_SIZE - 1,
-				"%s tunneling driver found.", os_driver);
+		          "%s tunneling driver found.", os_driver);
 		errbuf[LIBTUN6_ERRBUF_SIZE - 1] = '\0';
 		return 0;
 	}
