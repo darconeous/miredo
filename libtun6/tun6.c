@@ -466,7 +466,7 @@ _iface_addr (int reqfd, const char *ifname, bool add,
 	if (add)
 	{
 		memset (&r.addreq6, 0, sizeof (r.addreq6));
-		if (strlcpy (r.addreq6.ifra_name, ifname))
+		if (safe_strcpy (r.addreq6.ifra_name, ifname))
 			return -1;
 		r.addreq6.ifra_addr.sin6_family = AF_INET6;
 		r.addreq6.ifra_addr.sin6_len = sizeof (r.addreq6.ifra_addr);
