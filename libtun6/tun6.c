@@ -115,25 +115,6 @@ static const char *os_driver = "Generic";
 
 #include <libtun6/tun6.h>
 
-
-#ifndef HAVE_STRLCPY
-static size_t strlcpy (char *tgt, const char *src, size_t len)
-{
-	if (len < 1)
-		return strlen (src);
-	len--;
-
-	size_t olen;
-	for (olen = 0; *src && (olen < len); olen++)
-		*tgt++ = *src++;
-
-	tgt[len] = '\0';
-	while (*src++)
-		olen++;
-
-	return olen;
-}
-#endif
 #define safe_strcpy( tgt, src ) \
 	((strlcpy (tgt, src, sizeof (tgt)) >= sizeof (tgt)) ? -1 : 0)
 

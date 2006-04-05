@@ -30,7 +30,7 @@ TESTS = $(check_PROGRAMS)
 
 # libtun6.a
 libtun6_la_SOURCES = tun6.c
-libtun6_la_LIBADD = @LTLIBINTL@
+libtun6_la_LIBADD = @LTLIBINTL@ ../compat/libcompat.la
 libtun6_la_LDFLAGS = -no-undefined
 include_libtun6dir = $(includedir)/libtun6
 include_libtun6_HEADERS = tun6.h

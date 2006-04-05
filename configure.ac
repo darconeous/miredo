@@ -104,8 +104,7 @@ RDC_STRUCT_SOCKADDR_LEN
 # Checks for library functions.
 AS_MESSAGE([checking library functions...])
 RDC_REPLACE_FUNC_GETOPT_LONG
-AC_CHECK_FUNCS([clearenv strlcpy])
-AC_REPLACE_FUNCS([closefrom])
+AC_REPLACE_FUNCS([clearenv closefrom strlcpy])
 
 # Socket stuff
 RDC_FUNC_SOCKET
@@ -202,8 +201,15 @@ AH_BOTTOM([
 #ifdef __cplusplus
 extern "C" {
 #endif
+#if !HAVE_CLEARENV
+int clearenv (void);
+#endif
 #if !HAVE_CLOSEFROM
-extern int closefrom (int lowfd);
+int closefrom (int lowfd);
+#endif
+#if !HAVE_STRLCPY
+# include <stddef.h>
+size_t strlcpy (char *tgt, const char *str, size_t len);
 #endif
 #ifdef __cplusplus
 }

@@ -194,18 +194,6 @@ close_pidfile (int fd)
 }
 
 
-#ifndef HAVE_CLEARENV
-extern char **environ;
-
-static int
-clearenv (void)
-{
-	environ = NULL;
-	return 0;
-}
-#endif
-
-
 static void
 setuid_notice (void)
 {
