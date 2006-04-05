@@ -271,12 +271,10 @@ init_daemon (const char *username, const char *pidfile, int nodetach)
 	/*
 	 * Make sure 0, 1 and 2 are open.
 	 */
-#ifndef HAVE_OPENBSD
-	/* OpenBugs^H^H^HSD won't return 3 which is obviously wrong! */
-	if (dup (2) != 3)
+	int fd = dup (2);
+	if (fd < 3)
 		return -1;
-	close (3);
-#endif
+	close (fd);
 
 	/* Determines unpriviledged user */
 	errno = 0;
@@ -373,7 +371,7 @@ init_daemon (const char *username, const char *pidfile, int nodetach)
 #endif
 
 	/* Opens pidfile */
-	int fd = open_pidfile (pidfile);
+	fd = open_pidfile (pidfile);
 	if (fd == -1)
 	{
 		fprintf (stderr, _("Cannot create PID file %s:\n %s\n"),
