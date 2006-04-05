@@ -222,7 +222,7 @@ closefrom (int fd)
 		return -1;
 
 	int saved_errno = errno;
-	while ((unsigned)fd < lim.rlim_cur)
+	while ((unsigned)fd < lim.rlim_max)
 		if (close (fd++) == 0)
 			found++;
 
