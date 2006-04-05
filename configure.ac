@@ -103,7 +103,7 @@ RDC_STRUCT_SOCKADDR_LEN
 # Checks for library functions.
 AS_MESSAGE([checking library functions...])
 RDC_REPLACE_FUNC_GETOPT_LONG
-AC_CHECK_FUNCS([clearenv strlcpy])
+AC_CHECK_FUNCS([clearenv strlcpy closefrom])
 
 # Socket stuff
 RDC_FUNC_SOCKET

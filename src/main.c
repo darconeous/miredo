@@ -205,6 +205,37 @@ clearenv (void)
 }
 #endif
 
+#ifndef HAVE_CLOSEFROM
+/**
+ * BSD closefrom() replacement.
+ *
+ * We don't handle EINTR error properly;
+ * this replacement is obviously not atomic.
+ */
+static int
+closefrom (int fd)
+{
+	struct rlimit lim;
+	unsigned found = 0;
+
+	if (getrlimit (RLIMIT_NOFILE, &lim))
+		return -1;
+
+	int saved_errno = errno;
+	while ((unsigned)fd < lim.rlim_cur)
+		if (close (fd++) == 0)
+			found++;
+
+	if (found == 0)
+	{
+		errno = EBADF;
+		return -1;
+	}
+	errno = saved_errno;
+	return 0;
+}
+#endif
+
 
 static void
 setuid_notice (void)
@@ -226,19 +257,16 @@ init_daemon (const char *username, const char *pidfile, int nodetach)
 	(void)clearenv ();
 
 	/* Sets sensible umask */
-	umask (022);
+	(void)umask (022);
 
 	/*
 	 * We close all file handles, except 0, 1 and 2.
 	 * Those last 3 handles will be opened as /dev/null
 	 * by later daemon().
 	 */
-	struct rlimit lim;
-	if (getrlimit (RLIMIT_NOFILE, &lim))
+	errno = 0;
+	if (closefrom (3) && (errno != EBADF))
 		return -1;
-
-	for (int fd = 3; (unsigned)fd < lim.rlim_cur; fd++)
-		(void)close (fd);
 
 	/*
 	 * Make sure 0, 1 and 2 are open.
