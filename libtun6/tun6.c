@@ -195,7 +195,11 @@ tun6 *tun6_create (const char *req_name)
 
 		int tunfd = open (tundev, O_RDWR);
 		if (tunfd == -1)
+		{
+			if (errno != ENOENT)
+				errval = errno;
 			continue;
+		}
 
 		int value;
 # ifdef TUNSIFMODE
@@ -254,10 +258,9 @@ tun6 *tun6_create (const char *req_name)
 	if (fd == -1)
 	{
 		if (errmsg == NULL)
-		{
 			errmsg = "/dev/tun0";
-			errval = errno;
-		}
+		if (errval == 0)
+			errval = ENOENT;
 		syslog (LOG_ERR, _("Tunneling driver error (%s): %s"),
 		        errmsg, strerror (errval));
 		goto error;
