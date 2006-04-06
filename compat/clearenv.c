@@ -23,8 +23,7 @@
 
 extern char **environ;
 
-static int
-clearenv (void)
+int clearenv (void)
 {
 	environ = NULL;
 	return 0;
