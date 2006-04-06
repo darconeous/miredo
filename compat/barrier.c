@@ -3,7 +3,8 @@
  * $Id$
  *
  * FIXME:
- * - Thread cancellation is probably not handled properly.
+ * - The replacement pthread_barrier_wait() is a cancellation point,
+ *   while it must not.
  *
  * NOTE:
  * - No attributes are defined. In particular, process-shared barriers
@@ -65,7 +66,7 @@ pthread_barrier_destroy (pthread_barrier_t *barrier)
 	 * it becomes fairly unlikely that we'll manage to destroy the
 	 * condition, but not the mutex. It is not really required though.
 	 */
-	val = pthread_mutex_lock (&barrier->mutex);
+	val = pthread_mutex_trylock (&barrier->mutex);
 	if (val)
 		return val;
 
