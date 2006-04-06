@@ -43,6 +43,7 @@
 #include <sys/wait.h> // wait()
 #include <sys/select.h> // pselect()
 #include <signal.h> // sigemptyset()
+#include <compat/pselect.h>
 #include <syslog.h>
 
 #include <sys/socket.h>
