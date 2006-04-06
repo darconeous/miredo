@@ -31,6 +31,7 @@
 
 #include <errno.h>
 #include <pthread.h>
+#include "barrier.h"
 
 #define PTHREAD_BARRIER_SERIAL_THREAD (-1)
 
