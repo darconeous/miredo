@@ -47,7 +47,7 @@
 #include "security.h"
 #include "md5.h"
 
-#ifndef HAVE_OPENBSD
+#ifndef __OpenBSD__
 static const char *randfile = "/dev/random";
 #else
 static const char *randfile = "/dev/srandom";

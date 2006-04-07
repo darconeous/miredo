@@ -51,39 +51,6 @@ AS_MESSAGE([checking required libraries...])
 AM_BINRELOC
 AM_GNU_GETTEXT_VERSION([0.12.1])
 AM_GNU_GETTEXT([external])
-AH_TEMPLATE(HAVE_LINUX,
-		[Define to 1 if the host kernel is Linux.])
-AH_TEMPLATE(HAVE_FREEBSD,
-		[Define to 1 if the host kernel is FreeBSD (or derivative).])
-AH_TEMPLATE(HAVE_OPENBSD,
-		[Define to 1 if the host kernel is OpenBSD.])
-AH_TEMPLATE(HAVE_NETBSD,
-		[Define to 1 if the host kernel is NetBSD.])
-AH_TEMPLATE(HAVE_DARWIN,
-		[Define to 1 if the host kernel is Darwin (e.g. Mac OS X).])
-
-
-#AC_CANONICAL_HOST
-case $host_os in
-  *linux*)
-	AC_DEFINE(HAVE_LINUX)
-	;;
-  *freebsd*|*dragonfly*)
-	AC_DEFINE(HAVE_FREEBSD)
-	;;
-  *openbsd*)
-	AC_DEFINE(HAVE_OPENBSD)
-	;;
-  *netbsd*)
-	AC_DEFINE(HAVE_NETBSD)
-	;;
-  *darwin*)
-	AC_DEFINE(HAVE_DARWIN)
-	;;
-  *)
-	AS_WARN(You have an unrecognized operating system.)
-	;;
-esac
 
 AC_DEFINE_UNQUOTED(PACKAGE_BUILD, "$build",
                    [Define to the canonical build-system name])

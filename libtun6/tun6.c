@@ -50,7 +50,7 @@
 
 #include <net/if.h> // struct ifreq, if_nametoindex()
 
-#if defined (HAVE_LINUX)
+#if defined (__linux__)
 /*
  * Linux tunneling driver
  */
@@ -79,8 +79,8 @@ typedef struct
 # define TUN_HEAD_IPV6_INITIALIZER { 0, htons (ETH_P_IPV6) }
 # define tun_head_is_ipv6( h ) (h.proto == htons (ETH_P_IPV6))
 
-#elif defined (HAVE_FREEBSD) || defined (HAVE_OPENBSD) || \
-	defined (HAVE_NETBSD) || defined (HAVE_DARWIN)
+#elif defined (__FreeBSD__) || defined (__OpenBSD__) || \
+	defined (__NetBSD__) || defined (__DragonFly__) || defined (__APPLE__)
 /*
  * BSD tunneling driver
  * NOTE: the driver is NOT tested on Darwin (Mac OS X).
@@ -147,7 +147,7 @@ tun6 *tun6_create (const char *req_name)
 		return NULL;
 	}
 
-#if defined (HAVE_LINUX)
+#if defined (__linux__)
 	/*
 	 * TUNTAP (Linux) tunnel driver initialization
 	 */
@@ -327,7 +327,7 @@ int tun6_getId (const tun6 *t)
 }
 
 
-#if defined (HAVE_LINUX)
+#if defined (__linux__)
 static void
 proc_write_zero (const char *path)
 {
@@ -426,7 +426,7 @@ _iface_addr (int reqfd, const char *ifname, bool add,
 	if ((prefix_len > 128) || (addr == NULL))
 		return -1;
 
-#if defined (HAVE_LINUX)
+#if defined (__linux__)
 	/*
 	 * Linux ioctl interface
 	 */
@@ -505,7 +505,7 @@ _iface_route (int reqfd, const char *ifname, bool add,
 
 	int retval = -1;
 
-#if defined (HAVE_LINUX)
+#if defined (__linux__)
 	/*
 	 * Linux ioctl interface
 	 */
@@ -603,7 +603,7 @@ tun6_addAddress (tun6 *t, const struct in6_addr *addr, unsigned prefixlen)
 
 	int res = _iface_addr (t->reqfd, t->name, true, addr, prefixlen);
 
-#if defined (HAVE_LINUX)
+#if defined (__linux__)
 	if (res == 0)
 	{
 		char proc_path[24 + IFNAMSIZ + 16 + 1] = "/proc/sys/net/ipv6/conf/";
@@ -815,7 +815,7 @@ int tun6_driver_diagnose (char *errbuf)
 	}
 	(void)close (fd);
 
-#if defined (HAVE_LINUX)
+#if defined (__linux__)
 	const char *const tundev = "/dev/net/tun";
 #else
 	const char *const tundev = "/dev/tun0";
@@ -835,12 +835,12 @@ int tun6_driver_diagnose (char *errbuf)
 	{
 		const char *specific;
 
-#if defined (HAVE_LINUX)
+#if defined (__linux__)
 		specific = N_("You should run these commands to create it:\n"
 			"# mkdir -p /dev/net\n"
 			"# mknod /dev/net/tun c 10 200\n"
 			"(you must be root to do that).\n");
-#elif defined (HAVE_DARWIN)
+#elif defined (__APPLE__)
 		specific = N_("You can obtain a tunnel driver for the "
 			"Darwin kernel (Mac OS X) from:\n"
 			"http://chrisp.de/en/projects/tunnel.html\n");
@@ -861,11 +861,11 @@ int tun6_driver_diagnose (char *errbuf)
 	{
 		const char *specific;
 
-#if defined (HAVE_LINUX)
+#if defined (__linux__)
 		specific = N_("Make sure your Linux kernel includes "
 			"the \"Universal TUNTAP driver\"\n"
 			"(CONFIG_TUN option), possibly as a module.\n");
-#elif defined (HAVE_DARWIN)
+#elif defined (__APPLE__)
 		specific = N_("You can obtain a tunnel driver for the "
 			"Darwin kernel (Mac OS X) from:\n"
 			"http://chrisp.de/en/projects/tunnel.html\n");
