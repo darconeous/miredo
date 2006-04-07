@@ -33,8 +33,6 @@
 #include <pthread.h>
 #include "barrier.h"
 
-#define PTHREAD_BARRIER_SERIAL_THREAD (-1)
-
 extern int
 pthread_barrier_init (pthread_barrier_t *barrier, pthread_barrierattr_t *attr,
                       unsigned int count)
