@@ -21,16 +21,16 @@
 
 #include <sys/types.h>
 #include <sys/select.h>
+#include <unistd.h>
 #include <signal.h>
 
 int pselect (int n, fd_set *rfds, fd_set *wfds, fd_set *efds,
              const struct timespec *ts, const sigset_t *sigmask)
 {
-	struct timeval tv, *ptv;
+	struct timeval tv = { 0, 0 }, *ptv;
 	sigset_t oldset;
 	int val;
 
-	memset (&tv, 0, sizeof (tv));
 	if (ts != NULL)
 	{
 		tv.tv_sec = ts->tv_sec;
@@ -47,7 +47,7 @@ int pselect (int n, fd_set *rfds, fd_set *wfds, fd_set *efds,
 	if (sigprocmask (SIG_SETMASK, sigmask, &oldset))
 		return -1;
 
-	val = select (n, rfds, wfds, efds, tv);
+	val = select (n, rfds, wfds, efds, ptv);
 	(void)sigprocmask (SIG_SETMASK, &oldset, NULL);
 	return val;
 }
