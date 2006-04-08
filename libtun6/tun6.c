@@ -192,9 +192,8 @@ tun6 *tun6_create (const char *req_name)
 	 */
 	const char *errmsg = NULL;
 	int fd = -1, errval = 0;
-	unsigned i;
 
-	for (i = 0; (i <= 255) && (fd == -1); i++)
+	for (unsigned i = 0; (i <= 255) && (fd == -1); i++)
 	{
 		char tundev[12];
 		snprintf (tundev, sizeof (tundev), "/dev/tun%u", i);
@@ -234,6 +233,7 @@ tun6 *tun6_create (const char *req_name)
 			goto next;
 		}
 #endif
+		safe_strcpy (t->name, tundev + 5);
 		fd = tunfd;
 		break;
 
@@ -245,29 +245,26 @@ tun6 *tun6_create (const char *req_name)
 # if 0
 	if (req_name != NULL)
 	{
+		char ifname[strlen (req_name) + 1];
+		strcpy (ifname, req_name);
+
 		/* TODO: have this work on FreeBSD
 		 * Overrides the interface name */
 		struct ifreq req;
 		memset (&req, 0, sizeof (req));
-		snprintf (req.ifr_name, sizeof (req.ifr_name), "tun%u", i);
-
-		char *ifname = strdup (req_name);
-		if (ifname == NULL)
-			break; // fatal
+		safe_strcpy (req.ifr_name, t->name);
 		req.ifr_data = ifname;
 
-		if (ioctl (reqfd, SIOCSIFNAME, &req))
+		if (safe_strcpy (t->name, req_name)
+		 || ioctl (reqfd, SIOCSIFNAME, &req))
 		{
 			errmsg = "SIOCSIFNAME";
 			errval = errno;
 			close (fd);
 			fd = -1;
 		}
-		free (ifname);
 	}
-	else
 # endif /* 0 */
-		snprintf (t->name, sizeof (t->name), "tun%u", i);
 
 	if (fd == -1)
 	{
