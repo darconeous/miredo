@@ -34,7 +34,7 @@ int pselect (int n, fd_set *rfds, fd_set *wfds, fd_set *efds,
 	if (ts != NULL)
 	{
 		tv.tv_sec = ts->tv_sec;
-		tv.tv_msec = (ts->tv_usec + 999)/ 1000;
+		tv.tv_usec = (ts->tv_nsec + 999)/ 1000;
 		ptv = &tv;
 	}
 	else
