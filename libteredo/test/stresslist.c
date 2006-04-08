@@ -59,7 +59,7 @@ static void alarm_handler (int sig)
 	write (2, ".", 1);
 }
 
-#define DELAY 10
+#define STRESS_DELAY 10
 
 int main (void)
 {
@@ -81,7 +81,7 @@ int main (void)
 	// Insertion stress test
 	srand ((unsigned int)seed);
 	t = clock ();
-	for (i = 0; count < DELAY; i++)
+	for (i = 0; count < STRESS_DELAY; i++)
 	{
 		teredo_peer *p;
 		bool create;
