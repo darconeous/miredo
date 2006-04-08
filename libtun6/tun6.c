@@ -249,7 +249,7 @@ tun6 *tun6_create (const char *req_name)
 		 * Overrides the interface name */
 		struct ifreq req;
 		memset (&req, 0, sizeof (req));
-		sprintf (req.ifr_name, "tun%u", i);
+		snprintf (req.ifr_name, sizeof (req.ifr_name), "tun%u", i);
 
 		char *ifname = strdup (req_name);
 		if (ifname == NULL)
@@ -267,7 +267,7 @@ tun6 *tun6_create (const char *req_name)
 	}
 	else
 # endif /* 0 */
-		safe_strcpy (t->name, tundev + 5); // can't fail
+		snprintf (t->name, sizeof (t->name), "tun%u", i);
 
 	if (fd == -1)
 	{
