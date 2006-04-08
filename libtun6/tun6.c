@@ -242,7 +242,6 @@ tun6 *tun6_create (const char *req_name)
 		(void)close (tunfd);
 	}
 
-# if 0
 	if (req_name != NULL)
 	{
 		char ifname[strlen (req_name) + 1];
@@ -264,7 +263,6 @@ tun6 *tun6_create (const char *req_name)
 			fd = -1;
 		}
 	}
-# endif /* 0 */
 
 	if (fd == -1)
 	{
