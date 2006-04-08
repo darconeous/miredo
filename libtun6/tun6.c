@@ -81,7 +81,7 @@ typedef struct
 # define tun_head_is_ipv6( h ) (h.proto == htons (ETH_P_IPV6))
 
 #elif defined (__FreeBSD__) || defined (__FreeBSD_kernel__) || \
-      defined (__NetBSD__)  || defined (__NetBSD_kernel__)  || \
+      defined (__NetBSD__)  || defined (__NetBSD_kernel__)  || \
       defined (__OpenBSD__) || defined (__OpenBSD_kernel__) || \
       defined (__DragonFly__) || \
       defined (__APPLE__) /* Darwin */
