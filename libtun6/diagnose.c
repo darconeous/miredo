@@ -23,7 +23,6 @@
 # include <config.h>
 #endif
 
-#include <assert.h>
 #include <stdio.h>
 #include <syslog.h> /* TODO: do not use syslog within the library */
 #include "tun6.h"
@@ -39,9 +38,11 @@ int main (void)
 	fprintf (stderr, "%s\n", errbuf);
 
 	openlog ("libtun6-diagnose", LOG_PERROR, LOG_USER);
-	assert (tun6_create (invalid_name) == NULL);
+	tun6 *t = tun6_create (invalid_name);
+	if (t != NULL)
+		return 1;
 
-	tun6 *t = tun6_create (NULL);
+	t = tun6_create (NULL);
 	if ((t == NULL) != (res != 0))
 		return 1;
 
