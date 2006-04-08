@@ -47,10 +47,10 @@
 #include "security.h"
 #include "md5.h"
 
-#ifndef __OpenBSD__
-static const char *randfile = "/dev/random";
-#else
+#if defined (__OpenBSD__) || defined (__OpenBSD_kernel__)
 static const char *randfile = "/dev/srandom";
+#else
+static const char *randfile = "/dev/random";
 #endif
 static const char *urandfile = "/dev/urandom";
 
