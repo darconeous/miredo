@@ -23,8 +23,6 @@ Not so important features:
 ---------------------------
 ( ) relay IPv6 access control lists:
     can be done with the OS firewall
-( ) support for reading kernel’s gatewayed route through the tunnel
-    (TUNSLMODE on NetBSD, but NetBSD has no userland IPv6 tunnel)
 (*) some statistics
 (H) other localizations
 ( ) support for UPnP IGD to open an UDP port on supporting NATs
@@ -58,7 +56,6 @@ Portability:
 ( ) Darwin: pthread_rwlock replacement
 (H) Darwin: tests & fixes
 (H) DragonFlyBSD: tests & fixes
-(*) Metric support on BSD
 
 Documentation & support:
 -------------------------
