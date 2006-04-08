@@ -67,6 +67,5 @@ Re-usability:
 --------------
 (F) libteredo API stabilization
 (?) thread-safety in libteredo
-(F) libteredo C bindings
 (*) external control program for scripting
 (*) NEVER EVER call SendIPv6Packet with the list lock held

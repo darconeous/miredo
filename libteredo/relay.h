@@ -115,11 +115,8 @@ class TeredoRelay
 		 *
 		 * This function might be called from a separate thread.
 		 */
-		virtual void NotifyUp (const struct in6_addr *addr,
-		                      uint16_t mtu = 1280)
+		virtual void NotifyUp (const struct in6_addr *, uint16_t)
 		{
-			(void) addr;
-			(void) mtu;
 		}
 
 		/*
@@ -130,7 +127,9 @@ class TeredoRelay
 		 *
 		 * This function might be called from a separate thread.
 		 */
-		virtual void NotifyDown (void) { }
+		virtual void NotifyDown (void)
+		{
+		}
 
 		static void StateChange (const teredo_state *, void *self);
 #endif

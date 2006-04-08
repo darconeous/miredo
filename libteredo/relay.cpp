@@ -30,6 +30,7 @@
 
 #include <string.h>
 #include <time.h>
+#include <stdlib.h> // malloc()
 #include <assert.h>
 
 #if HAVE_STDINT_H
@@ -890,3 +891,322 @@ int TeredoRelay::ReceivePacket (void)
 	return 0;
 }
 
+/*** C bindings ***/
+class cTeredoRelay : public TeredoRelay
+{
+	private:
+		libteredo_tunnel *master;
+
+	public:
+		cTeredoRelay (libteredo_tunnel *t, uint32_t pref, uint16_t port,
+		              uint32_t ipv4, bool cone)
+			: TeredoRelay (pref, port, ipv4, cone), master (t)
+		{
+		}
+	
+		cTeredoRelay (libteredo_tunnel *t, const char *server,
+		              const char *server2, uint16_t port, uint32_t ipv4)
+			: TeredoRelay (server, server2, port, ipv4), master (t)
+		{
+		}
+
+	private:
+#ifdef MIREDO_TEREDO_CLIENT
+		virtual void NotifyUp (const struct in6_addr *, uint16_t);
+		virtual void NotifyDown (void);
+#endif
+		virtual void EmitICMPv6Error (const void *packet, size_t length,
+		                              const struct in6_addr *dst);
+
+	public:
+		virtual int SendIPv6Packet (const void *packet, size_t length);
+};
+
+struct libteredo_tunnel
+{
+	cTeredoRelay *object;
+	void *opaque;
+
+	libteredo_recv_cb recv_cb;
+	libteredo_icmpv6_cb icmpv6_cb;
+#ifdef MIREDO_TEREDO_CLIENT
+	libteredo_state_up_cb up_cb;
+	libteredo_state_down_cb down_cb;
+#endif
+
+	uint32_t prefix;
+	uint32_t ipv4;
+	uint16_t port;
+	uint16_t mtu;
+	bool client;
+	bool cone;
+};
+
+/**
+ * Creates a libteredo_tunnel instance. libteredo_preinit() must have been
+ * called first.
+ *
+ * This function is thread-safe.
+ *
+ * @param ipv4 IPv4 (network byte order) to bind to, or 0 if unspecified.
+ * @param port UDP/IPv4 port number (network byte order) or 0 if unspecified.
+ *
+ * @return NULL in case of failure.
+ */
+extern "C"
+libteredo_tunnel *libteredo_tunnel_create (uint32_t ipv4, uint16_t port)
+{
+	libteredo_tunnel *tunnel = (libteredo_tunnel *)malloc (sizeof (*tunnel));
+	if (tunnel == NULL)
+		return NULL;
+
+	memset (tunnel, 0, sizeof (tunnel));
+	/* TODO: Create the socket(s) here, do not retain ipv4 and port */
+	tunnel->ipv4 = ipv4;
+	tunnel->port = port;
+	return NULL;
+}
+
+
+/**
+ * Releases all resources (sockets, memory chunks...) and terminates all
+ * threads associated with a libteredo_tunnel instance.
+ *
+ * @param t tunnel to be destroyed. No longer useable thereafter.
+ *
+ * @return nothing (always succeeds).
+ */
+extern "C"
+void libteredo_tunnel_destroy (libteredo_tunnel *t)
+{
+	assert (t != NULL);
+
+	if (t->object != NULL)
+		delete t->object;
+	free (t);
+}
+
+
+/**
+ * Overrides the Teredo prefix of a Teredo relay. It is ignored if the tunnel
+ * is configured as a Teredo client. libteredo_tunnel_set_prefix() is
+ * undefined if libteredo_set_cone_flag() was already invoked.
+ *
+ * @param prefix Teredo 32-bits (network byte order) prefix.
+ *
+ * @return 0 on success, -1 if the prefix is invalid (in which case the
+ * libteredo_tunnel instance is not modified).
+ */
+extern "C"
+int libteredo_tunnel_set_prefix (libteredo_tunnel *t, uint32_t prefix)
+{
+	assert (t != NULL);
+
+	if (prefix & ntohl (0x20000000) != ntohl (0x20000000))
+		return -1;
+
+	t->prefix = prefix;
+	return 0;
+}
+
+
+/**
+ * Overrides the default MTU (1280 bytes) of a Teredo relay. The Teredo MTU
+ * is ignored for Teredo clients. libteredo_tunnel_set_MTU() is undefined if
+ * libteredo_set_cone_flag() was already invoked.
+ *
+ * @param mtu MTU of the tunnel in bytes (in host byte order).
+ *
+ * @return 0 on success, -1 if the MTU is invalid (in which case the
+ * libteredo_tunnel instance is not modified).
+ */
+extern "C"
+int libteredo_tunnel_set_MTU (libteredo_tunnel *t, uint16_t mtu)
+{
+	assert (t != NULL);
+
+	if (mtu < 1280)
+		return -1;
+
+	t->mtu = mtu;
+	return 0;
+}
+
+
+/**
+ * Enables Teredo relay mode for a libteredo_tunnel,
+ * defines whether it will operate as a “cone” or “restricted” relay,
+ * and starts processing of encapsulated IPv6 packets.
+ * This is ignored if Teredo client mode was previously enabled.
+ *
+ * @param flag true if the cone flag should be enabled. This only works if the
+ * relay runs from behind a cone NAT and has no stateful firewall for incoming
+ * UDP packets. If there is a stateful firewall or a restricted-port NAT,
+ * flag must be false.
+ *
+ * @return 0 if the initialization was succesful, -1 in case of error.
+ * In case of error, the libteredo_tunnel instance is not modifed.
+ */
+extern "C"
+int libteredo_tunnel_set_cone_flag (libteredo_tunnel *t, bool flag)
+{
+	assert (t != NULL);
+
+	t->cone = flag;
+	cTeredoRelay *r;
+	try
+	{
+		r = new cTeredoRelay (t, t->prefix, t->port, t->ipv4, t->cone);
+	}
+	catch (...)
+	{
+		r = NULL;
+	}
+
+	if (r != NULL)
+	{
+		t->object = r;
+		return 0;
+	}
+
+	return -1;
+}
+
+
+/**
+ * Enables Teredo client mode for a libteredo_tunnel and starts the Teredo
+ * client maintenance procedure in a separate thread. This is undefined if
+ * either libteredo_tunnel_set_cone_flag(), libteredo_tunnel_set_prefix(),
+ * libteredo_tunnel_set_MTU() were previously called for this tunnel.
+ *
+ * @param s1 Teredo server's host name or “dotted quad” primary IPv4 address.
+ * @param s2 Teredo server's secondary address (or host name), or NULL to
+ * infer it from <s1>.
+ *
+ * @return 0 on success, -1 in case of error.
+ * In case of error, the libteredo_tunnel instance is not modifed.
+ */
+extern "C"
+int libteredo_tunnel_set_client_mode (libteredo_tunnel *t, const char *s1,
+                                      const char *s2)
+{
+	assert (t != NULL);
+
+#ifdef MIREDO_TEREDO_CLIENT
+	cTeredoRelay *r;
+	try
+	{
+		r = new cTeredoRelay (t, s1, s2, t->port, t->ipv4);
+	}
+	catch (...)
+	{
+		r = NULL;
+	}
+
+	if (r != NULL)
+	{
+		t->object = r;
+		return 0;
+	}
+#else
+	(void)t;
+	(void)s1;
+	(void)s2;
+#endif
+	return -1;
+}
+
+
+extern "C"
+void *libteredo_set_privdata (libteredo_tunnel *t, void *opaque)
+{
+	assert (t != NULL);
+
+	void *prev = t->opaque;
+	t->opaque = opaque;
+	return prev;
+}
+
+
+extern "C"
+void *libteredo_get_privdata (const libteredo_tunnel *t)
+{
+	assert (t != NULL);
+
+	return t->opaque;
+}
+
+
+extern "C"
+void libteredo_set_recv_callback (libteredo_tunnel *t, libteredo_recv_cb cb)
+{
+	assert (t != NULL);
+	t->recv_cb = cb;
+}
+
+
+extern "C"
+int libteredo_send (libteredo_tunnel *t, const void *data, size_t n);
+
+void libteredo_set_icmpv6_callback (libteredo_tunnel *t,
+                                    libteredo_icmpv6_cb cb)
+{
+	assert (t != NULL);
+	t->icmpv6_cb = cb;
+}
+
+
+/**
+ * Registers callbacks to be called when the Teredo client maintenance
+ * procedure detects that the tunnel becomes usable (or has got a new IPv6
+ * address, or a new MTU), or unusable respectively.
+ * These callbacks are ignored for a Teredo relay tunnel.
+ *
+ * If a callback is set to NULL, it is ignored.
+ */
+void libteredo_set_state_cb (libteredo_tunnel *t, libteredo_state_up_cb u,
+                             libteredo_state_down_cb d)
+{
+	assert (t != NULL);
+#ifdef MIREDO_TEREDO_CLIENT
+	t->up_cb = u;
+	t->down_cb = d;
+#else
+	(void)t;
+	(void)u;
+	(void)d;
+#endif
+}
+
+
+#ifdef MIREDO_TEREDO_CLIENT
+void cTeredoRelay::NotifyUp (const struct in6_addr *addr, uint16_t mtu)
+{
+	libteredo_state_up_cb cb = master->up_cb;
+	if (cb != NULL)
+		cb (master, addr, mtu);
+}
+
+void cTeredoRelay::NotifyDown (void)
+{
+	libteredo_state_down_cb cb = master->down_cb;
+	if (cb != NULL)
+		cb (master);
+}
+#endif
+
+void cTeredoRelay::EmitICMPv6Error (const void *packet, size_t length,
+                                    const struct in6_addr *dst)
+{
+	libteredo_icmpv6_cb cb = master->icmpv6_cb;
+	if (cb != NULL)
+		cb (master, packet, length, dst);
+}
+
+int cTeredoRelay::SendIPv6Packet (const void *packet, size_t length)
+{
+	libteredo_recv_cb cb = master->recv_cb;
+	if (cb != NULL)
+		cb (master, packet, length);
+	return 0;
+}
