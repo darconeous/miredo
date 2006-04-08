@@ -2,7 +2,7 @@
 # by Remi Denis-Courmont
 # $Id$
 
-# Name of the network interface (only works on Linux).
+# Name of the network interface.
 InterfaceName	teredo
 
 # You might need to set the following values explicitly depending on
