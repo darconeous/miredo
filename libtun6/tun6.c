@@ -55,6 +55,7 @@
  * Linux tunneling driver
  */
 static const char *os_driver = "Linux";
+# define USE_LINUX 1
 
 # include <linux/if_tun.h> // TUNSETIFF - Linux tunnel driver
 /*
@@ -79,14 +80,17 @@ typedef struct
 # define TUN_HEAD_IPV6_INITIALIZER { 0, htons (ETH_P_IPV6) }
 # define tun_head_is_ipv6( h ) (h.proto == htons (ETH_P_IPV6))
 
-#elif defined (__FreeBSD__) || defined (__OpenBSD__) || \
-	defined (__NetBSD__) || defined (__DragonFly__) || defined (__APPLE__)
+#elif defined (__FreeBSD__) || defined (__FreeBSD_kernel__) || \
+      defined (__NetBSD__)  || defined (__NetBSD_kernel__)  || \
+      defined (__OpenBSD__) || defined (__OpenBSD_kernel__) || \
+      defined (__DragonFly__) || \
+      defined (__APPLE__) /* Darwin */
 /*
  * BSD tunneling driver
  * NOTE: the driver is NOT tested on Darwin (Mac OS X).
  */
 static const char *os_driver = "BSD";
-# define HAVE_BSD
+# define USE_BSD 1
 
 # ifdef HAVE_NET_IF_TUN_H
 #  include <net/if_tun.h> // TUNSIFHEAD, TUNSLMODE
@@ -147,7 +151,7 @@ tun6 *tun6_create (const char *req_name)
 		return NULL;
 	}
 
-#if defined (__linux__)
+#if defined (USE_LINUX)
 	/*
 	 * TUNTAP (Linux) tunnel driver initialization
 	 */
@@ -179,7 +183,7 @@ tun6 *tun6_create (const char *req_name)
 
 	if (safe_strcpy (t->name, req.ifr_name))
 		goto error;
-#elif defined (HAVE_BSD)
+#elif defined (USE_BSD)
 	/*
 	 * BSD tunnel driver initialization
 	 * (see BSD src/sys/net/if_tun.{c,h})
@@ -327,7 +331,7 @@ int tun6_getId (const tun6 *t)
 }
 
 
-#if defined (__linux__)
+#if defined (USE_LINUX)
 static void
 proc_write_zero (const char *path)
 {
@@ -379,7 +383,7 @@ tun6_setState (tun6 *t, bool up)
 }
 
 
-#ifdef HAVE_BSD
+#ifdef USE_BSD
 /**
  * Converts a prefix length to a netmask (used for the BSD routing)
  */
@@ -426,7 +430,7 @@ _iface_addr (int reqfd, const char *ifname, bool add,
 	if ((prefix_len > 128) || (addr == NULL))
 		return -1;
 
-#if defined (__linux__)
+#if defined (USE_LINUX)
 	/*
 	 * Linux ioctl interface
 	 */
@@ -443,7 +447,7 @@ _iface_addr (int reqfd, const char *ifname, bool add,
 
 	cmd = add ? SIOCSIFADDR : SIOCDIFADDR;
 	req = &r;
-#elif defined (HAVE_BSD)
+#elif defined (USE_BSD)
 	/*
 	 * BSD ioctl interface
 	 */
@@ -505,7 +509,7 @@ _iface_route (int reqfd, const char *ifname, bool add,
 
 	int retval = -1;
 
-#if defined (__linux__)
+#if defined (USE_LINUX)
 	/*
 	 * Linux ioctl interface
 	 */
@@ -526,7 +530,7 @@ _iface_route (int reqfd, const char *ifname, bool add,
 
 	if (ioctl (reqfd, add ? SIOCADDRT : SIOCDELRT, &req6) == 0)
 		retval = 0;
-#elif defined (HAVE_BSD)
+#elif defined (USE_BSD)
 	/*
 	 * BSD routing socket interface
 	 * FIXME: metric unimplemented
@@ -603,7 +607,7 @@ tun6_addAddress (tun6 *t, const struct in6_addr *addr, unsigned prefixlen)
 
 	int res = _iface_addr (t->reqfd, t->name, true, addr, prefixlen);
 
-#if defined (__linux__)
+#if defined (USE_LINUX)
 	if (res == 0)
 	{
 		char proc_path[24 + IFNAMSIZ + 16 + 1] = "/proc/sys/net/ipv6/conf/";
@@ -815,7 +819,7 @@ int tun6_driver_diagnose (char *errbuf)
 	}
 	(void)close (fd);
 
-#if defined (__linux__)
+#if defined (USE_LINUX)
 	const char *const tundev = "/dev/net/tun";
 #else
 	const char *const tundev = "/dev/tun0";
