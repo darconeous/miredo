@@ -52,9 +52,14 @@ int main (void)
 		puts ("Warning: cannot perform full libtun6 test");
 		return 0;
 	}
-	/* TODO: further testing */
-	
 	tun6_destroy (t);
+
+	/* TODO: further testing */
+	t = tun6_create ("test_if");
+	if (t == NULL)
+		return 1;
+	tun6_destroy (t);
+
 	closelog ();
 	return 0;
 }
