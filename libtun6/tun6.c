@@ -233,6 +233,20 @@ tun6 *tun6_create (const char *req_name)
 			goto next;
 		}
 #endif
+		/*
+		 * FIXME: we need a way to obtain the actual name of the tunnel
+		 * interface. If the user or another program changed it in the past,
+		 * it might no longer be the device file name. Worst yet, the device
+		 * name can be changed by root at any time through:
+		 * # ifconfig <olddev> name <newname>
+		 * and we won't be notified (we'd have to monitor a PF_ROUTE socket or
+		 * something overkill like that).
+		 * IMHO, this is a limitation of struct ifreq on BSD:
+		 * it uses the (mutable) interface name (ifr_name) as the identifier,
+		 * instead of an immutable integer like the Linux kernel does.
+		 *
+		 * See also the NOTE below near ioctl(SIOCSIFNAME).
+		 */
 		safe_strcpy (t->name, tundev + 5);
 		fd = tunfd;
 		break;
@@ -244,24 +258,48 @@ tun6 *tun6_create (const char *req_name)
 
 	if (req_name != NULL)
 	{
+#ifdef SIOCSIFNAME
 		char ifname[strlen (req_name) + 1];
 		strcpy (ifname, req_name);
 
-		/* TODO: have this work on FreeBSD
-		 * Overrides the interface name */
 		struct ifreq req;
 		memset (&req, 0, sizeof (req));
 		safe_strcpy (req.ifr_name, t->name);
 		req.ifr_data = ifname;
 
+		errno = 0;
 		if (safe_strcpy (t->name, req_name)
 		 || ioctl (reqfd, SIOCSIFNAME, &req))
 		{
+			if (errno == ENXIO)
+			{
+				syslog (LOG_INFO, "Cannot rename interface to \"%s\". "
+				        "Assuming name already correct.", req_name);
+				/*
+				 * NOTE: If we are lucky enough, the name is already the one
+				 * the user requested. This typically occurs when the tunnel
+				 * device was(re)named by a previous Miredo instance.
+				 * If that's not the case, too bad; tun6 will fail at a later
+				 * stage (tun6_setMTU() or tun6_setState()).
+				 */
+			}
+			else
+			{
+				errmsg = "SIOCSIFNAME";
+				errval = errno;
+				close (fd);
+				fd = -1;
+			}
+		}
+#else
+		if (strcmp (req_name, t->name))
+		{
 			errmsg = "SIOCSIFNAME";
-			errval = errno;
+			errval = ENOSYS;
 			close (fd);
 			fd = -1;
 		}
+#endif
 	}
 
 	if (fd == -1)

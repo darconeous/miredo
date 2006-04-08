@@ -28,6 +28,8 @@
 #include <syslog.h> /* TODO: do not use syslog within the library */
 #include "tun6.h"
 
+static const char *invalid_name =
+	"Overly-long-interface-name-that-will-not-work";
 
 int main (void)
 {
@@ -37,11 +39,7 @@ int main (void)
 	fprintf (stderr, "%s\n", errbuf);
 
 	openlog ("libtun6-diagnose", LOG_PERROR, LOG_USER);
-#ifdef __linux__
-	static const char *invalid_name =
-		"Overly-long-interface-name-that-will-not-work";
 	assert (tun6_create (invalid_name) == NULL);
-#endif
 
 	tun6 *t = tun6_create (NULL);
 	if ((t == NULL) != (res != 0))
@@ -55,7 +53,7 @@ int main (void)
 	tun6_destroy (t);
 
 	/* TODO: further testing */
-	t = tun6_create ("test_if");
+	t = tun6_create ("teredo");
 	if (t == NULL)
 		return 1;
 	tun6_destroy (t);
