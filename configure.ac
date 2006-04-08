@@ -79,7 +79,12 @@ AC_SEARCH_LIBS(inet_ntop, [nsl])
 AC_CHECK_LIB(resolv, res_init)
 
 # POSIX threads
-AC_CHECK_LIB(pthread, pthread_create)
+AS_IF([test "${PTHREAD_LDFAGS}${PTHREAD_LIBS}"], [
+	# Neat! the packaging system tells us how to use pthread
+	LIBS="${PTHREAD_LDFLAGS} ${PTHREAD_LIBS} ${LIBS}"
+], [
+	AC_CHECK_LIB(pthread, pthread_create)
+])
 AC_CHECK_FUNC([pthread_barrier_wait],, [AC_LIBOBJ([barrier])])
 
 # POSIX capabilities
