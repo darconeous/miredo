@@ -92,8 +92,10 @@ typedef struct
 static const char *os_driver = "BSD";
 # define USE_BSD 1
 
-# ifdef HAVE_NET_IF_TUN_H
+# if defined (HAVE_NET_IF_TUN_H)
 #  include <net/if_tun.h> // TUNSIFHEAD, TUNSLMODE
+# elif defined (__APPLE__)
+#  define TUNSIFHEAD  _IOW('t', 96, int)
 # endif
 # ifdef HAVE_NET_IF_VAR_H
 #  include <net/if_var.h>
@@ -847,7 +849,7 @@ int tun6_driver_diagnose (char *errbuf)
 #elif defined (__APPLE__)
 		specific = N_("You can obtain a tunnel driver for the "
 			"Darwin kernel (Mac OS X) from:\n"
-			"http://chrisp.de/en/projects/tunnel.html\n");
+			"http://www-user.rhrk.uni-kl.de/~nissler/tuntap/\n");
 #else
 		specific = NULL;
 #endif
