@@ -26,6 +26,7 @@
 # define LIBTEREDO_RELAY_H
 
 # include <stdbool.h>
+# include <pthread.h> /* FIXME: remove this!!! */
 
 # ifdef __cplusplus
 extern "C" {
@@ -99,6 +100,7 @@ class TeredoRelay
 		void SendUnreach (int code, const void *in, size_t inlen);
 
 		teredo_state state;
+		pthread_rwlock_t state_lock;
 
 #ifdef MIREDO_TEREDO_CLIENT
 		struct teredo_maintenance *maintenance;

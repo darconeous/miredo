@@ -102,7 +102,11 @@ TeredoRelay::TeredoRelay (uint32_t pref, uint16_t port, uint32_t ipv4,
 	{
 		list = teredo_list_create (MaxPeers, 300);
 		if (list != NULL)
-			return; /* success */
+		{
+			if (pthread_rwlock_init (&state_lock, NULL))
+				return; /* success */
+			teredo_list_destroy (list);
+		}
 		teredo_close (fd);
 	}
 
@@ -127,7 +131,11 @@ TeredoRelay::TeredoRelay (const char *server, const char *server2,
 			maintenance = libteredo_maintenance_start (fd, StateChange, this,
 			                                           server, server2);
 			if (maintenance != NULL)
-				return; /* success */
+			{
+				if (pthread_rwlock_init (&state_lock, NULL) == 0)
+					return; /* success */
+				libteredo_maintenance_stop (maintenance);
+			}
 
 			teredo_list_destroy (list);
 		}
@@ -149,6 +157,7 @@ TeredoRelay::~TeredoRelay (void)
 
 	teredo_close (fd);
 	teredo_list_destroy (list);
+	pthread_rwlock_destroy (&state_lock);
 }
 
 
@@ -220,21 +229,13 @@ TeredoRelay::EmitICMPv6Error (const void *packet, size_t length,
 }
 
 
-/* FIXME: that should definitely be instance-dependant rather than
- * static/global, but so long as only miredo, which only instantiates one
- * client at a time use libteredo, that's no problem. This is meant to
- * avoid including <pthread.h> from <libteredo/relay.h>.
- */
-static pthread_rwlock_t state_lock = PTHREAD_RWLOCK_INITIALIZER;
-
-
 #ifdef MIREDO_TEREDO_CLIENT
 void TeredoRelay::StateChange (const teredo_state *state, void *self)
 {
 	TeredoRelay *r = (TeredoRelay *)self;
 	bool previously_up;
 
-	pthread_rwlock_wrlock (&state_lock);
+	pthread_rwlock_wrlock (&r->state_lock);
 	previously_up = r->state.up;
 	memcpy (&r->state, state, sizeof (r->state));
 
@@ -258,7 +259,7 @@ void TeredoRelay::StateChange (const teredo_state *state, void *self)
 	 * properly ordered. Unfortunately, we cannot be re-entrant from within
 	 * NotifyUp/Down.
 	 */
-	pthread_rwlock_unlock (&state_lock);
+	pthread_rwlock_unlock (&r->state_lock);
 }
 
 /**
