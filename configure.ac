@@ -73,13 +73,13 @@ AS_MESSAGE([checking library functions...])
 RDC_REPLACE_FUNC_GETOPT_LONG
 AC_REPLACE_FUNCS([clearenv closefrom pselect strlcpy])
 
-# Socket stuff
+# Network stuff
 RDC_FUNC_SOCKET
 AC_SEARCH_LIBS(inet_ntop, [nsl])
-dnl AC_SEARCH_LIBS(inet_aton, [resolv])
+AC_CHECK_LIB(resolv, res_init)
 
 # POSIX threads
-AC_SEARCH_LIBS(pthread_create, [pthread c_r])
+AC_CHECK_LIB(pthread, pthread_create)
 AC_CHECK_FUNC([pthread_barrier_wait],, [AC_LIBOBJ([barrier])])
 
 # POSIX capabilities
