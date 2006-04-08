@@ -457,7 +457,8 @@ main (int argc, char *argv[])
 	char conffile_buf[conffile_len];
 	if (conffile == NULL)
 	{
-		sprintf (conffile_buf, "%s/%s.conf", path, miredo_name);
+		snprintf (conffile_buf, sizeof (conffile_buf), "%s/%s.conf", path,
+		          miredo_name);
 		free (path);
 		conffile = conffile_buf;
 	}

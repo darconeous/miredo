@@ -79,7 +79,7 @@ do_test(void)
 	md5_append(&state, (const md5_byte_t *)test[i], strlen(test[i]));
 	md5_finish(&state, digest);
 	for (di = 0; di < 16; ++di)
-	    sprintf(hex_output + di * 2, "%02x", digest[di]);
+	    snprintf(hex_output + di * 2, sizeof (hex_output), "%02x", digest[di]);
 	if (strcmp(hex_output, test[i + 1])) {
 	    printf("MD5 (\"%s\") = ", test[i]);
 	    puts(hex_output);

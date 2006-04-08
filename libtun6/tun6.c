@@ -656,13 +656,16 @@ tun6_addAddress (tun6 *t, const struct in6_addr *addr, unsigned prefixlen)
 		char proc_path[24 + IFNAMSIZ + 16 + 1] = "/proc/sys/net/ipv6/conf/";
 
 		/* Disable Autoconfiguration and ICMPv6 redirects */
-		sprintf (proc_path + 24, "%s/accept_ra", t->name);
+		snprintf (proc_path + 24, sizeof (proc_path) - 24,
+		          "%s/accept_ra", t->name);
 		proc_write_zero (proc_path);
-				
-		sprintf (proc_path + 24, "%s/accept_redirects", t->name);
+
+		snprintf (proc_path + 24, sizeof (proc_path) - 24,
+		          "%s/accept_redirects", t->name);
 		proc_write_zero (proc_path);
-				
-		sprintf (proc_path + 24, "%s/autoconf", t->name);
+
+		snprintf (proc_path + 24, sizeof (proc_path) - 24,
+		          "%s/autoconf", t->name);
 		proc_write_zero (proc_path);
 	}
 #endif
