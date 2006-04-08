@@ -50,6 +50,7 @@ struct miredo_addrwatch
 	int if_inet6_fd;
 };
 
+#ifdef __linux__
 /*
  * This thread is not supposed to be canceled.
  * It stops when cond is signaled.
@@ -203,3 +204,32 @@ int miredo_addrwatch_available (miredo_addrwatch *self)
 	pthread_mutex_unlock (&self->mutex);
 	return (val != -1) ? val : 0;
 }
+
+#else /* ifdef __linux__ */
+
+miredo_addrwatch *miredo_addrwatch_start (int self_scope)
+{
+	(void)self_scope;
+	return (miredo_addrwatch *)miredo_addrwatch_start;
+}
+
+void miredo_addrwatch_stop (miredo_addrwatch *self)
+{
+	assert (self != NULL);
+}
+
+int miredo_addrwatch_available (miredo_addrwatch *self)
+{
+	assert (self != NULL);
+	return 0;
+}
+
+void miredo_addrwatch_set_callback (miredo_addrwatch *self,
+                                    void (*cb) (void *, int), void *opaque)
+{
+	assert (self != NULL);
+	(void)cb;
+	(void)opaque;
+}
+
+#endif
