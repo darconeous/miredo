@@ -1,5 +1,5 @@
 /*
- * relay.h - Teredo relay declaration
+ * relay.h - Teredo relay internal declaration
  * $Id$
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
@@ -7,7 +7,7 @@
  */
 
 /***********************************************************************
- *  Copyright © 2004-2005 Rémi Denis-Courmont.                         *
+ *  Copyright © 2004-2006 Rémi Denis-Courmont.                         *
  *  This program is free software; you can redistribute and/or modify  *
  *  it under the terms of the GNU General Public License as published  *
  *  by the Free Software Foundation; version 2 of the license.         *
@@ -26,52 +26,7 @@
 # define LIBTEREDO_RELAY_H
 
 # include <stdbool.h>
-# include <pthread.h> /* FIXME: remove this!!! */
 
-# ifdef __cplusplus
-extern "C" {
-# endif
-
-int libteredo_preinit (bool use_client);
-void libteredo_terminate (bool use_client);
-
-struct in6_addr;
-struct ip6_hdr;
-
-typedef struct libteredo_tunnel libteredo_tunnel;
-
-libteredo_tunnel *libteredo_create (uint32_t ipv4, uint16_t port);
-void libteredo_destroy (libteredo_tunnel *t);
-int libteredo_register_readset (libteredo_tunnel *t, fd_set *rdset);
-void libteredo_run (libteredo_tunnel *t);
-
-int libteredo_set_prefix (libteredo_tunnel *t, uint32_t pref);
-int libteredo_set_cone_flag (libteredo_tunnel *t, bool flag);
-
-int libteredo_set_client_mode (libteredo_tunnel *t, const char *s1,
-                                      const char *s2);
-
-void libteredo_set_cone_ignore (libteredo_tunnel *t, bool ignore);
-
-void *libteredo_set_privdata (libteredo_tunnel *, void *);
-void *libteredo_get_privdata (const libteredo_tunnel *);
-
-typedef void (*libteredo_recv_cb) (libteredo_tunnel *, const void *, size_t);
-void libteredo_set_recv_callback (libteredo_tunnel *t, libteredo_recv_cb cb);
-int libteredo_send (libteredo_tunnel *t, const struct ip6_hdr *buf, size_t n);
-
-typedef void (*libteredo_icmpv6_cb) (libteredo_tunnel *, const void *, size_t,
-                                     const struct in6_addr *dst);
-void libteredo_set_icmpv6_callback (libteredo_tunnel *t,
-                                    libteredo_icmpv6_cb cb);
-
-typedef void (*libteredo_state_up_cb) (const libteredo_tunnel *,
-                                       const struct in6_addr *, uint16_t);
-typedef void (*libteredo_state_down_cb) (const libteredo_tunnel *);
-void libteredo_set_state_cb (libteredo_tunnel *t, libteredo_state_up_cb u,
-                             libteredo_state_down_cb d);
-
-/* FIXME: should be internal */
 typedef struct teredo_state
 {
 	union teredo_addr addr;
@@ -81,9 +36,6 @@ typedef struct teredo_state
 } teredo_state;
 
 # ifdef __cplusplus
-}
-
-
 struct teredo_packet;
 struct teredo_maintenance;
 struct teredo_peerlist;

@@ -35,9 +35,10 @@
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <unistd.h> /* sleep () */
+#include <sys/select.h> /* fd_set */
 
 #include "teredo.h"
-#include "relay.h"
+#include "tunnel.h"
 #include "security.h"
 
 int main (void)

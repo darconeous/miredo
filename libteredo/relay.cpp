@@ -52,6 +52,7 @@
 #include "teredo-udp.h"
 
 #include "packets.h"
+#include "tunnel.h"
 #include "relay.h"
 #include "peerlist.h"
 #ifdef MIREDO_TEREDO_CLIENT

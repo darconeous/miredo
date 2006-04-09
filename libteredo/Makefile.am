@@ -31,7 +31,7 @@ noinst_LTLIBRARIES = libteredo-server.la
 lib_LTLIBRARIES = libteredo.la
 
 include_libteredodir = $(includedir)/libteredo
-include_libteredo_HEADERS = teredo.h #relay.h - FIXME
+include_libteredo_HEADERS = teredo.h tunnel.h
 common_SOURCES =	teredo.c teredo.h teredo-udp.h \
 			v4global.c v4global.h checksum.h
 
@@ -51,6 +51,6 @@ libteredo_server_la_SOURCES =	$(common_SOURCES) server.c server.h
 libteredo_server_la_LIBADD = $(LIBADD)
 libteredo_server_la_LDFLAGS = -no-undefined -static
 # libteredo-server is static given it hardly make sense to reuse it
-# outside miredo-server (which is itself way les commonly used
+# outside miredo-server (which is itself way less commonly used
 # than miredo)
 
