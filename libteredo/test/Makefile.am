@@ -31,11 +31,11 @@ endif
 libteredo_addrcmp_SOURCES = addrcmp.c
 
 # libteredo-list
-libteredo_list_SOURCES = list.c dummy.cpp
+libteredo_list_SOURCES = list.c
 libteredo_list_LDADD = ../libteredo.la
 
 # libteredo-stresslist
-libteredo_stresslist_SOURCES = stresslist.c dummy.cpp
+libteredo_stresslist_SOURCES = stresslist.c
 libteredo_stresslist_LDADD = ../libteredo.la
 
 # libteredo-hmac
