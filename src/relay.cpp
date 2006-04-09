@@ -518,11 +518,8 @@ miredo_run (MiredoConf& conf, const char *cmd_server_name)
 		else
 		{
 /*#ifdef MIREDO_TEREDO_CLIENT
-			miredo_addrwatch *watch;
-			if (mode == TEREDO_EXCLIENT)
-				watch = miredo_addrwatch_start (tun6_getId (tunnel));
-			else
-				watch = NULL;
+			miredo_addrwatch *watch = (mode == TEREDO_EXCLIENT)
+				? miredo_addrwatch_start (tun6_getId (tunnel)) : NULL;
 #endif*/
 
 			if (drop_privileges () == 0)
