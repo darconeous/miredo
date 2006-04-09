@@ -955,7 +955,7 @@ struct libteredo_tunnel
  * @return NULL in case of failure.
  */
 extern "C"
-libteredo_tunnel *libteredo_tunnel_create (uint32_t ipv4, uint16_t port)
+libteredo_tunnel *libteredo_create (uint32_t ipv4, uint16_t port)
 {
 	libteredo_tunnel *tunnel = (libteredo_tunnel *)malloc (sizeof (*tunnel));
 	if (tunnel == NULL)
@@ -978,7 +978,7 @@ libteredo_tunnel *libteredo_tunnel_create (uint32_t ipv4, uint16_t port)
  * @return nothing (always succeeds).
  */
 extern "C"
-void libteredo_tunnel_destroy (libteredo_tunnel *t)
+void libteredo_destroy (libteredo_tunnel *t)
 {
 	assert (t != NULL);
 
@@ -990,8 +990,8 @@ void libteredo_tunnel_destroy (libteredo_tunnel *t)
 
 /**
  * Overrides the Teredo prefix of a Teredo relay. It is ignored if the tunnel
- * is configured as a Teredo client. libteredo_tunnel_set_prefix() is
- * undefined if libteredo_set_cone_flag() was already invoked.
+ * is configured as a Teredo client. libteredo_set_prefix() is undefined if
+ * libteredo_set_cone_flag() was already invoked.
  *
  * @param prefix Teredo 32-bits (network byte order) prefix.
  *
@@ -999,7 +999,7 @@ void libteredo_tunnel_destroy (libteredo_tunnel *t)
  * libteredo_tunnel instance is not modified).
  */
 extern "C"
-int libteredo_tunnel_set_prefix (libteredo_tunnel *t, uint32_t prefix)
+int libteredo_set_prefix (libteredo_tunnel *t, uint32_t prefix)
 {
 	assert (t != NULL);
 
@@ -1013,7 +1013,7 @@ int libteredo_tunnel_set_prefix (libteredo_tunnel *t, uint32_t prefix)
 
 /**
  * Overrides the default MTU (1280 bytes) of a Teredo relay. The Teredo MTU
- * is ignored for Teredo clients. libteredo_tunnel_set_MTU() is undefined if
+ * is ignored for Teredo clients. libteredo_set_MTU() is undefined if
  * libteredo_set_cone_flag() was already invoked.
  *
  * @param mtu MTU of the tunnel in bytes (in host byte order).
@@ -1022,7 +1022,7 @@ int libteredo_tunnel_set_prefix (libteredo_tunnel *t, uint32_t prefix)
  * libteredo_tunnel instance is not modified).
  */
 extern "C"
-int libteredo_tunnel_set_MTU (libteredo_tunnel *t, uint16_t mtu)
+int libteredo_set_MTU (libteredo_tunnel *t, uint16_t mtu)
 {
 	assert (t != NULL);
 
@@ -1049,7 +1049,7 @@ int libteredo_tunnel_set_MTU (libteredo_tunnel *t, uint16_t mtu)
  * In case of error, the libteredo_tunnel instance is not modifed.
  */
 extern "C"
-int libteredo_tunnel_set_cone_flag (libteredo_tunnel *t, bool flag)
+int libteredo_set_cone_flag (libteredo_tunnel *t, bool flag)
 {
 	assert (t != NULL);
 
@@ -1078,8 +1078,8 @@ int libteredo_tunnel_set_cone_flag (libteredo_tunnel *t, bool flag)
 /**
  * Enables Teredo client mode for a libteredo_tunnel and starts the Teredo
  * client maintenance procedure in a separate thread. This is undefined if
- * either libteredo_tunnel_set_cone_flag(), libteredo_tunnel_set_prefix(),
- * libteredo_tunnel_set_MTU() were previously called for this tunnel.
+ * either libteredo_set_cone_flag(), libteredo_set_prefix(),
+ * libteredo_set_MTU() were previously called for this tunnel.
  *
  * @param s1 Teredo server's host name or “dotted quad” primary IPv4 address.
  * @param s2 Teredo server's secondary address (or host name), or NULL to
@@ -1089,7 +1089,7 @@ int libteredo_tunnel_set_cone_flag (libteredo_tunnel *t, bool flag)
  * In case of error, the libteredo_tunnel instance is not modifed.
  */
 extern "C"
-int libteredo_tunnel_set_client_mode (libteredo_tunnel *t, const char *s1,
+int libteredo_set_client_mode (libteredo_tunnel *t, const char *s1,
                                       const char *s2)
 {
 	assert (t != NULL);
@@ -1128,7 +1128,7 @@ int libteredo_tunnel_set_client_mode (libteredo_tunnel *t, const char *s1,
  * @param ignore true to enable processing, false to disable.
  */
 extern "C"
-void libteredo_tunnel_set_cone_ignore (libteredo_tunnel *t, bool ignore)
+void libteredo_set_cone_ignore (libteredo_tunnel *t, bool ignore)
 {
 	assert (t != NULL);
 	t->allow_cone = !ignore;

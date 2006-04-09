@@ -39,17 +39,17 @@ struct in6_addr;
 
 typedef struct libteredo_tunnel libteredo_tunnel;
 
-libteredo_tunnel *libteredo_tunnel_create (uint32_t ipv4, uint16_t port);
-void libteredo_tunnel_destroy (libteredo_tunnel *t);
+libteredo_tunnel *libteredo_create (uint32_t ipv4, uint16_t port);
+void libteredo_destroy (libteredo_tunnel *t);
 
-int libteredo_tunnel_set_prefix (libteredo_tunnel *t, uint32_t pref);
-int libteredo_tunnel_set_MTU (libteredo_tunnel *t, uint16_t mtu);
-int libteredo_tunnel_set_cone_flag (libteredo_tunnel *t, bool flag);
+int libteredo_set_prefix (libteredo_tunnel *t, uint32_t pref);
+int libteredo_set_MTU (libteredo_tunnel *t, uint16_t mtu);
+int libteredo_set_cone_flag (libteredo_tunnel *t, bool flag);
 
-int libteredo_tunnel_set_client_mode (libteredo_tunnel *t, const char *s1,
+int libteredo_set_client_mode (libteredo_tunnel *t, const char *s1,
                                       const char *s2);
 
-void libteredo_tunnel_set_cone_ignore (libteredo_tunnel *t, bool ignore);
+void libteredo_set_cone_ignore (libteredo_tunnel *t, bool ignore);
 
 void *libteredo_set_privdata (libteredo_tunnel *, void *);
 void *libteredo_get_privdata (const libteredo_tunnel *);
