@@ -194,81 +194,105 @@ tun6 *tun6_create (const char *req_name)
 	 * BSD tunnel driver initialization
 	 * (see BSD src/sys/net/if_tun.{c,h})
 	 */
-	const char *errmsg = NULL;
-	int fd = -1, errval = 0;
+	int fd = -1;
+	struct if_nameindex *before = if_nameindex ();
 
 	for (unsigned i = 0; (i <= 255) && (fd == -1); i++)
 	{
 		char tundev[12];
 		snprintf (tundev, sizeof (tundev), "/dev/tun%u", i);
 		tundev[sizeof (tundev) - 1] = '\0';
+		fd = open (tundev, O_RDWR);
 
-		int tunfd = open (tundev, O_RDWR);
-		if (tunfd == -1)
-		{
-			if (errno != ENOENT)
-				errval = errno;
-			continue;
-		}
-
-		int value;
-# ifdef TUNSIFMODE
-		value = IFF_BROADCAST;
-		if (ioctl (tunfd, TUNSIFMODE, &value))
-		{
-			errmsg = "TUNSIFMODE";
-			goto next;
-		}
-# endif
-# if defined (TUNSIFHEAD)
-		/* Enables TUNSIFHEAD */
-		value = 1;
-		if (ioctl (tunfd, TUNSIFHEAD, &value))
-		{
-			errmsg = "TUNSIFHEAD";
-			goto next;
-		}
-# elif defined (TUNSLMODE)
-		/* Disables TUNSLMODE (deprecated opposite of TUNSIFHEAD) */
-		value = 0;
-		if (ioctl (tunfd, TUNSLMODE, &value))
-		{
-			errmsg = "TUNSLMODE";
-			goto next;
-		}
-#endif
 		/*
-		 * FIXME: we need a way to obtain the actual name of the tunnel
+		 * FIXME: Needs a way to obtain the actual name of the tunnel
 		 * interface. If the user or another program changed it in the past,
 		 * it might no longer be the device file name.
 		 */
 		id = if_nametoindex (tundev + 5);
-		if (id == 0)
-		{
-			/*
-			 * Ugly kludge. Try to use the requested name as the current
-			 * tunnel name. That happens when the tunnel was created with the
-			 * same name by a previous instance of the same program.
-			 * Unfortuntaly, this can lead to awful result if two instances
-			 * try to use the same tunnel name simultaneously.
-			 */
-			if ((req_name == NULL)
-			 || ((id = if_nametoindex (req_name)) == 0))
-			{
-				errno = ENXIO;
-				errmsg = "if_nametoindex";
-				goto next;
-			}
-		}
-
-		fd = tunfd;
-		break;
-
-	next:
-		errval = errno;
-		(void)close (tunfd);
 	}
 
+	if (fd == -1)
+	{
+		syslog (LOG_ERR, _("Tunneling driver error (%s): %s"), "/dev/tun*",
+		        strerror (errno));
+		if_freenameindex (before);
+		goto error;
+	}
+	else
+	if (id == 0)
+	{
+		/*
+		 * This is an not very clean fallback method to find out the tunnel
+		 * interface index. Besides, it only works if the interface was
+		 * actually created rather than re-opened.
+		 */
+		struct if_nameindex *after = if_nameindex ();
+
+		for (struct if_nameindex *p = after; (id == 0) && p->if_index; p++)
+		{
+			struct if_nameindex *x = before;
+
+			while ((x->if_index != 0 ) && (x->if_index != p->if_index))
+				x++;
+
+			if (x->if_index == 0)
+				id = p->if_index;
+		}
+		if_freenameindex (after);
+	}
+	if_freenameindex (before);
+
+	if (id == 0)
+	{
+		syslog (LOG_ERR,
+"libtun6 could create a tunnel interface, but it could not find its name or\n"
+"index. This piece of information is absolutely required for libtun6 (as\n"
+"most other userland tunneling software) to operate properly.\n"
+"Please fix your kernel. libtun6 will now abort.\n\n"
+#if defined (__FreeBSD__) || defined (__FreeBSD_kernel__)
+"See also FreeBSD PR/73673 regarding this issue.\n\n"
+#endif
+"To work-around this problem, please do not customize the name of tunnel\n"
+"interfaces (for Miredo: do NOT use the InterfaceName directive in\n"
+"miredo.conf), so that you don't have to reboot every time you restart the\n"
+"program.\n");
+		goto error;
+	}
+
+# ifdef TUNSIFMODE
+	/* Sets sensible tunnel type (broadcast rather than point-to-point) */
+	{
+		int value = IFF_BROADCAST;
+		(void)ioctl (fd, TUNSIFMODE, &value);
+	}
+# endif
+
+# if defined (TUNSIFHEAD)
+	/* Enables TUNSIFHEAD */
+	{
+		int value = 1;
+		if (ioctl (fd, TUNSIFHEAD, &value))
+		{
+			syslog (LOG_ERR, _("Tunneling driver error (%s): %s"),
+			        "TUNSIFHEAD", strerror (errno));
+			goto error;
+		}
+	}
+# elif defined (TUNSLMODE)
+	/* Disables TUNSLMODE (deprecated opposite of TUNSIFHEAD) */
+	{
+		int value = 0;
+		if (ioctl (fd, TUNSLMODE, &value))
+		{
+			syslog (LOG_ERR, _("Tunneling driver error (%s): %s"),
+			        "TUNSLMODE", strerror (errno));
+			goto error;
+		}
+	}
+#endif
+
+	/* Customizes interface name */
 	if (req_name != NULL)
 	{
 		struct ifreq req;
@@ -276,10 +300,9 @@ tun6 *tun6_create (const char *req_name)
 
 		if (if_indextoname (id, req.ifr_name) == NULL)
 		{
-			errmsg = "if_indextoname";
-			errval = errno;
-			close (fd);
-			fd = -1;
+			syslog (LOG_ERR, _("Tunneling driver error (%s): %s"),
+			        "if_indextoname", strerror (errno));
+			goto error;
 		}
 		else
 		if (strcmp (req.ifr_name, req_name))
@@ -288,30 +311,18 @@ tun6 *tun6_create (const char *req_name)
 			char ifname[IFNAMSIZ];
 			req.ifr_data = ifname;
 
-			errno = 0;
+			errno = ENAMETOOLONG;
 			if (safe_strcpy (ifname, req_name)
 			 || ioctl (reqfd, SIOCSIFNAME, &req))
 #else
 			errno = ENOSYS;
 #endif
 			{
-				errmsg = "SIOCSIFNAME";
-				errval = errno;
-				close (fd);
-				fd = -1;
+				syslog (LOG_ERR, _("Tunneling driver error (%s): %s"),
+				        "SIOCSIFNAME", strerror (errno));
+				goto error;
 			}
 		}
-	}
-
-	if (fd == -1)
-	{
-		if (errmsg == NULL)
-			errmsg = "/dev/tun0";
-		if (errval == 0)
-			errval = ENOENT;
-		syslog (LOG_ERR, _("Tunneling driver error (%s): %s"),
-		        errmsg, strerror (errval));
-		goto error;
 	}
 #else
 # error No tunneling driver implemented on your platform!
@@ -343,6 +354,16 @@ void tun6_destroy (tun6* t)
 	assert (t != NULL);
 	assert (t->fd != -1);
 	assert (t->reqfd != -1);
+	assert (t->id != 0);
+
+	(void)tun6_setState (t, false);
+#ifdef USE_BSD
+	/* broken: see FreeBSD PR/73673 */
+	struct ifreq req;
+	memset (&req, 0, sizeof (req));
+	if (if_indextoname (t->id, req.ifr_name) != NULL)
+		(void)ioctl (t->reqfd, SIOCIFDESTROY, &req);
+#endif
 
 	(void)close (t->fd);
 	(void)close (t->reqfd);
@@ -361,6 +382,7 @@ void tun6_destroy (tun6* t)
 int tun6_getId (const tun6 *t)
 {
 	assert (t != NULL);
+	assert (t-> id != 0);
 
 	return t->id;
 }
@@ -391,6 +413,7 @@ int
 tun6_setState (tun6 *t, bool up)
 {
 	assert (t != NULL);
+	assert (t-> id != 0);
 
 	struct ifreq req;
 	memset (&req, 0, sizeof (req));	
