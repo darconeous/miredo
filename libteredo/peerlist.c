@@ -1,9 +1,6 @@
 /*
- * peerlist.cpp - Teredo relay internal peers list manipulation
+ * peerlist.c - Teredo relay internal peers list manipulation
  * $Id$
- *
- * See "Teredo: Tunneling IPv6 over UDP through NATs"
- * for more information
  */
 
 /***********************************************************************
@@ -51,6 +48,7 @@
 
 #include "teredo.h"
 #include "teredo-udp.h" // FIXME: ugly
+#include <stdbool.h>
 #include "peerlist.h"
 #ifndef NDEBUG
 # include <errno.h>
@@ -92,9 +90,8 @@ static void teredo_peer_destroy (teredo_peer *peer)
 }
 
 
-extern "C" void
-teredo_peer_queue (teredo_peer *peer, const void *data, size_t len,
-                   bool incoming)
+void teredo_peer_queue (teredo_peer *peer, const void *data, size_t len,
+                        bool incoming)
 {
 	packet *p;
 
@@ -112,9 +109,8 @@ teredo_peer_queue (teredo_peer *peer, const void *data, size_t len,
 }
 
 
-extern "C" void
-teredo_peer_dequeue (teredo_peer *peer, int fd,
-                     teredo_dequeue_cb cb, void *opaque)
+void teredo_peer_dequeue (teredo_peer *peer, int fd,
+                          teredo_dequeue_cb cb, void *opaque)
 {
 	/* lock peer */
 	packet *ptr = peer->queue;
@@ -246,7 +242,6 @@ out:
  *
  * @return NULL on error (see errno for actual problem).
  */
-extern "C"
 teredo_peerlist *teredo_list_create (unsigned max, unsigned expiration)
 {
 	/*printf ("Peer size: %u/%u bytes\n",sizeof (teredo_peer),
@@ -294,7 +289,6 @@ teredo_peerlist *teredo_list_create (unsigned max, unsigned expiration)
  *
  * @param max new value for maximum number of items allowed.
  */
-extern "C"
 void teredo_list_reset (teredo_peerlist *l, unsigned max)
 {
 	pthread_mutex_lock (&l->lock);
@@ -339,7 +333,6 @@ void teredo_list_reset (teredo_peerlist *l, unsigned max)
 /**
  * Destroys an existing unlocked list.
  */
-extern "C"
 void teredo_list_destroy (teredo_peerlist *l)
 {
 	teredo_list_reset (l, 0);
@@ -377,7 +370,6 @@ void teredo_list_destroy (teredo_peerlist *l)
  * @return The peer if found or created. NULL on error (when create is not
  * NULL), or if the peer was not found (when create is NULL).
  */
-extern "C"
 teredo_peer *teredo_list_lookup (teredo_peerlist *list, time_t atime,
                                  const struct in6_addr *addr, bool *create)
 {
@@ -515,7 +507,6 @@ teredo_peer *teredo_list_lookup (teredo_peerlist *list, time_t atime,
 /**
  * Unlocks a list that was locked by teredo_list_lookup().
  */
-extern "C"
 void teredo_list_release (teredo_peerlist *l)
 {
 #ifndef NDEBUG
