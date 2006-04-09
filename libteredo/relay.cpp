@@ -104,7 +104,7 @@ TeredoRelay::TeredoRelay (uint32_t pref, uint16_t port, uint32_t ipv4,
 		list = teredo_list_create (MaxPeers, 300);
 		if (list != NULL)
 		{
-			if (pthread_rwlock_init (&state_lock, NULL))
+			if (pthread_rwlock_init (&state_lock, NULL) == 0)
 				return; /* success */
 			teredo_list_destroy (list);
 		}
