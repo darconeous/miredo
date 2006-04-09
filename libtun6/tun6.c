@@ -48,7 +48,7 @@
 
 #include <sys/socket.h> // socket(AF_INET6, SOCK_DGRAM, 0)
 
-#include <net/if.h> // struct ifreq, if_nametoindex()
+#include <net/if.h> // struct ifreq, if_nametoindex(), if_indextoname()
 
 #if defined (__linux__)
 /*
@@ -126,8 +126,7 @@ static const char *os_driver = "Generic";
 
 struct tun6
 {
-	char name[IFNAMSIZ];
-	int  fd, reqfd;
+	int  id, fd, reqfd;
 };
 
 /**
@@ -152,6 +151,10 @@ tun6 *tun6_create (const char *req_name)
 		free (t);
 		return NULL;
 	}
+	t->fd = -1;
+	t->id = 0;
+
+	int id = 0;
 
 #if defined (USE_LINUX)
 	/*
@@ -183,7 +186,8 @@ tun6 *tun6_create (const char *req_name)
 		goto error;
 	}
 
-	if (safe_strcpy (t->name, req.ifr_name))
+	id = if_nametoindex (req.ifr_name);
+	if (id == 0)
 		goto error;
 #elif defined (USE_BSD)
 	/*
@@ -236,18 +240,16 @@ tun6 *tun6_create (const char *req_name)
 		/*
 		 * FIXME: we need a way to obtain the actual name of the tunnel
 		 * interface. If the user or another program changed it in the past,
-		 * it might no longer be the device file name. Worst yet, the device
-		 * name can be changed by root at any time through:
-		 * # ifconfig <olddev> name <newname>
-		 * and we won't be notified (we'd have to monitor a PF_ROUTE socket or
-		 * something overkill like that).
-		 * IMHO, this is a limitation of struct ifreq on BSD:
-		 * it uses the (mutable) interface name (ifr_name) as the identifier,
-		 * instead of an immutable integer like the Linux kernel does.
-		 *
-		 * See also the NOTE below near ioctl(SIOCSIFNAME).
+		 * it might no longer be the device file name.
 		 */
-		safe_strcpy (t->name, tundev + 5);
+		id = if_nametoindex (tundev + 5);
+		if (id == 0)
+		{
+			errno = ENXIO;
+			errmsg = "if_nametoindex";
+			goto next;
+		}
+
 		fd = tunfd;
 		break;
 
@@ -259,43 +261,26 @@ tun6 *tun6_create (const char *req_name)
 	if (req_name != NULL)
 	{
 #ifdef SIOCSIFNAME
-		char ifname[strlen (req_name) + 1];
-		strcpy (ifname, req_name);
-
 		struct ifreq req;
 		memset (&req, 0, sizeof (req));
-		safe_strcpy (req.ifr_name, t->name);
+
+		if (if_indextoname (id, req.ifr_name) == NULL)
+		{
+			errmsg = "if_indextoname";
+			errval = errno;
+			close (fd);
+			fd = -1;
+		}
+
+		char ifname[IFNAMSIZ];
 		req.ifr_data = ifname;
 
 		errno = 0;
-		if (safe_strcpy (t->name, req_name)
+		if (safe_strcpy (ifname, req_name)
 		 || ioctl (reqfd, SIOCSIFNAME, &req))
 		{
-			if (errno == ENXIO)
-			{
-				syslog (LOG_INFO, "Cannot rename interface to \"%s\". "
-				        "Assuming name already correct.", req_name);
-				/*
-				 * NOTE: If we are lucky enough, the name is already the one
-				 * the user requested. This typically occurs when the tunnel
-				 * device was(re)named by a previous Miredo instance.
-				 * If that's not the case, too bad; tun6 will fail at a later
-				 * stage (tun6_setMTU() or tun6_setState()).
-				 */
-			}
-			else
-			{
-				errmsg = "SIOCSIFNAME";
-				errval = errno;
-				close (fd);
-				fd = -1;
-			}
-		}
-#else
-		if (strcmp (req_name, t->name))
-		{
 			errmsg = "SIOCSIFNAME";
-			errval = ENOSYS;
+			errval = errno;
 			close (fd);
 			fd = -1;
 		}
@@ -316,6 +301,7 @@ tun6 *tun6_create (const char *req_name)
 # error No tunneling driver implemented on your platform!
 #endif /* HAVE_os */
 
+	t->id = id;
 	t->fd = fd;
 	return t;
 
@@ -354,23 +340,13 @@ void tun6_destroy (tun6* t)
  */
 
 /**
- * @return the name of the tunnel device
- */
-const char *tun6_getName (const tun6 *t)
-{
-	assert (t != NULL);
-
-	return t->name;
-}
-
-/**
  * @return the scope id of the tunnel device
  */
 int tun6_getId (const tun6 *t)
 {
 	assert (t != NULL);
 
-	return if_nametoindex (tun6_getName (t));
+	return t->id;
 }
 
 
@@ -398,15 +374,11 @@ proc_write_zero (const char *path)
 int
 tun6_setState (tun6 *t, bool up)
 {
-	struct ifreq req;
-
 	assert (t != NULL);
 
-	const char *ifname = t->name;
-
-	/* Sets up the interface */
+	struct ifreq req;
 	memset (&req, 0, sizeof (req));	
-	if (safe_strcpy (req.ifr_name, ifname)
+	if ((if_indextoname (t->id, req.ifr_name) == NULL)
 	 || ioctl (t->reqfd, SIOCGIFFLAGS, &req))
 		return -1;
 
@@ -418,7 +390,8 @@ tun6_setState (tun6 *t, bool up)
 	else
 		req.ifr_flags &= ~(IFF_UP | IFF_RUNNING);
 
-	if (safe_strcpy (req.ifr_name, ifname)
+	/* Sets up the interface */
+	if ((if_indextoname (t->id, req.ifr_name) == NULL)
 	 || ioctl (t->reqfd, SIOCSIFFLAGS, &req))
 		return -1;
 
@@ -484,7 +457,7 @@ _iface_addr (int reqfd, const char *ifname, bool add,
 	} r;
 
 	memset (&r, 0, sizeof (r));
-	r.req6.ifr6_ifindex = if_nametoindex (ifname);
+	r.req6.ifr6_ifindex = if_nametoindex (ifname); /* FIXME: t->id */
 	memcpy (&r.req6.ifr6_addr, addr, sizeof (r.req6.ifr6_addr));
 	r.req6.ifr6_prefixlen = prefix_len;
 
@@ -561,7 +534,7 @@ _iface_route (int reqfd, const char *ifname, bool add,
 	/* Adds/deletes route */
 	memset (&req6, 0, sizeof (req6));
 	req6.rtmsg_flags = RTF_UP;
-	req6.rtmsg_ifindex = if_nametoindex (ifname);
+	req6.rtmsg_ifindex = if_nametoindex (ifname); /* FIXME: t->id */
 	memcpy (&req6.rtmsg_dst, addr, sizeof (req6.rtmsg_dst));
 	req6.rtmsg_dst_len = (unsigned short)prefix_len;
 	/* By default, the Linux kernel's metric is 256 for subnets,
@@ -597,7 +570,7 @@ _iface_route (int reqfd, const char *ifname, bool add,
 		msg.hdr.rtm_msglen = sizeof (msg);
 		msg.hdr.rtm_version = RTM_VERSION;
 		msg.hdr.rtm_type = add ? RTM_ADD : RTM_DELETE;
-		msg.hdr.rtm_index = if_nametoindex (ifname);
+		msg.hdr.rtm_index = if_nametoindex (ifname); /* FIXME: t->id */
 		msg.hdr.rtm_flags = RTF_UP | RTF_STATIC;
 		msg.hdr.rtm_addrs = RTA_DST | RTA_GATEWAY | RTA_NETMASK;
 		if (prefix_len == 128)
@@ -614,7 +587,7 @@ _iface_route (int reqfd, const char *ifname, bool add,
 
 		msg.gw.sdl_family = AF_LINK;
 		msg.gw.sdl_len = sizeof (msg.gw);
-		msg.gw.sdl_index = if_nametoindex (ifname);
+		msg.gw.sdl_index = if_nametoindex (ifname); /* FIXME: t->id */
 
 		plen_to_sin6 (prefix_len, &msg.mask);
 
@@ -648,7 +621,11 @@ tun6_addAddress (tun6 *t, const struct in6_addr *addr, unsigned prefixlen)
 {
 	assert (t != NULL);
 
-	int res = _iface_addr (t->reqfd, t->name, true, addr, prefixlen);
+	char ifname[IFNAMSIZ];
+	if (if_indextoname (t->id, ifname) == NULL)
+		return -1;
+
+	int res = _iface_addr (t->reqfd, ifname, true, addr, prefixlen);
 
 #if defined (USE_LINUX)
 	if (res == 0)
@@ -657,15 +634,15 @@ tun6_addAddress (tun6 *t, const struct in6_addr *addr, unsigned prefixlen)
 
 		/* Disable Autoconfiguration and ICMPv6 redirects */
 		snprintf (proc_path + 24, sizeof (proc_path) - 24,
-		          "%s/accept_ra", t->name);
+		          "%s/accept_ra", ifname);
 		proc_write_zero (proc_path);
 
 		snprintf (proc_path + 24, sizeof (proc_path) - 24,
-		          "%s/accept_redirects", t->name);
+		          "%s/accept_redirects", ifname);
 		proc_write_zero (proc_path);
 
 		snprintf (proc_path + 24, sizeof (proc_path) - 24,
-		          "%s/autoconf", t->name);
+		          "%s/autoconf", ifname);
 		proc_write_zero (proc_path);
 	}
 #endif
@@ -684,7 +661,11 @@ tun6_delAddress (tun6 *t, const struct in6_addr *addr, unsigned prefixlen)
 {
 	assert (t != NULL);
 
-	return _iface_addr (t->reqfd, t->name, false, addr, prefixlen);
+	char ifname[IFNAMSIZ];
+	if (if_indextoname (t->id, ifname) == NULL)
+		return -1;
+
+	return _iface_addr (t->reqfd, ifname, false, addr, prefixlen);
 }
 
 
@@ -704,7 +685,11 @@ tun6_addRoute (tun6 *t, const struct in6_addr *addr, unsigned prefix_len,
 {
 	assert (t != NULL);
 
-	return _iface_route (t->reqfd, t->name, true, addr, prefix_len,
+	char ifname[IFNAMSIZ];
+	if (if_indextoname (t->id, ifname) == NULL)
+		return -1;
+
+	return _iface_route (t->reqfd, ifname, true, addr, prefix_len,
 	                     rel_metric);
 }
 
@@ -721,7 +706,11 @@ tun6_delRoute (tun6 *t, const struct in6_addr *addr, unsigned prefix_len,
 {
 	assert (t != NULL);
 
-	return _iface_route (t->reqfd, t->name, false, addr, prefix_len,
+	char ifname[IFNAMSIZ];
+	if (if_indextoname (t->id, ifname) == NULL)
+		return -1;
+
+	return _iface_route (t->reqfd, ifname, false, addr, prefix_len,
 	                     rel_metric);
 }
 
@@ -734,16 +723,15 @@ tun6_delRoute (tun6 *t, const struct in6_addr *addr, unsigned prefix_len,
 int
 tun6_setMTU (tun6 *t, unsigned mtu)
 {
-	struct ifreq req;
-
 	assert (t != NULL);
 
 	if ((mtu < 1280) || (mtu > 65535))
 		return -1;
 
+	struct ifreq req;
 	memset (&req, 0, sizeof (req));
 	req.ifr_mtu = mtu;
-	if (safe_strcpy (req.ifr_name, t->name))
+	if (if_indextoname (t->id, req.ifr_name) == NULL)
 		return -1;
 
 	return ioctl (t->reqfd, SIOCSIFMTU, &req) ? -1 : 0;
