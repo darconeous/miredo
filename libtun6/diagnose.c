@@ -40,9 +40,14 @@ int main (void)
 	openlog ("libtun6-diagnose", LOG_PERROR, LOG_USER);
 	tun6 *t = tun6_create (invalid_name);
 	if (t != NULL)
+	{
+		tun6_destroy (t);
 		return 1;
+	}
 
 	t = tun6_create (NULL);
+	if (t != NULL)
+		tun6_destroy (t);
 	if ((t == NULL) != (res != 0))
 		return 1;
 
@@ -51,7 +56,6 @@ int main (void)
 		puts ("Warning: cannot perform full libtun6 test");
 		return 0;
 	}
-	tun6_destroy (t);
 
 	/* TODO: further testing */
 	t = tun6_create ("teredo");
