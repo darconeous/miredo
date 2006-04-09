@@ -341,7 +341,7 @@ miredo_client (tun6 *tunnel, const char *server, const char *server2,
 }
 #else
 # define create_dynamic_tunnel( a, b ) NULL
-# define miredo_client( a, b, c, d, e, f, g ) (-1)
+# define miredo_client( a, b, c, d ) (-1)
 #endif
 
 
