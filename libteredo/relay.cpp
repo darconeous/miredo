@@ -937,7 +937,6 @@ struct libteredo_tunnel
 	uint32_t prefix;
 	uint32_t ipv4;
 	uint16_t port;
-	uint16_t mtu;
 	bool client;
 	bool cone;
 	bool allow_cone;
@@ -1037,29 +1036,6 @@ int libteredo_set_prefix (libteredo_tunnel *t, uint32_t prefix)
 
 
 /**
- * Overrides the default MTU (1280 bytes) of a Teredo relay. The Teredo MTU
- * is ignored for Teredo clients. libteredo_set_MTU() is undefined if
- * libteredo_set_cone_flag() was already invoked.
- *
- * @param mtu MTU of the tunnel in bytes (in host byte order).
- *
- * @return 0 on success, -1 if the MTU is invalid (in which case the
- * libteredo_tunnel instance is not modified).
- */
-extern "C"
-int libteredo_set_MTU (libteredo_tunnel *t, uint16_t mtu)
-{
-	assert (t != NULL);
-
-	if (mtu < 1280)
-		return -1;
-
-	t->mtu = mtu;
-	return 0;
-}
-
-
-/**
  * Enables Teredo relay mode for a libteredo_tunnel,
  * defines whether it will operate as a “cone” or “restricted” relay,
  * and starts processing of encapsulated IPv6 packets.
@@ -1103,8 +1079,8 @@ int libteredo_set_cone_flag (libteredo_tunnel *t, bool flag)
 /**
  * Enables Teredo client mode for a libteredo_tunnel and starts the Teredo
  * client maintenance procedure in a separate thread. This is undefined if
- * either libteredo_set_cone_flag(), libteredo_set_prefix(),
- * libteredo_set_MTU() were previously called for this tunnel.
+ * either libteredo_set_cone_flag() or libteredo_set_prefix() were previously
+ * called for this tunnel.
  *
  * @param s1 Teredo server's host name or “dotted quad” primary IPv4 address.
  * @param s2 Teredo server's secondary address (or host name), or NULL to
