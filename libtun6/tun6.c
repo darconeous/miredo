@@ -245,9 +245,20 @@ tun6 *tun6_create (const char *req_name)
 		id = if_nametoindex (tundev + 5);
 		if (id == 0)
 		{
-			errno = ENXIO;
-			errmsg = "if_nametoindex";
-			goto next;
+			/*
+			 * Ugly kludge. Try to use the requested name as the current
+			 * tunnel name. That happens when the tunnel was created with the
+			 * same name by a previous instance of the same program.
+			 * Unfortuntaly, this can lead to awful result if two instances
+			 * try to use the same tunnel name simultaneously.
+			 */
+			if ((req_name == NULL)
+			 || ((id = if_nametoindex (req_name)) == 0))
+			{
+				errno = ENXIO;
+				errmsg = "if_nametoindex";
+				goto next;
+			}
 		}
 
 		fd = tunfd;
@@ -260,7 +271,6 @@ tun6 *tun6_create (const char *req_name)
 
 	if (req_name != NULL)
 	{
-#ifdef SIOCSIFNAME
 		struct ifreq req;
 		memset (&req, 0, sizeof (req));
 
@@ -271,20 +281,26 @@ tun6 *tun6_create (const char *req_name)
 			close (fd);
 			fd = -1;
 		}
-
-		char ifname[IFNAMSIZ];
-		req.ifr_data = ifname;
-
-		errno = 0;
-		if (safe_strcpy (ifname, req_name)
-		 || ioctl (reqfd, SIOCSIFNAME, &req))
+		else
+		if (strcmp (req.ifr_name, req_name))
 		{
-			errmsg = "SIOCSIFNAME";
-			errval = errno;
-			close (fd);
-			fd = -1;
-		}
+#ifdef SIOCSIFNAME
+			char ifname[IFNAMSIZ];
+			req.ifr_data = ifname;
+
+			errno = 0;
+			if (safe_strcpy (ifname, req_name)
+			 || ioctl (reqfd, SIOCSIFNAME, &req))
+#else
+			errno = ENOSYS;
 #endif
+			{
+				errmsg = "SIOCSIFNAME";
+				errval = errno;
+				close (fd);
+				fd = -1;
+			}
+		}
 	}
 
 	if (fd == -1)
