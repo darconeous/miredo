@@ -196,32 +196,39 @@ tun6 *tun6_create (const char *req_name)
 	 * BSD tunnel driver initialization
 	 * (see BSD src/sys/net/if_tun.{c,h})
 	 */
-	int fd = -1, id = 0;
+	int id = 0;
 	struct if_nameindex *before = if_nameindex ();
 
 	/*
 	 * NOTE: Recent FreeBSD releases have a more Linux-like /dev/tun device
 	 * file that creates tunnel automatically... but it is fairly
 	 * disappointing that there is no way to obtain the created interface name
-	 * any way. To obtain the device id, we could try to compare
-	 * if_nameindex() before and after open(), but it will not work properly
-	 * if the BSD kernel gives us a recycled tunnel instead of a new one.
+	 * any way. To obtain the device id, we try to compare if_nameindex()
+	 * before and after open().
 	 */
-	for (unsigned i = 0; (fd == -1) && (errno != ENOENT); i++)
+	int fd = open ("/dev/tun", O_RDWR);
+	if (fd == -1)
 	{
-		char tundev[5 + IFNAMSIZ];
-		snprintf (tundev, sizeof (tundev), "/dev/tun%u", i);
-
-		fd = open (tundev, O_RDWR);
-		if (fd != -1)
+		/*
+		 * Some BSD variants or older kernel versions do not support /dev/tun,
+		 * so fallback to the old scheme.
+		 */
+		for (unsigned i = 0; (fd == -1) && (errno != ENOENT); i++)
 		{
-			/*
-			 * FIXME: Needs a way to obtain the actual name of the tunnel
-			 * interface. If the user or another program changed it in the
-			 * past, it might no longer be the device file name.
-			 */
-			id = if_nametoindex (tundev + 5);
-			safe_strcpy (t->orig_name, tundev + 5);
+			char tundev[5 + IFNAMSIZ];
+			snprintf (tundev, sizeof (tundev), "/dev/tun%u", i);
+	
+			fd = open (tundev, O_RDWR);
+			if (fd != -1)
+			{
+				/*
+				 * FIXME: Needs a way to obtain the actual name of the tunnel
+				 * interface. If the user or another program changed it in the
+				 * past, it might no longer be the device file name.
+				 */
+				id = if_nametoindex (tundev + 5);
+				safe_strcpy (t->orig_name, tundev + 5);
+			}
 		}
 	}
 
@@ -250,7 +257,10 @@ tun6 *tun6_create (const char *req_name)
 				x++;
 
 			if (x->if_index == 0)
+			{
 				id = p->if_index;
+				safe_strcpy (t->orig_name, p->if_name);
+			}
 		}
 		if_freenameindex (after);
 	}
@@ -337,8 +347,6 @@ tun6 *tun6_create (const char *req_name)
 			}
 		}
 	}
-	else
-		*t->orig_name = '\0';
 #else
 # error No tunneling driver implemented on your platform!
 #endif /* HAVE_os */
@@ -388,8 +396,8 @@ void tun6_destroy (tun6* t)
 	{
 		if (ioctl (t->reqfd, SIOCIFDESTROY, &req))
 		{
-			if ((*t->orig_name)
-			 && (if_indextoname (t->id, req.ifr_name) != NULL))
+			if ((if_indextoname (t->id, req.ifr_name) != NULL)
+			 && strcmp (t->orig_name, req.ifr_name))
 			{
 				req.ifr_data = t->orig_name;
 				(void)ioctl (t->reqfd, SIOCSIFNAME, &req);
