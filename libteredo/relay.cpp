@@ -940,6 +940,7 @@ struct libteredo_tunnel
 	uint16_t mtu;
 	bool client;
 	bool cone;
+	bool allow_cone;
 };
 
 /**
@@ -1066,6 +1067,7 @@ int libteredo_tunnel_set_cone_flag (libteredo_tunnel *t, bool flag)
 	if (r != NULL)
 	{
 		t->object = r;
+		r->SetConeIgnore (!t->allow_cone);
 		return 0;
 	}
 
@@ -1106,6 +1108,7 @@ int libteredo_tunnel_set_client_mode (libteredo_tunnel *t, const char *s1,
 	if (r != NULL)
 	{
 		t->object = r;
+		r->SetConeIgnore (!t->allow_cone);
 		return 0;
 	}
 #else
@@ -1116,6 +1119,22 @@ int libteredo_tunnel_set_client_mode (libteredo_tunnel *t, const char *s1,
 	return -1;
 }
 
+
+/**
+ * Enables/disables the processing of the cone flag found in other Teredo
+ * client's IPv6 addresses. By default, the cone flag is ignored, because this
+ * supposedly increase reliability of the Teredo tunneling mechanism.
+ *
+ * @param ignore true to enable processing, false to disable.
+ */
+extern "C"
+void libteredo_tunnel_set_cone_ignore (libteredo_tunnel *t, bool ignore)
+{
+	assert (t != NULL);
+	t->allow_cone = !ignore;
+	if (t->object != NULL)
+		t->object->SetConeIgnore (ignore);
+}
 
 extern "C"
 void *libteredo_set_privdata (libteredo_tunnel *t, void *opaque)

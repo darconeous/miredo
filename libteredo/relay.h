@@ -49,6 +49,8 @@ int libteredo_tunnel_set_cone_flag (libteredo_tunnel *t, bool flag);
 int libteredo_tunnel_set_client_mode (libteredo_tunnel *t, const char *s1,
                                       const char *s2);
 
+void libteredo_tunnel_set_cone_ignore (libteredo_tunnel *t, bool ignore);
+
 void *libteredo_set_privdata (libteredo_tunnel *, void *);
 void *libteredo_get_privdata (const libteredo_tunnel *);
 
