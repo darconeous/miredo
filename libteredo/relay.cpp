@@ -1165,8 +1165,16 @@ void libteredo_set_recv_callback (libteredo_tunnel *t, libteredo_recv_cb cb)
 }
 
 
+/* FIXME: document */
 extern "C"
-int libteredo_send (libteredo_tunnel *t, const void *data, size_t n);
+int libteredo_send (libteredo_tunnel *t, const struct ip6_hdr *data, size_t n)
+{
+	assert (t != NULL);
+	assert (t->object != NULL); /* FIXME document assumption */
+
+	return t->object->SendPacket (data, n);
+}
+
 
 void libteredo_set_icmpv6_callback (libteredo_tunnel *t,
                                     libteredo_icmpv6_cb cb)

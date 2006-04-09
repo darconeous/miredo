@@ -36,6 +36,7 @@ int libteredo_preinit (bool use_client);
 void libteredo_terminate (bool use_client);
 
 struct in6_addr;
+struct ip6_hdr;
 
 typedef struct libteredo_tunnel libteredo_tunnel;
 
@@ -57,7 +58,7 @@ void *libteredo_get_privdata (const libteredo_tunnel *);
 
 typedef void (*libteredo_recv_cb) (libteredo_tunnel *, const void *, size_t);
 void libteredo_set_recv_callback (libteredo_tunnel *t, libteredo_recv_cb cb);
-int libteredo_send (libteredo_tunnel *t, const void *data, size_t n);
+int libteredo_send (libteredo_tunnel *t, const struct ip6_hdr *buf, size_t n);
 
 typedef void (*libteredo_icmpv6_cb) (libteredo_tunnel *, const void *, size_t,
                                      const struct in6_addr *dst);
@@ -82,8 +83,6 @@ typedef struct teredo_state
 # ifdef __cplusplus
 }
 
-struct ip6_hdr;
-struct in6_addr;
 
 struct teredo_packet;
 struct teredo_maintenance;
