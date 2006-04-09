@@ -50,7 +50,8 @@
 #endif
 
 #include "teredo.h"
-#include "teredo-udp.h"
+#include "teredo-udp.h" // FIXME: ugly
+#include "maintain.h" // FIXME: temporary
 #include "relay.h"
 #include "peerlist.h"
 #ifndef NDEBUG

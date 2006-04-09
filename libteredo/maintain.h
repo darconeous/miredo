@@ -22,6 +22,14 @@
 #ifndef MIREDO_LIBTEREDO_MAINTAIN_H
 # define MIREDO_LIBTEREDO_MAINTAIN_H
 
+typedef struct teredo_state
+{
+    union teredo_addr addr;
+    uint16_t mtu;
+    bool up;
+    bool cone;
+} teredo_state;
+
 # ifdef __cplusplus
 extern "C" {
 # endif

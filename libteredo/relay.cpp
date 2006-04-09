@@ -53,11 +53,11 @@
 
 #include "packets.h"
 #include "tunnel.h"
+#include "maintain.h"
 #include "relay.h"
 #include "peerlist.h"
 #ifdef MIREDO_TEREDO_CLIENT
 # include "security.h"
-# include "maintain.h"
 #endif
 
 #define TEREDO_TIMEOUT 30 // seconds

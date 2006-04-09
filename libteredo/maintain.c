@@ -55,7 +55,6 @@
 #include "packets.h"
 
 #include "security.h"
-#include "relay.h" // struct teredo_state
 #include "maintain.h"
 #include "v4global.h" // is_ipv4_global_unicast()
 
