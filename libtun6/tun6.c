@@ -434,14 +434,14 @@ plen_to_sin6 (unsigned plen, struct sockaddr_in6 *sin6)
 
 
 static int
-_iface_addr (int reqfd, const char *ifname, bool add,
+_iface_addr (int reqfd, int id, bool add,
              const struct in6_addr *addr, unsigned prefix_len)
 {
 	void *req = NULL;
 	long cmd = 0;
 
 	assert (reqfd != -1);
-	assert (ifname != NULL);
+	assert (id != 0);
 
 	if ((prefix_len > 128) || (addr == NULL))
 		return -1;
@@ -457,7 +457,7 @@ _iface_addr (int reqfd, const char *ifname, bool add,
 	} r;
 
 	memset (&r, 0, sizeof (r));
-	r.req6.ifr6_ifindex = if_nametoindex (ifname); /* FIXME: t->id */
+	r.req6.ifr6_ifindex = id;
 	memcpy (&r.req6.ifr6_addr, addr, sizeof (r.req6.ifr6_addr));
 	r.req6.ifr6_prefixlen = prefix_len;
 
@@ -476,7 +476,7 @@ _iface_addr (int reqfd, const char *ifname, bool add,
 	if (add)
 	{
 		memset (&r.addreq6, 0, sizeof (r.addreq6));
-		if (safe_strcpy (r.addreq6.ifra_name, ifname))
+		if (if_indextoname (id, r.addreq6.ifra_name) == NULL)
 			return -1;
 		r.addreq6.ifra_addr.sin6_family = AF_INET6;
 		r.addreq6.ifra_addr.sin6_len = sizeof (r.addreq6.ifra_addr);
@@ -494,7 +494,7 @@ _iface_addr (int reqfd, const char *ifname, bool add,
 	else
 	{
 		memset (&r.delreq6, 0, sizeof (r.delreq6));
-		if (safe_strcpy (r.delreq6.ifr_name, ifname))
+		if (if_indextoname (id, r.delreq6.ifr_name) == NULL)
 			return -1;
 		r.delreq6.ifr_addr.sin6_family = AF_INET6;
 		r.delreq6.ifr_addr.sin6_len = sizeof (r.delreq6.ifr_addr);
@@ -513,12 +513,11 @@ _iface_addr (int reqfd, const char *ifname, bool add,
 
 
 static int
-_iface_route (int reqfd, const char *ifname, bool add,
-              const struct in6_addr *addr, unsigned prefix_len,
-              int rel_metric)
+_iface_route (int reqfd, int id, bool add, const struct in6_addr *addr,
+              unsigned prefix_len, int rel_metric)
 {
 	assert (reqfd != -1);
-	assert (ifname != NULL);
+	assert (id != 0);
 
 	if ((prefix_len > 128) || (addr == NULL))
 		return -1;
@@ -534,7 +533,7 @@ _iface_route (int reqfd, const char *ifname, bool add,
 	/* Adds/deletes route */
 	memset (&req6, 0, sizeof (req6));
 	req6.rtmsg_flags = RTF_UP;
-	req6.rtmsg_ifindex = if_nametoindex (ifname); /* FIXME: t->id */
+	req6.rtmsg_ifindex = id;
 	memcpy (&req6.rtmsg_dst, addr, sizeof (req6.rtmsg_dst));
 	req6.rtmsg_dst_len = (unsigned short)prefix_len;
 	/* By default, the Linux kernel's metric is 256 for subnets,
@@ -570,7 +569,7 @@ _iface_route (int reqfd, const char *ifname, bool add,
 		msg.hdr.rtm_msglen = sizeof (msg);
 		msg.hdr.rtm_version = RTM_VERSION;
 		msg.hdr.rtm_type = add ? RTM_ADD : RTM_DELETE;
-		msg.hdr.rtm_index = if_nametoindex (ifname); /* FIXME: t->id */
+		msg.hdr.rtm_index = id;
 		msg.hdr.rtm_flags = RTF_UP | RTF_STATIC;
 		msg.hdr.rtm_addrs = RTA_DST | RTA_GATEWAY | RTA_NETMASK;
 		if (prefix_len == 128)
@@ -587,7 +586,7 @@ _iface_route (int reqfd, const char *ifname, bool add,
 
 		msg.gw.sdl_family = AF_LINK;
 		msg.gw.sdl_len = sizeof (msg.gw);
-		msg.gw.sdl_index = if_nametoindex (ifname); /* FIXME: t->id */
+		msg.gw.sdl_index = id;
 
 		plen_to_sin6 (prefix_len, &msg.mask);
 
@@ -621,15 +620,14 @@ tun6_addAddress (tun6 *t, const struct in6_addr *addr, unsigned prefixlen)
 {
 	assert (t != NULL);
 
-	char ifname[IFNAMSIZ];
-	if (if_indextoname (t->id, ifname) == NULL)
-		return -1;
-
-	int res = _iface_addr (t->reqfd, ifname, true, addr, prefixlen);
+	int res = _iface_addr (t->reqfd, t->id, true, addr, prefixlen);
 
 #if defined (USE_LINUX)
-	if (res == 0)
+	char ifname[IFNAMSIZ];
+	if ((res == 0)
+	 || (if_indextoname (t->id, ifname) == NULL))
 	{
+
 		char proc_path[24 + IFNAMSIZ + 16 + 1] = "/proc/sys/net/ipv6/conf/";
 
 		/* Disable Autoconfiguration and ICMPv6 redirects */
@@ -661,11 +659,7 @@ tun6_delAddress (tun6 *t, const struct in6_addr *addr, unsigned prefixlen)
 {
 	assert (t != NULL);
 
-	char ifname[IFNAMSIZ];
-	if (if_indextoname (t->id, ifname) == NULL)
-		return -1;
-
-	return _iface_addr (t->reqfd, ifname, false, addr, prefixlen);
+	return _iface_addr (t->reqfd, t->id, false, addr, prefixlen);
 }
 
 
@@ -685,12 +679,7 @@ tun6_addRoute (tun6 *t, const struct in6_addr *addr, unsigned prefix_len,
 {
 	assert (t != NULL);
 
-	char ifname[IFNAMSIZ];
-	if (if_indextoname (t->id, ifname) == NULL)
-		return -1;
-
-	return _iface_route (t->reqfd, ifname, true, addr, prefix_len,
-	                     rel_metric);
+	return _iface_route (t->reqfd, t->id, true, addr, prefix_len, rel_metric);
 }
 
 
@@ -706,11 +695,7 @@ tun6_delRoute (tun6 *t, const struct in6_addr *addr, unsigned prefix_len,
 {
 	assert (t != NULL);
 
-	char ifname[IFNAMSIZ];
-	if (if_indextoname (t->id, ifname) == NULL)
-		return -1;
-
-	return _iface_route (t->reqfd, ifname, false, addr, prefix_len,
+	return _iface_route (t->reqfd, t->id, false, addr, prefix_len,
 	                     rel_metric);
 }
 
