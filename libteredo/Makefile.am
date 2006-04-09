@@ -36,7 +36,7 @@ common_SOURCES =	teredo.c teredo.h teredo-udp.h \
 			v4global.c v4global.h checksum.h
 
 # libteredo.la
-libteredo_la_SOURCES =	$(common_SOURCES) init.c relay.cpp relay.h \
+libteredo_la_SOURCES =	$(common_SOURCES) init.c relay.cpp \
 			packets.c packets.h peerlist.cpp peerlist.h
 if TEREDO_CLIENT
 libteredo_la_SOURCES += security.c security.h maintain.c maintain.h \

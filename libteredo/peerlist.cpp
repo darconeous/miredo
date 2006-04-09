@@ -51,8 +51,6 @@
 
 #include "teredo.h"
 #include "teredo-udp.h" // FIXME: ugly
-#include "maintain.h" // FIXME: temporary
-#include "relay.h"
 #include "peerlist.h"
 #ifndef NDEBUG
 # include <errno.h>
@@ -69,13 +67,13 @@ struct packet
 	uint8_t data[];
 };
 
-unsigned TeredoRelay::MaxQueueBytes = 1280;
+static const unsigned libteredo_MaxQueueBytes = 1280;
 
 
 static inline void teredo_peer_init (teredo_peer *peer)
 {
 	peer->queue = NULL;
-	peer->queue_left = TeredoRelay::MaxQueueBytes;
+	peer->queue_left = libteredo_MaxQueueBytes;
 }
 
 
@@ -96,7 +94,7 @@ static void teredo_peer_destroy (teredo_peer *peer)
 
 extern "C" void
 teredo_peer_queue (teredo_peer *peer, const void *data, size_t len,
-                        bool incoming)
+                   bool incoming)
 {
 	packet *p;
 
@@ -115,12 +113,13 @@ teredo_peer_queue (teredo_peer *peer, const void *data, size_t len,
 
 
 extern "C" void
-teredo_peer_dequeue (teredo_peer *peer, int fd, void *r)
+teredo_peer_dequeue (teredo_peer *peer, int fd,
+                     teredo_dequeue_cb cb, void *opaque)
 {
 	/* lock peer */
 	packet *ptr = peer->queue;
 	peer->queue = NULL;
-	peer->queue_left = TeredoRelay::MaxQueueBytes;
+	peer->queue_left = libteredo_MaxQueueBytes;
 	/* unlock */
 
 	while (ptr != NULL)
@@ -129,7 +128,7 @@ teredo_peer_dequeue (teredo_peer *peer, int fd, void *r)
 
 		buf = ptr->next;
 		if (ptr->incoming)
-			((TeredoRelay *)r)->SendIPv6Packet (ptr->data, ptr->length);
+			cb (opaque, ptr->data, ptr->length);
 		else
 			teredo_send (fd, ptr->data, ptr->length,
 			             peer->mapped_addr, peer->mapped_port);

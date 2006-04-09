@@ -41,13 +41,17 @@ typedef struct teredo_peer
 	unsigned last_ping:9;
 } teredo_peer;
 
+
+typedef void (*teredo_dequeue_cb) (void *, const void *, size_t);
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 void teredo_peer_queue (teredo_peer *peer, const void *data, size_t len,
                         bool incoming);
-void teredo_peer_dequeue (teredo_peer *peer, int fd, void *r);
+void teredo_peer_dequeue (teredo_peer *peer, int fd,
+                          teredo_dequeue_cb cb, void *r);
 
 #ifdef __cplusplus
 }
@@ -82,9 +86,9 @@ void QueueOutgoing (teredo_peer *peer, const void *data, size_t len)
 }
 
 static inline
-void Dequeue (teredo_peer *peer, int fd, void *r)
+void Dequeue (teredo_peer *peer, int fd, teredo_dequeue_cb cb, void *r)
 {
-	teredo_peer_dequeue (peer, fd, r);
+	teredo_peer_dequeue (peer, fd, cb, r);
 }
 
 

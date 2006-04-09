@@ -54,11 +54,98 @@
 #include "packets.h"
 #include "tunnel.h"
 #include "maintain.h"
-#include "relay.h"
 #include "peerlist.h"
 #ifdef MIREDO_TEREDO_CLIENT
 # include "security.h"
 #endif
+
+// big TODO: make all functions re-entrant safe
+//           make all functions thread-safe
+class TeredoRelay
+{
+	private:
+		struct teredo_peerlist *list;
+		int fd;
+		bool allowCone;
+
+		void SendUnreach (int code, const void *in, size_t inlen);
+
+		teredo_state state;
+		pthread_rwlock_t state_lock;
+
+#ifdef MIREDO_TEREDO_CLIENT
+		struct teredo_maintenance *maintenance;
+
+		virtual void NotifyUp (const struct in6_addr *, uint16_t) = 0;
+		virtual void NotifyDown (void) = 0;
+
+		static void StateChange (const teredo_state *, void *self);
+#endif
+		virtual void EmitICMPv6Error (const void *packet, size_t length,
+		                              const struct in6_addr *dst) = 0;
+
+		virtual int SendIPv6Packet (const void *packet, size_t length) = 0;
+		static void _sendIPv6Packet (void *self,
+		                             const void *packet, size_t length)
+		{
+			(void)((TeredoRelay *)self)->SendIPv6Packet (packet, length);
+		}
+
+	protected:
+		/*
+		 * Creates a Teredo relay manually (ie. one that does not
+		 * qualify with a Teredo server and has no Teredo IPv6
+		 * address). The prefix must therefore be specified.
+		 *
+		 * If port is nul, the OS will choose an available UDP port
+		 * for communication. This is NOT a good idea if you are
+		 * behind a fascist firewall, as the port might be blocked.
+		 */
+		TeredoRelay (uint32_t pref, uint16_t port /*= 0*/,
+		             uint32_t ipv4 /* = 0 */, bool cone /*= true*/);
+
+		/*
+		 * Creates a Teredo client/relay automatically. The client
+		 * will try to qualify and get a Teredo IPv6 address from the
+		 * server.
+		 *
+		 * TODO: support for secure qualification
+		 */
+		TeredoRelay (const char *server, const char *server2,
+		             uint16_t port = 0, uint32_t ipv4 = 0);
+
+	public:
+		virtual ~TeredoRelay (void);
+		int SendPacket (const struct ip6_hdr *packet, size_t len);
+		int ReceivePacket (void);
+
+#ifdef MIREDO_TEREDO_CLIENT
+		bool IsClient (void) const
+		{
+			return maintenance != NULL;
+		}
+
+		/*static unsigned QualificationRetries;
+		static unsigned QualificationTimeOut;
+		static unsigned ServerNonceLifetime;
+		static unsigned RestartDelay;*/
+#endif
+		//static unsigned MaxQueueBytes;
+		static unsigned MaxPeers;
+		static unsigned IcmpRateLimitMs;
+
+		void SetConeIgnore (bool ignore = true)
+		{
+			allowCone = !ignore;
+		}
+
+		int RegisterReadSet (fd_set *rs) const
+		{
+			if (fd != -1)
+				FD_SET (fd, rs);
+			return fd;
+		}
+};
 
 #define TEREDO_TIMEOUT 30 // seconds
 
@@ -750,7 +837,7 @@ int TeredoRelay::ReceivePacket (void)
 		 && (packet.source_port == p->mapped_port))
 		{
 			TouchReceive (p, now);
-			Dequeue (p, fd, this);
+			Dequeue (p, fd, _sendIPv6Packet, this);
 			p->bubbles = p->pings = 0;
 			teredo_list_release (list);
 			return SendIPv6Packet (buf, length);
@@ -765,7 +852,7 @@ int TeredoRelay::ReceivePacket (void)
 
 			SetMappingFromPacket (p, &packet);
 			TouchReceive (p, now);
-			Dequeue (p, fd, this);
+			Dequeue (p, fd, _sendIPv6Packet, this);
 			teredo_list_release (list);
 			return 0; /* don't pass ping to kernel */
 		}
@@ -815,7 +902,7 @@ int TeredoRelay::ReceivePacket (void)
 					return 0; // list not locked
 			}
 			else
-				Dequeue (p, fd, this);
+				Dequeue (p, fd, _sendIPv6Packet, this);
 
 			p->trusted = 1;
 			p->bubbles = /*p->pings -USELESS- =*/ 0;
