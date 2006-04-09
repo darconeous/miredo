@@ -706,7 +706,7 @@ tun6_addAddress (tun6 *t, const struct in6_addr *addr, unsigned prefixlen)
 #if defined (USE_LINUX)
 	char ifname[IFNAMSIZ];
 	if ((res == 0)
-	 || (if_indextoname (t->id, ifname) != NULL))
+	 && (if_indextoname (t->id, ifname) != NULL))
 	{
 
 		char proc_path[24 + IFNAMSIZ + 16 + 1] = "/proc/sys/net/ipv6/conf/";
