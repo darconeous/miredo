@@ -127,6 +127,9 @@ static const char *os_driver = "Generic";
 struct tun6
 {
 	int  id, fd, reqfd;
+#if defined (USE_BSD) && defined (SIOCSIFNAME)
+	char orig_name[IFNAMSIZ];
+#endif
 };
 
 /**
@@ -144,6 +147,7 @@ tun6 *tun6_create (const char *req_name)
 	tun6 *t = (tun6 *)malloc (sizeof (*t));
 	if (t == NULL)
 		return NULL;
+	memset (t, 0, sizeof (*t));
 
 	int reqfd = t->reqfd = socket (AF_INET6, SOCK_DGRAM, 0);
 	if (reqfd == -1)
@@ -151,10 +155,8 @@ tun6 *tun6_create (const char *req_name)
 		free (t);
 		return NULL;
 	}
-	t->fd = -1;
-	t->id = 0;
 
-	int id = 0;
+	fcntl (reqfd, F_SETFD, FD_CLOEXEC);
 
 #if defined (USE_LINUX)
 	/*
@@ -186,7 +188,7 @@ tun6 *tun6_create (const char *req_name)
 		goto error;
 	}
 
-	id = if_nametoindex (req.ifr_name);
+	int id = if_nametoindex (req.ifr_name);
 	if (id == 0)
 		goto error;
 #elif defined (USE_BSD)
@@ -194,22 +196,33 @@ tun6 *tun6_create (const char *req_name)
 	 * BSD tunnel driver initialization
 	 * (see BSD src/sys/net/if_tun.{c,h})
 	 */
-	int fd = -1;
+	int fd = -1, id = 0;
 	struct if_nameindex *before = if_nameindex ();
 
-	for (unsigned i = 0; (i <= 255) && (fd == -1); i++)
+	/*
+	 * NOTE: Recent FreeBSD releases have a more Linux-like /dev/tun device
+	 * file that creates tunnel automatically... but it is fairly
+	 * disappointing that there is no way to obtain the created interface name
+	 * any way. To obtain the device id, we could try to compare
+	 * if_nameindex() before and after open(), but it will not work properly
+	 * if the BSD kernel gives us a recycled tunnel instead of a new one.
+	 */
+	for (unsigned i = 0; (fd == -1) && (errno != ENOENT); i++)
 	{
-		char tundev[12];
+		char tundev[5 + IFNAMSIZ];
 		snprintf (tundev, sizeof (tundev), "/dev/tun%u", i);
-		tundev[sizeof (tundev) - 1] = '\0';
-		fd = open (tundev, O_RDWR);
 
-		/*
-		 * FIXME: Needs a way to obtain the actual name of the tunnel
-		 * interface. If the user or another program changed it in the past,
-		 * it might no longer be the device file name.
-		 */
-		id = if_nametoindex (tundev + 5);
+		fd = open (tundev, O_RDWR);
+		if (fd != -1)
+		{
+			/*
+			 * FIXME: Needs a way to obtain the actual name of the tunnel
+			 * interface. If the user or another program changed it in the
+			 * past, it might no longer be the device file name.
+			 */
+			id = if_nametoindex (tundev + 5);
+			safe_strcpy (t->orig_name, tundev + 5);
+		}
 	}
 
 	if (fd == -1)
@@ -324,9 +337,13 @@ tun6 *tun6_create (const char *req_name)
 			}
 		}
 	}
+	else
+		*t->orig_name = '\0';
 #else
 # error No tunneling driver implemented on your platform!
 #endif /* HAVE_os */
+
+	fcntl (fd, F_SETFD, FD_CLOEXEC);
 
 	t->id = id;
 	t->fd = fd;
@@ -357,12 +374,29 @@ void tun6_destroy (tun6* t)
 	assert (t->id != 0);
 
 	(void)tun6_setState (t, false);
+
 #ifdef USE_BSD
-	/* broken: see FreeBSD PR/73673 */
+# ifdef SIOCSIFNAME
+	/*
+	 * SIOCSIFDESTROY doesn't work for tunnels (see FreeBSD PR/73673).
+	 * We rename the tunnel to its canonical name to ease the life of other
+	 * programs that may re-open the tunnel after us.
+	 */
 	struct ifreq req;
 	memset (&req, 0, sizeof (req));
 	if (if_indextoname (t->id, req.ifr_name) != NULL)
-		(void)ioctl (t->reqfd, SIOCIFDESTROY, &req);
+	{
+		if (ioctl (t->reqfd, SIOCIFDESTROY, &req))
+		{
+			if ((*t->orig_name)
+			 && (if_indextoname (t->id, req.ifr_name) != NULL))
+			{
+				req.ifr_data = t->orig_name;
+				(void)ioctl (t->reqfd, SIOCSIFNAME, &req);
+			}
+		}
+	}
+# endif
 #endif
 
 	(void)close (t->fd);
