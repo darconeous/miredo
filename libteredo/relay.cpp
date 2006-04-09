@@ -964,7 +964,7 @@ libteredo_tunnel *libteredo_create (uint32_t ipv4, uint16_t port)
 	/* TODO: Create the socket(s) here, do not retain ipv4 and port */
 	tunnel->ipv4 = ipv4;
 	tunnel->port = port;
-	return NULL;
+	return tunnel;
 }
 
 
