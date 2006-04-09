@@ -51,43 +51,15 @@ class TeredoRelay
 #ifdef MIREDO_TEREDO_CLIENT
 		struct teredo_maintenance *maintenance;
 
-		/*** Callbacks ***/
-
-		/*
-		 * Tries to define the Teredo client IPv6 address. This is an
-		 * indication that the Teredo tunneling interface is ready.
-		 * The default implementation in base class TeredoRelay does
-		 * nothing.
-		 *
-		 * This function might be called from a separate thread.
-		 */
-		virtual void NotifyUp (const struct in6_addr *, uint16_t)
-		{
-		}
-
-		/*
-		 * Indicates that the Teredo tunneling interface is no longer
-		 * ready to process packets.
-		 * Any packet sent when the relay/client is down will be
-		 * ignored.
-		 *
-		 * This function might be called from a separate thread.
-		 */
-		virtual void NotifyDown (void)
-		{
-		}
+		virtual void NotifyUp (const struct in6_addr *, uint16_t) = 0;
+		virtual void NotifyDown (void) = 0;
 
 		static void StateChange (const teredo_state *, void *self);
 #endif
 		virtual void EmitICMPv6Error (const void *packet, size_t length,
-		                              const struct in6_addr *dst);
+		                              const struct in6_addr *dst) = 0;
 
 	public: /* FIXME: temporarily public callback because of teredo_list */
-		/*
-		 * Sends an IPv6 packet from Teredo toward the IPv6 Internet.
-		 *
-		 * Returns 0 on success, -1 on error.
-		 */
 		virtual int SendIPv6Packet (const void *packet, size_t length) = 0;
 
 	protected:
@@ -114,25 +86,9 @@ class TeredoRelay
 		             uint16_t port = 0, uint32_t ipv4 = 0);
 
 	public:
-		virtual ~TeredoRelay ();
-
-		/*
-		 * Transmits a packet from IPv6 Internet via Teredo,
-		 * i.e. performs "Packet transmission".
-		 * Not thread-safe yet.
-		 *
-		 * It is assumed that len > 40 and that packet is properly
-		 * aligned. Otherwise, behavior is undefined.
-		 */
+		virtual ~TeredoRelay (void);
 		int SendPacket (const struct ip6_hdr *packet, size_t len);
-
-		/*
-		 * Receives a packet from Teredo to IPv6 Internet, i.e.
-		 * performs "Packet reception". This function will NOT block until
-		 * a Teredo packet is received (but maybe it should).
-		 * Not thread-safe yet.
-		 */
-		int ReceivePacket ();
+		int ReceivePacket (void);
 
 #ifdef MIREDO_TEREDO_CLIENT
 		bool IsClient (void) const

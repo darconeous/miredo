@@ -212,23 +212,20 @@ TeredoRelay::SendUnreach (int code, const void *in, size_t len)
 	                       &((const struct ip6_hdr *)in)->ip6_src);
 }
 
+#if 0
 void
 TeredoRelay::EmitICMPv6Error (const void *packet, size_t length,
 							  const struct in6_addr *dst)
 {
 	/* TODO should be implemented with BuildIPv6Error() */
 	/* that is currently dead code */
-#if 0
+
 	/* F-I-X-M-E: using state implies locking */
 	size_t outlen = BuildIPv6Error (&buf.hdr, &state.addr.ip6,
 	                                ICMP6_DST_UNREACH, code, in, inlen);
 	(void)SendIPv6Packet (&buf, outlen);
-#else
-	(void) packet;
-	(void) length;
-	(void) dst;
-#endif
 }
+#endif
 
 
 #ifdef MIREDO_TEREDO_CLIENT
@@ -1002,7 +999,14 @@ int libteredo_register_readset (libteredo_tunnel *t, fd_set *rdset)
 }
 
 
+/**
+ * Receives a packet from Teredo to IPv6 Internet, i.e.
+ * performs “Packet reception”. This function will NOT block until
+ * a Teredo packet is received (but maybe it should).
+ * Not thread-safe yet.
+*/
 /* FIXME: kill (run in a separate thread) or document */
+/* FIXME: document assumption about t->object */
 extern "C"
 void libteredo_run (libteredo_tunnel *t)
 {
@@ -1166,14 +1170,23 @@ void libteredo_set_recv_callback (libteredo_tunnel *t, libteredo_recv_cb cb)
 }
 
 
-/* FIXME: document */
+/**
+ * Transmits a packet from IPv6 Internet via Teredo, i.e. performs
+ * Teredo “Packet transmission”. Not thread-safe yet.
+ *
+ * It is assumed that <len> > 40 and that <packet> is properly
+ * aligned. Otherwise, behavior is undefined.
+ *
+ * @return 0 on success, -1 on error.
+ */
 extern "C"
-int libteredo_send (libteredo_tunnel *t, const struct ip6_hdr *data, size_t n)
+int libteredo_send (libteredo_tunnel *t,
+                    const struct ip6_hdr *packet, size_t len)
 {
 	assert (t != NULL);
-	assert (t->object != NULL); /* FIXME document assumption */
+	assert (t->object != NULL); /* FIXME: document assumption */
 
-	return t->object->SendPacket (data, n);
+	return t->object->SendPacket (packet, len);
 }
 
 
@@ -1190,6 +1203,9 @@ void libteredo_set_icmpv6_callback (libteredo_tunnel *t,
  * procedure detects that the tunnel becomes usable (or has got a new IPv6
  * address, or a new MTU), or unusable respectively.
  * These callbacks are ignored for a Teredo relay tunnel.
+ *
+ * Any packet sent when the relay/client is down will be ignored.
+ * The callbacks function might be called from a separate thread.
  *
  * If a callback is set to NULL, it is ignored.
  */
