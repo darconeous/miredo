@@ -41,6 +41,8 @@ typedef struct libteredo_tunnel libteredo_tunnel;
 
 libteredo_tunnel *libteredo_create (uint32_t ipv4, uint16_t port);
 void libteredo_destroy (libteredo_tunnel *t);
+int libteredo_register_readset (libteredo_tunnel *t, fd_set *rdset);
+void libteredo_run (libteredo_tunnel *t);
 
 int libteredo_set_prefix (libteredo_tunnel *t, uint32_t pref);
 int libteredo_set_MTU (libteredo_tunnel *t, uint16_t mtu);

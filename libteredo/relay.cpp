@@ -988,6 +988,31 @@ void libteredo_destroy (libteredo_tunnel *t)
 }
 
 
+/* FIXME: document */
+extern "C"
+int libteredo_register_readset (libteredo_tunnel *t, fd_set *rdset)
+{
+	assert (t != NULL);
+	assert (t->object != NULL); // FIXME: undocumented assumption
+	// This FIXME will be auto-fixed once the sockets are created
+	// from libteredo_create()... and might get broken again if
+	// we had multicast local discovery.
+
+	return t->object->RegisterReadSet (rdset);
+}
+
+
+/* FIXME: kill (run in a separate thread) or document */
+extern "C"
+void libteredo_run (libteredo_tunnel *t)
+{
+	assert (t != NULL);
+	assert (t->object != NULL);
+
+	t->object->ReceivePacket ();
+}
+
+
 /**
  * Overrides the Teredo prefix of a Teredo relay. It is ignored if the tunnel
  * is configured as a Teredo client. libteredo_set_prefix() is undefined if
