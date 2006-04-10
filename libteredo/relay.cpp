@@ -75,7 +75,6 @@ struct libteredo_tunnel
 
 	int fd;
 	uint32_t prefix;
-	bool client;
 	bool cone; // FIXME: merge with TeredoRelay::state.cone
 	bool allow_cone;
 };
