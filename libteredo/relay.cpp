@@ -64,6 +64,7 @@ class TeredoRelay;
 struct libteredo_tunnel
 {
 	TeredoRelay *object;
+	struct teredo_peerlist *list;
 	void *opaque;
 
 	libteredo_recv_cb recv_cb;
@@ -73,9 +74,10 @@ struct libteredo_tunnel
 	libteredo_state_down_cb down_cb;
 #endif
 
+	teredo_state state;
+	pthread_rwlock_t state_lock;
+
 	int fd;
-	uint32_t prefix;
-	bool cone; // FIXME: merge with TeredoRelay::state.cone
 	bool allow_cone;
 };
 
@@ -86,12 +88,8 @@ class TeredoRelay
 {
 	private:
 		libteredo_tunnel *tunnel;
-		struct teredo_peerlist *list;
 
 		void SendUnreach (int code, const void *in, size_t inlen);
-
-		teredo_state state;
-		pthread_rwlock_t state_lock;
 
 #ifdef MIREDO_TEREDO_CLIENT
 		struct teredo_maintenance *maintenance;
@@ -112,20 +110,7 @@ class TeredoRelay
 		}
 
 	public:
-		/*
-		 * Creates a Teredo relay manually (ie. one that does not
-		 * qualify with a Teredo server and has no Teredo IPv6
-		 * address). The prefix must therefore be specified.
-		 */
-		TeredoRelay (libteredo_tunnel *t, uint32_t pref, bool cone);
-
-		/*
-		 * Creates a Teredo client/relay automatically. The client
-		 * will try to qualify and get a Teredo IPv6 address from the
-		 * server.
-		 *
-		 * TODO: support for secure qualification
-		 */
+		TeredoRelay (libteredo_tunnel *t);
 		TeredoRelay (libteredo_tunnel *t, const char *server,
 		             const char *server2);
 
@@ -145,58 +130,23 @@ class TeredoRelay
 		static unsigned RestartDelay;*/
 #endif
 		//static unsigned MaxQueueBytes;
-		static unsigned MaxPeers;
+		//static unsigned MaxPeers;
 		static unsigned IcmpRateLimitMs;
 };
 
-#define TEREDO_TIMEOUT 30 // seconds
-
 #ifdef HAVE_LIBJUDY
-unsigned TeredoRelay::MaxPeers = 1048576;
+# define MAX_PEERS 1048576
 #else
-unsigned TeredoRelay::MaxPeers = 1024;
+# define MAX_PEERS 1024
 #endif
 
 
-TeredoRelay::TeredoRelay (libteredo_tunnel *t, uint32_t pref, bool cone)
+TeredoRelay::TeredoRelay (libteredo_tunnel *t)
 	:  tunnel (t)
 {
-	state.addr.teredo.prefix = pref;
-	state.addr.teredo.server_ip = 0;
-	if (cone)
-	{
-		state.cone = true;
-		state.addr.teredo.flags = htons (TEREDO_FLAG_CONE);
-	}
-	else
-	{
-		state.cone = false;
-		state.addr.teredo.flags = 0;
-	}
-
-	/* that doesn't really need to match our mapping -
-	 * the address is only used to send Unreachable message... with the
-	 * old method that is no longer supported (the one that involves
-	 * building the IPv6 header as well as the ICMPv6 header) */
-	/*FIXME state.addr.teredo.client_port = ~port;
-	state.addr.teredo.client_ip = ~ipv4;*/
-
 #ifdef MIREDO_TEREDO_CLIENT
 	maintenance = NULL;
 #endif
-
-	state.up = true;
-
-	list = teredo_list_create (MaxPeers, 300);
-	if (list != NULL)
-	{
-		if (pthread_rwlock_init (&state_lock, NULL) == 0)
-			return; /* success */
-		teredo_list_destroy (list);
-	}
-
-	/* failure */
-	throw new (void *)(NULL);
 }
 
 
@@ -205,21 +155,10 @@ TeredoRelay::TeredoRelay (libteredo_tunnel *t, const char *server,
                           const char *server2)
 	: tunnel (t), maintenance (NULL)
 {
-	memset (&state, 0, sizeof (state));
-
-	list = teredo_list_create (MaxPeers, 30);
-	if (list != NULL)
-	{
-		maintenance = libteredo_maintenance_start (t->fd, StateChange, this,
-		                                           server, server2);
-		if (maintenance != NULL)
-		{
-			if (pthread_rwlock_init (&state_lock, NULL) == 0)
-				return; /* success */
-			libteredo_maintenance_stop (maintenance);
-		}
-		teredo_list_destroy (list);
-	}
+	maintenance = libteredo_maintenance_start (t->fd, StateChange, this,
+	                                           server, server2);
+	if (maintenance != NULL)
+		return; /* success */
 
 	/* failure */
 	throw new (void *)(NULL);
@@ -233,9 +172,6 @@ TeredoRelay::~TeredoRelay (void)
 	if (maintenance != NULL)
 		libteredo_maintenance_stop (maintenance);
 #endif
-
-	teredo_list_destroy (list);
-	pthread_rwlock_destroy (&state_lock);
 }
 
 
@@ -310,11 +246,11 @@ void TeredoRelay::StateChange (const teredo_state *state, void *self)
 	TeredoRelay *r = (TeredoRelay *)self;
 	bool previously_up;
 
-	pthread_rwlock_wrlock (&r->state_lock);
-	previously_up = r->state.up;
-	memcpy (&r->state, state, sizeof (r->state));
+	pthread_rwlock_wrlock (&r->tunnel->state_lock);
+	previously_up = r->tunnel->state.up;
+	memcpy (&r->tunnel->state, state, sizeof (r->tunnel->state));
 
-	if (r->state.up)
+	if (r->tunnel->state.up)
 	{
 		/*
 		 * NOTE: we get an hold on both state and peer list locks here.
@@ -322,8 +258,8 @@ void TeredoRelay::StateChange (const teredo_state *state, void *self)
 		 * the peer list is locked is STRICTLY FORBIDDEN to avoid an obvious
 		 * inter-locking deadlock.
 		 */
-		teredo_list_reset (r->list, MaxPeers);
-		r->NotifyUp (&r->state.addr.ip6, r->state.mtu);
+		teredo_list_reset (r->tunnel->list, MAX_PEERS);
+		r->NotifyUp (&r->tunnel->state.addr.ip6, r->tunnel->state.mtu);
 	}
 	else
 	if (previously_up)
@@ -334,7 +270,7 @@ void TeredoRelay::StateChange (const teredo_state *state, void *self)
 	 * properly ordered. Unfortunately, we cannot be re-entrant from within
 	 * NotifyUp/Down.
 	 */
-	pthread_rwlock_unlock (&r->state_lock);
+	pthread_rwlock_unlock (&r->tunnel->state_lock);
 }
 
 /**
@@ -467,13 +403,13 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 	 || (src->ip6.s6_addr[0] == 0xff))
 		return 0;
 
-	pthread_rwlock_rdlock (&state_lock);
-	memcpy (&s, &state, sizeof (s));
+	pthread_rwlock_rdlock (&tunnel->state_lock);
+	memcpy (&s, &tunnel->state, sizeof (s));
 	/*
 	 * We can afford to use a slightly outdated state, but we cannot afford to
 	 * use an inconsistent state, hence this lock.
 	*/
-	pthread_rwlock_unlock (&state_lock);
+	pthread_rwlock_unlock (&tunnel->state_lock);
 
 #ifdef MIREDO_TEREDO_CLIENT
 	if (IsClient ())
@@ -544,6 +480,7 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 
 	bool created;
 	time_t now = time (NULL);
+	struct teredo_peerlist *list = tunnel->list;
 
 //	syslog (LOG_DEBUG, "packet to be sent");
 	teredo_peer *p = teredo_list_lookup (list, now, &dst->ip6, &created);
@@ -683,15 +620,15 @@ int TeredoRelay::ReceivePacket (void)
 	 || ((ntohs (ip6.ip6_plen) + sizeof (ip6)) != length))
 		return 0; // malformatted IPv6 packet
 
-	pthread_rwlock_rdlock (&state_lock);
-	memcpy (&s, &state, sizeof (s));
+	pthread_rwlock_rdlock (&tunnel->state_lock);
+	memcpy (&s, &tunnel->state, sizeof (s));
 	/*
 	 * We can afford to use a slightly outdated state, but we cannot afford to
 	 * use an inconsistent state, hence this lock. Also, we cannot call
 	 * libteredo_maintenance_process() while holding the lock, as that would
 	 * cause a deadlock at StateChange().
 	 */
-	pthread_rwlock_unlock (&state_lock);
+	pthread_rwlock_unlock (&tunnel->state_lock);
 
 #ifdef MIREDO_TEREDO_CLIENT
 	/* Maintenance */
@@ -813,6 +750,7 @@ int TeredoRelay::ReceivePacket (void)
 	time_t now = time (NULL);
 
 	// Checks source IPv6 address / looks up peer in the list:
+	struct teredo_peerlist *list = tunnel->list;
 	teredo_peer *p = teredo_list_lookup (list, now, &ip6.ip6_src, NULL);
 
 	if (p != NULL)
@@ -993,8 +931,29 @@ libteredo_tunnel *libteredo_create (uint32_t ipv4, uint16_t port)
 		return NULL;
 
 	memset (tunnel, 0, sizeof (tunnel));
+	tunnel->state.addr.teredo.prefix = htonl (TEREDO_PREFIX);
+
+	/*
+	 * That doesn't really need to match our mapping: the address is only
+	 * used to send Unreachable message... with the old method that is no
+	 * longer supported (the one that involves building the IPv6 header as
+	 * well as the ICMPv6 header).
+	 */
+	tunnel->state.addr.teredo.client_port = ~port;
+	tunnel->state.addr.teredo.client_ip = ~ipv4;
+
 	if ((tunnel->fd = teredo_socket (ipv4, port)) != -1)
-		return tunnel;
+	{
+		if ((tunnel->list = teredo_list_create (MAX_PEERS, 30)) != NULL)
+		{
+			/* FIXME: use debug attributes when appropriate */
+			if (pthread_rwlock_init (&tunnel->state_lock, NULL) == 0)
+				return tunnel;
+
+			teredo_list_destroy (tunnel->list);
+		}
+		teredo_close (tunnel->fd);
+	}
 
 	free (tunnel);
 	return NULL;
@@ -1014,10 +973,13 @@ void libteredo_destroy (libteredo_tunnel *t)
 {
 	assert (t != NULL);
 	assert (t->fd != -1);
+	assert (t->list != NULL);
 
 	if (t->object != NULL)
 		delete t->object;
 
+	teredo_list_destroy (t->list);
+	pthread_rwlock_destroy (&t->state_lock);
 	teredo_close (t->fd);
 	free (t);
 }
@@ -1072,10 +1034,10 @@ int libteredo_set_prefix (libteredo_tunnel *t, uint32_t prefix)
 {
 	assert (t != NULL);
 
-	if (prefix & ntohl (0x20000000) != ntohl (0x20000000))
+	if (!is_valid_teredo_prefix (prefix))
 		return -1;
 
-	t->prefix = prefix;
+	t->state.addr.teredo.prefix = prefix;
 	return 0;
 }
 
@@ -1086,7 +1048,7 @@ int libteredo_set_prefix (libteredo_tunnel *t, uint32_t prefix)
  * and starts processing of encapsulated IPv6 packets.
  * This is ignored if Teredo client mode was previously enabled.
  *
- * @param flag true if the cone flag should be enabled. This only works if the
+ * @param cone true if the cone flag should be enabled. This only works if the
  * relay runs from behind a cone NAT and has no stateful firewall for incoming
  * UDP packets. If there is a stateful firewall or a restricted-port NAT,
  * flag must be false.
@@ -1095,15 +1057,21 @@ int libteredo_set_prefix (libteredo_tunnel *t, uint32_t prefix)
  * In case of error, the libteredo_tunnel instance is not modifed.
  */
 extern "C"
-int libteredo_set_cone_flag (libteredo_tunnel *t, bool flag)
+int libteredo_set_cone_flag (libteredo_tunnel *t, bool cone)
 {
 	assert (t != NULL);
 
-	t->cone = flag;
+	if (cone)
+	{
+		t->state.addr.teredo.flags = htons (TEREDO_FLAG_CONE);
+		t->state.cone = true;
+	}
+	t->state.up = true;
+
 	TeredoRelay *r;
 	try
 	{
-		r = new TeredoRelay (t, t->prefix, t->cone);
+		r = new TeredoRelay (t);
 	}
 	catch (...)
 	{
