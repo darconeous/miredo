@@ -58,7 +58,7 @@ int main (void)
 	}
 
 	/* TODO: further testing */
-	t = tun6_create ("teredo");
+	t = tun6_create ("diagnose");
 	if (t == NULL)
 		return 1;
 	tun6_destroy (t);
