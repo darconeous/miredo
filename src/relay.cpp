@@ -147,12 +147,11 @@ static void miredo_deinit (bool client)
  * Callback to transmit decapsulated Teredo IPv6 packets to the kernel.
  */
 static void
-miredo_recv_callback (libteredo_tunnel *t, const void *packet, size_t length)
+miredo_recv_callback (void *data, const void *packet, size_t length)
 {
-	miredo_tunnel *data = (miredo_tunnel *)libteredo_get_privdata (t);
 	assert (data != NULL);
 
-	(void)tun6_send (data->tunnel, packet, length);
+	(void)tun6_send (((miredo_tunnel *)data)->tunnel, packet, length);
 }
 
 
@@ -160,11 +159,10 @@ miredo_recv_callback (libteredo_tunnel *t, const void *packet, size_t length)
  * Callback to emit an ICMPv6 error message through a raw ICMPv6 socket.
  */
 static void
-miredo_icmpv6_callback (libteredo_tunnel *t, const void *packet, size_t length,
+miredo_icmpv6_callback (void *, const void *packet, size_t length,
                         const struct in6_addr *dst)
 {
 	assert (icmp6_fd != -1);
-	(void)t;
 
 	struct sockaddr_in6 addr;
 	memset (&addr, 0, sizeof (addr));
@@ -291,8 +289,7 @@ create_dynamic_tunnel (const char *ifname, int *fd)
  * Callback to configure a Teredo tunneling interface.
  */
 static void
-miredo_state_up_callback (const libteredo_tunnel *t,
-                          const struct in6_addr *addr, uint16_t mtu)
+miredo_up_callback (void *data, const struct in6_addr *addr, uint16_t mtu)
 {
 	char str[INET6_ADDRSTRLEN];
 
@@ -301,10 +298,9 @@ miredo_state_up_callback (const libteredo_tunnel *t,
 		syslog (LOG_INFO, _(" (address: %s, MTU: %u)"),
 				str, (unsigned)mtu);
 
-	miredo_tunnel *data = (miredo_tunnel *)libteredo_get_privdata (t);
 	assert (data != NULL);
 
-	miredo_configure_tunnel (data->priv_fd, addr, mtu);
+	miredo_configure_tunnel (((miredo_tunnel *)data)->priv_fd, addr, mtu);
 }
 
 
@@ -312,12 +308,12 @@ miredo_state_up_callback (const libteredo_tunnel *t,
  * Callback to deconfigure a Teredo tunneling interface.
  */
 static void
-miredo_state_down_callback (const libteredo_tunnel *t)
+miredo_down_callback (void *data)
 {
-	miredo_tunnel *data = (miredo_tunnel *)libteredo_get_privdata (t);
 	assert (data != NULL);
 
-	miredo_configure_tunnel (data->priv_fd, &in6addr_any, 1280);
+	miredo_configure_tunnel (((miredo_tunnel *)data)->priv_fd, &in6addr_any,
+	                         1280);
 	syslog (LOG_NOTICE, _("Teredo pseudo-tunnel stopped"));
 }
 
@@ -326,8 +322,7 @@ static int
 miredo_client (tun6 *tunnel, const char *server, const char *server2,
                libteredo_tunnel *client)
 {
-	libteredo_set_state_cb (client, miredo_state_up_callback,
-	                        miredo_state_down_callback);
+	libteredo_set_state_cb (client, miredo_up_callback, miredo_down_callback);
 	if (libteredo_set_client_mode (client, server, server2))
 	{
 		syslog (LOG_ALERT, _("Miredo setup failure: %s"),

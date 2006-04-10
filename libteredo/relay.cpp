@@ -1290,14 +1290,14 @@ void TeredoRelay::NotifyUp (const struct in6_addr *addr, uint16_t mtu)
 {
 	libteredo_state_up_cb cb = master->up_cb;
 	if (cb != NULL)
-		cb (master, addr, mtu);
+		cb (master->opaque, addr, mtu);
 }
 
 void TeredoRelay::NotifyDown (void)
 {
 	libteredo_state_down_cb cb = master->down_cb;
 	if (cb != NULL)
-		cb (master);
+		cb (master->opaque);
 }
 #endif
 
@@ -1306,13 +1306,13 @@ void TeredoRelay::EmitICMPv6Error (const void *packet, size_t length,
 {
 	libteredo_icmpv6_cb cb = master->icmpv6_cb;
 	if (cb != NULL)
-		cb (master, packet, length, dst);
+		cb (master->opaque, packet, length, dst);
 }
 
 int TeredoRelay::SendIPv6Packet (const void *packet, size_t length)
 {
 	libteredo_recv_cb cb = master->recv_cb;
 	if (cb != NULL)
-		cb (master, packet, length);
+		cb (master->opaque, packet, length);
 	return 0;
 }
