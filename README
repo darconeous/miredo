@@ -99,7 +99,7 @@ supported because their userland tunneling driver did not support IPv6.
 Darwin:
 --------
   Miredo could not be tested on Mac OS X or any other Darwin variant.
-It should work with a third pary-provided tunneling driver (that is not
+It might work with a third party-provided tunneling driver (that is not
 provided with Apple Mac OS X).
 
 
@@ -109,7 +109,7 @@ Quick usage
 Easy installation:
 -------------------
   First, compile and install Miredo. Refer to INSTALL for detailled
-instructions. Usually, it can be done the common way:
+instructions. Miredo can be installed the usual way:
 
 # ./configure
 # make
@@ -122,7 +122,7 @@ standard C/C++ headers), so there should be no problem so far.
   A sample configuration file is automatically installed at
 /usr/local/etc/miredo.conf - unless the file already existed (which
 means you are probably reinstalling or upgrading Miredo). This sample
-will cause Miredo to run as a Teredo client, with “teredo.via.ecp.fr”
+will cause Miredo to run as a Teredo client, with “teredo.remlab.net”
 (Miredo official testing Teredo server) as its Teredo server. You can
 find more extensive explanations in the configuration file.
 
