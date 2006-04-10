@@ -59,11 +59,8 @@
 # include "security.h"
 #endif
 
-class TeredoRelay;
-
 struct libteredo_tunnel
 {
-	TeredoRelay *object;
 	struct teredo_peerlist *list;
 	void *opaque;
 #ifdef MIREDO_TEREDO_CLIENT
@@ -82,64 +79,37 @@ struct libteredo_tunnel
 	bool allow_cone;
 };
 
-
 // big TODO: make all functions re-entrant safe
 //           make all functions thread-safe
-class TeredoRelay
-{
-	private:
-		libteredo_tunnel *tunnel;
-
-		void SendUnreach (int code, const void *in, size_t inlen);
-
-#ifdef MIREDO_TEREDO_CLIENT
-#endif
-		void EmitICMPv6Error (const void *packet, size_t length,
-		                      const struct in6_addr *dst);
-
-	public:
-		TeredoRelay (libteredo_tunnel *t) : tunnel (t)
-		{
-		}
-
-		int SendPacket (const struct ip6_hdr *packet, size_t len);
-		int ReceivePacket (void);
-
-#ifdef MIREDO_TEREDO_CLIENT
-		void NotifyUp (const struct in6_addr *, uint16_t);
-		void NotifyDown (void);
-
-		bool IsClient (void) const
-		{
-			return tunnel->maintenance != NULL;
-		}
-
-		/*static unsigned QualificationRetries;
-		static unsigned QualificationTimeOut;
-		static unsigned ServerNonceLifetime;
-		static unsigned RestartDelay;*/
-#endif
-		//static unsigned MaxQueueBytes;
-		//static unsigned MaxPeers;
-		static unsigned IcmpRateLimitMs;
-};
 
 #ifdef HAVE_LIBJUDY
 # define MAX_PEERS 1048576
 #else
 # define MAX_PEERS 1024
 #endif
+#define ICMP_RATE_LIMIT_MS 100
 
+#if 0
+static unsigned QualificationRetries; // maintain.c
+static unsigned QualificationTimeOut; // maintain.c
+static unsigned ServerNonceLifetime;  // maintain.c
+static unsigned RestartDelay;         // maintain.c
 
-/*
- * Sends an ICMPv6 Destination Unreachable error to the IPv6 Internet.
- * Unfortunately, this will use a local-scope address as source, which is not
- * quite good.
+static unsigned MaxQueueBytes;        // peerlist.c
+static unsigned MaxPeers;             // here
+static unsigned IcmpRateLimitMs;      // here
+#endif
+
+/**
+ * Rate limiter around ICMPv6 unreachable error packet emission callback.
+ *
+ * @param code ICMPv6 unreachable error code.
+ * @param in IPv6 packet that caused the error.
+ * @param len byte length of the IPv6 packet at <in>.
  */
-unsigned TeredoRelay::IcmpRateLimitMs = 100;
-
-void
-TeredoRelay::SendUnreach (int code, const void *in, size_t len)
+static void
+libteredo_send_unreach (libteredo_tunnel *tunnel, int code,
+                        const void *in, size_t len)
 {
 	/* FIXME: should probably not be static */
 	static struct
@@ -162,7 +132,7 @@ TeredoRelay::SendUnreach (int code, const void *in, size_t len)
 	{
 		memcpy (&ratelimit.last, &now, sizeof (now));
 		ratelimit.count =
-			IcmpRateLimitMs ? (int)(1000 / IcmpRateLimitMs) : -1;
+			ICMP_RATE_LIMIT_MS ? (int)(1000 / ICMP_RATE_LIMIT_MS) : -1;
 	}
 
 	if (ratelimit.count == 0)
@@ -176,11 +146,16 @@ TeredoRelay::SendUnreach (int code, const void *in, size_t len)
 	pthread_mutex_unlock (&ratelimit.lock);
 
 	len = BuildICMPv6Error (&buf.hdr, ICMP6_DST_UNREACH, code, in, len);
-	(void)EmitICMPv6Error (&buf.hdr, len,
-	                       &((const struct ip6_hdr *)in)->ip6_src);
+	tunnel->icmpv6_cb (tunnel->opaque, &buf.hdr, len,
+	                   &((const struct ip6_hdr *)in)->ip6_src);
 }
 
 #if 0
+/*
+ * Sends an ICMPv6 Destination Unreachable error to the IPv6 Internet.
+ * Unfortunately, this will use a local-scope address as source, which is not
+ * quite good.
+ */
 void
 TeredoRelay::EmitICMPv6Error (const void *packet, size_t length,
 							  const struct in6_addr *dst)
@@ -216,16 +191,17 @@ libteredo_state_change (const teredo_state *state, void *self)
 		 * inter-locking deadlock.
 		 */
 		teredo_list_reset (tunnel->list, MAX_PEERS);
-		tunnel->object->NotifyUp (&tunnel->state.addr.ip6, tunnel->state.mtu);
+		tunnel->up_cb (tunnel->opaque,
+		               &tunnel->state.addr.ip6, tunnel->state.mtu);
 	}
 	else
 	if (previously_up)
-		tunnel->object->NotifyDown ();
+		tunnel->down_cb (tunnel->opaque);
 
 	/*
 	 * NOTE: the lock is retained until here to ensure notifications remain
 	 * properly ordered. Unfortunately, we cannot be re-entrant from within
-	 * NotifyUp/Down.
+	* up_cb/down_cb.
 	 */
 	pthread_rwlock_unlock (&tunnel->state_lock);
 }
@@ -268,6 +244,12 @@ static int PingPeer (int fd, teredo_peer *p, time_t now,
 	if (res == 0)
 		return SendPing (fd, src, dst);
 	return res;
+}
+
+
+static inline bool IsClient (const libteredo_tunnel *tunnel)
+{
+	return tunnel->maintenance != NULL;
 }
 #endif
 
@@ -326,30 +308,34 @@ static int CountBubble (teredo_peer *peer, time_t now)
 
 
 static inline void SetMappingFromPacket (teredo_peer *peer,
-										 const struct teredo_packet *p)
+                                         const struct teredo_packet *p)
 {
 	SetMapping (peer, p->source_ipv4, p->source_port);
 }
 
 
-/*
- * Handles a packet coming from the IPv6 Internet, toward a Teredo node
+/**
+ * Transmits a packet coming from the IPv6 Internet, toward a Teredo node
  * (as specified per paragraph 5.4.1). That's what the specification calls
- * "Packet transmission".
+ * “Packet transmission”.
  *
- * It is assumed that the packet is valid (if not, it will be dropped by
- * the receiving Teredo peer). It is furthermore assumed that the packet
- * is at least 40 bytes long (room for the IPv6 header and that it is
- * properly aligned.
+ * It is assumed that the IPv6 packet is valid (if not, it will be dropped by
+ * the receiving Teredo peer). It is furthermore assumed that the packet is at
+ * least 40 bytes long (room for the IPv6 header and that it is properly
+ * aligned.
  *
  * The packet size should not exceed the MTU (1280 bytes by default).
  * In any case, sending will fail if the packets size exceeds 65507 bytes
  * (maximum size for a UDP packet's payload).
  *
- * Returns 0 on success, -1 on error.
+ * @return 0 on success, -1 on error.
  */
-int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
+extern "C"
+int libteredo_send (libteredo_tunnel *tunnel,
+                    const struct ip6_hdr *packet, size_t length)
 {
+	assert (tunnel != NULL);
+
 	const union teredo_addr *dst = (union teredo_addr *)&packet->ip6_dst,
 				*src = (union teredo_addr *)&packet->ip6_src;
 	teredo_state s;
@@ -369,11 +355,12 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 	pthread_rwlock_unlock (&tunnel->state_lock);
 
 #ifdef MIREDO_TEREDO_CLIENT
-	if (IsClient ())
+	if (IsClient (tunnel))
 	{
 		if (!s.up) /* not qualified */
 		{
-			SendUnreach (ICMP6_DST_UNREACH_ADDR, packet, length);
+			libteredo_send_unreach (tunnel, ICMP6_DST_UNREACH_ADDR,
+			                        packet, length);
 			return 0;
 		}
 	
@@ -388,7 +375,8 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 			 * We also drop link-local unicast and multicast packets as
 			 * they can't be routed through Teredo properly.
 			 */
-			SendUnreach (ICMP6_DST_UNREACH_ADMIN, packet, length);
+			libteredo_send_unreach (tunnel, ICMP6_DST_UNREACH_ADMIN,
+			                        packet, length);
 			return 0;
 		}
 	}
@@ -410,7 +398,8 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 			 * notify the user. An alternative is to send an ICMPv6 error
 			 * back to the kernel.
 			 */
-			SendUnreach (ICMP6_DST_UNREACH_ADDR, packet, length);
+			libteredo_send_unreach (tunnel, ICMP6_DST_UNREACH_ADDR,
+			                        packet, length);
 			return 0;
 		}
 	}
@@ -478,7 +467,7 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 	{
 		int res;
 
-		assert (IsClient ());
+		assert (IsClient (tunnel));
 
 		/* Client case 2: direct IPv6 connectivity test */
 		// TODO: avoid code duplication
@@ -493,7 +482,8 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 
  		teredo_list_release (list);
 		if (res == -1)
-			SendUnreach (ICMP6_DST_UNREACH_ADDR, packet, length);
+			libteredo_send_unreach (tunnel, ICMP6_DST_UNREACH_ADDR,
+			                        packet, length);
 
 // 		syslog (LOG_DEBUG, " ping peer returned %d", res);
 		return 0;
@@ -542,7 +532,8 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 			return SendBubbleFromDst (tunnel->fd, &dst->ip6, s.cone, true);
 
 		case -1: // Too many bubbles already sent
-			SendUnreach (ICMP6_DST_UNREACH_ADDR, packet, length);
+			libteredo_send_unreach (tunnel, ICMP6_DST_UNREACH_ADDR,
+			                        packet, length);
 
 		//case 1: -- between two bubbles -- nothing to do
 	}
@@ -551,18 +542,26 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 }
 
 
-/*
- * Handles a packet coming from the Teredo tunnel
- * (as specified per paragraph 5.4.2). That's called "Packet reception".
- * Returns 0 on success, -1 on error.
+/**
+ * Receives a packet coming from the Teredo tunnel (as specified per
+ * paragraph 5.4.2). That's called “Packet reception”.
+ *
+ * This function will NOT block until a Teredo packet is received
+ * (but maybe it should).
+ *
+ * TODO:
+ * - review for thread-safety,
+ * - run (possibly optionaly) in a separate thread.
  */
-int TeredoRelay::ReceivePacket (void)
+extern "C"
+void libteredo_run (libteredo_tunnel *tunnel)
 {
+	assert (tunnel != NULL);
+
 	struct teredo_packet packet;
-	teredo_state s;
 
 	if (teredo_recv (tunnel->fd, &packet))
-		return -1;
+		return;
 
 	const uint8_t *buf = packet.ip6;
 	size_t length = packet.ip6_len;
@@ -570,13 +569,14 @@ int TeredoRelay::ReceivePacket (void)
 
 	// Checks packet
 	if ((length < sizeof (ip6)) || (length > 65507))
-		return 0; // invalid packet
+		return; // invalid packet
 
 	memcpy (&ip6, buf, sizeof (ip6));
 	if (((ip6.ip6_vfc >> 4) != 6)
 	 || ((ntohs (ip6.ip6_plen) + sizeof (ip6)) != length))
-		return 0; // malformatted IPv6 packet
+		return; // malformatted IPv6 packet
 
+	teredo_state s;
 	pthread_rwlock_rdlock (&tunnel->state_lock);
 	memcpy (&s, &tunnel->state, sizeof (s));
 	/*
@@ -589,18 +589,18 @@ int TeredoRelay::ReceivePacket (void)
 
 #ifdef MIREDO_TEREDO_CLIENT
 	/* Maintenance */
-	if (IsClient () && (packet.source_port == htons (IPPORT_TEREDO)))
+	if (IsClient (tunnel) && (packet.source_port == htons (IPPORT_TEREDO)))
 	{
 		if (packet.auth_nonce != NULL)
 		{
 			libteredo_maintenance_process (tunnel->maintenance, &packet);
-			return 0;
+			return;
 		}
 		else
 		if (!s.up)
 		{
 			/* Not qualified -> do not accept incoming packets */
-			return 0;
+			return;
 		}
 		else
 		if (packet.source_ipv4 != s.addr.teredo.server_ip)
@@ -617,7 +617,7 @@ int TeredoRelay::ReceivePacket (void)
 			SendBubble (tunnel->fd, packet.orig_ipv4, packet.orig_port,
 			            &ip6.ip6_dst, &ip6.ip6_src);
 			if (IsBubble (&ip6))
-				return 0; // don't pass bubble to kernel
+				return; // don't pass bubble to kernel
 		}
 		else
 		if (IsBubble (&ip6))
@@ -637,7 +637,7 @@ int TeredoRelay::ReceivePacket (void)
 				syslog (LOG_WARNING, _("Ignoring invalid bubble: "
 				        "your Teredo server is probably buggy."));
 			}
-			return 0; // don't pass bubble to kernel
+			return; // don't pass bubble to kernel
 		}
 		/*
 		 * Normal reception of packet must only occur if it does not
@@ -649,7 +649,7 @@ int TeredoRelay::ReceivePacket (void)
 	}
 	else if (!s.up)
 		/* Not qualified -> do not accept incoming packets */
-		return 0;
+		return;
 #endif /* MIREDO_TEREDO_CLIENT */
 
 	/*
@@ -700,7 +700,7 @@ int TeredoRelay::ReceivePacket (void)
 	 * This check is not part of the Teredo specification.
 	 */
 	if ((((uint16_t *)ip6.ip6_src.s6_addr)[0] & 0xfec0) == 0xfe80)
-		return 0;
+		return;
 
 	/* Actual packet reception, either as a relay or a client */
 
@@ -726,12 +726,12 @@ int TeredoRelay::ReceivePacket (void)
 			p->bubbles = p->pings = 0;
 			teredo_list_release (list);
 			tunnel->recv_cb (tunnel->opaque, buf, length);
-			return 0;
+			return;
 		}
 
 #ifdef MIREDO_TEREDO_CLIENT
 		// Client case 2 (untrusted non-Teredo node):
-		if (IsClient () && (!p->trusted) && (CheckPing (&packet) == 0))
+		if (IsClient (tunnel) && (!p->trusted) && (CheckPing (&packet) == 0))
 		{
 			p->trusted = 1;
 			p->bubbles = p->pings = 0;
@@ -740,7 +740,7 @@ int TeredoRelay::ReceivePacket (void)
 			TouchReceive (p, now);
 			Dequeue (p, tunnel->fd, tunnel->recv_cb, tunnel->opaque);
 			teredo_list_release (list);
-			return 0; /* don't pass ping to kernel */
+			return; /* don't pass ping to kernel */
 		}
 #endif /* ifdef MIREDO_TEREDO_CLIENT */
 	}
@@ -760,14 +760,14 @@ int TeredoRelay::ReceivePacket (void)
 			if (p == NULL)
 			{
 #ifdef MIREDO_TEREDO_CLIENT
-				if (IsClient ())
+				if (IsClient (tunnel))
 				{
 					bool create;
 
 					// TODO: do not duplicate this code
 					p = teredo_list_lookup (list, now, &ip6.ip6_src, &create);
 					if (p == NULL)
-						return -1; // insufficient memory
+						return; // insufficient memory
 
 					/* FIXME: seemingly useless*/
 					if (create)
@@ -785,7 +785,7 @@ int TeredoRelay::ReceivePacket (void)
 				 * us a choice here. It is arguable whether accepting these
 				 * packets would make it easier to DoS the peer list.
 				 */
-					return 0; // list not locked
+					return; // list not locked
 			}
 			else
 				Dequeue (p, tunnel->fd, tunnel->recv_cb, tunnel->opaque);
@@ -797,19 +797,19 @@ int TeredoRelay::ReceivePacket (void)
 
 			if (!IsBubble (&ip6)) // discard Teredo bubble
 				tunnel->recv_cb (tunnel->opaque, buf, length);
-			return 0;
+			return;
 		}
 
 		// TODO: remove this line if we implement local teredo
 		if (p != NULL)
 			teredo_list_release (list);
-		return 0;
+		return;
 	}
 
 	assert (IN6_TEREDO_PREFIX (&ip6.ip6_src) != s.addr.teredo.prefix);
 
 #ifdef MIREDO_TEREDO_CLIENT
-	if (IsClient ())
+	if (IsClient (tunnel))
 	{
 		// TODO: implement client cases 4 & 5 for local Teredo
 	
@@ -830,7 +830,7 @@ int TeredoRelay::ReceivePacket (void)
 			// TODO: do not duplicate this code
 			p = teredo_list_lookup (list, now, &ip6.ip6_src, &create);
 			if (p == NULL)
-				return -1; // memory error
+				return; // memory error
 
 			if (create)
 			{
@@ -847,10 +847,10 @@ int TeredoRelay::ReceivePacket (void)
 		QueueIncoming (p, buf, length);
 		TouchReceive (p, now);
 	
-		int res = PingPeer (tunnel->fd, p, now, &s.addr, &ip6.ip6_src) ? -1:0;
+		PingPeer (tunnel->fd, p, now, &s.addr, &ip6.ip6_src);
 		teredo_list_release (list);
 // 		syslog (LOG_DEBUG, " PingPeer returned %d", res);
-		return res;
+		return;
 	}
 #endif /* ifdef MIREDO_TEREDO_CLIENT */
 
@@ -858,8 +858,6 @@ int TeredoRelay::ReceivePacket (void)
 	// nor from mismatching packets
 	if (p != NULL)
 		teredo_list_release (list);
-
-	return 0;
 }
 
 
@@ -964,9 +962,6 @@ void libteredo_destroy (libteredo_tunnel *t)
 	assert (t->fd != -1);
 	assert (t->list != NULL);
 
-	if (t->object != NULL)
-		delete t->object;
-
 #ifdef MIREDO_TEREDO_CLIENT
 	if (t->maintenance != NULL)
 		libteredo_maintenance_stop (t->maintenance);
@@ -992,24 +987,6 @@ int libteredo_register_readset (libteredo_tunnel *t, fd_set *rdset)
 	FD_SET (t->fd, rdset);
 	return t->fd;
 
-}
-
-
-/**
- * Receives a packet from Teredo to IPv6 Internet, i.e.
- * performs “Packet reception”. This function will NOT block until
- * a Teredo packet is received (but maybe it should).
- * Not thread-safe yet.
-*/
-/* FIXME: kill (run in a separate thread) or document */
-/* FIXME: document assumption about t->object */
-extern "C"
-void libteredo_run (libteredo_tunnel *t)
-{
-	assert (t != NULL);
-	assert (t->object != NULL);
-
-	t->object->ReceivePacket ();
 }
 
 
@@ -1068,23 +1045,7 @@ int libteredo_set_cone_flag (libteredo_tunnel *t, bool cone)
 	}
 	t->state.up = true;
 
-	TeredoRelay *r;
-	try
-	{
-		r = new TeredoRelay (t);
-	}
-	catch (...)
-	{
-		r = NULL;
-	}
-
-	if (r != NULL)
-	{
-		t->object = r;
-		return 0;
-	}
-
-	return -1;
+	return 0;
 }
 
 
@@ -1111,21 +1072,9 @@ int libteredo_set_client_mode (libteredo_tunnel *t, const char *s,
 	struct teredo_maintenance *m;
 	m = libteredo_maintenance_start (t->fd, libteredo_state_change, t, s, s2);
 
-	TeredoRelay *r;
-	try
-	{
-		r = new TeredoRelay (t);
-	}
-	catch (...)
-	{
-		r = NULL;
-		libteredo_maintenance_stop (m);
-	}
-
-	if (r != NULL)
+	if (m != NULL)
 	{
 		t->maintenance = m;
-		t->object = r;
 		return 0;
 	}
 #else
@@ -1179,26 +1128,6 @@ void libteredo_set_recv_callback (libteredo_tunnel *t, libteredo_recv_cb cb)
 }
 
 
-/**
- * Transmits a packet from IPv6 Internet via Teredo, i.e. performs
- * Teredo “Packet transmission”. Not thread-safe yet.
- *
- * It is assumed that <len> > 40 and that <packet> is properly
- * aligned. Otherwise, behavior is undefined.
- *
- * @return 0 on success, -1 on error.
- */
-extern "C"
-int libteredo_send (libteredo_tunnel *t,
-                    const struct ip6_hdr *packet, size_t len)
-{
-	assert (t != NULL);
-	assert (t->object != NULL); /* FIXME: document assumption */
-
-	return t->object->SendPacket (packet, len);
-}
-
-
 void libteredo_set_icmpv6_callback (libteredo_tunnel *t,
                                     libteredo_icmpv6_cb cb)
 {
@@ -1230,29 +1159,4 @@ void libteredo_set_state_cb (libteredo_tunnel *t, libteredo_state_up_cb u,
 	(void)u;
 	(void)d;
 #endif
-}
-
-
-#ifdef MIREDO_TEREDO_CLIENT
-void TeredoRelay::NotifyUp (const struct in6_addr *addr, uint16_t mtu)
-{
-	libteredo_state_up_cb cb = tunnel->up_cb;
-	assert (cb != NULL);
-	cb (tunnel->opaque, addr, mtu);
-}
-
-void TeredoRelay::NotifyDown (void)
-{
-	libteredo_state_down_cb cb = tunnel->down_cb;
-	assert (cb != NULL);
-	cb (tunnel->opaque);
-}
-#endif
-
-void TeredoRelay::EmitICMPv6Error (const void *packet, size_t length,
-                                    const struct in6_addr *dst)
-{
-	libteredo_icmpv6_cb cb = tunnel->icmpv6_cb;
-	assert (cb != NULL);
-	cb (tunnel->opaque, packet, length, dst);
 }
