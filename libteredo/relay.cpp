@@ -102,13 +102,6 @@ class TeredoRelay
 		void EmitICMPv6Error (const void *packet, size_t length,
 		                      const struct in6_addr *dst);
 
-		int SendIPv6Packet (const void *packet, size_t length);
-		static void _sendIPv6Packet (void *self,
-		                             const void *packet, size_t length)
-		{
-			(void)((TeredoRelay *)self)->SendIPv6Packet (packet, length);
-		}
-
 	public:
 		TeredoRelay (libteredo_tunnel *t);
 		TeredoRelay (libteredo_tunnel *t, const char *server,
@@ -235,7 +228,7 @@ TeredoRelay::EmitICMPv6Error (const void *packet, size_t length,
 	/* F-I-X-M-E: using state implies locking */
 	size_t outlen = BuildIPv6Error (&buf.hdr, &state.addr.ip6,
 	                                ICMP6_DST_UNREACH, code, in, inlen);
-	(void)SendIPv6Packet (&buf, outlen);
+	tunnel->recv_cb (tunnel->opaque, &buf, outlen);
 }
 #endif
 
@@ -765,10 +758,11 @@ int TeredoRelay::ReceivePacket (void)
 		 && (packet.source_port == p->mapped_port))
 		{
 			TouchReceive (p, now);
-			Dequeue (p, tunnel->fd, _sendIPv6Packet, this);
+			Dequeue (p, tunnel->fd, tunnel->recv_cb, tunnel->opaque);
 			p->bubbles = p->pings = 0;
 			teredo_list_release (list);
-			return SendIPv6Packet (buf, length);
+			tunnel->recv_cb (tunnel->opaque, buf, length);
+			return 0;
 		}
 
 #ifdef MIREDO_TEREDO_CLIENT
@@ -780,7 +774,7 @@ int TeredoRelay::ReceivePacket (void)
 
 			SetMappingFromPacket (p, &packet);
 			TouchReceive (p, now);
-			Dequeue (p, tunnel->fd, _sendIPv6Packet, this);
+			Dequeue (p, tunnel->fd, tunnel->recv_cb, tunnel->opaque);
 			teredo_list_release (list);
 			return 0; /* don't pass ping to kernel */
 		}
@@ -830,16 +824,16 @@ int TeredoRelay::ReceivePacket (void)
 					return 0; // list not locked
 			}
 			else
-				Dequeue (p, tunnel->fd, _sendIPv6Packet, this);
+				Dequeue (p, tunnel->fd, tunnel->recv_cb, tunnel->opaque);
 
 			p->trusted = 1;
 			p->bubbles = /*p->pings -USELESS- =*/ 0;
 			TouchReceive (p, now);
 			teredo_list_release (list);
 
-			if (IsBubble (&ip6))
-				return 0; // discard Teredo bubble
-			return SendIPv6Packet (buf, length);
+			if (!IsBubble (&ip6)) // discard Teredo bubble
+				tunnel->recv_cb (tunnel->opaque, buf, length);
+			return 0;
 		}
 
 		// TODO: remove this line if we implement local teredo
@@ -1281,12 +1275,4 @@ void TeredoRelay::EmitICMPv6Error (const void *packet, size_t length,
 	libteredo_icmpv6_cb cb = tunnel->icmpv6_cb;
 	assert (cb != NULL);
 	cb (tunnel->opaque, packet, length, dst);
-}
-
-int TeredoRelay::SendIPv6Packet (const void *packet, size_t length)
-{
-	libteredo_recv_cb cb = tunnel->recv_cb;
-	assert (cb != NULL);
-	cb (tunnel->opaque, packet, length);
-	return 0;
 }
