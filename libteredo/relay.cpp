@@ -73,9 +73,8 @@ struct libteredo_tunnel
 	libteredo_state_down_cb down_cb;
 #endif
 
+	int fd;
 	uint32_t prefix;
-	uint32_t ipv4; // FIXME: do not save
-	uint16_t port; // FIXME: do not save
 	bool client;
 	bool cone; // FIXME: merge with TeredoRelay::state.cone
 	bool allow_cone;
@@ -89,7 +88,6 @@ class TeredoRelay
 	private:
 		libteredo_tunnel *tunnel;
 		struct teredo_peerlist *list;
-		int fd;
 
 		void SendUnreach (int code, const void *in, size_t inlen);
 
@@ -119,13 +117,8 @@ class TeredoRelay
 		 * Creates a Teredo relay manually (ie. one that does not
 		 * qualify with a Teredo server and has no Teredo IPv6
 		 * address). The prefix must therefore be specified.
-		 *
-		 * If port is nul, the OS will choose an available UDP port
-		 * for communication. This is NOT a good idea if you are
-		 * behind a fascist firewall, as the port might be blocked.
 		 */
-		TeredoRelay (libteredo_tunnel *t, uint32_t pref, uint16_t port,
-		             uint32_t ipv4, bool cone);
+		TeredoRelay (libteredo_tunnel *t, uint32_t pref, bool cone);
 
 		/*
 		 * Creates a Teredo client/relay automatically. The client
@@ -135,7 +128,7 @@ class TeredoRelay
 		 * TODO: support for secure qualification
 		 */
 		TeredoRelay (libteredo_tunnel *t, const char *server,
-		             const char *server2, uint16_t port, uint32_t ipv4);
+		             const char *server2);
 
 		~TeredoRelay (void);
 		int SendPacket (const struct ip6_hdr *packet, size_t len);
@@ -155,13 +148,6 @@ class TeredoRelay
 		//static unsigned MaxQueueBytes;
 		static unsigned MaxPeers;
 		static unsigned IcmpRateLimitMs;
-
-		int RegisterReadSet (fd_set *rs) const
-		{
-			if (fd != -1)
-				FD_SET (fd, rs);
-			return fd;
-		}
 };
 
 #define TEREDO_TIMEOUT 30 // seconds
@@ -173,8 +159,7 @@ unsigned TeredoRelay::MaxPeers = 1024;
 #endif
 
 
-TeredoRelay::TeredoRelay (libteredo_tunnel *t, uint32_t pref, uint16_t port,
-                          uint32_t ipv4, bool cone)
+TeredoRelay::TeredoRelay (libteredo_tunnel *t, uint32_t pref, bool cone)
 	:  tunnel (t)
 {
 	state.addr.teredo.prefix = pref;
@@ -194,8 +179,8 @@ TeredoRelay::TeredoRelay (libteredo_tunnel *t, uint32_t pref, uint16_t port,
 	 * the address is only used to send Unreachable message... with the
 	 * old method that is no longer supported (the one that involves
 	 * building the IPv6 header as well as the ICMPv6 header) */
-	state.addr.teredo.client_port = ~port;
-	state.addr.teredo.client_ip = ~ipv4;
+	/*FIXME state.addr.teredo.client_port = ~port;
+	state.addr.teredo.client_ip = ~ipv4;*/
 
 #ifdef MIREDO_TEREDO_CLIENT
 	maintenance = NULL;
@@ -203,17 +188,12 @@ TeredoRelay::TeredoRelay (libteredo_tunnel *t, uint32_t pref, uint16_t port,
 
 	state.up = true;
 
-	fd = teredo_socket (ipv4, port);
-	if (fd != -1)
+	list = teredo_list_create (MaxPeers, 300);
+	if (list != NULL)
 	{
-		list = teredo_list_create (MaxPeers, 300);
-		if (list != NULL)
-		{
-			if (pthread_rwlock_init (&state_lock, NULL) == 0)
-				return; /* success */
-			teredo_list_destroy (list);
-		}
-		teredo_close (fd);
+		if (pthread_rwlock_init (&state_lock, NULL) == 0)
+			return; /* success */
+		teredo_list_destroy (list);
 	}
 
 	/* failure */
@@ -223,29 +203,23 @@ TeredoRelay::TeredoRelay (libteredo_tunnel *t, uint32_t pref, uint16_t port,
 
 #ifdef MIREDO_TEREDO_CLIENT
 TeredoRelay::TeredoRelay (libteredo_tunnel *t, const char *server,
-                          const char *server2, uint16_t port, uint32_t ipv4)
+                          const char *server2)
 	: tunnel (t), maintenance (NULL)
 {
 	memset (&state, 0, sizeof (state));
 
-	fd = teredo_socket (ipv4, port);
-	if (fd != -1)
+	list = teredo_list_create (MaxPeers, 30);
+	if (list != NULL)
 	{
-		list = teredo_list_create (MaxPeers, 30);
-		if (list != NULL)
+		maintenance = libteredo_maintenance_start (t->fd, StateChange, this,
+		                                           server, server2);
+		if (maintenance != NULL)
 		{
-			maintenance = libteredo_maintenance_start (fd, StateChange, this,
-			                                           server, server2);
-			if (maintenance != NULL)
-			{
-				if (pthread_rwlock_init (&state_lock, NULL) == 0)
-					return; /* success */
-				libteredo_maintenance_stop (maintenance);
-			}
-
-			teredo_list_destroy (list);
+			if (pthread_rwlock_init (&state_lock, NULL) == 0)
+				return; /* success */
+			libteredo_maintenance_stop (maintenance);
 		}
-		teredo_close (fd);
+		teredo_list_destroy (list);
 	}
 
 	/* failure */
@@ -261,7 +235,6 @@ TeredoRelay::~TeredoRelay (void)
 		libteredo_maintenance_stop (maintenance);
 #endif
 
-	teredo_close (fd);
 	teredo_list_destroy (list);
 	pthread_rwlock_destroy (&state_lock);
 }
@@ -399,7 +372,7 @@ static int PingPeer (int fd, teredo_peer *p, time_t now,
                      const union teredo_addr *src, const struct in6_addr *dst)
 {
 	int res = CountPing (p, now);
-	
+
 	if (res == 0)
 		return SendPing (fd, src, dst);
 	return res;
@@ -591,7 +564,7 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 
 			/* Already known -valid- peer */
 			TouchTransmit (p, now);
-			res = teredo_send (fd, packet, length, p->mapped_addr,
+			res = teredo_send (tunnel->fd, packet, length, p->mapped_addr,
 			                   p->mapped_port) == (int)length ? 0 : -1;
 			teredo_list_release (list);
 			return res;
@@ -623,7 +596,7 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 		}
 
 		QueueOutgoing (p, packet, length);
-		res = PingPeer (fd, p, now, &s.addr, &dst->ip6);
+		res = PingPeer (tunnel->fd, p, now, &s.addr, &dst->ip6);
 
  		teredo_list_release (list);
 		if (res == -1)
@@ -650,7 +623,7 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 		p->trusted = 1;
 		p->bubbles = /*p->pings -USELESS- =*/ 0;
 		TouchTransmit (p, now);
-		res = teredo_send (fd, packet, length, p->mapped_addr,
+		res = teredo_send (tunnel->fd, packet, length, p->mapped_addr,
 		                   p->mapped_port) == (int)length ? 0 : -1;
 		teredo_list_release (list);
 		return res;
@@ -669,10 +642,11 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 			 * Open the return path if we are behind a
 			 * restricted NAT.
 			 */
-			if ((!s.cone) && SendBubbleFromDst (fd, &dst->ip6, false, false))
+			if ((!s.cone)
+			 && SendBubbleFromDst (tunnel->fd, &dst->ip6, false, false))
 				return -1;
 
-			return SendBubbleFromDst (fd, &dst->ip6, s.cone, true);
+			return SendBubbleFromDst (tunnel->fd, &dst->ip6, s.cone, true);
 
 		case -1: // Too many bubbles already sent
 			SendUnreach (ICMP6_DST_UNREACH_ADDR, packet, length);
@@ -694,7 +668,7 @@ int TeredoRelay::ReceivePacket (void)
 	struct teredo_packet packet;
 	teredo_state s;
 
-	if (teredo_recv (fd, &packet))
+	if (teredo_recv (tunnel->fd, &packet))
 		return -1;
 
 	const uint8_t *buf = packet.ip6;
@@ -747,7 +721,7 @@ int TeredoRelay::ReceivePacket (void)
 		{
 // 			syslog (LOG_DEBUG, "bubble from server (+reply)");
 			/* TODO: record sending of bubble, create a peer, etc ? */
-			SendBubble (fd, packet.orig_ipv4, packet.orig_port,
+			SendBubble (tunnel->fd, packet.orig_ipv4, packet.orig_port,
 			            &ip6.ip6_dst, &ip6.ip6_src);
 			if (IsBubble (&ip6))
 				return 0; // don't pass bubble to kernel
@@ -762,7 +736,7 @@ int TeredoRelay::ReceivePacket (void)
 			 */
 			if (IN6_TEREDO_PREFIX (&ip6.ip6_src) == s.addr.teredo.prefix)
 				/* TODO: record sending of bubble, create a peer, etc ? */
-				SendBubble (fd, IN6_TEREDO_IPV4 (&ip6.ip6_src),
+				SendBubble (tunnel->fd, IN6_TEREDO_IPV4 (&ip6.ip6_src),
 				            IN6_TEREDO_PORT (&ip6.ip6_src), &ip6.ip6_dst,
 				            &ip6.ip6_src);
 			else
@@ -854,7 +828,7 @@ int TeredoRelay::ReceivePacket (void)
 		 && (packet.source_port == p->mapped_port))
 		{
 			TouchReceive (p, now);
-			Dequeue (p, fd, _sendIPv6Packet, this);
+			Dequeue (p, tunnel->fd, _sendIPv6Packet, this);
 			p->bubbles = p->pings = 0;
 			teredo_list_release (list);
 			return SendIPv6Packet (buf, length);
@@ -869,7 +843,7 @@ int TeredoRelay::ReceivePacket (void)
 
 			SetMappingFromPacket (p, &packet);
 			TouchReceive (p, now);
-			Dequeue (p, fd, _sendIPv6Packet, this);
+			Dequeue (p, tunnel->fd, _sendIPv6Packet, this);
 			teredo_list_release (list);
 			return 0; /* don't pass ping to kernel */
 		}
@@ -919,7 +893,7 @@ int TeredoRelay::ReceivePacket (void)
 					return 0; // list not locked
 			}
 			else
-				Dequeue (p, fd, _sendIPv6Packet, this);
+				Dequeue (p, tunnel->fd, _sendIPv6Packet, this);
 
 			p->trusted = 1;
 			p->bubbles = /*p->pings -USELESS- =*/ 0;
@@ -978,7 +952,7 @@ int TeredoRelay::ReceivePacket (void)
 		QueueIncoming (p, buf, length);
 		TouchReceive (p, now);
 	
-		int res = PingPeer (fd, p, now, &s.addr, &ip6.ip6_src) ? -1 : 0;
+		int res = PingPeer (tunnel->fd, p, now, &s.addr, &ip6.ip6_src) ? -1:0;
 		teredo_list_release (list);
 // 		syslog (LOG_DEBUG, " PingPeer returned %d", res);
 		return res;
@@ -1003,6 +977,12 @@ int TeredoRelay::ReceivePacket (void)
  *
  * @param ipv4 IPv4 (network byte order) to bind to, or 0 if unspecified.
  * @param port UDP/IPv4 port number (network byte order) or 0 if unspecified.
+ * Note that some campus firewall drop certain UDP ports (typically those used
+ * by some P2P application); in that case, you should use a fixed port so that
+ * the kernel does not select a possibly blocked port. Also note that some
+ * severely broken NAT devices might fail if multiple NAT-ed computers use the
+ * same source UDP port number at the same time, so avoid you should
+ * paradoxically avoid querying a fixed port.
  *
  * @return NULL in case of failure.
  */
@@ -1014,10 +994,11 @@ libteredo_tunnel *libteredo_create (uint32_t ipv4, uint16_t port)
 		return NULL;
 
 	memset (tunnel, 0, sizeof (tunnel));
-	/* TODO: Create the socket(s) here, do not retain ipv4 and port */
-	tunnel->ipv4 = ipv4;
-	tunnel->port = port;
-	return tunnel;
+	if ((tunnel->fd = teredo_socket (ipv4, port)) != -1)
+		return tunnel;
+
+	free (tunnel);
+	return NULL;
 }
 
 
@@ -1033,9 +1014,12 @@ extern "C"
 void libteredo_destroy (libteredo_tunnel *t)
 {
 	assert (t != NULL);
+	assert (t->fd != -1);
 
 	if (t->object != NULL)
 		delete t->object;
+
+	teredo_close (t->fd);
 	free (t);
 }
 
@@ -1045,12 +1029,14 @@ extern "C"
 int libteredo_register_readset (libteredo_tunnel *t, fd_set *rdset)
 {
 	assert (t != NULL);
-	assert (t->object != NULL); // FIXME: undocumented assumption
-	// This FIXME will be auto-fixed once the sockets are created
-	// from libteredo_create()... and might get broken again if
-	// we had multicast local discovery.
+	assert (t->fd != -1);
 
-	return t->object->RegisterReadSet (rdset);
+	// FIXME: May be problematic once multicast local discovery gets
+	// implemented.
+
+	FD_SET (t->fd, rdset);
+	return t->fd;
+
 }
 
 
@@ -1118,7 +1104,7 @@ int libteredo_set_cone_flag (libteredo_tunnel *t, bool flag)
 	TeredoRelay *r;
 	try
 	{
-		r = new TeredoRelay (t, t->prefix, t->port, t->ipv4, t->cone);
+		r = new TeredoRelay (t, t->prefix, t->cone);
 	}
 	catch (...)
 	{
@@ -1158,7 +1144,7 @@ int libteredo_set_client_mode (libteredo_tunnel *t, const char *s1,
 	TeredoRelay *r;
 	try
 	{
-		r = new TeredoRelay (t, s1, s2, t->port, t->ipv4);
+		r = new TeredoRelay (t, s1, s2);
 	}
 	catch (...)
 	{
