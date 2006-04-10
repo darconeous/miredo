@@ -78,7 +78,7 @@ struct libteredo_tunnel
 	uint16_t port; // FIXME: do not save
 	bool client;
 	bool cone; // FIXME: merge with TeredoRelay::state.cone
-	bool allow_cone; // FIXME: merge with TeredoRelay::allowCone
+	bool allow_cone;
 };
 
 
@@ -87,10 +87,9 @@ struct libteredo_tunnel
 class TeredoRelay
 {
 	private:
-		libteredo_tunnel *master;
+		libteredo_tunnel *tunnel;
 		struct teredo_peerlist *list;
 		int fd;
-		bool allowCone;
 
 		void SendUnreach (int code, const void *in, size_t inlen);
 
@@ -157,11 +156,6 @@ class TeredoRelay
 		static unsigned MaxPeers;
 		static unsigned IcmpRateLimitMs;
 
-		void SetConeIgnore (bool ignore = true)
-		{
-			allowCone = !ignore;
-		}
-
 		int RegisterReadSet (fd_set *rs) const
 		{
 			if (fd != -1)
@@ -181,7 +175,7 @@ unsigned TeredoRelay::MaxPeers = 1024;
 
 TeredoRelay::TeredoRelay (libteredo_tunnel *t, uint32_t pref, uint16_t port,
                           uint32_t ipv4, bool cone)
-	:  master (t), allowCone (false)
+	:  tunnel (t)
 {
 	state.addr.teredo.prefix = pref;
 	state.addr.teredo.server_ip = 0;
@@ -230,7 +224,7 @@ TeredoRelay::TeredoRelay (libteredo_tunnel *t, uint32_t pref, uint16_t port,
 #ifdef MIREDO_TEREDO_CLIENT
 TeredoRelay::TeredoRelay (libteredo_tunnel *t, const char *server,
                           const char *server2, uint16_t port, uint32_t ipv4)
-	: master (t), allowCone (false), maintenance (NULL)
+	: tunnel (t), maintenance (NULL)
 {
 	memset (&state, 0, sizeof (state));
 
@@ -649,7 +643,7 @@ int TeredoRelay::SendPacket (const struct ip6_hdr *packet, size_t length)
 		SetMapping (p, IN6_TEREDO_IPV4 (dst), IN6_TEREDO_PORT (dst));
 
 	/* Client case 4 & relay case 2: new cone peer */
-	if (allowCone && IN6_IS_TEREDO_ADDR_CONE (dst))
+	if (tunnel->allow_cone && IN6_IS_TEREDO_ADDR_CONE (dst))
 	{
 		int res;
 
@@ -1134,7 +1128,6 @@ int libteredo_set_cone_flag (libteredo_tunnel *t, bool flag)
 	if (r != NULL)
 	{
 		t->object = r;
-		r->SetConeIgnore (!t->allow_cone);
 		return 0;
 	}
 
@@ -1157,7 +1150,7 @@ int libteredo_set_cone_flag (libteredo_tunnel *t, bool flag)
  */
 extern "C"
 int libteredo_set_client_mode (libteredo_tunnel *t, const char *s1,
-                                      const char *s2)
+                               const char *s2)
 {
 	assert (t != NULL);
 
@@ -1175,7 +1168,6 @@ int libteredo_set_client_mode (libteredo_tunnel *t, const char *s1,
 	if (r != NULL)
 	{
 		t->object = r;
-		r->SetConeIgnore (!t->allow_cone);
 		return 0;
 	}
 #else
@@ -1199,8 +1191,6 @@ void libteredo_set_cone_ignore (libteredo_tunnel *t, bool ignore)
 {
 	assert (t != NULL);
 	t->allow_cone = !ignore;
-	if (t->object != NULL)
-		t->object->SetConeIgnore (ignore);
 }
 
 extern "C"
@@ -1288,31 +1278,31 @@ void libteredo_set_state_cb (libteredo_tunnel *t, libteredo_state_up_cb u,
 #ifdef MIREDO_TEREDO_CLIENT
 void TeredoRelay::NotifyUp (const struct in6_addr *addr, uint16_t mtu)
 {
-	libteredo_state_up_cb cb = master->up_cb;
+	libteredo_state_up_cb cb = tunnel->up_cb;
 	if (cb != NULL)
-		cb (master->opaque, addr, mtu);
+		cb (tunnel->opaque, addr, mtu);
 }
 
 void TeredoRelay::NotifyDown (void)
 {
-	libteredo_state_down_cb cb = master->down_cb;
+	libteredo_state_down_cb cb = tunnel->down_cb;
 	if (cb != NULL)
-		cb (master->opaque);
+		cb (tunnel->opaque);
 }
 #endif
 
 void TeredoRelay::EmitICMPv6Error (const void *packet, size_t length,
                                     const struct in6_addr *dst)
 {
-	libteredo_icmpv6_cb cb = master->icmpv6_cb;
+	libteredo_icmpv6_cb cb = tunnel->icmpv6_cb;
 	if (cb != NULL)
-		cb (master->opaque, packet, length, dst);
+		cb (tunnel->opaque, packet, length, dst);
 }
 
 int TeredoRelay::SendIPv6Packet (const void *packet, size_t length)
 {
-	libteredo_recv_cb cb = master->recv_cb;
+	libteredo_recv_cb cb = tunnel->recv_cb;
 	if (cb != NULL)
-		cb (master->opaque, packet, length);
+		cb (tunnel->opaque, packet, length);
 	return 0;
 }
