@@ -536,6 +536,7 @@ miredo_run (MiredoConf& conf, const char *cmd_server_name)
 						                 relay)
 						: miredo_relay (tunnel, prefix.teredo.prefix,
 						                mode == TEREDO_CONE, relay);
+					libteredo_destroy (relay);
 				}
 				else
 					syslog (LOG_ALERT, _("Miredo setup failure: %s"),
