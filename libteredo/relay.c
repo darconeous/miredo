@@ -1,5 +1,5 @@
 /*
- * relay.cpp - Teredo relay core
+ * relay.c - Teredo relay core
  * $Id$
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
@@ -28,6 +28,7 @@
 
 #include <gettext.h>
 
+#include <stdbool.h>
 #include <string.h>
 #include <time.h>
 #include <stdlib.h> // malloc()
@@ -330,7 +331,6 @@ static inline void SetMappingFromPacket (teredo_peer *peer,
  *
  * @return 0 on success, -1 on error.
  */
-extern "C"
 int libteredo_send (libteredo_tunnel *tunnel,
                     const struct ip6_hdr *packet, size_t length)
 {
@@ -553,7 +553,6 @@ int libteredo_send (libteredo_tunnel *tunnel,
  * - review for thread-safety,
  * - run (possibly optionaly) in a separate thread.
  */
-extern "C"
 void libteredo_run (libteredo_tunnel *tunnel)
 {
 	assert (tunnel != NULL);
@@ -862,26 +861,37 @@ void libteredo_run (libteredo_tunnel *tunnel)
 
 
 
-static void libteredo_dummy_recv_cb (void *, const void *, size_t)
+static void libteredo_dummy_recv_cb (void *o, const void *p, size_t l)
 {
+	(void)o;
+	(void)p;
+	(void)l;
 }
 
 
-static void libteredo_dummy_icmpv6_cb (void *, const void *, size_t,
-                                       const struct in6_addr *)
+static void libteredo_dummy_icmpv6_cb (void *o, const void *p, size_t l,
+                                       const struct in6_addr *d)
 {
+	(void)o;
+	(void)p;
+	(void)l;
+	(void)d;
 }
 
 
 #ifdef MIREDO_TEREDO_CLIENT
-static void libteredo_dummy_state_up_cb (void *, const struct in6_addr *,
-                                         uint16_t)
+static void libteredo_dummy_state_up_cb (void *o, const struct in6_addr *a,
+                                         uint16_t m)
 {
+	(void)o;
+	(void)a;
+	(void)m;
 }
 
 
-static void libteredo_dummy_state_down_cb (void *)
+static void libteredo_dummy_state_down_cb (void *o)
 {
+	(void)o;
 }
 #endif
 
@@ -903,7 +913,6 @@ static void libteredo_dummy_state_down_cb (void *)
  *
  * @return NULL in case of failure.
  */
-extern "C"
 libteredo_tunnel *libteredo_create (uint32_t ipv4, uint16_t port)
 {
 	libteredo_tunnel *tunnel = (libteredo_tunnel *)malloc (sizeof (*tunnel));
@@ -955,7 +964,6 @@ libteredo_tunnel *libteredo_create (uint32_t ipv4, uint16_t port)
  *
  * @return nothing (always succeeds).
  */
-extern "C"
 void libteredo_destroy (libteredo_tunnel *t)
 {
 	assert (t != NULL);
@@ -975,7 +983,6 @@ void libteredo_destroy (libteredo_tunnel *t)
 
 
 /* FIXME: document */
-extern "C"
 int libteredo_register_readset (libteredo_tunnel *t, fd_set *rdset)
 {
 	assert (t != NULL);
@@ -1000,7 +1007,6 @@ int libteredo_register_readset (libteredo_tunnel *t, fd_set *rdset)
  * @return 0 on success, -1 if the prefix is invalid (in which case the
  * libteredo_tunnel instance is not modified).
  */
-extern "C"
 int libteredo_set_prefix (libteredo_tunnel *t, uint32_t prefix)
 {
 	assert (t != NULL);
@@ -1030,7 +1036,6 @@ int libteredo_set_prefix (libteredo_tunnel *t, uint32_t prefix)
  * @return 0 if the initialization was succesful, -1 in case of error.
  * In case of error, the libteredo_tunnel instance is not modifed.
  */
-extern "C"
 int libteredo_set_cone_flag (libteredo_tunnel *t, bool cone)
 {
 	assert (t != NULL);
@@ -1062,7 +1067,6 @@ int libteredo_set_cone_flag (libteredo_tunnel *t, bool cone)
  * @return 0 on success, -1 in case of error.
  * In case of error, the libteredo_tunnel instance is not modifed.
  */
-extern "C"
 int libteredo_set_client_mode (libteredo_tunnel *t, const char *s,
                                const char *s2)
 {
@@ -1093,14 +1097,13 @@ int libteredo_set_client_mode (libteredo_tunnel *t, const char *s,
  *
  * @param ignore true to enable processing, false to disable.
  */
-extern "C"
 void libteredo_set_cone_ignore (libteredo_tunnel *t, bool ignore)
 {
 	assert (t != NULL);
 	t->allow_cone = !ignore;
 }
 
-extern "C"
+
 void *libteredo_set_privdata (libteredo_tunnel *t, void *opaque)
 {
 	assert (t != NULL);
@@ -1111,7 +1114,6 @@ void *libteredo_set_privdata (libteredo_tunnel *t, void *opaque)
 }
 
 
-extern "C"
 void *libteredo_get_privdata (const libteredo_tunnel *t)
 {
 	assert (t != NULL);
@@ -1120,7 +1122,6 @@ void *libteredo_get_privdata (const libteredo_tunnel *t)
 }
 
 
-extern "C"
 void libteredo_set_recv_callback (libteredo_tunnel *t, libteredo_recv_cb cb)
 {
 	assert (t != NULL);
