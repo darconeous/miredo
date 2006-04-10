@@ -904,7 +904,31 @@ int TeredoRelay::ReceivePacket (void)
 	return 0;
 }
 
-/*** C bindings ***/
+
+
+static void libteredo_dummy_recv_cb (void *, const void *, size_t)
+{
+}
+
+
+static void libteredo_dummy_icmpv6_cb (void *, const void *, size_t,
+                                       const struct in6_addr *)
+{
+}
+
+
+#ifdef MIREDO_TEREDO_CLIENT
+static void libteredo_dummy_state_up_cb (void *, const struct in6_addr *,
+                                         uint16_t)
+{
+}
+
+
+static void libteredo_dummy_state_down_cb (void *)
+{
+}
+#endif
+
 
 /**
  * Creates a libteredo_tunnel instance. libteredo_preinit() must have been
@@ -941,6 +965,13 @@ libteredo_tunnel *libteredo_create (uint32_t ipv4, uint16_t port)
 	 */
 	tunnel->state.addr.teredo.client_port = ~port;
 	tunnel->state.addr.teredo.client_ip = ~ipv4;
+
+	tunnel->recv_cb = libteredo_dummy_recv_cb;
+	tunnel->icmpv6_cb = libteredo_dummy_icmpv6_cb;
+#ifdef MIREDO_TEREDO_CLIENT
+	tunnel->up_cb = libteredo_dummy_state_up_cb;
+	tunnel->down_cb = libteredo_dummy_state_down_cb;
+#endif
 
 	if ((tunnel->fd = teredo_socket (ipv4, port)) != -1)
 	{
@@ -1170,7 +1201,7 @@ extern "C"
 void libteredo_set_recv_callback (libteredo_tunnel *t, libteredo_recv_cb cb)
 {
 	assert (t != NULL);
-	t->recv_cb = cb;
+	t->recv_cb = (cb != NULL) ? cb : libteredo_dummy_recv_cb;
 }
 
 
@@ -1198,7 +1229,7 @@ void libteredo_set_icmpv6_callback (libteredo_tunnel *t,
                                     libteredo_icmpv6_cb cb)
 {
 	assert (t != NULL);
-	t->icmpv6_cb = cb;
+	t->icmpv6_cb = (cb != NULL) ? cb : libteredo_dummy_icmpv6_cb;
 }
 
 
@@ -1216,10 +1247,10 @@ void libteredo_set_icmpv6_callback (libteredo_tunnel *t,
 void libteredo_set_state_cb (libteredo_tunnel *t, libteredo_state_up_cb u,
                              libteredo_state_down_cb d)
 {
-	assert (t != NULL);
 #ifdef MIREDO_TEREDO_CLIENT
-	t->up_cb = u;
-	t->down_cb = d;
+	assert (t != NULL);
+	t->up_cb = (u != NULL) ? u : libteredo_dummy_state_up_cb;
+	t->down_cb = (d != NULL) ? d : libteredo_dummy_state_down_cb;
 #else
 	(void)t;
 	(void)u;
@@ -1232,15 +1263,15 @@ void libteredo_set_state_cb (libteredo_tunnel *t, libteredo_state_up_cb u,
 void TeredoRelay::NotifyUp (const struct in6_addr *addr, uint16_t mtu)
 {
 	libteredo_state_up_cb cb = tunnel->up_cb;
-	if (cb != NULL)
-		cb (tunnel->opaque, addr, mtu);
+	assert (cb != NULL);
+	cb (tunnel->opaque, addr, mtu);
 }
 
 void TeredoRelay::NotifyDown (void)
 {
 	libteredo_state_down_cb cb = tunnel->down_cb;
-	if (cb != NULL)
-		cb (tunnel->opaque);
+	assert (cb != NULL);
+	cb (tunnel->opaque);
 }
 #endif
 
@@ -1248,14 +1279,14 @@ void TeredoRelay::EmitICMPv6Error (const void *packet, size_t length,
                                     const struct in6_addr *dst)
 {
 	libteredo_icmpv6_cb cb = tunnel->icmpv6_cb;
-	if (cb != NULL)
-		cb (tunnel->opaque, packet, length, dst);
+	assert (cb != NULL);
+	cb (tunnel->opaque, packet, length, dst);
 }
 
 int TeredoRelay::SendIPv6Packet (const void *packet, size_t length)
 {
 	libteredo_recv_cb cb = tunnel->recv_cb;
-	if (cb != NULL)
-		cb (tunnel->opaque, packet, length);
+	assert (cb != NULL);
+	cb (tunnel->opaque, packet, length);
 	return 0;
 }
