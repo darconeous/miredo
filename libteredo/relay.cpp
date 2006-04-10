@@ -59,11 +59,35 @@
 # include "security.h"
 #endif
 
+class TeredoRelay;
+
+struct libteredo_tunnel
+{
+	TeredoRelay *object;
+	void *opaque;
+
+	libteredo_recv_cb recv_cb;
+	libteredo_icmpv6_cb icmpv6_cb;
+#ifdef MIREDO_TEREDO_CLIENT
+	libteredo_state_up_cb up_cb;
+	libteredo_state_down_cb down_cb;
+#endif
+
+	uint32_t prefix;
+	uint32_t ipv4; // FIXME: do not save
+	uint16_t port; // FIXME: do not save
+	bool client;
+	bool cone; // FIXME: merge with TeredoRelay::state.cone
+	bool allow_cone; // FIXME: merge with TeredoRelay::allowCone
+};
+
+
 // big TODO: make all functions re-entrant safe
 //           make all functions thread-safe
 class TeredoRelay
 {
 	private:
+		libteredo_tunnel *master;
 		struct teredo_peerlist *list;
 		int fd;
 		bool allowCone;
@@ -76,22 +100,22 @@ class TeredoRelay
 #ifdef MIREDO_TEREDO_CLIENT
 		struct teredo_maintenance *maintenance;
 
-		virtual void NotifyUp (const struct in6_addr *, uint16_t) = 0;
-		virtual void NotifyDown (void) = 0;
+		void NotifyUp (const struct in6_addr *, uint16_t);
+		void NotifyDown (void);
 
 		static void StateChange (const teredo_state *, void *self);
 #endif
-		virtual void EmitICMPv6Error (const void *packet, size_t length,
-		                              const struct in6_addr *dst) = 0;
+		void EmitICMPv6Error (const void *packet, size_t length,
+		                      const struct in6_addr *dst);
 
-		virtual int SendIPv6Packet (const void *packet, size_t length) = 0;
+		int SendIPv6Packet (const void *packet, size_t length);
 		static void _sendIPv6Packet (void *self,
 		                             const void *packet, size_t length)
 		{
 			(void)((TeredoRelay *)self)->SendIPv6Packet (packet, length);
 		}
 
-	protected:
+	public:
 		/*
 		 * Creates a Teredo relay manually (ie. one that does not
 		 * qualify with a Teredo server and has no Teredo IPv6
@@ -101,8 +125,8 @@ class TeredoRelay
 		 * for communication. This is NOT a good idea if you are
 		 * behind a fascist firewall, as the port might be blocked.
 		 */
-		TeredoRelay (uint32_t pref, uint16_t port /*= 0*/,
-		             uint32_t ipv4 /* = 0 */, bool cone /*= true*/);
+		TeredoRelay (libteredo_tunnel *t, uint32_t pref, uint16_t port,
+		             uint32_t ipv4, bool cone);
 
 		/*
 		 * Creates a Teredo client/relay automatically. The client
@@ -111,11 +135,10 @@ class TeredoRelay
 		 *
 		 * TODO: support for secure qualification
 		 */
-		TeredoRelay (const char *server, const char *server2,
-		             uint16_t port = 0, uint32_t ipv4 = 0);
+		TeredoRelay (libteredo_tunnel *t, const char *server,
+		             const char *server2, uint16_t port, uint32_t ipv4);
 
-	public:
-		virtual ~TeredoRelay (void);
+		~TeredoRelay (void);
 		int SendPacket (const struct ip6_hdr *packet, size_t len);
 		int ReceivePacket (void);
 
@@ -156,9 +179,9 @@ unsigned TeredoRelay::MaxPeers = 1024;
 #endif
 
 
-TeredoRelay::TeredoRelay (uint32_t pref, uint16_t port, uint32_t ipv4,
-                          bool cone)
-	:  allowCone (false)
+TeredoRelay::TeredoRelay (libteredo_tunnel *t, uint32_t pref, uint16_t port,
+                          uint32_t ipv4, bool cone)
+	:  master (t), allowCone (false)
 {
 	state.addr.teredo.prefix = pref;
 	state.addr.teredo.server_ip = 0;
@@ -205,9 +228,9 @@ TeredoRelay::TeredoRelay (uint32_t pref, uint16_t port, uint32_t ipv4,
 
 
 #ifdef MIREDO_TEREDO_CLIENT
-TeredoRelay::TeredoRelay (const char *server, const char *server2,
-                          uint16_t port, uint32_t ipv4)
-	: allowCone (false), maintenance (NULL)
+TeredoRelay::TeredoRelay (libteredo_tunnel *t, const char *server,
+                          const char *server2, uint16_t port, uint32_t ipv4)
+	: master (t), allowCone (false), maintenance (NULL)
 {
 	memset (&state, 0, sizeof (state));
 
@@ -977,55 +1000,6 @@ int TeredoRelay::ReceivePacket (void)
 }
 
 /*** C bindings ***/
-class cTeredoRelay : public TeredoRelay
-{
-	private:
-		libteredo_tunnel *master;
-
-	public:
-		cTeredoRelay (libteredo_tunnel *t, uint32_t pref, uint16_t port,
-		              uint32_t ipv4, bool cone)
-			: TeredoRelay (pref, port, ipv4, cone), master (t)
-		{
-		}
-	
-		cTeredoRelay (libteredo_tunnel *t, const char *server,
-		              const char *server2, uint16_t port, uint32_t ipv4)
-			: TeredoRelay (server, server2, port, ipv4), master (t)
-		{
-		}
-
-	private:
-#ifdef MIREDO_TEREDO_CLIENT
-		virtual void NotifyUp (const struct in6_addr *, uint16_t);
-		virtual void NotifyDown (void);
-#endif
-		virtual void EmitICMPv6Error (const void *packet, size_t length,
-		                              const struct in6_addr *dst);
-
-	public:
-		virtual int SendIPv6Packet (const void *packet, size_t length);
-};
-
-struct libteredo_tunnel
-{
-	cTeredoRelay *object;
-	void *opaque;
-
-	libteredo_recv_cb recv_cb;
-	libteredo_icmpv6_cb icmpv6_cb;
-#ifdef MIREDO_TEREDO_CLIENT
-	libteredo_state_up_cb up_cb;
-	libteredo_state_down_cb down_cb;
-#endif
-
-	uint32_t prefix;
-	uint32_t ipv4;
-	uint16_t port;
-	bool client;
-	bool cone;
-	bool allow_cone;
-};
 
 /**
  * Creates a libteredo_tunnel instance. libteredo_preinit() must have been
@@ -1147,10 +1121,10 @@ int libteredo_set_cone_flag (libteredo_tunnel *t, bool flag)
 	assert (t != NULL);
 
 	t->cone = flag;
-	cTeredoRelay *r;
+	TeredoRelay *r;
 	try
 	{
-		r = new cTeredoRelay (t, t->prefix, t->port, t->ipv4, t->cone);
+		r = new TeredoRelay (t, t->prefix, t->port, t->ipv4, t->cone);
 	}
 	catch (...)
 	{
@@ -1188,10 +1162,10 @@ int libteredo_set_client_mode (libteredo_tunnel *t, const char *s1,
 	assert (t != NULL);
 
 #ifdef MIREDO_TEREDO_CLIENT
-	cTeredoRelay *r;
+	TeredoRelay *r;
 	try
 	{
-		r = new cTeredoRelay (t, s1, s2, t->port, t->ipv4);
+		r = new TeredoRelay (t, s1, s2, t->port, t->ipv4);
 	}
 	catch (...)
 	{
@@ -1312,14 +1286,14 @@ void libteredo_set_state_cb (libteredo_tunnel *t, libteredo_state_up_cb u,
 
 
 #ifdef MIREDO_TEREDO_CLIENT
-void cTeredoRelay::NotifyUp (const struct in6_addr *addr, uint16_t mtu)
+void TeredoRelay::NotifyUp (const struct in6_addr *addr, uint16_t mtu)
 {
 	libteredo_state_up_cb cb = master->up_cb;
 	if (cb != NULL)
 		cb (master, addr, mtu);
 }
 
-void cTeredoRelay::NotifyDown (void)
+void TeredoRelay::NotifyDown (void)
 {
 	libteredo_state_down_cb cb = master->down_cb;
 	if (cb != NULL)
@@ -1327,7 +1301,7 @@ void cTeredoRelay::NotifyDown (void)
 }
 #endif
 
-void cTeredoRelay::EmitICMPv6Error (const void *packet, size_t length,
+void TeredoRelay::EmitICMPv6Error (const void *packet, size_t length,
                                     const struct in6_addr *dst)
 {
 	libteredo_icmpv6_cb cb = master->icmpv6_cb;
@@ -1335,7 +1309,7 @@ void cTeredoRelay::EmitICMPv6Error (const void *packet, size_t length,
 		cb (master, packet, length, dst);
 }
 
-int cTeredoRelay::SendIPv6Packet (const void *packet, size_t length)
+int TeredoRelay::SendIPv6Packet (const void *packet, size_t length)
 {
 	libteredo_recv_cb cb = master->recv_cb;
 	if (cb != NULL)
