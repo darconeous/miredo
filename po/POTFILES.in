@@ -1,4 +1,4 @@
-libteredo/relay.cpp
+libteredo/relay.c
 libteredo/security.c
 libteredo/server.c
 libteredo/packets.c
