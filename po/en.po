@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: miredo 0.8.1\n"
 "Report-Msgid-Bugs-To: rdenis@simphalempin.com\n"
-"POT-Creation-Date: 2006-03-23 22:09+0100\n"
+"POT-Creation-Date: 2006-04-11 19:28+0200\n"
 "PO-Revision-Date: 2005-03-10 14:32+0100\n"
 "Last-Translator: Rémi Denis-Courmont <rdenis (at) simphalempin (dot) com>\n"
 "Language-Team: N/A\n"
@@ -16,24 +16,24 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: libteredo/relay.cpp:666
+#: libteredo/relay.c:636
 msgid "Ignoring invalid bubble: your Teredo server is probably buggy."
 msgstr ""
 
-#: libteredo/security.c:67 libteredo/security.c:135 libteredo/server.c:487
-#: libteredo/server.c:498 libteredo/maintain.c:509 libtun6/tun6.c:566
-#: src/main.c:318 src/main.c:329 src/main.c:337 src/main.c:365 src/main.c:480
-#: src/miredo.cpp:104 src/miredo.cpp:111 src/miredo.cpp:234
+#: libteredo/security.c:67 libteredo/security.c:135 libteredo/server.c:492
+#: libteredo/server.c:503 libteredo/maintain.c:510 libtun6/tun6.c:683
+#: src/main.c:301 src/main.c:312 src/main.c:320 src/main.c:348 src/main.c:485
+#: src/miredo.cpp:106 src/miredo.cpp:114 src/miredo.cpp:235
 #, c-format
 msgid "Error (%s): %s\n"
 msgstr ""
 
-#: libteredo/server.c:384 libteredo/server.c:452
+#: libteredo/server.c:389 libteredo/server.c:457
 #, c-format
 msgid "Raw IPv6 socket not working: %s"
 msgstr ""
 
-#: libteredo/server.c:460
+#: libteredo/server.c:465
 msgid ""
 "Teredo server UDP socket error: Server IPv4 addresses must be global unicast."
 msgstr ""
@@ -46,63 +46,64 @@ msgstr ""
 msgid "Invalid Teredo prefix received"
 msgstr ""
 
-#: libteredo/maintain.c:164
+#: libteredo/maintain.c:165
 msgid "Authentication with server failed."
 msgstr ""
 
-#: libteredo/maintain.c:192
+#: libteredo/maintain.c:193
 msgid "Too much time drift. Resynchronizing."
 msgstr ""
 
-#: libteredo/maintain.c:264
+#: libteredo/maintain.c:265
 #, c-format
 msgid "Cannot resolve Teredo server address \"%s\": %s"
 msgstr "Cannot resolve Teredo server address “%s”: %s"
 
-#: libteredo/maintain.c:281
+#: libteredo/maintain.c:282
 msgid "Server has a non global IPv4 address. It will most likely not work."
 msgstr ""
 
-#: libteredo/maintain.c:341
+#: libteredo/maintain.c:342
 msgid "Lost Teredo connectivity"
 msgstr ""
 
-#: libteredo/maintain.c:356
+#: libteredo/maintain.c:357
 msgid "No reply from Teredo server"
 msgstr ""
 
-#: libteredo/maintain.c:378
+#: libteredo/maintain.c:379
 msgid "Teredo address/MTU changed"
 msgstr ""
 
-#: libteredo/maintain.c:395
+#: libteredo/maintain.c:396
 msgid "Unsupported symmetric NAT detected."
 msgstr ""
 
-#: libteredo/maintain.c:404
+#: libteredo/maintain.c:405
 #, c-format
 msgid "Qualified (NAT type: %s)"
 msgstr ""
 
-#: libteredo/maintain.c:406
+#: libteredo/maintain.c:407
 msgid "cone"
 msgstr ""
 
-#: libteredo/maintain.c:406
+#: libteredo/maintain.c:407
 msgid "restricted"
 msgstr ""
 
-#: libtun6/tun6.c:178 libtun6/tun6.c:193 libtun6/tun6.c:268
+#: libtun6/tun6.c:176 libtun6/tun6.c:186 libtun6/tun6.c:237 libtun6/tun6.c:300
+#: libtun6/tun6.c:311 libtun6/tun6.c:326 libtun6/tun6.c:344
 #, c-format
 msgid "Tunneling driver error (%s): %s"
 msgstr ""
 
-#: libtun6/tun6.c:283
+#: libtun6/tun6.c:364
 #, c-format
 msgid "%s tunneling interface creation failure"
 msgstr ""
 
-#: libtun6/tun6.c:860
+#: libtun6/tun6.c:943
 msgid ""
 "You should run these commands to create it:\n"
 "# mkdir -p /dev/net\n"
@@ -110,20 +111,20 @@ msgid ""
 "(you must be root to do that).\n"
 msgstr ""
 
-#: libtun6/tun6.c:865 libtun6/tun6.c:890
+#: libtun6/tun6.c:948
 msgid ""
 "You can obtain a tunnel driver for the Darwin kernel (Mac OS X) from:\n"
-"http://chrisp.de/en/projects/tunnel.html\n"
+"http://www-user.rhrk.uni-kl.de/~nissler/tuntap/\n"
 msgstr ""
 
-#: libtun6/tun6.c:873
+#: libtun6/tun6.c:956
 #, c-format
 msgid ""
 "Error: %s character device not found or unavailable.\n"
 "%s"
 msgstr ""
 
-#: libtun6/tun6.c:886
+#: libtun6/tun6.c:969
 msgid ""
 "Make sure your Linux kernel includes the \"Universal TUNTAP driver\"\n"
 "(CONFIG_TUN option), possibly as a module.\n"
@@ -131,7 +132,13 @@ msgstr ""
 "Make sure your Linux kernel includes the “Universal TUNTAP driver”\n"
 "(CONFIG_TUN option), possibly as a module.\n"
 
-#: libtun6/tun6.c:898
+#: libtun6/tun6.c:973
+msgid ""
+"You can obtain a tunnel driver for the Darwin kernel (Mac OS X) from:\n"
+"http://chrisp.de/en/projects/tunnel.html\n"
+msgstr ""
+
+#: libtun6/tun6.c:981
 #, c-format
 msgid ""
 "Error: your operating system does not seem to provide a network tunneling\n"
@@ -139,7 +146,7 @@ msgid ""
 "%s"
 msgstr ""
 
-#: libtun6/tun6.c:907
+#: libtun6/tun6.c:990
 #, c-format
 msgid ""
 "Error: cannot open device file %s (%s)\n"
@@ -213,23 +220,23 @@ msgstr "Invalid number (or capacity exceeded) “%s” for option -%c\n"
 msgid "%s: unexpected extra parameter\n"
 msgstr ""
 
-#: src/main.c:213
+#: src/main.c:201
 msgid ""
 "That is usually an indication that you are trying to start\n"
 "the program as an user with insufficient system privileges.\n"
 "This program should normally be started by root.\n"
 msgstr ""
 
-#: src/main.c:258
+#: src/main.c:241
 #, c-format
 msgid "User \"%s\": %s\n"
 msgstr "User “%s”: %s\n"
 
-#: src/main.c:260
+#: src/main.c:243
 msgid "User not found"
 msgstr ""
 
-#: src/main.c:262
+#: src/main.c:245
 #, c-format
 msgid ""
 "Error: This program was asked to run in the\n"
@@ -248,7 +255,7 @@ msgstr ""
 "this program in the security context of another\n"
 "user.\n"
 
-#: src/main.c:276
+#: src/main.c:259
 msgid ""
 "Error: This program is not supposed to keep root\n"
 "privileges. That is potentially very dangerous\n"
@@ -256,120 +263,120 @@ msgid ""
 "never been audited for security vulnerabilities).\n"
 msgstr ""
 
-#: src/main.c:293
+#: src/main.c:276
 #, c-format
 msgid "SetGID to group ID %u: %s\n"
 msgstr ""
 
-#: src/main.c:306
+#: src/main.c:289
 #, c-format
 msgid "SetUID to root: %s\n"
 msgstr ""
 
-#: src/main.c:351
+#: src/main.c:334
 #, c-format
 msgid ""
 "Cannot create PID file %s:\n"
 " %s\n"
 msgstr ""
 
-#: src/main.c:355 src/server.cpp:171
+#: src/main.c:338 src/server.cpp:170
 msgid "Make sure another instance of the program is not already running."
 msgstr ""
 
-#: src/main.c:462
+#: src/main.c:469
 #, c-format
 msgid "Reading configuration from %s: %s\n"
 msgstr ""
 
-#: src/miredo.cpp:212
+#: src/miredo.cpp:213
 #, c-format
 msgid "Loading configuration from %s failed"
 msgstr ""
 
-#: src/miredo.cpp:226
+#: src/miredo.cpp:227
 msgid "Starting..."
 msgstr ""
 
-#: src/miredo.cpp:266
+#: src/miredo.cpp:267
 #, c-format
 msgid "Exiting on signal %d (%s)"
 msgstr ""
 
-#: src/miredo.cpp:274
+#: src/miredo.cpp:275
 #, c-format
 msgid "Reloading configuration on signal %d (%s)"
 msgstr ""
 
-#: src/miredo.cpp:282
+#: src/miredo.cpp:283
 #, c-format
 msgid "Terminated (exit code: %d)"
 msgstr ""
 
-#: src/miredo.cpp:290
+#: src/miredo.cpp:291
 #, c-format
 msgid "Child %d killed by signal %d (%s)"
 msgstr ""
 
-#: src/miredo.cpp:298
+#: src/miredo.cpp:299
 msgid "Terminated with error(s)."
 msgstr ""
 
-#: src/miredo.cpp:300
+#: src/miredo.cpp:301
 msgid "Terminated with no error."
 msgstr ""
 
-#: src/relay.cpp:164
-msgid "Teredo pseudo-tunnel started"
-msgstr ""
-
-#: src/relay.cpp:166
-#, c-format
-msgid " (address: %s, MTU: %u)"
-msgstr ""
-
-#: src/relay.cpp:174
-msgid "Teredo pseudo-tunnel stopped"
-msgstr ""
-
-#: src/relay.cpp:282
+#: src/relay.cpp:257
 #, c-format
 msgid "Invalid relay type \"%s\" at line %u"
 msgstr "Invalid relay type “%s” at line %u"
 
-#: src/relay.cpp:305 src/relay.cpp:320 src/relay.cpp:336 src/relay.cpp:344
-#: src/relay.cpp:355 src/relay.cpp:381 src/server.cpp:112 src/server.cpp:120
-#: src/server.cpp:137
-msgid "Fatal configuration error"
+#: src/relay.cpp:296
+msgid "Teredo pseudo-tunnel started"
 msgstr ""
 
-#: src/relay.cpp:335 src/server.cpp:119
-msgid "Server address not specified"
+#: src/relay.cpp:298
+#, c-format
+msgid " (address: %s, MTU: %u)"
 msgstr ""
 
-#: src/relay.cpp:343
-msgid "Unsupported Teredo client mode"
+#: src/relay.cpp:317
+msgid "Teredo pseudo-tunnel stopped"
 msgstr ""
 
-#: src/relay.cpp:422 src/relay.cpp:456 src/relay.cpp:462 src/relay.cpp:505
+#: src/relay.cpp:328 src/relay.cpp:371 src/relay.cpp:505 src/relay.cpp:511
+#: src/relay.cpp:542
 #, c-format
 msgid "Miredo setup failure: %s"
 msgstr ""
 
-#: src/relay.cpp:423
-msgid "Cannot create IPv6 tunnel"
-msgstr ""
-
-#: src/relay.cpp:463 src/relay.cpp:506
+#: src/relay.cpp:329 src/relay.cpp:372 src/relay.cpp:512 src/relay.cpp:543
 msgid "libteredo cannot be initialized"
 msgstr ""
 
-#: src/server.cpp:102
+#: src/relay.cpp:395 src/relay.cpp:419 src/relay.cpp:428 src/relay.cpp:439
+#: src/relay.cpp:465 src/server.cpp:111 src/server.cpp:119 src/server.cpp:136
+msgid "Fatal configuration error"
+msgstr ""
+
+#: src/relay.cpp:418 src/server.cpp:118
+msgid "Server address not specified"
+msgstr ""
+
+#: src/relay.cpp:427
+msgid "Unsupported Teredo client mode"
+msgstr ""
+
+#: src/relay.cpp:506
+msgid "Cannot create IPv6 tunnel"
+msgstr ""
+
+#: src/server.cpp:101
 #, c-format
 msgid "Invalid server hostname \"%s\": %s"
 msgstr "Invalid server host name “%s”: %s"
 
-#: src/server.cpp:170
+#: src/server.cpp:169
 msgid "Teredo server fatal error"
 msgstr ""
 
