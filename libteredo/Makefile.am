@@ -25,29 +25,30 @@ AM_CPPFLAGS = -I@top_srcdir@/include -I@top_srcdir@ \
 	-D_REENTRANT -D_GNU_SOURCE -DLOCALEDIR=\"$(localedir)\"
 AM_CFLAGS = -std=c99
 
-LIBADD = $(LTLIBINTL) ../compat/libcompat.la
+LIBADD = $(LTLIBINTL) ../compat/libcompat.la libteredo-common.la
 
-noinst_LTLIBRARIES = libteredo-server.la
+noinst_LTLIBRARIES = libteredo-common.la libteredo-server.la
 lib_LTLIBRARIES = libteredo.la
 
 include_libteredodir = $(includedir)/libteredo
-include_libteredo_HEADERS = teredo.h tunnel.h
-common_SOURCES =	teredo.c teredo.h teredo-udp.h \
-			v4global.c v4global.h checksum.h
+include_libteredo_HEADERS = teredo.h teredo-udp.h tunnel.h
+
+# libteredo-common.la
+libteredo_common_la_SOURCES = teredo.c v4global.c v4global.h checksum.h
+libteredo_common_la_LDFLAGS = -no-undefined
 
 # libteredo.la
-libteredo_la_SOURCES =	$(common_SOURCES) init.c relay.c \
+libteredo_la_SOURCES =	init.c relay.c \
 			packets.c packets.h peerlist.c peerlist.h
 if TEREDO_CLIENT
 libteredo_la_SOURCES += security.c security.h maintain.c maintain.h \
 			md5.c md5.h
 endif
 libteredo_la_LIBADD = @LIBJUDY@ $(LIBADD)
-libteredo_la_LDFLAGS = -no-undefined -static
-# will be static as long as the API is not quite stabilized
+libteredo_la_LDFLAGS = -no-undefined
 
 # libteredo-server.la
-libteredo_server_la_SOURCES =	$(common_SOURCES) server.c server.h
+libteredo_server_la_SOURCES = server.c server.h
 libteredo_server_la_LIBADD = $(LIBADD)
 libteredo_server_la_LDFLAGS = -no-undefined -static
 # libteredo-server is static given it hardly make sense to reuse it
