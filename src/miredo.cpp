@@ -194,14 +194,12 @@ class MiredoSyslogConf : public MiredoConf
 		}
 };
 
-static const char *const ident = "miredo";
-
 
 extern "C" int
 miredo (const char *confpath, const char *server_name, int pidfd)
 {
 	int facility = LOG_DAEMON, retval;
-	openlog (ident, LOG_PID | LOG_PERROR, facility);
+	openlog (miredo_name, LOG_PID | LOG_PERROR, facility);
 
 	do
 	{
@@ -224,7 +222,7 @@ miredo (const char *confpath, const char *server_name, int pidfd)
 		{
 			closelog ();
 			facility = newfac;
-			openlog (ident, LOG_PID, facility);
+			openlog (miredo_name, LOG_PID, facility);
 		}
 		syslog (LOG_INFO, _("Starting..."));
 
