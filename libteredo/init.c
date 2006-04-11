@@ -49,7 +49,7 @@
  * -1 is also returned when use_client is true while libteredo was
  *  compiled without client support.
  */
-int libteredo_preinit (bool use_client)
+int teredo_startup (bool use_client)
 {
 	(void)bindtextdomain (PACKAGE_NAME, LOCALEDIR);
 
@@ -58,7 +58,7 @@ int libteredo_preinit (bool use_client)
 #ifdef MIREDO_TEREDO_CLIENT
 		if (InitHMAC ())
 		{
-			if (libteredo_init_nonce_generator () == 0)
+			if (teredo_init_nonce_generator () == 0)
 				return 0;
 			DeinitHMAC();
 		}
@@ -69,20 +69,20 @@ int libteredo_preinit (bool use_client)
 }
 
 /**
- * Releases resources allocated with libteredo_preinit().
- * Should be called as many times as libteredo_preinit() was called.
+ * Releases resources allocated with teredo_startup().
+ * Should be called as many times as teredo_startup() was called.
  * Thread-safe.
  *
- * @param use_client true if the matching libteredo_preinit call
+ * @param use_client true if the matching teredo_preinit call
  * had the use_client parameter set.
  */
-void libteredo_terminate (bool use_client)
+void teredo_cleanup (bool use_client)
 {
 #ifdef MIREDO_TEREDO_CLIENT
 	if (use_client)
 	{
 		DeinitHMAC ();
-		libteredo_deinit_nonce_generator ();
+		teredo_deinit_nonce_generator ();
 	}
 #else
 	assert (!use_client);

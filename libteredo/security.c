@@ -73,7 +73,7 @@ random_open (bool critical)
 
 
 int
-libteredo_init_nonce_generator (void)
+teredo_init_nonce_generator (void)
 {
 	bool ok;
 
@@ -97,7 +97,7 @@ libteredo_init_nonce_generator (void)
 
 
 void
-libteredo_deinit_nonce_generator (void)
+teredo_deinit_nonce_generator (void)
 {
 	pthread_mutex_lock (&nonce_mutex);
 	assert (refs > 0);
@@ -197,12 +197,12 @@ void DeinitHMAC (void)
 
 #define LIBTEREDO_HASH_LEN 16
 #if 0
-typedef struct libteredo_hmac
+typedef struct teredo_hmac
 {
 	uint16_t pid;  /* ICMPv6 Echo id */
 	uint16_t time; /* ICMPv6 Echo sequence */
 	unint8_t hash[LIBTEREDO_HASH_LEN]; /* ICMPv6 Echo payload */
-} libteredo_hmac;
+} teredo_hmac;
 #endif
 
 #if (LIBTEREDO_HASH_LEN + 4) != LIBTEREDO_HMAC_LEN

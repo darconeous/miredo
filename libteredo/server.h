@@ -26,25 +26,25 @@
 # define LIBTEREDO_SERVER_H
 
 
-typedef struct libteredo_server libteredo_server;
+typedef struct teredo_server teredo_server;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-int libteredo_server_check (char *errmsg, size_t len);
+int teredo_server_check (char *errmsg, size_t len);
 
-libteredo_server *libteredo_server_create (uint32_t ip1, uint32_t ip2);
+teredo_server *teredo_server_create (uint32_t ip1, uint32_t ip2);
 
-int libteredo_server_set_prefix (libteredo_server *s, uint32_t prefix);
-uint32_t libteredo_server_get_prefix (const libteredo_server *s);
-int libteredo_server_set_MTU (libteredo_server *s, uint16_t mtu);
-uint16_t libteredo_server_get_MTU (const libteredo_server *s);
+int teredo_server_set_prefix (teredo_server *s, uint32_t prefix);
+uint32_t teredo_server_get_prefix (const teredo_server *s);
+int teredo_server_set_MTU (teredo_server *s, uint16_t mtu);
+uint16_t teredo_server_get_MTU (const teredo_server *s);
 
-int libteredo_server_start (libteredo_server *s);
-void libteredo_server_stop (libteredo_server *s);
+int teredo_server_start (teredo_server *s);
+void teredo_server_stop (teredo_server *s);
 
-void libteredo_server_destroy (libteredo_server *s);
+void teredo_server_destroy (teredo_server *s);
 
 #ifdef __cplusplus
 }

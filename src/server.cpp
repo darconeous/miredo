@@ -61,7 +61,7 @@ static const cap_value_t capv[] =
 	CAP_KILL, /* required by the signal handler */
 	CAP_SETUID,
 	CAP_SYS_CHROOT,
-	CAP_NET_RAW /* required by libteredo_server */
+	CAP_NET_RAW /* required by teredo_server */
 };
 
 const cap_value_t *miredo_capv = capv;
@@ -72,7 +72,7 @@ extern "C" int
 miredo_diagnose (void)
 {
 	char buf[1024];
-	int check = libteredo_server_check (buf, sizeof (buf));
+	int check = teredo_server_check (buf, sizeof (buf));
 	if (check)
 	{
 		buf[sizeof (buf) - 1] = '\0';
@@ -85,7 +85,7 @@ miredo_diagnose (void)
 extern int
 miredo_run (MiredoConf& conf, const char *server_name)
 {
-	libteredo_server *server;
+	teredo_server *server;
 	union teredo_addr prefix;
 	uint32_t server_ip = INADDR_ANY, server_ip2 = INADDR_ANY;
 	uint16_t mtu = 1280;
@@ -140,16 +140,16 @@ miredo_run (MiredoConf& conf, const char *server_name)
 	conf.Clear (5);
 
 	// Sets up server (needs privileges to create raw socket)
-	server = libteredo_server_create (server_ip, server_ip2);
+	server = teredo_server_create (server_ip, server_ip2);
 
 	if (drop_privileges ())
 		return -1;
 
 	if (server != NULL)
 	{
-		if ((libteredo_server_set_prefix (server, *(uint32_t *)&prefix) == 0)
-		 && (libteredo_server_set_MTU (server, mtu) == 0)
-		 && (libteredo_server_start (server) == 0))
+		if ((teredo_server_set_prefix (server, *(uint32_t *)&prefix) == 0)
+		 && (teredo_server_set_MTU (server, mtu) == 0)
+		 && (teredo_server_start (server) == 0))
 		{
 			sigset_t set;
 			int dummy;
@@ -157,13 +157,13 @@ miredo_run (MiredoConf& conf, const char *server_name)
 			sigfillset (&set);
 			sigwait (&set, &dummy);
 
-			libteredo_server_stop (server);
-			libteredo_server_destroy (server);
+			teredo_server_stop (server);
+			teredo_server_destroy (server);
 
 			// parent's been signaled or died
 			return 0;
 		}
-		libteredo_server_destroy (server);
+		teredo_server_destroy (server);
 	}
 
 	syslog (LOG_ALERT, _("Teredo server fatal error"));

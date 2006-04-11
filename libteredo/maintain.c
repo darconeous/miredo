@@ -79,7 +79,7 @@ struct teredo_maintenance
 	struct
 	{
 		teredo_state state;
-		teredo_state_change cb;
+		teredo_state_cb cb;
 		void *opaque;
 	} state;
 	char *server;
@@ -454,8 +454,8 @@ static void *do_maintenance (void *opaque)
  * @return NULL on error.
  */
 teredo_maintenance *
-libteredo_maintenance_start (int fd, teredo_state_change cb, void *opaque,
-                             const char *s1, const char *s2)
+teredo_maintenance_start (int fd, teredo_state_cb cb, void *opaque,
+                          const char *s1, const char *s2)
 {
 	int err;
 	teredo_maintenance *m = (teredo_maintenance *)malloc (sizeof (*m));
@@ -519,9 +519,9 @@ libteredo_maintenance_start (int fd, teredo_state_change cb, void *opaque,
 
 /**
  * Stops and destroys a maintenance thread created by
- * libteredo_maintenance_start()
+ * teredo_maintenance_start()
  */
-void libteredo_maintenance_stop (teredo_maintenance *m)
+void teredo_maintenance_stop (teredo_maintenance *m)
 {
 	pthread_cancel (m->thread);
 	pthread_join (m->thread, NULL);
@@ -537,7 +537,7 @@ void libteredo_maintenance_stop (teredo_maintenance *m)
 /**
  * Passes a Teredo packet to a maintenance thread for processing.
  */
-void libteredo_maintenance_process (teredo_maintenance *m,
+void teredo_maintenance_process (teredo_maintenance *m,
                                     const teredo_packet *packet)
 {
 	(void)pthread_mutex_lock (&m->lock);

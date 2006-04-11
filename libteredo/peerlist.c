@@ -65,13 +65,13 @@ struct packet
 	uint8_t data[];
 };
 
-static const unsigned libteredo_MaxQueueBytes = 1280;
+static const unsigned teredo_MaxQueueBytes = 1280;
 
 
 static inline void teredo_peer_init (teredo_peer *peer)
 {
 	peer->queue = NULL;
-	peer->queue_left = libteredo_MaxQueueBytes;
+	peer->queue_left = teredo_MaxQueueBytes;
 }
 
 
@@ -115,7 +115,7 @@ void teredo_peer_dequeue (teredo_peer *peer, int fd,
 	/* lock peer */
 	packet *ptr = peer->queue;
 	peer->queue = NULL;
-	peer->queue_left = libteredo_MaxQueueBytes;
+	peer->queue_left = teredo_MaxQueueBytes;
 	/* unlock */
 
 	while (ptr != NULL)
