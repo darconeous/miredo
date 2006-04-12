@@ -1,30 +1,11 @@
-Started as a study by:
-Rémi Denis-Courmont <deniscr6 (at) cti (dot) ecp.fr>,
-engineering student at Ecole Centrale Paris, March-April 2004.
+Maintained by: Rémi Denis-Courmont <rdenis (at) simphalempin (dot) com>
 
-Maintained by Rémi Denis-Courmont <rdenis (at) simphalempin (dot) com>
+Based on a school work assignment from:
+  Rémi Denis-Courmont, student of general engineering,
+  sponsored by François-Xavier Potel,
+  École Centrale Paris, March-April 2004.
 
-Some parts that might fall under the Ecole Centrale Paris's large
-innovation protection rules for students were carefully stripped from the
-package, pending an agreement with the school's executives.
-
-
-The school namely preempts copyrights on works done either:
-
-1/ as part af the scholarship, _with_ the intervention of someone working for
-   the university:
-     That is the case for some additionnal (french) documentation written
-     about the study, which was supervised by François Xavier Potel, which I
-     thank a lot for his help along the initial project.
-
-     That is fortunately not really the case for the program's source code,
-     which I wrote entirely myself, without external help.
-
-2/ with knowledge, techniques and/or data specific to the school:
-     That is obviously not the case for any part of the program.
-
-3/ with means from the school:
-     To some extent, that might be true for testing material, as the school's
-     Internet connectivity was used for testing purpose. That includes most of
-     the packet captures (though not all of them) that I did.
-
+Included MD5 implementation by:
+  L. Peter Deutsch with minor modifications:
+  Copyright (C) 1999, 2000, 2002 Aladdin Enterprises.  All rights reserved.
+  (see libteredo/md5.c, libteredo/md5.h and libteredo/test/md5test.c)

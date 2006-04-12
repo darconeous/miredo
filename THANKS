@@ -1,23 +1,31 @@
-  I would like to thank every user of Miredo. The following people deserve
-particular thanks for their contribution to the project:
+  The following people deserve particular thanks for their contribution to the
+project (in chronological order):
+
+François-Xavier Potel
+	Support, help and good appreciation of the initial assignation at ECP.
 
 Gene Cronk
 	Extremely useful FreeBSD testing platform and shell.
-
-François-Xavier Potel
-	Support, help and good appreciation of the initial study at the
-	Ecole Centrale Paris, that lead to the creation of this program.
 
 Laurent Granger
 	Some testing of the server and relay with Windows XP's client.
 
 Michael H. Warfield
-	Compilation fix on RedHat 7.3,
-	Testing.
+	Compilation fix on RedHat 7.3, testing.
 
 Vladimir Kotal
-	Compilation fix on FreeBSD.
+	FreeBSD compilation fix.
 
 Guy Thornley
 	Bug fix for clients to clients communication.
 
+Richard Bejtlich
+	FreeBSD testing and bug reports.
+
+Rui Paulo
+	NetBSD port and compilation fixes.
+
+Marco d'Itri (ITGate)
+	Big scale testing.
+
+$Id$
