@@ -1,4 +1,10 @@
 /*
+ * md5test.c - MD5 hash unit test
+ * $Id$
+ *
+ * Modified by Rémi Denis-Courmont for use with Miredo.
+ */
+/*
   Copyright (C) 2002 Aladdin Enterprises.  All rights reserved.
 
   This software is provided 'as-is', without any express or implied
