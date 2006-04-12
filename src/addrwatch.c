@@ -28,6 +28,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 #include <sys/types.h>
 #include <unistd.h>
@@ -46,8 +47,9 @@ struct miredo_addrwatch
 
 	void (*callback) (void *opaque, int up);
 	void *callback_data;
-	int self_scope, status;
+	int self_scope;
 	int if_inet6_fd;
+	bool status;
 };
 
 #ifdef __linux__
@@ -76,7 +78,7 @@ static void *addrwatch (void *opaque)
 			goto wait;
 
 		char *ptr = buf, *next;
-		int found = 0;
+		bool found = false;
 		while ((next = memchr (ptr, '\n', val)) != NULL)
 		{
 			*next++ = '\0';
@@ -89,7 +91,7 @@ static void *addrwatch (void *opaque)
 			{
 				if ((id != data->self_scope) && ((p & 0xe000) == 0x2000))
 				{
-					found = 1;
+					found = true;
 					break;
 				}
 			}
@@ -147,8 +149,15 @@ miredo_addrwatch *miredo_addrwatch_start (int self_scope)
 	int fd = open ("/proc/net/if_inet6", O_RDONLY);
 	if (fd != -1)
 	{
+		int flags = fcntl (fd, F_GETFL);
+		if (flags == -1)
+			flags = 0;
+		fcntl (fd, F_SETFL, O_NONBLOCK | flags);
+		fcntl (fd, F_SETFD, FD_CLOEXEC);
+
 		data->if_inet6_fd = fd;
 		data->self_scope = self_scope;
+		data->status = true;
 
 		if (pthread_create (&data->thread, NULL, addrwatch, data) == 0)
 			return data;
@@ -197,12 +206,12 @@ int miredo_addrwatch_available (miredo_addrwatch *self)
 {
 	assert (self != NULL);
 
-	int val;
+	bool val;
 
 	pthread_mutex_lock (&self->mutex);
 	val = self->status;
 	pthread_mutex_unlock (&self->mutex);
-	return (val != -1) ? val : 0;
+	return val ? 1 : 0;
 }
 
 #else /* ifdef __linux__ */
