@@ -448,6 +448,7 @@ teredo_server *teredo_server_create (uint32_t ip1, uint32_t ip2)
 			//shutdown (fd, SHUT_RD); -- won't work
 			fcntl (raw_fd, F_SETFL,
 			       O_NONBLOCK | ((flags != -1) ? flags : 0));
+			fcntl (raw_fd, F_SETFD, FD_CLOEXEC);
 		}
 	}
 	pthread_mutex_unlock (&raw_mutex);

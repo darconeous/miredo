@@ -37,6 +37,7 @@
 #include <unistd.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <fcntl.h> // fcntl()
 #if HAVE_SYS_CAPABILITY_H
 # include <sys/capability.h>
 #endif
@@ -59,6 +60,9 @@ miredo_privileged_process (struct tun6 *tunnel)
 	int fd[2];
 	if (socketpair (AF_LOCAL, SOCK_STREAM, 0, fd))
 		return -1;
+
+	fcntl (fd[0], F_SETFD, FD_CLOEXEC);
+	fcntl (fd[1], F_SETFD, FD_CLOEXEC);
 
 	switch (fork ())
 	{
