@@ -63,7 +63,6 @@ const struct in6_addr teredo_cone =
 int teredo_socket (uint32_t bind_ip, uint16_t port)
 {
 	struct sockaddr_in myaddr;
-	int fd, flags;
 
 	memset (&myaddr, 0, sizeof (myaddr));
 	myaddr.sin_family = AF_INET;
@@ -73,16 +72,26 @@ int teredo_socket (uint32_t bind_ip, uint16_t port)
 	myaddr.sin_len = sizeof (myaddr);
 #endif
 
-	fd = socket (AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+	int fd = socket (AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	if (fd == -1)
 		return -1; // failure
 
-	flags = fcntl (fd, F_GETFL, 0);
-	if (flags != -1)
-		fcntl (fd, F_SETFL, O_NONBLOCK | flags);
+	fcntl (fd, F_SETFD, FD_CLOEXEC);
+
+	int flags = fcntl (fd, F_GETFL, 0);
+	if (flags == -1)
+		flags = 0;
+	if (fcntl (fd, F_SETFL, O_NONBLOCK | flags))
+	{
+		close (fd);
+		return -1;
+	}
 
 	if (bind (fd, (struct sockaddr *)&myaddr, sizeof (myaddr)))
+	{
+		close (fd);
 		return -1;
+	}
 
 	flags = 1;
 	setsockopt (fd, SOL_SOCKET, SO_REUSEADDR, &flags, sizeof (flags));
