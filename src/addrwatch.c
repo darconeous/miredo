@@ -45,14 +45,11 @@ struct miredo_addrwatch
 	pthread_mutex_t mutex;
 	pthread_cond_t cond;
 
-	void (*callback) (void *opaque, int up);
-	void *callback_data;
 	int self_scope;
 	int if_inet6_fd;
 	bool status;
 };
 
-#ifdef __linux__
 /*
  * This thread is not supposed to be canceled.
  * It stops when cond is signaled.
@@ -87,7 +84,7 @@ static void *addrwatch (void *opaque)
 			unsigned p;
 			int id;
 
-			if (sscanf (ptr, "%04x%*s %d", &p, &id) == 2)
+			if (sscanf (ptr, "%04x%*s %02x", &p, &id) == 2)
 			{
 				if ((id != data->self_scope) && ((p & 0xe000) == 0x2000))
 				{
@@ -98,16 +95,11 @@ static void *addrwatch (void *opaque)
 			ptr = next;
 		}
 
-		/* Notify of status change */
-		if (data->status != found)
-		{
-			data->status = found;
-			if (data->callback != NULL)
-				data->callback (data->callback_data, found);
-		}
+		/* Update status */
+		data->status = found;
 
 	wait:
-		deadline.tv_sec += 2;
+		deadline.tv_sec += 5;
 
 		do
 		{
@@ -175,36 +167,17 @@ void miredo_addrwatch_stop (miredo_addrwatch *data)
 {
 	assert (data != NULL);
 
-	(void)pthread_mutex_lock (&data->mutex);
-	(void)pthread_cond_signal (&data->cond);
-	(void)pthread_mutex_unlock (&data->mutex);
-
-	(void)pthread_join (data->thread, NULL);
-	(void)pthread_mutex_destroy (&data->mutex);
-	(void)pthread_cond_destroy (&data->cond);
 	(void)close (data->if_inet6_fd);
 	free (data);
 }
 
 /**
- * Defines a callback to be called whenever a state change is detected.
- * The callback cannot perform any operation on the calling mireod_addrwatch
- * structure (this is a deadlock condition).
+ * @return the current addrwatch state (true or false).
  */
-void miredo_addrwatch_set_callback (miredo_addrwatch *self,
-                                    void (*cb) (void *, int), void *opaque)
-{
-	assert (self != NULL);
-
-	pthread_mutex_lock (&self->mutex);
-	self->callback = cb;
-	self->callback_data = opaque;
-	pthread_mutex_unlock (&self->mutex);
-}
-
 int miredo_addrwatch_available (miredo_addrwatch *self)
 {
-	assert (self != NULL);
+	if (self == NULL)
+		return 0;
 
 	bool val;
 
@@ -213,32 +186,3 @@ int miredo_addrwatch_available (miredo_addrwatch *self)
 	pthread_mutex_unlock (&self->mutex);
 	return val ? 1 : 0;
 }
-
-#else /* ifdef __linux__ */
-
-miredo_addrwatch *miredo_addrwatch_start (int self_scope)
-{
-	(void)self_scope;
-	return (miredo_addrwatch *)miredo_addrwatch_start;
-}
-
-void miredo_addrwatch_stop (miredo_addrwatch *self)
-{
-	assert (self != NULL);
-}
-
-int miredo_addrwatch_available (miredo_addrwatch *self)
-{
-	assert (self != NULL);
-	return 0;
-}
-
-void miredo_addrwatch_set_callback (miredo_addrwatch *self,
-                                    void (*cb) (void *, int), void *opaque)
-{
-	assert (self != NULL);
-	(void)cb;
-	(void)opaque;
-}
-
-#endif
