@@ -1,5 +1,5 @@
 .\" ***********************************************************************
-.\" *  Copyright Â© 2004-2006 RÃ©mi Denis-Courmont.                         *
+.\" *  Copyright © 2004-2006 Rémi Denis-Courmont.                         *
 .\" *  This program is free software; you can redistribute and/or modify  *
 .\" *  it under the terms of the GNU General Public License as published  *
 .\" *  by the Free Software Foundation; version 2 of the license.         *
@@ -27,9 +27,10 @@ with the "Teredo: Tunneling IPv6 over UDP through NATs" Internet
 proposed standard (RFC 4380). It can provide either Teredo client or
 Teredo relay functionnality.
 
-It can be used to provide IPv6 connectivity to users behind NAT which
-do not support IPv6, and not even proto-41 forwarding. For this to
-work, users need to have a Teredo client running on their system.
+This is mostly useful to provide IPv6 connectivity to users behind NAT,
+most of which do not support IPv6 at all. Many NATs do not even support
+.IR "proto-41" " forwarding, so it is not possible to set up a " "6to4"
+.RI "or point-to-point " "IPv6-over-IPv4" " tunnel through them."
 
 A Teredo relay is an IPv6 router which forwards IPv6 packets between
 the IPv6 Internet and Teredo clients by encapsulating these IPv6
@@ -135,7 +136,7 @@ The process-id file.
 miredo.conf(5), miredo-server(8), ipv6(7), route(8), ip(8)
 
 .SH AUTHOR
-Remi Denis-Courmont <rdenis at simphalempin.com>
+Rémi Denis-Courmont <rdenis at simphalempin.com>
 
 $Id$
 
