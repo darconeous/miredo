@@ -26,6 +26,7 @@
 #include <stdio.h>
 #include <syslog.h> /* TODO: do not use syslog within the library */
 #include "tun6.h"
+#include <net/if.h>
 
 static const char *invalid_name =
 	"Overly-long-interface-name-that-will-not-work";
@@ -61,7 +62,12 @@ int main (void)
 	t = tun6_create ("diagnose");
 	if (t == NULL)
 		return 1;
+	unsigned id = tun6_getId (t);
+	if ((id == 0) || (if_nametoindex ("diagnose") != id))
+		res = -1;
 	tun6_destroy (t);
+	if (res)
+		return 1;
 
 	closelog ();
 	return 0;
