@@ -1,5 +1,5 @@
 /*
- * strlcpy.c - strlcpy() replacement
+ * test-strlcpy.c - strlcpy() replacement test
  * $Id$
  */
 
@@ -19,20 +19,25 @@
  *  http://www.gnu.org/copyleft/gpl.html                               *
  ***********************************************************************/
 
-#include <stddef.h>
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
 
-extern size_t strlcpy (char *tgt, const char *src, size_t bufsize)
+#include <string.h>
+
+int main (void)
 {
-	size_t length;
+	char buf[6];
 
-	for (length = 1; (length < bufsize) && *src; length++)
-		*tgt++ = *src++;
-
-	if (bufsize)
-		*tgt = '\0';
-
-	while (*src++)
-		length++;
-
-	return length;
+	return (
+	    (strlcpy (NULL, "1234", 0) != 5)
+	 || (strlcpy (buf, "1234", 0) != 5)
+	 || (strlcpy (buf, "1234", 1) != 5)
+	 || strcmp (buf, "")
+	 || (strlcpy (buf, "1234", 4) != 5)
+	 || strcmp (buf, "123")
+	 || (strlcpy (buf, "1234", 5) != 5)
+	 || strcmp (buf, "1234")
+	 || (strlcpy (buf, "1234", 6) != 5)
+	 || strcmp (buf, "1234"));
 }

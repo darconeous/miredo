@@ -20,8 +20,12 @@
 AM_CPPFLAGS = -D_REENTRANT -D_GNU_SOURCE
 AM_CFLAGS = -std=c89
 
+noinst_HEADERS = barrier.h pselect.h
 noinst_LTLIBRARIES = libcompat.la
 libcompat_la_SOURCES = dummy.c
 libcompat_la_LIBADD = $(LTLIBOBJS)
 
-noinst_HEADERS = barrier.h pselect.h
+check_PROGRAMS = test-strlcpy
+TESTS = $(check_PROGRAMS)
+test_strlcpy_SOURCES = test-strlcpy.c
+test_strlcpy_LDADD = libcompat.la
