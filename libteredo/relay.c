@@ -177,10 +177,9 @@ static void
 teredo_state_change (const teredo_state *state, void *self)
 {
 	teredo_tunnel *tunnel = (teredo_tunnel *)self;
-	bool previously_up;
 
 	pthread_rwlock_wrlock (&tunnel->state_lock);
-	previously_up = tunnel->state.up;
+	bool previously_up = tunnel->state.up;
 	memcpy (&tunnel->state, state, sizeof (tunnel->state));
 
 	if (tunnel->state.up)
@@ -930,6 +929,7 @@ teredo_tunnel *teredo_create (uint32_t ipv4, uint16_t port)
 	 */
 	tunnel->state.addr.teredo.client_port = ~port;
 	tunnel->state.addr.teredo.client_ip = ~ipv4;
+	tunnel->state.up = false;
 
 	tunnel->recv_cb = teredo_dummy_recv_cb;
 	tunnel->icmpv6_cb = teredo_dummy_icmpv6_cb;
