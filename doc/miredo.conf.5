@@ -32,9 +32,9 @@ directives follows:
 .SH MODES
 
 .TP
-.BR "RelayType" " (" "client" "|" "cone" "|" "restricted" ")"
+.BR "RelayType" " (" "client" "|" "cone" "|" "restricted" "|" "autoclient" ")"
 Specifies what type of Teredo relay/client Miredo will serve as.
-There are three possible choices:
+There are four possible choices:
 
 .TP
 .BR "client" " mode (the default)"
@@ -49,10 +49,8 @@ IPv6 Internet as well as Teredo clients.
 The use of Miredo as a Teredo client allows nodes to get an IPv6
 connectivity from behind a NAT router device, as it tunnels IPv6
 packets over UDP/IPv4 with special support for NAT routers. Routers of
-that kind usually only forward TCP, UDP and ICMP over IPv4 packets
-.RB "(with some limitation), so that " "6to4 tunneling" " and "
-.BR "Proto-41 " "forwarding cannot be used to reach the IPv6 Internet"
-from behind them.
+that kind usually only forward TCP, UDP, and some ICMP, IPv4 packets
+(with some limitation).
 
 .BR "NOTE:" " Use of " "Miredo" " as a"
 .IR "Teredo client" " is possible even if the system already has IPv6"
@@ -60,6 +58,13 @@ connectivity through another way (native, 6to4, TSP, etc). In that
 case, Miredo will only be used to reach other Teredo clients, as its
 tunneling interface has a default route with a higher metric (which is
 to say a lower priority) than the other network interfaces.
+
+.TP
+.BR "autoclient" " mode"
+.RB "In " "autoclient" " mode, " "Miredo" " acts as a "
+.IR "Teredo client" " provided there is no other IPv6-enabled network"
+interfaces. Whenever it detects the availability of global IPv6
+connectivity through another interface, it stops its Teredo tunnel.
 
 .TP
 .BR "cone" " mode"
@@ -71,8 +76,8 @@ Teredo clients.
 
 .IR "Teredo relays" " forward IPv6 packets between " "Teredo clients"
 .RB "and the IPv6 Internet. For that to work, Teredo relays " "MUST"
-have a working IPv6 connectivity through a way other than Teredo
-tunneling.
+have a working IPv6 connectivity through a way distinct from Teredo
+tunneling (native, 6to4, ISATAP, etc).
 
 This mode can only be used if the node has a public IPv4 address or if
 .RI "it is behind a NAT router of " "cone" " type. If the type of NAT "
@@ -84,9 +89,9 @@ This mode can only be used if the node has a public IPv4 address or if
 .IR "Teredo relay" ", as in " "cone" " mode. However, optimizations "
 for Teredo relaying from behind a cone NAT are disabled.
 
-.BR "NOTE:" " NAT devices of type"
-.IR "symmetric" " are not supported by the " "Teredo protocol" "."
-.RB "Miredo " "cannot" " be used from behind that kind of NAT routers."
+.BR "Warning:" " Miredo " "must not" " be used as a Teredo relay from"
+.RI "behind " "symmetric" " NAT routers. These NAT devices are not"
+supported by the Teredo protocol.
 
 .SH CLIENT OPTIONS
 .RI "The following directives are only available in " "client" " mode."
@@ -108,7 +113,6 @@ the command line when starting miredo either, the program will fail.
 Miredo assumes that the secondary Teredo server address equals the
 primary server address plus one. If that is not the case, this
 directive must be used.
-
 
 .SH RELAY OPTIONS
 .RI "The following directive is only available in " "cone" " and "
@@ -159,7 +163,7 @@ Use this option if you have firewalling constraints which can cause
 Miredo to fail when not using a fixed predefined port.
 
 .TP
-.BI "IgnoreConeBit "true/false"
+.BI "IgnoreConeBit " "true/false"
 Unless this option is disabled (ie. set to false), Miredo will ignore
 .RI " the " "cone bit" " of other Teredo clients. That is thought to "
 improve reliability, at the expense of additionnal latencies while
