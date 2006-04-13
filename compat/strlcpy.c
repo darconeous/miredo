@@ -22,20 +22,18 @@
 #include <stddef.h>
 #include <string.h>
 
-extern size_t strlcpy (char *tgt, const char *src, size_t len)
+extern size_t strlcpy (char *tgt, const char *src, size_t bufsize)
 {
-	size_t olen;
+	size_t length;
 
-	if (len < 1)
-		return strlen (src);
-	len--;
-
-	for (olen = 0; *src && (olen < len); olen++)
+	for (length = 0; *src && (length < bufsize); length++)
 		*tgt++ = *src++;
 
-	tgt[len] = '\0';
-	while (*src++)
-		olen++;
+	if (bufsize)
+		*tgt = '\0';
 
-	return olen;
+	while (*src++)
+		length++;
+
+	return length;
 }
