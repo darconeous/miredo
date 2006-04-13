@@ -1,92 +1,21 @@
-#
 # Sample configuration file for miredo-server
-# by Remi Denis-Courmont
 # $Id$
-#
 
-#
-# Syslog facility to use
-# (see miredo.conf(5) manpage for possible values)
-#
-# Defaults: SyslogFacility daemon
-# Example:  SyslogFacility local4
-#
-#SyslogFacility user
+# Please refer to the miredo-server.conf(5) manpage for details.
 
-#
-# Teredo IPv6 prefix (32 bits)
-# The Teredo server will advertise this prefix to Teredo clients.
-# The Teredo relay needs know the prefix if ServerAddress is not set.
-#
-# For this to work, the specified prefix must be advertised world-wide
-# by one or several Teredo relays through BGP. If it is not the case
-# Teredo clients will not be reachable and won't have access to the
-# IPv6 Internet.
-#
-# Defaults: Prefix 2001:0::
-# Example:  Prefix 2001:0::
-#
-######################### BIG FAT WARNING !!! #########################
-# The Teredo client on Microsoft Windows XP SP2 (or SP1 with Advanced #
-# Networking Pack) does not seem to accept prefix other than the      #
-# experimental and formerly Miredo's default: 3ffe:831f::. With no    #
-# updates, Windows-based Teredo clients will refuse to work with a    #
-# Miredo server, unless the prefix is set back to its old value.      #
-#                                                                     #
-# On the other hand, the old experimental value will obviously fail   #
-# from the 6th June 2006 on, as the 6bone will be phased out.         #
-#######################################################################
-#
-#Prefix 2001:0::
-
-#
-# MTU of the networking interface (in bytes)
-# 
-# It *SHOULD* normally be 1280 bytes. If you use another (bigger)
-# value, you'd have to ensure that all Teredo servers & manually
-# configured relays using the same Teredo prefix as you, have the same
-# MTU value in their configuration. Teredo clients will either default
-# to a MTU of 1280 bytes or use the MTU specified by the Teredo server
-# (as of Miredo version 0.4.4). Don't alter this setting unless you
-# know what you are doing.
-#
-# MTU below 1280 bytes are illegal for any kind of IPv6 interface.
-#
-# Defaults: InterfaceMTU 1280
-# Example:  InterfaceMTU 1452
-#
-#InterfaceMTU 1280
-
-#
-# Server primary IPv4 address
-#
-# To run Miredo as a Teredo server, you need two public IPv4 addresses
-# (see ServerBindAddress2 below).
-# Miredo will open UDP port 3544 on both addresses. If the specified
-# address is not assigned to the system, or if the next address is not
-# assigned to the system, Miredo will fail to start.
-#
-# Defaults: disabled
-# Example:  ServerBindAddress 192.0.2.221
-#
+# Server primary IPv4 address.
+# Two public IPv4 addresses are needed to operate a Teredo server.
+# Miredo will open UDP port 3544 on both addresses.
 ServerBindAddress 192.0.2.221
 
-#
-# Server secondary IPv4 address
-#
-# In fact, Microsoft Windows Teredo client implementation assumes that
-# the secondary address is the primary address plus one (for the sake
-# of ease-of-use, Miredo's Teredo client has a similar behavior by
-# default). Hence, it is believed that if you use a secondary server
-# address that is different from the primary address plus one
-# (as in 192.0.2.221 + 1 = 192.0.2.222) that Teredo clients running on
-# Windows XP (at least those from behind restricted NAT) won't be able
-# to qualify with your server. Those running Miredo will need to set
-# the ServerAddress2 option properly. It is only available in Miredo
-# version 0.4.3 and bigger.
-#
-# Defaults: automatically use ServerBindAddress + 1
-# Example:  ServerBindAddress2 192.0.2.222
-#
+# Server secondary IPv4 address.
+# The Microsoft Windows Teredo client implementation assumes that the
+# secondary address is the primary address plus one. This is the
+# default unless uncommented.
 #ServerBindAddress2 192.0.2.222
 
+#SyslogFacility user
+
+# Think twice before modifying the settings above.
+#Prefix 2001:0::
+#InterfaceMTU 1280

@@ -1,48 +1,28 @@
 # Sample configuration file for Miredo
-# by Remi Denis-Courmont
 # $Id$
 
-# Name of the network interface.
+# Please refer to the miredo.conf(5) man page for details.
+
+# Miredo can safely run as a Teredo client, which is the default.
+#RelayType client
+
+# Name of the network tunneling interface.
 InterfaceName	teredo
 
-# You might need to set the following values explicitly depending on
-# your firewall/NAT settings. BindPort is particularly useful when
-# using manual UDP port forwarding rules on NAT boxes. By default,
-# the kernel can assign any available UDP port.
+# Depending on the local firewall/NAT rules, you might need to force
+# Miredo to use a fixed UDP port and or IPv4 address.
 #BindPort	3545
-#BindAddress	0.0.0.0
+#BindAddress	192.0.2.100
 
-# For additionnal options, see the miredo.conf(5) man page.
 #SyslogFacility	user
 #IgnoreConeBit	false
 
-# By default, Miredo runs as a Teredo client, which should be safe in
-# any case, including if there is another -supposedly better- interface
-# from which to access the IPv6 Internet. Please refer to the
-# miredo.conf(5) man page for details and other available modes.
-#RelayType client
-
-
 ## CLIENT-SPECIFIC OPTIONS
-
 # The hostname or primary IPv4 address of the Teredo server.
-# This setting is *REQUIRED* if Miredo runs as a Teredo client.
+# This setting is required if Miredo runs as a Teredo client.
 ServerAddress teredo.remlab.net
-
-# Known public Teredo servers (as of March 2006):
-#  - teredo.ipv6.microsoft.com (defaults on Microsoft Windows)
-#  - teredo.autotrans.consulintel.com (another Windows-based server)
-#  - teredo.remlab.net (Linux-based Miredo testing server)
-#  - 203.233.154.10 (unknown buggy server)
-# See also http://www.sixxs.net/tools/aiccu/brokers/
-
-# For additionnal options, see the miredo.conf(5) man page.
 #ServerAddress2 teredo2.remlab.net
 
-
 ## RELAY-SPECIFIC OPTIONS
-
-# You should not (have to) change any of these options.
-# See the miredo.conf(5) man page for details.
 #Prefix 2001:0::
 #InterfaceMTU 1280
