@@ -197,7 +197,7 @@ ParseRelayType (MiredoConf& conf, const char *name, int *type)
 
 	if (strcasecmp (val, "client") == 0)
 		*type = TEREDO_CLIENT;
-	if (strcasecmp (val, "autoclient") == 0)
+	else if (strcasecmp (val, "autoclient") == 0)
 		*type = TEREDO_EXCLIENT;
 	else if (strcasecmp (val, "cone") == 0)
 		*type = TEREDO_CONE;
