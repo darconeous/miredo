@@ -30,14 +30,14 @@ int main (void)
 	char buf[6];
 
 	return (
-	    (strlcpy (NULL, "1234", 0) != 5)
-	 || (strlcpy (buf, "1234", 0) != 5)
-	 || (strlcpy (buf, "1234", 1) != 5)
+	    (strlcpy (NULL, "1234", 0) != 4)
+	 || (strlcpy (buf, "1234", 0) != 4)
+	 || (strlcpy (buf, "1234", 1) != 4)
 	 || strcmp (buf, "")
-	 || (strlcpy (buf, "1234", 4) != 5)
+	 || (strlcpy (buf, "1234", 4) != 4)
 	 || strcmp (buf, "123")
-	 || (strlcpy (buf, "1234", 5) != 5)
+	 || (strlcpy (buf, "1234", 5) != 4)
 	 || strcmp (buf, "1234")
-	 || (strlcpy (buf, "1234", 6) != 5)
+	 || (strlcpy (buf, "1234", 6) != 4)
 	 || strcmp (buf, "1234"));
 }

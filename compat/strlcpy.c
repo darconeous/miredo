@@ -37,5 +37,5 @@ extern size_t strlcpy (char *tgt, const char *src, size_t bufsize)
 	while (*src++)
 		length++;
 
-	return length;
+	return length - 1;
 }
