@@ -40,7 +40,6 @@
 #include <sys/wait.h> // wait()
 #include <sys/select.h> // pselect()
 #include <signal.h> // sigemptyset()
-#include <fcntl.h> // fcntl()
 #include <compat/pselect.h>
 #include <syslog.h>
 
@@ -123,13 +122,9 @@ static int miredo_init (bool client)
 	if (icmp6_fd == -1)
 		return -1;
 
-	fcntl (icmp6_fd, F_SETFD, FD_CLOEXEC);
-	int val = fcntl (icmp6_fd, F_GETFL);
-	if (val == -1)
-		val = 0;
-	fcntl (icmp6_fd, F_SETFL, O_NONBLOCK | val);
+	miredo_setup_nonblock_fd (icmp6_fd);
 
-	val = 2;
+	int val = 2;
 	setsockopt (icmp6_fd, SOL_IPV6, IPV6_CHECKSUM, &val, sizeof (val));
 
 	/* We don't use the socket for receive -> block all */

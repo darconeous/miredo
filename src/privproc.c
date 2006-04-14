@@ -45,6 +45,7 @@
 #include <libtun6/tun6.h>
 #include <libteredo/teredo.h>
 
+#include "miredo.h"
 #include "privproc.h"
 
 struct miredo_tunnel_settings
@@ -61,8 +62,8 @@ miredo_privileged_process (struct tun6 *tunnel)
 	if (socketpair (AF_LOCAL, SOCK_STREAM, 0, fd))
 		return -1;
 
-	fcntl (fd[0], F_SETFD, FD_CLOEXEC);
-	fcntl (fd[1], F_SETFD, FD_CLOEXEC);
+	miredo_setup_fd (fd[0]);
+	miredo_setup_fd (fd[1]);
 
 	switch (fork ())
 	{
