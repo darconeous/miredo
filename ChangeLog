@@ -1,4 +1,1785 @@
 ------------------------------------------------------------------------
+r1253 | remi | 2006-04-14 23:00:34 +0200 (Fri, 14 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/NEWS
+
+NEWS for upcoming release 0.8.2
+
+------------------------------------------------------------------------
+r1252 | remi | 2006-04-14 22:46:05 +0200 (Fri, 14 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/po/en.po
+   M /trunk/po/en_GB.po
+   M /trunk/po/fr.po
+   M /trunk/po/miredo.pot
+
+Update PO files for 0.8.2 release
+
+------------------------------------------------------------------------
+r1251 | remi | 2006-04-14 19:18:36 +0200 (Fri, 14 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.c
+
+Document teredo_register_readset()
+
+------------------------------------------------------------------------
+r1250 | remi | 2006-04-14 18:40:28 +0200 (Fri, 14 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/libtun6/diagnose.c
+
+Another OpenBSD compile fix
+
+------------------------------------------------------------------------
+r1249 | remi | 2006-04-14 18:38:43 +0200 (Fri, 14 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/compat/strlcpy.c
+   M /trunk/compat/test-strlcpy.c
+
+Fix strlcpy() again. It didn't match the official OpenBSD semantics.
+
+------------------------------------------------------------------------
+r1248 | remi | 2006-04-14 18:28:57 +0200 (Fri, 14 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/libteredo/teredo-udp.h
+
+Warning fix
+
+------------------------------------------------------------------------
+r1247 | remi | 2006-04-14 18:27:36 +0200 (Fri, 14 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/libtun6/tun6.c
+
+OpenBSD compile fix
+
+------------------------------------------------------------------------
+r1246 | remi | 2006-04-14 18:25:34 +0200 (Fri, 14 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/configure.ac
+
+Cosmetic fix
+
+------------------------------------------------------------------------
+r1245 | remi | 2006-04-14 18:18:16 +0200 (Fri, 14 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/src/miredo.h
+
+Fix compilation with libcap and client support
+
+------------------------------------------------------------------------
+r1244 | remi | 2006-04-14 18:17:49 +0200 (Fri, 14 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/compat
+
+svn:ignore for strlcpy unit test
+
+------------------------------------------------------------------------
+r1243 | remi | 2006-04-14 18:12:29 +0200 (Fri, 14 Apr 2006) | 3 lines
+Changed paths:
+   M /trunk/libteredo/Makefile.am
+   A /trunk/libteredo/debug.h
+   M /trunk/libteredo/maintain.c
+   M /trunk/libteredo/peerlist.c
+   M /trunk/libteredo/relay.c
+   M /trunk/libteredo/security.c
+   M /trunk/libteredo/server.c
+
+Commoditize pthread_mutex Linux-specific debugging
+and use it everywhere in libteredo
+
+------------------------------------------------------------------------
+r1242 | remi | 2006-04-14 13:24:56 +0200 (Fri, 14 Apr 2006) | 3 lines
+Changed paths:
+   M /trunk/libteredo/relay.c
+
+Compute ICMPv6 rate limiting per tunnel instance
+(it was previously static)
+
+------------------------------------------------------------------------
+r1241 | remi | 2006-04-14 13:03:58 +0200 (Fri, 14 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/src/addrwatch.c
+   M /trunk/src/addrwatch.h
+   M /trunk/src/relay.cpp
+
+Use a pipe instead of a timeout to signal addrwatch state changes
+
+------------------------------------------------------------------------
+r1240 | remi | 2006-04-14 12:42:30 +0200 (Fri, 14 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/src/miredo.cpp
+   M /trunk/src/relay.cpp
+
+Move the previous new functions to miredo only (ie. out of miredo-server)
+
+------------------------------------------------------------------------
+r1239 | remi | 2006-04-14 11:50:12 +0200 (Fri, 14 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/src/privproc.c
+   M /trunk/src/relay.cpp
+
+Use miredo_setup_(nonblock_)fd() from previous commit
+
+------------------------------------------------------------------------
+r1238 | remi | 2006-04-14 11:47:05 +0200 (Fri, 14 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/src/miredo.cpp
+   M /trunk/src/miredo.h
+
+Commoditize close-on-exec and non-blocking flags settings
+
+------------------------------------------------------------------------
+r1237 | remi | 2006-04-14 08:39:20 +0200 (Fri, 14 Apr 2006) | 3 lines
+Changed paths:
+   M /trunk/compat/clearenv.c
+   M /trunk/compat/closefrom.c
+   M /trunk/compat/pselect.c
+   M /trunk/compat/strlcpy.c
+
+Warning fixes: #include <config.h>
+to ensure declaration and definition prototypes match
+
+------------------------------------------------------------------------
+r1236 | remi | 2006-04-14 08:33:49 +0200 (Fri, 14 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/src/checkconf.cpp
+
+Compiler warning fix
+
+------------------------------------------------------------------------
+r1235 | remi | 2006-04-14 08:31:33 +0200 (Fri, 14 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/compat/closefrom.c
+
+ICC compile fix
+
+------------------------------------------------------------------------
+r1234 | remi | 2006-04-13 23:21:28 +0200 (Thu, 13 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.c
+
+Make valgrind happy
+
+------------------------------------------------------------------------
+r1233 | remi | 2006-04-13 19:47:21 +0200 (Thu, 13 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/doc/miredo-server.conf.5
+
+Fix typo
+
+------------------------------------------------------------------------
+r1232 | remi | 2006-04-13 19:43:04 +0200 (Thu, 13 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/misc/miredo-server.conf-dist
+   M /trunk/misc/miredo.conf-dist
+
+Simplify sample configuration a lot
+
+------------------------------------------------------------------------
+r1231 | remi | 2006-04-13 16:38:16 +0200 (Thu, 13 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/TODO
+   M /trunk/doc/miredo.conf.5
+
+Document autoclient mode
+
+------------------------------------------------------------------------
+r1230 | remi | 2006-04-13 16:19:02 +0200 (Thu, 13 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/doc/miredo-checkconf.8-in
+   M /trunk/doc/miredo-server.8-in
+   M /trunk/doc/miredo-server.conf.5
+   M /trunk/doc/miredo.8-in
+   M /trunk/doc/miredo.conf.5
+
+Fix encoding of man pages. Apparently Latin-1 is expected by default.
+
+------------------------------------------------------------------------
+r1229 | remi | 2006-04-13 15:50:56 +0200 (Thu, 13 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/src/relay.cpp
+
+Fix typo
+
+------------------------------------------------------------------------
+r1228 | remi | 2006-04-13 15:49:57 +0200 (Thu, 13 Apr 2006) | 3 lines
+Changed paths:
+   M /trunk/src/relay.cpp
+
+Support for ?\226?\128?\156autoclient?\226?\128?\157 RelayType, same as client with the
+exception that it only runs when there is no other IPv6 connectivity.
+
+------------------------------------------------------------------------
+r1227 | remi | 2006-04-13 15:38:06 +0200 (Thu, 13 Apr 2006) | 3 lines
+Changed paths:
+   M /trunk/src/addrwatch.c
+   M /trunk/src/addrwatch.h
+
+- Fix parsing of interface index: that's hexadecimal, not decimal
+- Remove useless callback support
+
+------------------------------------------------------------------------
+r1226 | remi | 2006-04-13 15:32:33 +0200 (Thu, 13 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/libtun6/diagnose.c
+
+Add unit test for tun6_getId()
+
+------------------------------------------------------------------------
+r1225 | remi | 2006-04-13 13:48:02 +0200 (Thu, 13 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/compat/Makefile.am
+   M /trunk/compat/strlcpy.c
+   A /trunk/compat/test-strlcpy.c (from /trunk/compat/strlcpy.c:1224)
+
+Regression test and another fix for strlcpy()
+
+------------------------------------------------------------------------
+r1224 | remi | 2006-04-13 13:30:03 +0200 (Thu, 13 Apr 2006) | 3 lines
+Changed paths:
+   M /trunk/compat/strlcpy.c
+
+Fix insertion of nul at end of string in strlcpy() replacement.
+It is fortunate the previous version never made it to a release.
+
+------------------------------------------------------------------------
+r1223 | remi | 2006-04-12 22:48:54 +0200 (Wed, 12 Apr 2006) | 5 lines
+Changed paths:
+   M /trunk/src/addrwatch.c
+
+Force the proc file into non-blocking mode.
+It should not normally block, unless it's not actually what it's
+supposed to be. If it blocked, we could have deadlocks while trying to
+terminate the addrwatch thread.
+
+------------------------------------------------------------------------
+r1222 | remi | 2006-04-12 21:25:04 +0200 (Wed, 12 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/libteredo/server.c
+   M /trunk/src/privproc.c
+   M /trunk/src/relay.cpp
+
+Set close-on-exec flag on pipes and sockets
+
+------------------------------------------------------------------------
+r1221 | remi | 2006-04-12 21:10:18 +0200 (Wed, 12 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/AUTHORS
+   M /trunk/THANKS
+
+Added recent contributors, updated global copyright infos
+
+------------------------------------------------------------------------
+r1220 | remi | 2006-04-12 20:25:26 +0200 (Wed, 12 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/libteredo/md5.c
+   M /trunk/libteredo/test/md5test.c
+
+Add modification notice on the MD5 implementation
+
+------------------------------------------------------------------------
+r1219 | remi | 2006-04-12 19:55:47 +0200 (Wed, 12 Apr 2006) | 4 lines
+Changed paths:
+   M /trunk/libteredo/teredo.c
+
+- close libteredo's sockets at exec(),
+- don't leak file descriptor when bind() fails,
+- always set non-blocking mode regardless of earlier fnctl() failures
+
+------------------------------------------------------------------------
+r1218 | remi | 2006-04-11 19:31:46 +0200 (Tue, 11 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/po/en.po
+   M /trunk/po/en_GB.po
+   M /trunk/po/fr.po
+   M /trunk/po/miredo.pot
+
+Update PO files
+
+------------------------------------------------------------------------
+r1217 | remi | 2006-04-11 19:31:07 +0200 (Tue, 11 Apr 2006) | 3 lines
+Changed paths:
+   M /trunk/libteredo/Makefile.am
+
+libteredo-common.la: explicit convenience library for lower level code
+that is shared between the tunnel (client/relay) and server
+
+------------------------------------------------------------------------
+r1216 | remi | 2006-04-11 19:21:11 +0200 (Tue, 11 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/po/POTFILES.in
+
+POTFILES: libteredo/relay.c replaces libteredo/relay.cpp
+
+------------------------------------------------------------------------
+r1215 | remi | 2006-04-11 19:16:30 +0200 (Tue, 11 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/libteredo/init.c
+   M /trunk/libteredo/maintain.c
+   M /trunk/libteredo/maintain.h
+   M /trunk/libteredo/peerlist.c
+   M /trunk/libteredo/relay.c
+   M /trunk/libteredo/security.c
+   M /trunk/libteredo/security.h
+   M /trunk/libteredo/server.c
+   M /trunk/libteredo/server.h
+   M /trunk/libteredo/test/hmac.c
+   M /trunk/libteredo/tunnel.h
+   M /trunk/src/relay.cpp
+   M /trunk/src/server.cpp
+
+s/libteredo_/teredo_/g and some conflicting name fixes
+
+------------------------------------------------------------------------
+r1214 | remi | 2006-04-11 13:36:31 +0200 (Tue, 11 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/src/miredo.cpp
+
+miredo-server: Use "miredo-server" as identity in syslog
+
+------------------------------------------------------------------------
+r1213 | remi | 2006-04-10 23:35:01 +0200 (Mon, 10 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/README
+
+Fix typos
+
+------------------------------------------------------------------------
+r1212 | remi | 2006-04-10 23:32:09 +0200 (Mon, 10 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/TODO
+
+Updated TODO list
+
+------------------------------------------------------------------------
+r1211 | remi | 2006-04-10 23:06:28 +0200 (Mon, 10 Apr 2006) | 4 lines
+Changed paths:
+   M /trunk/libtun6/diagnose.c
+
+Revert back to an interface name request that is different from
+miredo's default, so that the test does not fail when running miredo on
+the build host because of a duplicate interface name.
+
+------------------------------------------------------------------------
+r1210 | remi | 2006-04-10 23:00:39 +0200 (Mon, 10 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/libteredo/Makefile.am
+   A /trunk/libteredo/relay.c (from /trunk/libteredo/relay.cpp:1209)
+   D /trunk/libteredo/relay.cpp
+
+libteredo is now a pure C library
+
+------------------------------------------------------------------------
+r1209 | remi | 2006-04-10 22:55:49 +0200 (Mon, 10 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+
+The TeredoRelay class is no more.
+
+------------------------------------------------------------------------
+r1208 | remi | 2006-04-10 22:24:58 +0200 (Mon, 10 Apr 2006) | 3 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+
+Move maintenance initialization code to the new C functions.
+TeredoRelay no longer needs a destructor, and hardly has a constructor.
+
+------------------------------------------------------------------------
+r1207 | remi | 2006-04-10 22:09:25 +0200 (Mon, 10 Apr 2006) | 3 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+
+Suppress redundant _sendIPv6Packet and SendIPv6Packet from the code
+path to send a decapsulated packet to the kernel
+
+------------------------------------------------------------------------
+r1206 | remi | 2006-04-10 22:01:38 +0200 (Mon, 10 Apr 2006) | 3 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+
+Use dummy callbacks for libteredo instead of NULL
+so that we never have to check for non-NULL callback before calling one
+
+------------------------------------------------------------------------
+r1205 | remi | 2006-04-10 21:49:27 +0200 (Mon, 10 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+
+More common relay/client create/destroy code factorization
+
+------------------------------------------------------------------------
+r1204 | remi | 2006-04-10 21:03:48 +0200 (Mon, 10 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+
+Remove unused struct member
+
+------------------------------------------------------------------------
+r1203 | remi | 2006-04-10 21:02:35 +0200 (Mon, 10 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+
+Factor common Teredo socket creation code between client and relay
+
+------------------------------------------------------------------------
+r1202 | remi | 2006-04-10 20:45:56 +0200 (Mon, 10 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/src/relay.cpp
+
+Fix memory leak
+
+------------------------------------------------------------------------
+r1201 | remi | 2006-04-10 20:36:14 +0200 (Mon, 10 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+
+Fix allow_cone flag duplication
+
+------------------------------------------------------------------------
+r1200 | remi | 2006-04-10 17:48:16 +0200 (Mon, 10 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/tunnel.h
+   M /trunk/src/relay.cpp
+
+Avoid calling libteredo_get_privdata() - pass opaque pointer directly
+
+------------------------------------------------------------------------
+r1199 | remi | 2006-04-10 13:19:10 +0200 (Mon, 10 Apr 2006) | 3 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+
+Merge cTeredoRelay with parent class TeredoRelay, as it was its only
+non-abstract derivative. Kill all virtual functions.
+
+------------------------------------------------------------------------
+r1198 | remi | 2006-04-09 23:01:03 +0200 (Sun, 09 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/libteredo/test/Makefile.am
+   D /trunk/libteredo/test/dummy.cpp
+
+Remove (now) useless empty file
+
+------------------------------------------------------------------------
+r1197 | remi | 2006-04-09 22:59:06 +0200 (Sun, 09 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/libteredo/Makefile.am
+   A /trunk/libteredo/peerlist.c (from /trunk/libteredo/peerlist.cpp:1196)
+   D /trunk/libteredo/peerlist.cpp
+
+peerlist.cpp -> peerlist.c
+
+------------------------------------------------------------------------
+r1196 | remi | 2006-04-09 22:49:51 +0200 (Sun, 09 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/libteredo/Makefile.am
+   M /trunk/libteredo/peerlist.cpp
+   M /trunk/libteredo/peerlist.h
+   M /trunk/libteredo/relay.cpp
+   D /trunk/libteredo/relay.h
+
+Kill libteredo/relay.h
+
+------------------------------------------------------------------------
+r1195 | remi | 2006-04-09 22:38:33 +0200 (Sun, 09 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/relay.h
+
+Further dismantle relay.h
+
+------------------------------------------------------------------------
+r1194 | remi | 2006-04-09 22:24:21 +0200 (Sun, 09 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/libteredo/maintain.c
+   M /trunk/libteredo/maintain.h
+   M /trunk/libteredo/peerlist.cpp
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/relay.h
+
+Move teredo_state to <maintain.h>
+
+------------------------------------------------------------------------
+r1193 | remi | 2006-04-09 22:11:35 +0200 (Sun, 09 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/libteredo/Makefile.am
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/relay.h
+   M /trunk/libteredo/test/hmac.c
+   A /trunk/libteredo/tunnel.h (from /trunk/libteredo/relay.h:1192)
+   M /trunk/src/relay.cpp
+
+Burry the internal C++ API in private libteredo headers.
+
+------------------------------------------------------------------------
+r1192 | remi | 2006-04-09 21:41:39 +0200 (Sun, 09 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/libtun6/tun6.c
+
+Fix writing to /proc on Linux
+
+------------------------------------------------------------------------
+r1191 | remi | 2006-04-09 20:15:39 +0200 (Sun, 09 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+
+Fix another inverted error check
+
+------------------------------------------------------------------------
+r1190 | remi | 2006-04-09 20:09:14 +0200 (Sun, 09 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/libtun6/tun6.c
+
+Fix inverted error condition
+
+------------------------------------------------------------------------
+r1189 | remi | 2006-04-09 20:00:35 +0200 (Sun, 09 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/src/relay.cpp
+
+client-less compilation fix
+
+------------------------------------------------------------------------
+r1188 | remi | 2006-04-09 19:59:21 +0200 (Sun, 09 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/src/relay.cpp
+
+Port miredo to the C libteredo API
+
+------------------------------------------------------------------------
+r1187 | remi | 2006-04-09 19:55:55 +0200 (Sun, 09 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+
+Fix an obvious bug
+
+------------------------------------------------------------------------
+r1186 | remi | 2006-04-09 19:50:12 +0200 (Sun, 09 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/relay.h
+
+Implement libteredo_send
+
+------------------------------------------------------------------------
+r1185 | remi | 2006-04-09 19:45:13 +0200 (Sun, 09 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/relay.h
+
+Kill an useful function
+
+------------------------------------------------------------------------
+r1184 | remi | 2006-04-09 19:41:01 +0200 (Sun, 09 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/relay.h
+
+Two more and very important missing functions
+
+------------------------------------------------------------------------
+r1183 | remi | 2006-04-09 19:24:27 +0200 (Sun, 09 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/relay.h
+
+Use shorter function names
+
+------------------------------------------------------------------------
+r1182 | remi | 2006-04-09 19:20:16 +0200 (Sun, 09 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/relay.h
+
+Add a missing binding in the libteredo C API
+
+------------------------------------------------------------------------
+r1181 | remi | 2006-04-09 19:00:42 +0200 (Sun, 09 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/src/relay.cpp
+
+Small step toward usage of the libteredo C API
+
+------------------------------------------------------------------------
+r1180 | remi | 2006-04-09 18:54:06 +0200 (Sun, 09 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/src/relay.cpp
+
+Cosmetic
+
+------------------------------------------------------------------------
+r1179 | remi | 2006-04-09 17:56:26 +0200 (Sun, 09 Apr 2006) | 3 lines
+Changed paths:
+   M /trunk/libtun6/diagnose.c
+
+Destroy created tunnel even if the test fails to limit the risk of
+messing to much with the build host kernel.
+
+------------------------------------------------------------------------
+r1178 | remi | 2006-04-09 17:54:30 +0200 (Sun, 09 Apr 2006) | 3 lines
+Changed paths:
+   M /trunk/libtun6/tun6.c
+
+Try to use FreeBSD dynamic ?\226?\128?\156/dev/tun?\226?\128?\157 and improves BSD interface naming
+work arounds.
+
+------------------------------------------------------------------------
+r1177 | remi | 2006-04-09 17:39:36 +0200 (Sun, 09 Apr 2006) | 6 lines
+Changed paths:
+   M /trunk/libtun6/tun6.c
+
+- Set FD_CLOEXEC so that it is safe to exec() while using libtun6.
+- Rename interface back to its original name on BSD in tun6_destroy
+  to mitigate the risk of triggering a situation whereby another
+  program (typically a restarted miredo) cannot find out the
+  interface name/index.
+
+------------------------------------------------------------------------
+r1176 | remi | 2006-04-09 14:23:12 +0200 (Sun, 09 Apr 2006) | 3 lines
+Changed paths:
+   M /trunk/libtun6/tun6.c
+
+BSD name problem partial/would-be work-around
+I can't fix the BSD tunnel driver.
+
+------------------------------------------------------------------------
+r1175 | remi | 2006-04-09 10:33:53 +0200 (Sun, 09 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/libtun6/tun6.c
+
+Ugly kludge for the unguessable tunnel name issue on BSD
+
+------------------------------------------------------------------------
+r1174 | remi | 2006-04-09 10:04:53 +0200 (Sun, 09 Apr 2006) | 4 lines
+Changed paths:
+   M /trunk/libtun6/tun6.c
+
+Only use interface id instead of interface name when setting up
+addresses or routes, as far as possible (fixes a few minor race
+condition and simplifies code).
+
+------------------------------------------------------------------------
+r1173 | remi | 2006-04-09 09:52:35 +0200 (Sun, 09 Apr 2006) | 5 lines
+Changed paths:
+   M /trunk/libtun6/tun6.c
+   M /trunk/libtun6/tun6.h
+
+Keep tunnel interface id (which should be immutable) instead of its
+name which can be modified by the user. As such, if the user ever
+renames the tunnel, libtun6 will still work. Also, we'll detect
+immediatly if the BSD tunnel name is not detected properly.
+
+------------------------------------------------------------------------
+r1172 | remi | 2006-04-08 23:17:02 +0200 (Sat, 08 Apr 2006) | 3 lines
+Changed paths:
+   M /trunk/TODO
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/relay.h
+
+Initial (yet to be tested) C bindings for libteredo
+The C++ bindings will probably be dumped someday
+
+------------------------------------------------------------------------
+r1171 | remi | 2006-04-08 23:15:06 +0200 (Sat, 08 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/misc/miredo.conf-dist
+
+InterfaceName directive is no longer Linux specific, so don't say it is
+
+------------------------------------------------------------------------
+r1170 | remi | 2006-04-08 21:14:32 +0200 (Sat, 08 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/libtun6/diagnose.c
+
+Don't use assert() on an expression with side effects
+
+------------------------------------------------------------------------
+r1169 | remi | 2006-04-08 21:13:53 +0200 (Sat, 08 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/compat/pselect.c
+
+Run-time fix
+
+------------------------------------------------------------------------
+r1168 | remi | 2006-04-08 20:54:49 +0200 (Sat, 08 Apr 2006) | 3 lines
+Changed paths:
+   M /trunk/libteredo/test/md5test.c
+   M /trunk/libtun6/tun6.c
+   M /trunk/src/main.c
+
+sprintf() -> snprintf() to make OpenBSD happy
+(these sprintf() where designed to be overflow-proof anyway)
+
+------------------------------------------------------------------------
+r1167 | remi | 2006-04-08 20:54:00 +0200 (Sat, 08 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/compat/pselect.c
+
+Typo/compile fix
+
+------------------------------------------------------------------------
+r1166 | remi | 2006-04-08 19:46:30 +0200 (Sat, 08 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/src/addrwatch.c
+
+Make addrwatch a stub on non-Linux as it won't work
+
+------------------------------------------------------------------------
+r1165 | remi | 2006-04-08 19:38:00 +0200 (Sat, 08 Apr 2006) | 3 lines
+Changed paths:
+   M /trunk/TODO
+
+As far as I can tell, there is no route ?\226?\128?\156metric?\226?\128?\157 on BSD
+(BSD route ?\226?\128?\156metrics?\226?\128?\157 are anything but a priority value).
+
+------------------------------------------------------------------------
+r1164 | remi | 2006-04-08 19:35:33 +0200 (Sat, 08 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/configure.ac
+
+Fix net/if_var.h check
+
+------------------------------------------------------------------------
+r1163 | remi | 2006-04-08 19:12:42 +0200 (Sat, 08 Apr 2006) | 4 lines
+Changed paths:
+   M /trunk/libtun6/diagnose.c
+   M /trunk/libtun6/tun6.c
+
+Dirty and quite broken work-around for tunnel interface naming on BSD.
+Unfortunately, there doesn't seem to be any proper light solution to
+this problem.
+
+------------------------------------------------------------------------
+r1162 | remi | 2006-04-08 18:44:56 +0200 (Sat, 08 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/libtun6/tun6.c
+
+Don't comment out SIOCSIFNAME - it works
+
+------------------------------------------------------------------------
+r1161 | remi | 2006-04-08 18:44:19 +0200 (Sat, 08 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/libtun6/tun6.c
+
+Interface (re)naming now works on FreeBSD !
+
+------------------------------------------------------------------------
+r1160 | remi | 2006-04-08 18:17:19 +0200 (Sat, 08 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/libtun6/tun6.c
+
+Compile fix
+
+------------------------------------------------------------------------
+r1159 | remi | 2006-04-08 18:10:54 +0200 (Sat, 08 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/libtun6/tun6.c
+
+Seemingly insufficient fixes for SIOCSIFNAME on FreeBSD
+
+------------------------------------------------------------------------
+r1158 | remi | 2006-04-08 17:56:56 +0200 (Sat, 08 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/libtun6/diagnose.c
+
+Test tun6_create with a non-NULL interface name
+
+------------------------------------------------------------------------
+r1157 | remi | 2006-04-08 13:59:07 +0200 (Sat, 08 Apr 2006) | 3 lines
+Changed paths:
+   M /trunk/configure.ac
+
+Use ${PTHREAD_LDFLAGS} and ${PTHREAD_LIBS} when they are defined by
+the configure's caller
+
+------------------------------------------------------------------------
+r1156 | remi | 2006-04-08 13:41:58 +0200 (Sat, 08 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/libtun6/tun6.c
+
+Untested attempt to fix address family preprend for tun driver on Mac OS X
+
+------------------------------------------------------------------------
+r1155 | remi | 2006-04-08 13:30:46 +0200 (Sat, 08 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/configure.ac
+
+Linking fix for Mac OS X (res_init requires -lresolv)
+
+------------------------------------------------------------------------
+r1154 | remi | 2006-04-08 12:23:01 +0200 (Sat, 08 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/libteredo/test/stresslist.c
+
+Mac OS X already defines DELAY, so use another constant name
+
+------------------------------------------------------------------------
+r1153 | remi | 2006-04-08 12:18:14 +0200 (Sat, 08 Apr 2006) | 4 lines
+Changed paths:
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/relay.h
+
+Make the Teredo state_lock instance-specific, which is how it should
+be anyway. This should also fix one compilation issue on Mac OS X
+(which does not have PTHREAD_RWLOCK_INITIALIZER).
+
+------------------------------------------------------------------------
+r1152 | remi | 2006-04-08 12:09:48 +0200 (Sat, 08 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/libtun6/tun6.c
+
+Remove non-ASCII character
+
+------------------------------------------------------------------------
+r1151 | remi | 2006-04-08 12:00:29 +0200 (Sat, 08 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/libteredo/security.c
+
+Would-be fix for would-be OpenBSD kernel with non-BSD userland
+
+------------------------------------------------------------------------
+r1150 | remi | 2006-04-08 11:44:16 +0200 (Sat, 08 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/libtun6/tun6.c
+
+Untested support for GNU/k*BSD
+
+------------------------------------------------------------------------
+r1149 | remi | 2006-04-08 00:02:22 +0200 (Sat, 08 Apr 2006) | 4 lines
+Changed paths:
+   M /trunk/configure.ac
+   M /trunk/libteredo/security.c
+   M /trunk/libtun6/diagnose.c
+   M /trunk/libtun6/tun6.c
+
+- Remove all HAVE_xxx (xxx = some kernel/OS name)
+  and use predefined constants instead
+- Fix a warning on BSDs within libtun6-diagnose
+
+------------------------------------------------------------------------
+r1148 | remi | 2006-04-07 20:21:50 +0200 (Fri, 07 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/TODO
+
+Update TODO list
+
+------------------------------------------------------------------------
+r1147 | remi | 2006-04-07 20:15:36 +0200 (Fri, 07 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/compat/barrier.c
+
+Remove useless #define
+
+------------------------------------------------------------------------
+r1146 | remi | 2006-04-07 13:47:13 +0200 (Fri, 07 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/compat/clearenv.c
+
+Mac OS X compile fix
+
+------------------------------------------------------------------------
+r1145 | remi | 2006-04-06 23:00:13 +0200 (Thu, 06 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/libtun6/tun6.c
+
+Further improve error messages in BSD tun6_create()
+
+------------------------------------------------------------------------
+r1144 | remi | 2006-04-06 22:54:27 +0200 (Thu, 06 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/compat/Makefile.am
+   A /trunk/compat/pselect.c (from /trunk/compat/clearenv.c:1143)
+   A /trunk/compat/pselect.h (from /trunk/compat/barrier.h:1143)
+   M /trunk/configure.ac
+   M /trunk/src/relay.cpp
+
+pselect() replacement for OpenBSD
+
+------------------------------------------------------------------------
+r1143 | remi | 2006-04-06 14:22:35 +0200 (Thu, 06 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/compat/clearenv.c
+
+Remove erroneous static qualifier
+
+------------------------------------------------------------------------
+r1142 | remi | 2006-04-06 14:11:56 +0200 (Thu, 06 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/compat/barrier.c
+
+Compile fix
+
+------------------------------------------------------------------------
+r1141 | remi | 2006-04-06 14:05:33 +0200 (Thu, 06 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/compat/clearenv.c
+
+Compile fix
+
+------------------------------------------------------------------------
+r1140 | remi | 2006-04-06 08:43:44 +0200 (Thu, 06 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/compat/barrier.c
+
+Make sure pthread_barrier_destroy() replacement does not block
+
+------------------------------------------------------------------------
+r1139 | remi | 2006-04-05 23:46:19 +0200 (Wed, 05 Apr 2006) | 2 lines
+Changed paths:
+   A /trunk/compat/clearenv.c (from /trunk/compat/closefrom.c:1138)
+   A /trunk/compat/strlcpy.c (from /trunk/compat/closefrom.c:1138)
+   M /trunk/configure.ac
+   M /trunk/libtun6/Makefile.am
+   M /trunk/libtun6/tun6.c
+   M /trunk/src/main.c
+
+Move clearenv() and strlcpy() replacement to libcompat
+
+------------------------------------------------------------------------
+r1138 | remi | 2006-04-05 23:34:54 +0200 (Wed, 05 Apr 2006) | 3 lines
+Changed paths:
+   M /trunk/Makefile.am
+   M /trunk/configure.ac
+   M /trunk/libteredo/Makefile.am
+   M /trunk/libteredo/maintain.c
+   M /trunk/src/Makefile.am
+   M /trunk/src/main.c
+
+- Link with libcompat when appropriate
+- Set LIBOBJS as appropriate
+
+------------------------------------------------------------------------
+r1137 | remi | 2006-04-05 23:34:09 +0200 (Wed, 05 Apr 2006) | 4 lines
+Changed paths:
+   A /trunk/compat/Makefile.am
+   A /trunk/compat/barrier.c
+   A /trunk/compat/barrier.h
+   A /trunk/compat/closefrom.c
+   A /trunk/compat/dummy.c
+
+- Replacement for pthread_barrier* (which is missing on several BSD)
+  This is UNTESTED.
+- Move closefrom() replacement here.
+
+------------------------------------------------------------------------
+r1136 | remi | 2006-04-05 23:05:04 +0200 (Wed, 05 Apr 2006) | 2 lines
+Changed paths:
+   A /trunk/compat
+
+Prepare new directory for replacement functions
+
+------------------------------------------------------------------------
+r1135 | remi | 2006-04-05 23:02:18 +0200 (Wed, 05 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/libteredo
+
+Remove old stuff from svn:ignore
+
+------------------------------------------------------------------------
+r1134 | remi | 2006-04-05 18:06:55 +0200 (Wed, 05 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/libtun6/tun6.c
+
+Fix error message in case of failure to open any BSD tunnel interface
+
+------------------------------------------------------------------------
+r1133 | remi | 2006-04-05 17:59:51 +0200 (Wed, 05 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/libtun6/tun6.c
+
+Fix typo
+
+------------------------------------------------------------------------
+r1132 | remi | 2006-04-05 17:41:47 +0200 (Wed, 05 Apr 2006) | 3 lines
+Changed paths:
+   M /trunk/src/main.c
+
+Be less strict in what we accept from dup(2)
+so that the check for 0, 1 and 2 file descriptors works on OpenBSD (?)
+
+------------------------------------------------------------------------
+r1131 | remi | 2006-04-05 17:26:40 +0200 (Wed, 05 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/src/main.c
+
+Close all descriptors up to the maximum limit, not the current one
+
+------------------------------------------------------------------------
+r1130 | remi | 2006-04-05 17:18:52 +0200 (Wed, 05 Apr 2006) | 4 lines
+Changed paths:
+   M /trunk/configure.ac
+   M /trunk/src/main.c
+
+- Check for closefrom() (available on some BSDs)
+- Provide a replacement when it is not found
+- Use it to close all file descriptros above fileno(STDERR)
+
+------------------------------------------------------------------------
+r1129 | remi | 2006-04-05 13:36:22 +0200 (Wed, 05 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/libtun6/diagnose.c
+
+Check for failure with overly long interface name requests
+
+------------------------------------------------------------------------
+r1128 | remi | 2006-04-05 13:33:42 +0200 (Wed, 05 Apr 2006) | 4 lines
+Changed paths:
+   M /trunk/libtun6/tun6.c
+
+- Replacement for strlcpy() when it is not supported (ie. on Linux)
+- Return an error to the caller when the interface name is too long
+  instead of truncating it.
+
+------------------------------------------------------------------------
+r1127 | remi | 2006-04-04 22:13:44 +0200 (Tue, 04 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/libteredo/server.c
+
+Last warning fix for gcc 3.3
+
+------------------------------------------------------------------------
+r1126 | remi | 2006-04-04 22:11:59 +0200 (Tue, 04 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/libtun6/tun6.h
+
+Don't use warn_unused on gcc-3.3 as it is not supported
+
+------------------------------------------------------------------------
+r1125 | remi | 2006-04-04 22:09:35 +0200 (Tue, 04 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/libteredo/init.c
+
+Same as previous commit
+
+------------------------------------------------------------------------
+r1124 | remi | 2006-04-04 22:09:06 +0200 (Tue, 04 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/libtun6/tun6.c
+
+Fix warnings
+
+------------------------------------------------------------------------
+r1123 | remi | 2006-04-04 20:44:19 +0200 (Tue, 04 Apr 2006) | 8 lines
+Changed paths:
+   M /trunk/configure.ac
+
+DragonFlyBSD derives from FreeBSD 4, so there is no need to make it yet
+another case. I believe this is consistent with the way NetBSD pkgsrc
+patches libtun6/ for DragonFlyBSD.
+
+Unfortunately, because of some differences on OpenBSD (strange dup()
+behavior, and different location for /dev/random), we can't merge all
+BSDs defines.
+
+------------------------------------------------------------------------
+r1122 | remi | 2006-04-04 20:14:30 +0200 (Tue, 04 Apr 2006) | 6 lines
+Changed paths:
+   M /trunk/configure.ac
+   M /trunk/libtun6/tun6.c
+
+Big libtun6 clean up/simplification:
+- always use prepended address family, drop (probably broken) head-less mode,
+- configure checks for net/if_tun.h and net/if_var.h for BSDs,
+  so that we no longer need kernel-specific #ifdef's
+- Darwin compilation fix (but the driver does probably not work)
+
+------------------------------------------------------------------------
+r1121 | remi | 2006-04-04 17:42:30 +0200 (Tue, 04 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/libtun6/tun6.c
+
+Clean up BSD-specific preprocessor directives
+
+------------------------------------------------------------------------
+r1120 | remi | 2006-04-04 17:30:26 +0200 (Tue, 04 Apr 2006) | 3 lines
+Changed paths:
+   M /trunk/libteredo/server.c
+
+Check for EPROTO only when it is defined.
+Some BSDs variants lack EPROTO. Maybe it's not really standard.
+
+------------------------------------------------------------------------
+r1119 | remi | 2006-04-04 17:26:12 +0200 (Tue, 04 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/libteredo/server.c
+   M /trunk/libteredo/teredo.c
+
+#include <sys/uio.h> when using iovec
+
+------------------------------------------------------------------------
+r1118 | remi | 2006-04-03 18:53:14 +0200 (Mon, 03 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/libteredo/teredo.h
+   M /trunk/src/server.cpp
+
+#include clean up
+
+------------------------------------------------------------------------
+r1117 | remi | 2006-04-02 10:44:02 +0200 (Sun, 02 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/doc/Makefile.am
+
+Typo - fix make dist
+
+------------------------------------------------------------------------
+r1116 | remi | 2006-04-02 10:42:00 +0200 (Sun, 02 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/doc/Makefile.am
+   A /trunk/doc/miredo-checkconf.8-in
+
+Man page for miredo-checkconf
+
+------------------------------------------------------------------------
+r1115 | remi | 2006-04-02 10:10:23 +0200 (Sun, 02 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/src/relay.cpp
+
+Fix client-less compilation
+
+------------------------------------------------------------------------
+r1114 | remi | 2006-04-02 10:05:51 +0200 (Sun, 02 Apr 2006) | 5 lines
+Changed paths:
+   M /trunk/doc/miredo-server.8-in
+   M /trunk/doc/miredo.8-in
+
+No longer hard-code file path in man page
+so that the paths will be correct if miredo is packaged, and installed
+in, say, /usr/sbin, /etc and /var instead of /usr/local/sbin,
+/usr/local/etc and /usr/local/var.
+
+------------------------------------------------------------------------
+r1113 | remi | 2006-04-02 10:04:00 +0200 (Sun, 02 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/src/miredo.cpp
+   M /trunk/src/relay.cpp
+
+Reverse commit of extra not-for-commit-yet files
+
+------------------------------------------------------------------------
+r1112 | remi | 2006-04-02 10:00:42 +0200 (Sun, 02 Apr 2006) | 3 lines
+Changed paths:
+   M /trunk/Makefile.am
+   M /trunk/configure.ac
+   M /trunk/doc
+   A /trunk/doc/Makefile.am (from /trunk/misc/Makefile.am:1111)
+   D /trunk/doc/miredo-server.8
+   A /trunk/doc/miredo-server.8-in (from /trunk/doc/miredo-server.8:1111)
+   D /trunk/doc/miredo.8
+   A /trunk/doc/miredo.8-in (from /trunk/doc/miredo.8:1111)
+   M /trunk/src/miredo.cpp
+   M /trunk/src/relay.cpp
+
+Resurrect doc/Makefile to support substitution of prefix/path
+within man pages
+
+------------------------------------------------------------------------
+r1111 | remi | 2006-04-02 09:50:15 +0200 (Sun, 02 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/doc/miredo-server.8
+   M /trunk/doc/miredo.8
+
+Remove hard-coded reference to the chroot directory
+
+------------------------------------------------------------------------
+r1110 | remi | 2006-04-02 09:24:28 +0200 (Sun, 02 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/doc/miredo.8
+
+Document --chrootdir option
+
+------------------------------------------------------------------------
+r1109 | remi | 2006-04-01 22:08:53 +0200 (Sat, 01 Apr 2006) | 3 lines
+Changed paths:
+   M /trunk/misc/miredo-server.conf-dist
+   M /trunk/misc/miredo.conf-dist
+
+Don't annoy brave user with hundreds of lines of comment...
+miredo.conf-dist is now ?\226?\128?\156only?\226?\128?\157 48 lines long.
+
+------------------------------------------------------------------------
+r1108 | remi | 2006-04-01 22:07:55 +0200 (Sat, 01 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/doc/miredo.conf.5
+
+Document poor forgotten IgnoreConeBit option
+
+------------------------------------------------------------------------
+r1107 | remi | 2006-04-01 21:37:02 +0200 (Sat, 01 Apr 2006) | 4 lines
+Changed paths:
+   M /trunk/doc/miredo.conf.5
+
+- Remove reference to "disabled" mode which disappeared a long time ago
+(ie. when miredo-server was splitted from miredo)
+- Remove reference to the experimental Teredo prefix
+
+------------------------------------------------------------------------
+r1106 | remi | 2006-04-01 21:25:56 +0200 (Sat, 01 Apr 2006) | 4 lines
+Changed paths:
+   M /trunk/src/relay.cpp
+
+Prepare addition of a forth mode: exclusive client
+A Teredo client that only works only when IPv6 connectivity is not
+available otherwise
+
+------------------------------------------------------------------------
+r1105 | remi | 2006-04-01 21:15:51 +0200 (Sat, 01 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/src/relay.cpp
+
+More clean up
+
+------------------------------------------------------------------------
+r1104 | remi | 2006-04-01 20:56:12 +0200 (Sat, 01 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/doc/miredo.conf.5
+   M /trunk/misc/miredo.conf-dist
+   M /trunk/src/checkconf.cpp
+
+Burn the remnants of the DefaultRoute option
+
+------------------------------------------------------------------------
+r1103 | remi | 2006-04-01 20:52:35 +0200 (Sat, 01 Apr 2006) | 8 lines
+Changed paths:
+   M /trunk/src/privproc.c
+   M /trunk/src/privproc.h
+   M /trunk/src/relay.cpp
+
+Kill the DefaultRoute option that probably nobody ever set to false.
+It was theoretically useful when the metric was the same on the Teredo
+tunnel as that of the other interfaces, though fairly impractical
+anyway. People that statically want a Teredo relay should and will use
+the RelayType stuff.
+On top of that, it will shortly be possible to add the default route
+dynamically thanks to <src/addrwatch.c>.
+
+------------------------------------------------------------------------
+r1102 | remi | 2006-04-01 20:45:46 +0200 (Sat, 01 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/src/relay.cpp
+
+Further clean up
+
+------------------------------------------------------------------------
+r1101 | remi | 2006-04-01 19:39:49 +0200 (Sat, 01 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/src/Makefile.am
+   M /trunk/src/addrwatch.c
+   M /trunk/src/relay.cpp
+
+Clean up, minor error-handling fixes
+
+------------------------------------------------------------------------
+r1100 | remi | 2006-04-01 18:29:46 +0200 (Sat, 01 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/libteredo/init.c
+
+Fix warning with --disable-teredo-client
+
+------------------------------------------------------------------------
+r1099 | remi | 2006-04-01 18:16:33 +0200 (Sat, 01 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/src/addrwatch.c
+   M /trunk/src/addrwatch.h
+
+Allow passing an opaque pointer to the addrwatch callback
+
+------------------------------------------------------------------------
+r1098 | remi | 2006-04-01 18:03:15 +0200 (Sat, 01 Apr 2006) | 2 lines
+Changed paths:
+   A /trunk/src/addrwatch.c
+   A /trunk/src/addrwatch.h
+
+Provisional API to check if a non-Teredo connectivity is available
+
+------------------------------------------------------------------------
+r1097 | remi | 2006-04-01 17:11:16 +0200 (Sat, 01 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/libtun6/tun6.c
+   M /trunk/libtun6/tun6.h
+
+tun6_getId(): return scope id of the interface
+
+------------------------------------------------------------------------
+r1096 | remi | 2006-04-01 16:08:52 +0200 (Sat, 01 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/src/privproc.c
+
+Cosmetic fix
+
+------------------------------------------------------------------------
+r1095 | remi | 2006-04-01 16:00:38 +0200 (Sat, 01 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/src/relay.cpp
+
+Cosmetic fix
+
+------------------------------------------------------------------------
+r1094 | remi | 2006-04-01 15:29:41 +0200 (Sat, 01 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/autopackage/default.apspec.in
+
+Partial update of the autopackage spec - still severely broken
+
+------------------------------------------------------------------------
+r1093 | remi | 2006-04-01 14:39:29 +0200 (Sat, 01 Apr 2006) | 4 lines
+Changed paths:
+   M /trunk/src/checkconf.cpp
+   M /trunk/src/main.c
+   M /trunk/src/miredo.h
+   M /trunk/src/relay.cpp
+   M /trunk/src/server.cpp
+
+Use BinReloc for configuration file
+(it was removed a while ago because autopackage was inconsistent, but
+ then, it's an autopackage bug)
+
+------------------------------------------------------------------------
+r1092 | remi | 2006-04-01 14:23:23 +0200 (Sat, 01 Apr 2006) | 5 lines
+Changed paths:
+   M /trunk/m4/binreloc.m4
+   M /trunk/src/Makefile.am
+   A /trunk/src/binreloc.c
+   A /trunk/src/binreloc.h
+   M /trunk/src/checkconf.cpp
+   M /trunk/src/main.c
+   D /trunk/src/prefix.c
+   D /trunk/src/prefix.h
+
+Update BinReloc to version 2.0, plus
+- two fixes for -Wextra compilation
+- include <config.h> in binreloc.c so that ENABLE_BINRELOC gets defined
+  (adding $(BINRELOC_CFLAGS) to AM_CPPLFLAGS would conflict)
+
+------------------------------------------------------------------------
+r1091 | remi | 2006-04-01 10:48:59 +0200 (Sat, 01 Apr 2006) | 2 lines
+Changed paths:
+   M /trunk/src/server.cpp
+
+Fix G++ 4.1 warning
+
+------------------------------------------------------------------------
+r1090 | remi | 2006-03-31 22:05:08 +0200 (Fri, 31 Mar 2006) | 3 lines
+Changed paths:
+   M /trunk/libtun6/tun6.c
+   M /trunk/libtun6/tun6.h
+
+tun6_getName(): returns the tunnel interface name
+Will probably be useful if parsing /proc/dev/if_inet6
+
+------------------------------------------------------------------------
+r1089 | remi | 2006-03-31 20:24:28 +0200 (Fri, 31 Mar 2006) | 4 lines
+Changed paths:
+   M /trunk/COPYING
+   M /trunk/Makefile.am
+   M /trunk/THANKS
+   M /trunk/doc/rfc4380.txt
+   M /trunk/libteredo/Makefile.am
+   M /trunk/libteredo/md5.c
+   M /trunk/libteredo/md5.h
+   M /trunk/libteredo/test/Makefile.am
+   M /trunk/libteredo/test/dummy.cpp
+   M /trunk/libteredo/test/md5test.c
+   M /trunk/libtun6/Makefile.am
+   M /trunk/libtun6/tun6.c
+   M /trunk/m4/Makefile.am
+   M /trunk/misc/Makefile.am
+   M /trunk/misc/miredo
+   M /trunk/misc/miredo-server.conf-dist
+   M /trunk/misc/miredo-server.sh-in
+   M /trunk/misc/miredo.conf-dist
+   M /trunk/misc/miredo.sh-in
+   M /trunk/po/ChangeLog
+   M /trunk/po/LINGUAS
+   M /trunk/po/Makevars
+   M /trunk/po/POTFILES.in
+   M /trunk/src/Makefile.am
+   M /trunk/src/prefix.c
+   M /trunk/src/prefix.h
+
+Make sure every file has a MIME type
+(at least, for non-ASCII file, this is needed for proper display within
+a web browser)
+
+------------------------------------------------------------------------
+r1088 | remi | 2006-03-31 20:12:33 +0200 (Fri, 31 Mar 2006) | 2 lines
+Changed paths:
+   M /trunk/COPYING
+   M /trunk/autopackage/default.apspec.in
+   M /trunk/include/gettext.h
+   M /trunk/libteredo/checksum.h
+   M /trunk/libteredo/init.c
+   M /trunk/libteredo/maintain.h
+   M /trunk/libteredo/md5.c
+   M /trunk/libteredo/md5.h
+   M /trunk/libteredo/security.c
+   M /trunk/libteredo/security.h
+   M /trunk/libteredo/test/addrcmp.c
+   M /trunk/libteredo/test/dummy.cpp
+   M /trunk/libteredo/test/hmac.c
+   M /trunk/libteredo/test/list.c
+   M /trunk/libteredo/test/md5test.c
+   M /trunk/libteredo/test/stresslist.c
+   M /trunk/libtun6/diagnose.c
+   M /trunk/libtun6/tun6.c
+   M /trunk/libtun6/tun6.h
+   M /trunk/m4/binreloc.m4
+   M /trunk/misc/miredo
+   M /trunk/misc/miredo-server.conf-dist
+   M /trunk/misc/miredo-server.sh-in
+   M /trunk/misc/miredo.conf-dist
+   M /trunk/misc/miredo.sh-in
+   M /trunk/po/ChangeLog
+   M /trunk/po/LINGUAS
+   M /trunk/po/Makevars
+   M /trunk/po/POTFILES.in
+   M /trunk/po/en.po
+   M /trunk/po/en_GB.po
+   M /trunk/po/fr.po
+   M /trunk/po/miredo.pot
+   M /trunk/src/checkconf.cpp
+   M /trunk/src/conf.cpp
+   M /trunk/src/conf.h
+   M /trunk/src/prefix.c
+   M /trunk/src/prefix.h
+
+A whole bunch of missing svn:eol-style
+
+------------------------------------------------------------------------
+r1087 | remi | 2006-03-31 20:09:12 +0200 (Fri, 31 Mar 2006) | 2 lines
+Changed paths:
+   M /trunk/AUTHORS
+   M /trunk/ChangeLog
+   M /trunk/Makefile.am
+   M /trunk/NEWS
+   M /trunk/README
+   M /trunk/THANKS
+   M /trunk/TODO
+   M /trunk/autopackage/default.apspec.in
+   M /trunk/bootstrap
+   M /trunk/configure.ac
+   M /trunk/doc/miredo-server.8
+   M /trunk/doc/miredo-server.conf.5
+   M /trunk/doc/miredo.8
+   M /trunk/doc/miredo.conf.5
+   M /trunk/libteredo/Makefile.am
+   M /trunk/libteredo/checksum.h
+   M /trunk/libteredo/init.c
+   M /trunk/libteredo/maintain.c
+   M /trunk/libteredo/maintain.h
+   M /trunk/libteredo/packets.c
+   M /trunk/libteredo/packets.h
+   M /trunk/libteredo/peerlist.cpp
+   M /trunk/libteredo/peerlist.h
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/relay.h
+   M /trunk/libteredo/security.c
+   M /trunk/libteredo/security.h
+   M /trunk/libteredo/server.c
+   M /trunk/libteredo/server.h
+   M /trunk/libteredo/teredo-udp.h
+   M /trunk/libteredo/teredo.c
+   M /trunk/libteredo/teredo.h
+   M /trunk/libteredo/test/Makefile.am
+   M /trunk/libteredo/test/addrcmp.c
+   M /trunk/libteredo/test/hmac.c
+   M /trunk/libteredo/test/list.c
+   M /trunk/libteredo/test/stresslist.c
+   M /trunk/libteredo/v4global.c
+   M /trunk/libteredo/v4global.h
+   M /trunk/libtun6/Makefile.am
+   M /trunk/libtun6/diagnose.c
+   M /trunk/libtun6/tun6.c
+   M /trunk/libtun6/tun6.h
+   M /trunk/m4/Makefile.am
+   M /trunk/m4/getopt.m4
+   M /trunk/m4/hostname.m4
+   M /trunk/m4/sockaddr.m4
+   M /trunk/misc/Makefile.am
+   M /trunk/misc/miredo
+   M /trunk/misc/miredo-server.conf-dist
+   M /trunk/misc/miredo-server.sh-in
+   M /trunk/misc/miredo.conf-dist
+   M /trunk/misc/miredo.sh-in
+   M /trunk/po/en.po
+   M /trunk/po/en_GB.po
+   M /trunk/po/fr.po
+   M /trunk/src/Makefile.am
+   M /trunk/src/checkconf.cpp
+   M /trunk/src/conf.cpp
+   M /trunk/src/conf.h
+   M /trunk/src/main.c
+   M /trunk/src/miredo.cpp
+   M /trunk/src/miredo.h
+   M /trunk/src/privproc.c
+   M /trunk/src/privproc.h
+   M /trunk/src/relay.cpp
+   M /trunk/src/server.cpp
+
+Uniformize / fix svn:keywords
+
+------------------------------------------------------------------------
+r1086 | remi | 2006-03-31 20:02:25 +0200 (Fri, 31 Mar 2006) | 2 lines
+Changed paths:
+   A /trunk/misc/TeredoClient.reg
+   A /trunk/misc/TeredoPrefix.reg
+
+Add a few useful registry exports for Windows XP
+
+------------------------------------------------------------------------
+r1085 | remi | 2006-03-31 11:33:37 +0200 (Fri, 31 Mar 2006) | 2 lines
+Changed paths:
+   M /trunk/libteredo/server.c
+
+One small step toward teredo server statistics
+
+------------------------------------------------------------------------
+r1084 | remi | 2006-03-30 18:53:32 +0200 (Thu, 30 Mar 2006) | 2 lines
+Changed paths:
+   M /trunk/po/fr.po
+
+Use curve quote when available
+
+------------------------------------------------------------------------
+r1083 | remi | 2006-03-30 18:50:32 +0200 (Thu, 30 Mar 2006) | 2 lines
+Changed paths:
+   M /trunk/autopackage/default.apspec.in
+   M /trunk/configure.ac
+   M /trunk/doc/miredo-server.8
+   M /trunk/doc/miredo-server.conf.5
+   M /trunk/doc/miredo.8
+   M /trunk/doc/miredo.conf.5
+   M /trunk/include/gettext.h
+   M /trunk/m4/getopt.m4
+   M /trunk/m4/hostname.m4
+   M /trunk/m4/sockaddr.m4
+   M /trunk/po/en.po
+   M /trunk/po/en_GB.po
+   M /trunk/po/fr.po
+
+Same as previous commits
+
+------------------------------------------------------------------------
+r1082 | remi | 2006-03-30 17:48:13 +0200 (Thu, 30 Mar 2006) | 2 lines
+Changed paths:
+   M /trunk/Makefile.am
+   M /trunk/bootstrap
+   M /trunk/libteredo/Makefile.am
+   M /trunk/libteredo/checksum.h
+   M /trunk/libteredo/init.c
+   M /trunk/libteredo/maintain.c
+   M /trunk/libteredo/maintain.h
+   M /trunk/libteredo/packets.c
+   M /trunk/libteredo/packets.h
+   M /trunk/libteredo/peerlist.cpp
+   M /trunk/libteredo/peerlist.h
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/relay.h
+   M /trunk/libteredo/security.c
+   M /trunk/libteredo/security.h
+   M /trunk/libteredo/server.c
+   M /trunk/libteredo/server.h
+   M /trunk/libteredo/teredo-udp.h
+   M /trunk/libteredo/teredo.c
+   M /trunk/libteredo/teredo.h
+   M /trunk/libteredo/test/Makefile.am
+   M /trunk/libteredo/test/addrcmp.c
+   M /trunk/libteredo/test/hmac.c
+   M /trunk/libteredo/test/list.c
+   M /trunk/libteredo/test/stresslist.c
+   M /trunk/libteredo/v4global.c
+   M /trunk/libteredo/v4global.h
+   M /trunk/libtun6/Makefile.am
+   M /trunk/libtun6/diagnose.c
+   M /trunk/libtun6/tun6.c
+   M /trunk/libtun6/tun6.h
+   M /trunk/m4/Makefile.am
+   M /trunk/misc/Makefile.am
+   M /trunk/src/Makefile.am
+   M /trunk/src/checkconf.cpp
+   M /trunk/src/conf.cpp
+   M /trunk/src/conf.h
+   M /trunk/src/main.c
+   M /trunk/src/miredo.cpp
+   M /trunk/src/miredo.h
+   M /trunk/src/privproc.c
+   M /trunk/src/privproc.h
+   M /trunk/src/relay.cpp
+   M /trunk/src/server.cpp
+
+More Unicode cosmetics
+
+------------------------------------------------------------------------
+r1081 | remi | 2006-03-30 15:56:31 +0200 (Thu, 30 Mar 2006) | 2 lines
+Changed paths:
+   M /trunk/bootstrap
+   M /trunk/m4/binreloc.m4
+   M /trunk/m4/getopt.m4
+   M /trunk/m4/hostname.m4
+   M /trunk/m4/sockaddr.m4
+
+Same as previous commit
+
+------------------------------------------------------------------------
+r1080 | remi | 2006-03-30 15:51:05 +0200 (Thu, 30 Mar 2006) | 2 lines
+Changed paths:
+   M /trunk/include/gettext.h
+   M /trunk/libteredo/checksum.h
+   M /trunk/libteredo/init.c
+   M /trunk/libteredo/maintain.c
+   M /trunk/libteredo/maintain.h
+   M /trunk/libteredo/packets.c
+   M /trunk/libteredo/packets.h
+   M /trunk/libteredo/peerlist.cpp
+   M /trunk/libteredo/peerlist.h
+   M /trunk/libteredo/relay.cpp
+   M /trunk/libteredo/relay.h
+   M /trunk/libteredo/security.c
+   M /trunk/libteredo/security.h
+   M /trunk/libteredo/server.c
+   M /trunk/libteredo/server.h
+   M /trunk/libteredo/teredo-udp.h
+   M /trunk/libteredo/teredo.c
+   M /trunk/libteredo/teredo.h
+   M /trunk/libteredo/test/addrcmp.c
+   M /trunk/libteredo/test/hmac.c
+   M /trunk/libteredo/test/list.c
+   M /trunk/libteredo/test/stresslist.c
+   M /trunk/libteredo/v4global.c
+   M /trunk/libteredo/v4global.h
+   M /trunk/libtun6/diagnose.c
+   M /trunk/libtun6/tun6.h
+   M /trunk/po/en.po
+   M /trunk/po/en_GB.po
+   M /trunk/po/fr.po
+   M /trunk/po/miredo.pot
+   M /trunk/src/checkconf.cpp
+   M /trunk/src/conf.cpp
+   M /trunk/src/conf.h
+   M /trunk/src/main.c
+   M /trunk/src/miredo.cpp
+   M /trunk/src/miredo.h
+   M /trunk/src/privproc.c
+   M /trunk/src/privproc.h
+   M /trunk/src/relay.cpp
+   M /trunk/src/server.cpp
+
+Fix copyright string; add svn:mime-type for explicit charset
+
+------------------------------------------------------------------------
+r1079 | remi | 2006-03-30 14:32:13 +0200 (Thu, 30 Mar 2006) | 2 lines
+Changed paths:
+   M /trunk/Makefile.am
+   M /trunk/TODO
+   M /trunk/libteredo/Makefile.am
+   M /trunk/libteredo/test/Makefile.am
+   M /trunk/libtun6/Makefile.am
+   M /trunk/m4/Makefile.am
+   M /trunk/src/Makefile.am
+
+Some extra Unicode characters
+
+------------------------------------------------------------------------
+r1078 | remi | 2006-03-30 14:19:41 +0200 (Thu, 30 Mar 2006) | 3 lines
+Changed paths:
+   M /trunk/AUTHORS
+   M /trunk/ChangeLog
+   M /trunk/NEWS
+   M /trunk/README
+   M /trunk/TODO
+
+- Document removal of --enable-miredo-chroot and addition of -t
+- Set svn:mime-type on some non-ASCII file
+
+------------------------------------------------------------------------
+r1077 | remi | 2006-03-30 13:33:08 +0200 (Thu, 30 Mar 2006) | 2 lines
+Changed paths:
+   M /trunk/src/Makefile.am
+
+Do not create chrootdir at install time as we have no default value anymore
+
+------------------------------------------------------------------------
+r1076 | remi | 2006-03-30 13:32:03 +0200 (Thu, 30 Mar 2006) | 2 lines
+Changed paths:
+   M /trunk/misc
+
+svn:ignore update
+
+------------------------------------------------------------------------
+r1075 | remi | 2006-03-30 13:30:42 +0200 (Thu, 30 Mar 2006) | 3 lines
+Changed paths:
+   M /trunk/configure.ac
+   M /trunk/src/Makefile.am
+   M /trunk/src/main.c
+   M /trunk/src/miredo.cpp
+   M /trunk/src/miredo.h
+   M /trunk/src/relay.cpp
+   M /trunk/src/server.cpp
+
+- (Re?)introduce -t run-time option to specify chroot directory
+- Support --username resp. --chrootdir as -u resp. -t like radvd
+
+------------------------------------------------------------------------
+r1074 | remi | 2006-03-29 19:23:06 +0200 (Wed, 29 Mar 2006) | 5 lines
+Changed paths:
+   M /trunk/Makefile.am
+   M /trunk/configure.ac
+   A /trunk/misc/Makefile.am
+   D /trunk/misc/miredo-server.sh
+   A /trunk/misc/miredo-server.sh-in (from /trunk/misc/miredo-server.sh:1072)
+   D /trunk/misc/miredo.sh
+   A /trunk/misc/miredo.sh-in (from /trunk/misc/miredo.sh:1072)
+
+- Restore misc/Makefile* so that we can dynamically include install prefix
+  with sample Debian initscripts
+- Remove Mandrake initscripts from tarball as I do not maintain them anymore
+  and they seems to trigger a bug in the build-system (make distcheck)
+
+------------------------------------------------------------------------
+r1073 | remi | 2006-03-29 19:13:47 +0200 (Wed, 29 Mar 2006) | 2 lines
+Changed paths:
+   M /trunk/src/relay.cpp
+   M /trunk/src/server.cpp
+
+NetBSD compile fix as reported by Rui Paulo
+
+------------------------------------------------------------------------
+r1072 | remi | 2006-03-29 15:01:54 +0200 (Wed, 29 Mar 2006) | 2 lines
+Changed paths:
+   M /trunk/misc/miredo-server.sh
+   M /trunk/misc/miredo.sh
+
+Init scripts clean ups from Anand Kumria
+
+------------------------------------------------------------------------
+r1071 | remi | 2006-03-27 11:11:12 +0200 (Mon, 27 Mar 2006) | 2 lines
+Changed paths:
+   M /trunk/src/relay.cpp
+   M /trunk/src/server.cpp
+
+Fix miredo_capc
+
+------------------------------------------------------------------------
+r1070 | remi | 2006-03-23 22:34:00 +0100 (Thu, 23 Mar 2006) | 2 lines
+Changed paths:
+   M /trunk/m4
+   M /trunk/m4/Makefile.am
+
+Remove a bunch of *.m4 files that are no longer used
+
+------------------------------------------------------------------------
+r1069 | remi | 2006-03-23 22:19:51 +0100 (Thu, 23 Mar 2006) | 2 lines
+Changed paths:
+   M /trunk/configure.ac
+
+This is 0.8.2-trunk
+
+------------------------------------------------------------------------
+r1067 | remi | 2006-03-23 22:17:49 +0100 (Thu, 23 Mar 2006) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog
+
+ChangeLog for 0.8.1
+
+------------------------------------------------------------------------
 r1066 | remi | 2006-03-23 22:16:37 +0100 (Thu, 23 Mar 2006) | 2 lines
 Changed paths:
    M /trunk/po/en.po
