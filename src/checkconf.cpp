@@ -105,7 +105,7 @@ static int usage (const char *path)
 	return 0;
 }
 
-int version (void)
+static int version (void)
 {
 	puts (PACKAGE_NAME" v"PACKAGE_VERSION);
 	return 0;
