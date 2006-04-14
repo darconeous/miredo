@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: rdenis@simphalempin.com\n"
-"POT-Creation-Date: 2006-04-11 19:28+0200\n"
+"POT-Creation-Date: 2006-04-14 22:34+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -20,20 +20,20 @@ msgstr ""
 msgid "Ignoring invalid bubble: your Teredo server is probably buggy."
 msgstr ""
 
-#: libteredo/security.c:67 libteredo/security.c:135 libteredo/server.c:492
-#: libteredo/server.c:503 libteredo/maintain.c:510 libtun6/tun6.c:683
+#: libteredo/security.c:68 libteredo/security.c:136 libteredo/server.c:494
+#: libteredo/server.c:505 libteredo/maintain.c:511 libtun6/tun6.c:683
 #: src/main.c:301 src/main.c:312 src/main.c:320 src/main.c:348 src/main.c:485
 #: src/miredo.cpp:106 src/miredo.cpp:114 src/miredo.cpp:235
 #, c-format
 msgid "Error (%s): %s\n"
 msgstr ""
 
-#: libteredo/server.c:389 libteredo/server.c:457
+#: libteredo/server.c:390 libteredo/server.c:459
 #, c-format
 msgid "Raw IPv6 socket not working: %s"
 msgstr ""
 
-#: libteredo/server.c:465
+#: libteredo/server.c:467
 msgid ""
 "Teredo server UDP socket error: Server IPv4 addresses must be global unicast."
 msgstr ""
@@ -46,49 +46,49 @@ msgstr ""
 msgid "Invalid Teredo prefix received"
 msgstr ""
 
-#: libteredo/maintain.c:165
+#: libteredo/maintain.c:166
 msgid "Authentication with server failed."
 msgstr ""
 
-#: libteredo/maintain.c:193
+#: libteredo/maintain.c:194
 msgid "Too much time drift. Resynchronizing."
 msgstr ""
 
-#: libteredo/maintain.c:265
+#: libteredo/maintain.c:266
 #, c-format
 msgid "Cannot resolve Teredo server address \"%s\": %s"
 msgstr ""
 
-#: libteredo/maintain.c:282
+#: libteredo/maintain.c:283
 msgid "Server has a non global IPv4 address. It will most likely not work."
 msgstr ""
 
-#: libteredo/maintain.c:342
+#: libteredo/maintain.c:343
 msgid "Lost Teredo connectivity"
 msgstr ""
 
-#: libteredo/maintain.c:357
+#: libteredo/maintain.c:358
 msgid "No reply from Teredo server"
 msgstr ""
 
-#: libteredo/maintain.c:379
+#: libteredo/maintain.c:380
 msgid "Teredo address/MTU changed"
 msgstr ""
 
-#: libteredo/maintain.c:396
+#: libteredo/maintain.c:397
 msgid "Unsupported symmetric NAT detected."
 msgstr ""
 
-#: libteredo/maintain.c:405
+#: libteredo/maintain.c:406
 #, c-format
 msgid "Qualified (NAT type: %s)"
 msgstr ""
 
-#: libteredo/maintain.c:407
+#: libteredo/maintain.c:408
 msgid "cone"
 msgstr ""
 
-#: libteredo/maintain.c:407
+#: libteredo/maintain.c:408
 msgid "restricted"
 msgstr ""
 
@@ -311,49 +311,48 @@ msgstr ""
 msgid "Terminated with no error."
 msgstr ""
 
-#: src/relay.cpp:257
+#: src/relay.cpp:204
 #, c-format
 msgid "Invalid relay type \"%s\" at line %u"
 msgstr ""
 
-#: src/relay.cpp:296
+#: src/relay.cpp:243
 msgid "Teredo pseudo-tunnel started"
 msgstr ""
 
-#: src/relay.cpp:298
+#: src/relay.cpp:245
 #, c-format
 msgid " (address: %s, MTU: %u)"
 msgstr ""
 
-#: src/relay.cpp:317
+#: src/relay.cpp:264
 msgid "Teredo pseudo-tunnel stopped"
 msgstr ""
 
-#: src/relay.cpp:328 src/relay.cpp:371 src/relay.cpp:505 src/relay.cpp:511
-#: src/relay.cpp:542
+#: src/relay.cpp:387 src/relay.cpp:406 src/relay.cpp:423 src/relay.cpp:435
+#: src/relay.cpp:461 src/server.cpp:111 src/server.cpp:119 src/server.cpp:136
+msgid "Fatal configuration error"
+msgstr ""
+
+#: src/relay.cpp:405 src/server.cpp:118
+msgid "Server address not specified"
+msgstr ""
+
+#: src/relay.cpp:422
+msgid "Unsupported Teredo client mode"
+msgstr ""
+
+#: src/relay.cpp:488 src/relay.cpp:494 src/relay.cpp:557
 #, c-format
 msgid "Miredo setup failure: %s"
 msgstr ""
 
-#: src/relay.cpp:329 src/relay.cpp:372 src/relay.cpp:512 src/relay.cpp:543
-msgid "libteredo cannot be initialized"
-msgstr ""
-
-#: src/relay.cpp:395 src/relay.cpp:419 src/relay.cpp:428 src/relay.cpp:439
-#: src/relay.cpp:465 src/server.cpp:111 src/server.cpp:119 src/server.cpp:136
-msgid "Fatal configuration error"
-msgstr ""
-
-#: src/relay.cpp:418 src/server.cpp:118
-msgid "Server address not specified"
-msgstr ""
-
-#: src/relay.cpp:427
-msgid "Unsupported Teredo client mode"
-msgstr ""
-
-#: src/relay.cpp:506
+#: src/relay.cpp:489
 msgid "Cannot create IPv6 tunnel"
+msgstr ""
+
+#: src/relay.cpp:495 src/relay.cpp:558
+msgid "libteredo cannot be initialized"
 msgstr ""
 
 #: src/server.cpp:101
