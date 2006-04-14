@@ -91,6 +91,9 @@ AS_IF([test "${PTHREAD_LDFAGS}${PTHREAD_LIBS}"], [
 ])
 AC_CHECK_FUNC([pthread_barrier_wait],, [AC_LIBOBJ([barrier])])
 
+# Checks for optionnal features
+AS_MESSAGE([checking optional features...])
+
 # POSIX capabilities
 LIBCAP=""
 AC_CHECK_HEADERS([sys/capability.h], [
@@ -102,8 +105,6 @@ AC_CHECK_HEADERS([sys/capability.h], [
 ])
 AC_SUBST(LIBCAP)
 
-# Checks for optionnal features
-AS_MESSAGE([checking optional features...])
 
 # Judy
 AC_ARG_WITH(Judy,
