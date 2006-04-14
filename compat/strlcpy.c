@@ -19,6 +19,9 @@
  *  http://www.gnu.org/copyleft/gpl.html                               *
  ***********************************************************************/
 
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
 #include <stddef.h>
 
 extern size_t strlcpy (char *tgt, const char *src, size_t bufsize)

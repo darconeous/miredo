@@ -19,6 +19,10 @@
  *  http://www.gnu.org/copyleft/gpl.html                               *
  ***********************************************************************/
 
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
+
 #include <sys/types.h>
 #include <sys/time.h> /* for <sys/resource.h> */
 #include <sys/resource.h> /* getrlimit() */
