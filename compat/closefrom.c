@@ -35,11 +35,12 @@ extern int closefrom (int fd)
 {
 	struct rlimit lim;
 	unsigned found = 0;
+	int saved_errno;
 
 	if (getrlimit (RLIMIT_NOFILE, &lim))
 		return -1;
 
-	int saved_errno = errno;
+	saved_errno = errno;
 	while ((unsigned)fd < lim.rlim_max)
 		if (close (fd++) == 0)
 			found++;
