@@ -44,6 +44,7 @@
 #include <sys/socket.h>
 #include <syslog.h>
 #include <unistd.h> // uid_t
+#include <fcntl.h>
 #include <sys/wait.h> // waitpid()
 #if HAVE_SYS_CAPABILITY_H
 # include <sys/capability.h>
@@ -193,6 +194,24 @@ class MiredoSyslogConf : public MiredoConf
 			vsyslog (error ? LOG_ERR : LOG_WARNING, fmt, ap);
 		}
 };
+
+
+extern "C"
+void miredo_setup_fd (int fd)
+{
+	(void) fcntl (fd, F_SETFD, FD_CLOEXEC);
+}
+
+
+extern "C"
+void miredo_setup_nonblock_fd (int fd)
+{
+	int flags = fcntl (fd, F_GETFL);
+	if (flags == -1)
+		flags = 0;
+	(void) fcntl (fd, F_SETFL, O_NONBLOCK | flags);
+	miredo_setup_fd (fd);
+}
 
 
 extern "C" int
