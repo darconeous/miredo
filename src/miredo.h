@@ -50,6 +50,7 @@ extern const char *const miredo_pidfile;
 extern const char *const miredo_name;
 
 # ifdef HAVE_LIBCAP
+#  include <sys/capability.h>
 extern const cap_value_t *miredo_capv;
 extern const int miredo_capc;
 # endif
