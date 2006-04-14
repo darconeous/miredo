@@ -983,7 +983,12 @@ void teredo_destroy (teredo_tunnel *t)
 }
 
 
-/* FIXME: document */
+/**
+ * Registers file descriptors in an fd_set for use with select().
+ *
+ * @return the "biggest" file descriptor registered (useful as the
+ * first parameter to select()).
+ */
 int teredo_register_readset (teredo_tunnel *t, fd_set *rdset)
 {
 	assert (t != NULL);
