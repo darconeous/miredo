@@ -18,7 +18,7 @@
 # *  http://www.gnu.org/copyleft/gpl.html                               *
 # ***********************************************************************
 
-if test ! -f doc/miredo.8 ; then
+if test ! -f doc/miredo.8-in ; then
 	echo "You must run this script from your miredo SVN directory."
 	exit 1
 fi
