@@ -76,6 +76,13 @@ struct teredo_tunnel
 	teredo_state state;
 	pthread_rwlock_t state_lock;
 
+	struct
+	{
+		pthread_mutex_t lock;
+		int count;
+		time_t last;
+	} ratelimit;
+
 	int fd;
 	bool allow_cone;
 };
@@ -112,13 +119,6 @@ static void
 teredo_send_unreach (teredo_tunnel *tunnel, int code,
                         const void *in, size_t len)
 {
-	/* FIXME: should probably not be static */
-	static struct
-	{
-		pthread_mutex_t lock;
-		int count;
-		time_t last;
-	} ratelimit = { PTHREAD_MUTEX_INITIALIZER, 1, 0 };
 	struct
 	{
 		struct icmp6_hdr hdr;
@@ -128,23 +128,23 @@ teredo_send_unreach (teredo_tunnel *tunnel, int code,
 
 	/* ICMPv6 rate limit */
 	time (&now);
-	pthread_mutex_lock (&ratelimit.lock);
-	if (memcmp (&now, &ratelimit.last, sizeof (now)))
+	pthread_mutex_lock (&tunnel->ratelimit.lock);
+	if (memcmp (&now, &tunnel->ratelimit.last, sizeof (now)))
 	{
-		memcpy (&ratelimit.last, &now, sizeof (now));
-		ratelimit.count =
+		memcpy (&tunnel->ratelimit.last, &now, sizeof (now));
+		tunnel->ratelimit.count =
 			ICMP_RATE_LIMIT_MS ? (int)(1000 / ICMP_RATE_LIMIT_MS) : -1;
 	}
 
-	if (ratelimit.count == 0)
+	if (tunnel->ratelimit.count == 0)
 	{
 		/* rate limit exceeded */
-		pthread_mutex_unlock (&ratelimit.lock);
+		pthread_mutex_unlock (&tunnel->ratelimit.lock);
 		return;
 	}
-	if (ratelimit.count > 0)
-		ratelimit.count--;
-	pthread_mutex_unlock (&ratelimit.lock);
+	if (tunnel->ratelimit.count > 0)
+		tunnel->ratelimit.count--;
+	pthread_mutex_unlock (&tunnel->ratelimit.lock);
 
 	len = BuildICMPv6Error (&buf.hdr, ICMP6_DST_UNREACH, code, in, len);
 	tunnel->icmpv6_cb (tunnel->opaque, &buf.hdr, len,
@@ -930,6 +930,7 @@ teredo_tunnel *teredo_create (uint32_t ipv4, uint16_t port)
 	tunnel->state.addr.teredo.client_port = ~port;
 	tunnel->state.addr.teredo.client_ip = ~ipv4;
 	tunnel->state.up = false;
+	tunnel->ratelimit.count = 1;
 
 	tunnel->recv_cb = teredo_dummy_recv_cb;
 	tunnel->icmpv6_cb = teredo_dummy_icmpv6_cb;
@@ -943,10 +944,9 @@ teredo_tunnel *teredo_create (uint32_t ipv4, uint16_t port)
 		if ((tunnel->list = teredo_list_create (MAX_PEERS, 30)) != NULL)
 		{
 			/* FIXME: use debug attributes when appropriate */
-			if (pthread_rwlock_init (&tunnel->state_lock, NULL) == 0)
-				return tunnel;
-
-			teredo_list_destroy (tunnel->list);
+			(void)pthread_rwlock_init (&tunnel->state_lock, NULL);
+			(void)pthread_mutex_init (&tunnel->ratelimit.lock, NULL);
+			return tunnel;
 		}
 		teredo_close (tunnel->fd);
 	}
@@ -977,6 +977,7 @@ void teredo_destroy (teredo_tunnel *t)
 
 	teredo_list_destroy (t->list);
 	pthread_rwlock_destroy (&t->state_lock);
+	pthread_mutex_destroy (&t->ratelimit.lock);
 	teredo_close (t->fd);
 	free (t);
 }
