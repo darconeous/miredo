@@ -1,19 +1,35 @@
 RELEASE NOTES for Miredo
-version 0.8.1 (stable version)
+version 0.8.2 (stable version)
 ===============================
 $Id$
 
   This is an officially stable release of the program. The package is
 functional, though it lacks some optional features. There are also no
-known outstanding issues. Users of previous releases are STRONGLY ADVISED
-to upgrade, as this version includes a fix for a potential security
-vulnerability (as well as some other minor bugs).
+known outstanding issues. Users of previous releases are encouraged
+to upgrade, as this version includes some minor bug fixes.
   Please report any problem by email to rdenis (at) simphalempin (dot) com
 
   You can find major changes since version 0.1.0 below. For more general
 informations on this program, see README. For syntax details and
 changes, run 'miredo -h' to get help. For detailled internal changes, see
 ChangeLog.
+
+=============================================================================
+STABLE RELEASE 0.8.2 : Minor bugfixes
+
+# New “autoclient” mode (RelayType directive in miredo.conf):
+  This is similar to client, except that Miredo will disable Teredo
+  tunneling completely whenever there is another IPv6-enabled networking
+  interface that appears to provide global IPv6 connectivity.
+
+# Insufficient privileges settings fix when using POSIX capabilities.
+# -t or --chrootdir option reintroduced to configure chroot at run-time.
+# Update and improve BinReloc for Linux support.
+# Removed useless, if not confusing, DefaultRoute configuration directive.
+# Support for tunnel interface naming on FreeBSD.
+# Various manual pages updates and fixes.
+# Various NetBSD, OpenBSD and Mac OS X portability fixes.
+# libteredo made a C99 (C++-less) library with a working C API.
 
 =============================================================================
 STABLE RELEASE 0.8.1 : Security/bug fixes
@@ -62,7 +78,7 @@ BETA RELEASE 0.7.0 : Minor features enhancement, security/bugs fixes
 # Emit ICMPv6 Address unreachable error packets when a destination cannot
   be reached via Teredo tunneling.
 # Force 2-seconds delay between multiple Echo Requests and Teredo bubbles.
-# Use HMAC-MD5 for Echo Requests "nonce", rather than kernel entropy pool
+# Use HMAC-MD5 for Echo Requests “nonce”, rather than kernel entropy pool
   (heavily reduce kernel entropy pool usage).
 # Fix Teredo client maintenance in case of system clock drift (could be
   caused by SIGSTOP, APM/ACPI/software suspend, debugger, or system load).
@@ -75,7 +91,7 @@ BETA RELEASE 0.7.0 : Minor features enhancement, security/bugs fixes
 # Re-resolve server IP address when connectivity fails.
 # Remove chroot by default (prevents DNS resolution without platform
   specific setup).
-# Fix minor race condition that "never happens" in Teredo client.
+# Fix minor race condition that “never happens” in Teredo client.
 
 =============================================================================
 BETA RELEASE 0.5.4 : Major bugfixes
@@ -125,7 +141,7 @@ BETA RELEASE 0.5.0 : Major features enhancement
   (also backported in release 0.4.3).
 # Finally implemented correct Teredo maintenance procedure / qualification
   and connectivity loss detection (which is now quicker).
-# Regenerate server authentication token ("nonce") every hour for increased
+# Regenerate server authentication token (“nonce”) every hour for increased
   security.
 # Limit ICMPv6 Echo Requests sent to 3 per peer every 30 seconds.
 # Safe work-around to reach peers that rejects ICMPv6 Echo Requests.
@@ -136,7 +152,7 @@ BETA RELEASE 0.5.0 : Major features enhancement
 # Fix a minor race condition when the Teredo tunnel is brought up.
 
 # Teredo server support separated : it is now provided by a separate binary
-  "miredo-server", that reads its configuration from "miredo-server.conf".
+  “miredo-server”, that reads its configuration from “miredo-server.conf”.
   Additionnally, the Teredo server now use raw IPv6 socket rather than the
   Teredo tunneling interface, so that one doesn't need to enabled IPv6
   forwarding on the Teredo server (and it is more portable).
@@ -159,7 +175,7 @@ BETA RELEASE 0.4.1 : Minor bugfixes
 
 # Fixed privileges separation issue on Linux with grsecurity patch.
 # Work-around a Linux kernel panic bug when bringing an interface down.
-# Fixed use of "RelayType disabled" - Miredo would always fail in that mode.
+# Fixed use of “RelayType disabled” - Miredo would always fail in that mode.
 # Improved sample configuration file comments.
 # Print logging information on the console with option -f (foreground run).
 # Complain when no sever was specified in client mode.
@@ -176,9 +192,9 @@ BETA RELEASE 0.4.0 : Major features enhancement
 
 # Support for disabling components at build-time :
   That helps producing a smaller executable. In particular, you may
-  consider running "./configure --disable-teredo-server" as very few
+  consider running “./configure --disable-teredo-server” as very few
   people really use the Teredo server component.
-  "--disable-teredo-client" is also provided if you only want to build
+  “--disable-teredo-client” is also provided if you only want to build
   a Teredo relay.
 
 # Zero-memcpy, performance improvement :
@@ -206,7 +222,7 @@ BETA RELEASE 0.3.2 : Minor bugfixes
 # Configure option --enable-pidfile=<path> to change the pidfile path
   (or --disable-pidfile to disable pidfile generation)
 
-# Safer default configuration : Miredo uses the "nobody" user which
+# Safer default configuration : Miredo uses the “nobody” user which
   should exists on any system, instead of root by default.
 
 # FreeBSD compilation fixes.
@@ -281,7 +297,7 @@ BETA RELEASE 0.2.0 : Major features enhancement
     Miredo's Teredo relaying functions should now work fine from behind a
   restricted NAT device (such as most Linux/Netfilter-based NAT). If you are
   not behind a NAT or if you are behind a cone NAT, you can use command line
-  option "-C" for optimization.
+  option “-C” for optimization.
 
 =============================================================================
 ALPHA RELEASE 0.1.1 : Major features enhancement
@@ -306,11 +322,11 @@ ALPHA RELEASE 0.1.1 : Major features enhancement
 
 # Possible vulnerabilities impact mitigation:
     Miredo will drop its root privileges as soon as possible, setuid to
-  "miredo" user (which you should create, or change at run time), setgid,
+  “miredo” user (which you should create, or change at run time), setgid,
   and chroot. For chroot to work, some manual setup is needed.
 
 # Background run:
-    Miredo will automatically detach and run in the background as a "daemon".
+    Miredo will automatically detach and run in the background as a “daemon”.
 
 # Automatic relay address configuration:
     One no longer has to specify the relay IPv4 and IPv6 addresses. This is
