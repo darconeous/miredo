@@ -127,7 +127,7 @@ static const char *os_driver = "Generic";
 struct tun6
 {
 	int  id, fd, reqfd;
-#if defined (USE_BSD) && defined (SIOCSIFNAME)
+#if defined (USE_BSD)
 	char orig_name[IFNAMSIZ];
 #endif
 };
