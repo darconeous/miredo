@@ -37,6 +37,7 @@
 #include <string.h> // strerror()
 #include <errno.h>
 #include <unistd.h> // close()
+#include <fcntl.h>
 #include <sys/wait.h> // wait()
 #include <sys/select.h> // pselect()
 #include <signal.h> // sigemptyset()
@@ -565,4 +566,22 @@ miredo_run (MiredoConf& conf, const char *server_name)
 #endif
 	tun6_destroy (tunnel);
 	return retval;
+}
+
+
+extern "C"
+void miredo_setup_fd (int fd)
+{
+	(void) fcntl (fd, F_SETFD, FD_CLOEXEC);
+}
+
+
+extern "C"
+void miredo_setup_nonblock_fd (int fd)
+{
+	int flags = fcntl (fd, F_GETFL);
+	if (flags == -1)
+		flags = 0;
+	(void) fcntl (fd, F_SETFL, O_NONBLOCK | flags);
+	miredo_setup_fd (fd);
 }
