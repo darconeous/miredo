@@ -51,6 +51,7 @@ typedef struct teredo_packet
 	uint8_t  buf[TEREDO_PACKET_SIZE];
 } teredo_packet;
 
+struct iovec;
 
 # ifdef __cplusplus
 extern "C" {
