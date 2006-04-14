@@ -26,6 +26,7 @@
 #include <stdio.h>
 #include <syslog.h> /* TODO: do not use syslog within the library */
 #include "tun6.h"
+#include <sys/socket.h> /* OpenBSD wants that for <net/if.h> */
 #include <net/if.h>
 
 static const char *invalid_name =
