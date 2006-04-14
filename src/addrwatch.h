@@ -29,6 +29,7 @@ extern "C" {
 # endif
 
 miredo_addrwatch *miredo_addrwatch_start (int self_scope);
+int miredo_addrwatch_getfd (miredo_addrwatch *self);
 void miredo_addrwatch_stop (miredo_addrwatch *self);
 int miredo_addrwatch_available (miredo_addrwatch *self);
 

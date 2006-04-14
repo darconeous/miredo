@@ -271,17 +271,11 @@ setup_client (teredo_tunnel *client, const char *server, const char *server2)
 	teredo_set_state_cb (client, miredo_up_callback, miredo_down_callback);
 	return teredo_set_client_mode (client, server, server2);
 }
-
-static inline const struct timespec *watch_ts (const miredo_addrwatch *watch)
-{
-	static const struct timespec watch_ts = { 5, 0 };
-	return (watch != NULL) ? &watch_ts : NULL;
-}
 #else
 # define create_dynamic_tunnel( a, b )   NULL
 # define setup_client( a, b, c )         (-1)
 # define miredo_addrwatch_available( a ) 0
-# define watch_ts( a )                   NULL
+# define miredo_addrwatch_getfd( a )     (-1)
 # define run_tunnel( a, b, c )           run_tunnel_RELAY_ONLY( a, b )
 #endif
 
@@ -331,6 +325,13 @@ run_tunnel (teredo_tunnel *relay, tun6 *tunnel, miredo_addrwatch *w)
 	if (val > maxfd)
 		maxfd = val;
 
+	if ((val = miredo_addrwatch_getfd (w)) != -1)
+	{
+		FD_SET (val, &refset);
+		if (val > maxfd)
+			maxfd = val;
+	}
+
 	maxfd++;
 
 	sigset_t sigset;
@@ -343,7 +344,7 @@ run_tunnel (teredo_tunnel *relay, tun6 *tunnel, miredo_addrwatch *w)
 		memcpy (&readset, &refset, sizeof (readset));
 
 		/* Wait until one of them is ready for read */
-		val = pselect (maxfd, &readset, NULL, NULL, watch_ts (w), &sigset);
+		val = pselect (maxfd, &readset, NULL, NULL, NULL, &sigset);
 		if (val < 0)
 			return 0;
 		if (val == 0)
@@ -504,13 +505,20 @@ miredo_run (MiredoConf& conf, const char *server_name)
 			{
 				if (miredo_addrwatch_available (watch))
 				{
-					sigset_t s;
-					sigemptyset (&s);
+					sigset_t sig;
+					sigemptyset (&sig);
 
-					if (pselect (0, NULL, NULL, NULL, watch_ts (watch), &s))
-						retval = 0;
-					else
+					int fd = miredo_addrwatch_getfd (watch);
+					assert (fd != -1);
+
+					fd_set rdset;
+					FD_ZERO (&rdset);
+					FD_SET (fd, &rdset);
+
+					if (pselect (fd + 1, &rdset, NULL, NULL, NULL, &sig) == 1)
 						retval = -2;
+					else
+						retval = 0;
 
 					continue;
 				}
