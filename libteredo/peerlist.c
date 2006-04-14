@@ -48,11 +48,9 @@
 
 #include "teredo.h"
 #include "teredo-udp.h" // FIXME: ugly
+#include "debug.h"
 #include <stdbool.h>
 #include "peerlist.h"
-#ifndef NDEBUG
-# include <errno.h>
-#endif
 
 /*
  * Packets queueing
@@ -252,18 +250,7 @@ teredo_peerlist *teredo_list_create (unsigned max, unsigned expiration)
 		return NULL;
 
 	memset (l, 0, sizeof (l));
-#ifndef NDEBUG
-	{
-		pthread_mutexattr_t attr;
-
-		pthread_mutexattr_init (&attr);
-		pthread_mutexattr_settype (&attr, PTHREAD_MUTEX_ERRORCHECK_NP);
-		pthread_mutex_init (&l->lock, &attr);
-		pthread_mutexattr_destroy (&attr);
-	}
-#else
 	pthread_mutex_init (&l->lock, NULL);
-#endif
 	pthread_cond_init (&l->cond, NULL);
 	l->sentinel.next = l->sentinel.prev = &l->sentinel;
 	l->left = max;
@@ -375,15 +362,7 @@ teredo_peer *teredo_list_lookup (teredo_peerlist *list, time_t atime,
 {
 	teredo_listitem *p;
 
-#ifndef NDEBUG
-	{
-		int err = pthread_mutex_lock (&list->lock);
-		assert (err != EDEADLK);
-		assert (err == 0);
-	}
-#else
 	pthread_mutex_lock (&list->lock);
-#endif
 
 #if HAVE_LIBJUDY
 	teredo_listitem **pp = NULL;
@@ -509,11 +488,5 @@ teredo_peer *teredo_list_lookup (teredo_peerlist *list, time_t atime,
  */
 void teredo_list_release (teredo_peerlist *l)
 {
-#ifndef NDEBUG
-	int err = pthread_mutex_unlock (&l->lock);
-	assert (err != EPERM);
-	assert (err == 0);
-#else
 	pthread_mutex_unlock (&l->lock);
-#endif
 }

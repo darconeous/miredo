@@ -45,6 +45,7 @@
 #include <errno.h>
 
 #include "security.h"
+#include "debug.h"
 #include "md5.h"
 
 #if defined (__OpenBSD__) || defined (__OpenBSD_kernel__)

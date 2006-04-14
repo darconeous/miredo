@@ -56,6 +56,7 @@
 #include "teredo.h"
 #include <sys/uio.h>
 #include "teredo-udp.h"
+#include "debug.h"
 
 static pthread_mutex_t raw_mutex = PTHREAD_MUTEX_INITIALIZER;
 static int raw_fd; // raw IPv6 socket

@@ -57,6 +57,7 @@
 #include "security.h"
 #include "maintain.h"
 #include "v4global.h" // is_ipv4_global_unicast()
+#include "debug.h"
 
 #include <compat/barrier.h>
 

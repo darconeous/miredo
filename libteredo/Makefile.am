@@ -34,7 +34,8 @@ include_libteredodir = $(includedir)/libteredo
 include_libteredo_HEADERS = teredo.h teredo-udp.h tunnel.h
 
 # libteredo-common.la
-libteredo_common_la_SOURCES = teredo.c v4global.c v4global.h checksum.h
+libteredo_common_la_SOURCES =	teredo.c v4global.c v4global.h \
+				checksum.h debug.h
 libteredo_common_la_LDFLAGS = -no-undefined
 
 # libteredo.la

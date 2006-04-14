@@ -59,6 +59,7 @@
 #ifdef MIREDO_TEREDO_CLIENT
 # include "security.h"
 #endif
+#include "debug.h"
 
 struct teredo_tunnel
 {
@@ -943,7 +944,6 @@ teredo_tunnel *teredo_create (uint32_t ipv4, uint16_t port)
 	{
 		if ((tunnel->list = teredo_list_create (MAX_PEERS, 30)) != NULL)
 		{
-			/* FIXME: use debug attributes when appropriate */
 			(void)pthread_rwlock_init (&tunnel->state_lock, NULL);
 			(void)pthread_mutex_init (&tunnel->ratelimit.lock, NULL);
 			return tunnel;
