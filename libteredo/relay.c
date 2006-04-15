@@ -768,10 +768,15 @@ void teredo_run (teredo_tunnel *tunnel)
 					if (p == NULL)
 						return; // insufficient memory
 
-					/* FIXME: seemingly useless*/
+					/*
+                     * This is useless:
+					 * trusted and bubbles are set above, pings is never used
+					 * for other Teredo clients.
 					if (create)
 						p->trusted = p->bubbles = p->pings = 0;
-					//else race condition - peer created by another thread
+					else
+						race condition: peer created by another thread
+					 */
 					SetMapping (p, IN6_TEREDO_IPV4 (&ip6.ip6_src),
 					            IN6_TEREDO_PORT (&ip6.ip6_src));
 				}
@@ -799,9 +804,9 @@ void teredo_run (teredo_tunnel *tunnel)
 			return;
 		}
 
-		// TODO: remove this line if we implement local teredo
 		if (p != NULL)
 			teredo_list_release (list);
+		// TODO: remove this line if we implement local teredo
 		return;
 	}
 
