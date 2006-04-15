@@ -269,20 +269,6 @@ init_daemon (const char *username, const char *pidfile, int nodetach)
 
 	unpriv_uid = pw->pw_uid;
 
-	/* Unpriviledged group */
-	errno = 0;
-	if (setgid (pw->pw_gid))
-	{
-		fprintf (stderr, _("SetGID to group ID %u: %s\n"),
-				(unsigned)pw->pw_gid, strerror (errno));
-		setuid_notice ();
-		return -1;
-	}
-
-	/* Leaves other group privileges.
-	 * This fails if the user is not root. */
-	(void)setgroups (0, NULL);
-
 	/* Ensure we have root privilege before initialization */
 	if (seteuid (0))
 	{
@@ -291,40 +277,42 @@ init_daemon (const char *username, const char *pidfile, int nodetach)
 		return -1;
 	}
 
+	/* Unpriviledged group */
+	(void)setgid (pw->pw_gid);
+	(void)setgroups (0, NULL);
+
 	/* POSIX.1e capabilities support */
 #ifdef HAVE_LIBCAP
+	cap_t s = cap_init ();
+	if (s == NULL)
 	{
-		cap_t s = cap_init ();
-		if (s == NULL)
-		{
-			/* Unlikely */
-			fprintf (stderr, _("Error (%s): %s\n"), "cap_init",
-			         strerror (errno));
-			return -1;
-		}
-
-		if (cap_set_flag (s, CAP_PERMITTED, miredo_capc,
-		                  (cap_value_t *)miredo_capv, CAP_SET)
-		 || cap_set_flag (s, CAP_EFFECTIVE, miredo_capc,
-		                  (cap_value_t *)miredo_capv, CAP_SET))
-		{
-			/* Unlikely */
-			fprintf (stderr, _("Error (%s): %s\n"), "cap_set_flag",
-			         strerror (errno));
-			cap_free (s);
-			return -1;
-		}
-
-		if (cap_set_proc (s))
-		{
-			fprintf (stderr, _("Error (%s): %s\n"), "cap_set_proc",
-			         strerror (errno));
-			cap_free (s);
-			setuid_notice ();
-			return -1;
-		}
-		cap_free (s);
+		/* Unlikely */
+		fprintf (stderr, _("Error (%s): %s\n"), "cap_init",
+		         strerror (errno));
+		return -1;
 	}
+
+	if (cap_set_flag (s, CAP_PERMITTED, miredo_capc,
+	                  (cap_value_t *)miredo_capv, CAP_SET)
+	 || cap_set_flag (s, CAP_EFFECTIVE, miredo_capc,
+	                  (cap_value_t *)miredo_capv, CAP_SET))
+	{
+		/* Unlikely */
+		fprintf (stderr, _("Error (%s): %s\n"), "cap_set_flag",
+		         strerror (errno));
+		cap_free (s);
+		return -1;
+	}
+
+	if (cap_set_proc (s))
+	{
+		fprintf (stderr, _("Error (%s): %s\n"), "cap_set_proc",
+		         strerror (errno));
+		cap_free (s);
+		setuid_notice ();
+		return -1;
+	}
+	cap_free (s);
 #endif
 
 	/* Opens pidfile */
