@@ -58,9 +58,6 @@ const char *const miredo_pidfile =
 #ifdef HAVE_LIBCAP
 static const cap_value_t capv[] =
 {
-	CAP_KILL, /* required by the signal handler */
-	CAP_SETUID,
-	CAP_SYS_CHROOT,
 	CAP_NET_RAW /* required by teredo_server */
 };
 

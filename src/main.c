@@ -277,10 +277,6 @@ init_daemon (const char *username, const char *pidfile, int nodetach)
 		return -1;
 	}
 
-	/* Unpriviledged group */
-	(void)setgid (pw->pw_gid);
-	(void)setgroups (0, NULL);
-
 	/* POSIX.1e capabilities support */
 #ifdef HAVE_LIBCAP
 	cap_t s = cap_init ();
@@ -290,6 +286,22 @@ init_daemon (const char *username, const char *pidfile, int nodetach)
 		fprintf (stderr, _("Error (%s): %s\n"), "cap_init",
 		         strerror (errno));
 		return -1;
+	}
+
+	static const cap_value_t caps[] =
+	{
+		CAP_KILL, // required by the signal handler
+		CAP_SETUID,
+		CAP_SETGID
+	};
+	cap_set_flag (s, CAP_PERMITTED, 3, caps, CAP_SET);
+	cap_set_flag (s, CAP_EFFECTIVE, 3, caps, CAP_SET);
+
+	if (miredo_chrootdir != NULL)
+	{
+		static const cap_value_t chroot_cap[] = { CAP_SYS_CHROOT };
+		cap_set_flag (s, CAP_PERMITTED, 1, chroot_cap, CAP_SET);
+		cap_set_flag (s, CAP_EFFECTIVE, 1, chroot_cap, CAP_SET);
 	}
 
 	cap_set_flag (s, CAP_PERMITTED, miredo_capc,
@@ -305,6 +317,17 @@ init_daemon (const char *username, const char *pidfile, int nodetach)
 		setuid_notice ();
 		return -1;
 	}
+#endif
+
+	/* Unpriviledged group */
+	(void)setgid (pw->pw_gid);
+	(void)setgroups (0, NULL);
+
+#ifdef HAVE_LIBCAP
+	static const cap_value_t setgid_cap[] = { CAP_SETGID };
+	cap_set_flag (s, CAP_EFFECTIVE, 1, setgid_cap, CAP_CLEAR);
+	cap_set_flag (s, CAP_PERMITTED, 1, setgid_cap, CAP_CLEAR);
+	cap_set_proc (s);
 	cap_free (s);
 #endif
 
