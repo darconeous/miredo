@@ -288,7 +288,7 @@ init_daemon (const char *username, const char *pidfile, int nodetach)
 		return -1;
 	}
 
-	static const cap_value_t caps[] =
+	static cap_value_t caps[] =
 	{
 		CAP_KILL, // required by the signal handler
 		CAP_SETUID,
@@ -299,7 +299,7 @@ init_daemon (const char *username, const char *pidfile, int nodetach)
 
 	if (miredo_chrootdir != NULL)
 	{
-		static const cap_value_t chroot_cap[] = { CAP_SYS_CHROOT };
+		static cap_value_t chroot_cap[] = { CAP_SYS_CHROOT };
 		cap_set_flag (s, CAP_PERMITTED, 1, chroot_cap, CAP_SET);
 		cap_set_flag (s, CAP_EFFECTIVE, 1, chroot_cap, CAP_SET);
 	}
@@ -324,7 +324,7 @@ init_daemon (const char *username, const char *pidfile, int nodetach)
 	(void)setgroups (0, NULL);
 
 #ifdef HAVE_LIBCAP
-	static const cap_value_t setgid_cap[] = { CAP_SETGID };
+	static cap_value_t setgid_cap[] = { CAP_SETGID };
 	cap_set_flag (s, CAP_EFFECTIVE, 1, setgid_cap, CAP_CLEAR);
 	cap_set_flag (s, CAP_PERMITTED, 1, setgid_cap, CAP_CLEAR);
 	cap_set_proc (s);
