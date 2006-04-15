@@ -286,7 +286,7 @@ init_daemon (const char *username, const char *pidfile, int nodetach)
 	/* Ensure we have root privilege before initialization */
 	if (seteuid (0))
 	{
-		perror (_("SetUID to root: %s\n"));
+		fprintf (stderr, _("SetUID to root: %s\n"), strerror (errno));
 		setuid_notice ();
 		return -1;
 	}
