@@ -321,7 +321,7 @@ init_daemon (const char *username, const char *pidfile, int nodetach)
 
 	/* Unpriviledged group */
 	(void)setgid (pw->pw_gid);
-	(void)setgroups (0, NULL);
+	(void)initgroups (username, pw->pw_gid);
 
 #ifdef HAVE_LIBCAP
 	static cap_value_t setgid_cap[] = { CAP_SETGID };
