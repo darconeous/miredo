@@ -29,6 +29,7 @@ LIBADD = $(LTLIBINTL) ../compat/libcompat.la libteredo-common.la
 
 noinst_LTLIBRARIES = libteredo-common.la libteredo-server.la
 lib_LTLIBRARIES = libteredo.la
+bin_PROGRAMS = libteredo-mire
 
 include_libteredodir = $(includedir)/libteredo
 include_libteredo_HEADERS = teredo.h teredo-udp.h tunnel.h
@@ -56,3 +57,6 @@ libteredo_server_la_LDFLAGS = -no-undefined -static
 # outside miredo-server (which is itself way less commonly used
 # than miredo)
 
+# libteredo-mire
+libteredo_mire_SOURCES = mire.c
+libteredo_mire_LDADD = libteredo.la
