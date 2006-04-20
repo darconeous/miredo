@@ -61,7 +61,7 @@ echo "You need GNU libtool to rebuild this package."
 exit 1
 }
 echo "Generating \`Makefile.in' with automake ..."
-automake --add-missing || {
+automake -Wall --add-missing || {
 echo "Error: automake is probably not on your system, or it is too old."
 echo "You need GNU automake 1.7 higher to rebuild this package."
 exit 1
