@@ -307,7 +307,7 @@ setup_relay (teredo_tunnel *relay, uint32_t prefix, bool cone)
 
 
 /**
- * Miredo main deamon function, with UDP datagrams and IPv6 packets
+ * Miredo main daemon function, with UDP datagrams and IPv6 packets
  * receive loop.
  */
 static int
