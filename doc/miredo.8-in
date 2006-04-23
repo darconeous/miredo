@@ -25,7 +25,7 @@ miredo \- Teredo IPv6 tunneling for Unix
 is a daemon program providing a Teredo tunnel service compatible
 with the "Teredo: Tunneling IPv6 over UDP through NATs" Internet
 proposed standard (RFC 4380). It can provide either Teredo client or
-Teredo relay functionnality.
+Teredo relay functionality.
 
 This is mostly useful to provide IPv6 connectivity to users behind NAT,
 most of which do not support IPv6 at all. Many NATs do not even support
