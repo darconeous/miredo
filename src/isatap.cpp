@@ -1,5 +1,5 @@
 /*
- * isatap.cpp - proof of concept ISATAP implementation
+ * isatap.cpp - basic ISATAP implementation
  * $Id$
  */
 
@@ -95,6 +95,59 @@ miredo_diagnose (void)
 }
 
 
+static bool is_ipv4_unique (uint32_t ipv4)
+{
+	ipv4 = ntohl (ipv4);
+
+	// See RFC3330 for reference.
+
+	// 0.0.0.0/8 is “this”
+	if (ipv4 < 0x01000000)
+		return false;
+	// 1.0.0.0 - 9.255.255.255 are global
+	if (ipv4 < 0x0a000000)
+		return true;
+	// 10.0.0.0/8 are private
+	if (ipv4 < 0x0b000000)
+		return false;
+	// 11.0.0.0 - 126.255.255.255 are global
+	if (ipv4 < 0x7f000000)
+		return true;
+	// 127.0.0.0/8 are local host
+	if (ipv4 < 0x80000000)
+		return false;
+	// 128.0.0.0 - 169.253.255.255 are global
+	if (ipv4 < 0xa9fe0000)
+		return true;
+	// 169.254.0.0/16 are link-local
+	if (ipv4 < 0xa9ff0000)
+		return false;
+	// 169.255.0.0 - 172.15.255.255 are global
+	if (ipv4 < 0xac100000)
+		return true;
+	// 172.16.0.0/12 are private
+	if (ipv4 < 0xac200000)
+		return false;
+	// 172.32.0.0 - 192.167.255.255 are global
+	if (ipv4 < 0xc0a80000)
+		return true;
+	// 192.168.0.0/16 are private
+	if (ipv4 < 0xc0a90000)
+		return false;
+	// 192.169.0.0 - 198.17.255.255 are global
+	if (ipv4 < 0xc6120000)
+		return true;
+	// 198.18.0.0/15 are not global
+	if (ipv4 < 0xc6140000)
+		return false;
+	// 198.20.0.0 - 223.255.255.255 are global
+	if (ipv4 < 0xe0000000)
+		return true;
+	// other are multicast or reserved
+	return false;
+}
+
+
 static tun6 *
 create_static_tunnel (const char *ifname, uint32_t ipv4)
 {
@@ -104,9 +157,11 @@ create_static_tunnel (const char *ifname, uint32_t ipv4)
 		return NULL;
 
 	struct in6_addr addr;
-	memcpy (addr.s6_addr, "\xfe\x80\x00\x00\x00\x00\x00\x00", 8);
-	// FIXME: set the global bit when ipv4 is global
-	memcpy (addr.s6_addr + 8, "\x00\x00\x5e\xfe", 4);
+	static const uint8_t pref12[] =
+		"\xfe\x80\x00\x00\x00\x00\x00\x00\x00\x00\x5e\xfe";
+	memcpy (addr.s6_addr, pref12, 12);
+	if (is_ipv4_unique (ipv4))
+		addr.s6_addr[8] |= 2; /* unique bit */
 	memcpy (addr.s6_addr + 12, &ipv4, 4);
 
 	// FIXME: MTU should probably be 1280
@@ -163,43 +218,63 @@ run_tunnel (int ipv6fd, tun6 *tunnel)
 		} buf;
 
 		val = tun6_recv (tunnel, &readset, &buf.ip6, sizeof (buf));
-		if ((val >= 40)
-				   // FIXME: check global bit properly
-				// FIXME: check that embedded IPv4 address is unicast
-		 && !memcmp (buf.ip6.ip6_dst.s6_addr + 8, "\x00\x00\x5e\xfe", 4))
+		do
 		{
+			if (val < 40)
+				break;
+
+			uint32_t v;
+			memcpy (&v, buf.ip6.ip6_dst.s6_addr + 8, sizeof (v));
+			if ((ntohl (v) & 0xfcffffff) != 0x00005efe)
+				break; // TODO: send to default router instead
+
+			memcpy (&v, buf.ip6.ip6_dst.s6_addr + 8, sizeof (v));
+			// Make sure the destination is not multicast
+			if ((ntohl (v) >> 28) == 14)
+				break;
+
 			struct sockaddr_in dst;
 			memset (&dst, 0, sizeof (dst));
 			dst.sin_family = AF_INET;
-			memcpy (&dst.sin_addr, buf.ip6.ip6_dst.s6_addr + 12, 4);
+			dst.sin_addr.s_addr = v;
 			sendto (ipv6fd, &buf, val, 0,
 			        (struct sockaddr *)&dst, sizeof (dst));
 		}
+		while (0);
 
-		if (FD_ISSET (ipv6fd, &readset))
+		do
 		{
-			struct sockaddr_in src;
-			socklen_t srclen = sizeof (src);
-			val = recvfrom (ipv6fd, &buf, sizeof (buf), 0,
-			                (struct sockaddr *)&src, &srclen);
+			if (!FD_ISSET (ipv6fd, &readset))
+				break;
+
+			val = recv (ipv6fd, &buf, sizeof (buf), 0);
 
 			if ((val < (int)sizeof (struct iphdr))
 			 || (ntohs (buf.ip4.tot_len) != val))
-				continue;
+				break;
 
 			val -= buf.ip4.ihl << 2;
 			if (val < (int)sizeof (struct ip6_hdr))
-				continue;
+				break; // no room for IPv6 header
 
 			const struct ip6_hdr *ip6 =
 				(const struct ip6_hdr *)(buf.fill + (buf.ip4.ihl << 2));
 
 			if (((ip6->ip6_vfc >> 4) != 6)
-			 || (ntohs (ip6->ip6_plen) != val)
-			 || memcmp (ip6->ip6_src.s6_addr + 8, "\x00\x00\x5e\xfe", 4)
-			 || memcmp (ip6->ip6_src.s6_addr + 12, &src.sin_addr, 4))
-				tun6_send (tunnel, ip6, val);
+			 || (ntohs (ip6->ip6_plen) != val))
+				break; // invalid IPv6 header
+
+			uint32_t v;
+			memcpy (&v, ip6->ip6_src.s6_addr + 8, sizeof (v));
+			if ((ntohl (v) & 0xfcffffff) != 0x00005efe)
+				break; // TODO: check if it comes from the router
+
+			if (memcmp (ip6->ip6_src.s6_addr + 12, &buf.ip4.saddr, 4))
+				break;
+
+			tun6_send (tunnel, ip6, val);
 		}
+		while (0);
 	}
 }
 
