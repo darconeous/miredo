@@ -33,6 +33,7 @@ AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir) -D_REENTRANT \
 AM_CFLAGS = -std=c99
 
 sbin_PROGRAMS = miredo miredo-server miredo-checkconf
+EXTRA_PROGRAMS = miredo-isatap
 noinst_LTLIBRARIES = libmiredo.la
 TESTS = miredo-checkconf
 
@@ -59,6 +60,10 @@ miredo_server_LDADD = ../libteredo/libteredo-server.la libmiredo.la $(LIBINTL)
 # miredo-checkconf
 miredo_checkconf_SOURCES = checkconf.cpp
 miredo_checkconf_LDADD = libmiredo.la $(LIBINTL)
+
+# miredo-isatap
+miredo_isatap_SOURCES = isatap.cpp
+miredo_isatap_LDADD = ../libtun6/libtun6.la libmiredo.la $(LIBINTL)
 
 install-exec-local:
 	$(install_sh) -d "$(DESTDIR)$(localstatedir)/run"
