@@ -11,7 +11,7 @@ authoritative.
 (H) help needed - cannot be done unless someone volunteers
 (X) being taken care of by someone else externaly
 (F) in the distant future - unless someone volunteers
-(?) not sure if it should be done
+(?) not sure if it should/could be done
 
 Important features & fixes:
 ----------------------------
@@ -45,6 +45,9 @@ Security:
 Performance/scalability:
 -------------------------
 (!) multi-threading in relay/client
+( ) check if libtun6 could use kernel checksumming
+    or if it should disable it
+( ) check if libteredo-server could use kernel for checksumming
 
 Portability:
 -------------
