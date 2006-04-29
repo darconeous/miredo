@@ -42,6 +42,7 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 #include <sys/uio.h> // readv() & writev()
+#include <poll.h>
 #include <syslog.h>
 #include <errno.h>
 #include <netinet/in.h> // htons(), struct in6_addr
@@ -352,6 +353,8 @@ tun6 *tun6_create (const char *req_name)
 #endif /* HAVE_os */
 
 	fcntl (fd, F_SETFD, FD_CLOEXEC);
+	int val = fcntl (fd, F_GETFL);
+	fcntl (fd, F_SETFL, ((val != -1) ? val : 0) | O_NONBLOCK);
 
 	t->id = id;
 	t->fd = fd;
@@ -821,23 +824,18 @@ tun6_registerReadSet (const tun6 *t, fd_set *readset)
 
 
 /**
- * Checks an fd_set, receives a packet.
+ * Receives a packet from a tunnel device.
  * @param buffer address to store packet
  * @param maxlen buffer length in bytes (should be 65535)
  *
- * This function will block if there is no input.
+ * This function will not block if there is no input.
+ * Use tun6_wait_recv() if you want to wait until a packet arrives.
  *
  * @return the packet length on success, -1 if no packet were to be received.
  */
-int
-tun6_recv (const tun6 *t, const fd_set *readset, void *buffer, size_t maxlen)
+static int
+tun6_recv_inner (int fd, void *buffer, size_t maxlen)
 {
-	assert (t != NULL);
-
-	int fd = t->fd;
-	if (!FD_ISSET (fd, readset))
-		return -1;
-
 	struct iovec vect[2];
 	tun_head_t head;
 
@@ -861,6 +859,54 @@ tun6_recv (const tun6 *t, const fd_set *readset, void *buffer, size_t maxlen)
 }
 
 
+/**
+ * Checks an fd_set, and receives a packet if available.
+ * @param buffer address to store packet
+ * @param maxlen buffer length in bytes (should be 65535)
+ *
+ * This function will not block if there is no input.
+ * Use tun6_wait_recv() if you want to wait until a packet arrives.
+ *
+ * @return the packet length on success, -1 if no packet were to be received.
+ */
+int
+tun6_recv (tun6 *t, const fd_set *readset, void *buffer, size_t maxlen)
+{
+	assert (t != NULL);
+
+	int fd = t->fd;
+	if (!FD_ISSET (fd, readset))
+	{
+		errno = EAGAIN;
+		return -1;
+	}
+	return tun6_recv_inner (fd, buffer, maxlen);
+}
+
+
+/**
+ * Waits for a packet, and receives it.
+ * @param buffer address to store packet
+ * @param maxlen buffer length in bytes (should be 65535)
+ *
+ * This function will block until a packet arrives or an error occurs.
+ *
+ * @return the packet length on success, -1 if no packet were to be received.
+ */
+int
+tun6_wait_recv (tun6 *t, void *buffer, size_t maxlen)
+{
+	struct pollfd ufd;
+
+	memset (&ufd, 0, sizeof (ufd));
+	ufd.fd = t->fd;
+	ufd.events = POLLIN;
+	if (poll (&ufd, 1, -1) <= 0)
+		return -1;
+
+	return tun6_recv_inner (ufd.fd, buffer, maxlen);
+}
+
 
 /**
  * Sends an IPv6 packet.
@@ -871,7 +917,7 @@ tun6_recv (const tun6 *t, const fd_set *readset, void *buffer, size_t maxlen)
  * -1 on error.
  */
 int
-tun6_send (const tun6 *t, const void *packet, size_t len)
+tun6_send (tun6 *t, const void *packet, size_t len)
 {
 	assert (t != NULL);
 
@@ -895,6 +941,7 @@ tun6_send (const tun6 *t, const void *packet, size_t len)
 
 	return val;
 }
+
 
 /**
  * Checks if libtun6 should be able to tun on system.

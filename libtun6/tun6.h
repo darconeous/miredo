@@ -95,9 +95,10 @@ int tun6_delRoute (tun6 *t, const struct in6_addr *addr, unsigned prefix_len,
 int tun6_registerReadSet (const tun6 *t, fd_set *readset)
 	LIBTUN6_NONNULL LIBTUN6_PURE;
 
-int tun6_recv (const tun6 *t, const fd_set *readset, void *buf, size_t len)
+int tun6_recv (tun6 *t, const fd_set *readset, void *buf, size_t len)
 	LIBTUN6_NONNULL;
-int tun6_send (const tun6 *t, const void *packet, size_t len) LIBTUN6_NONNULL;
+int tun6_wait_recv (tun6 *t, void *buf, size_t len) LIBTUN6_NONNULL;
+int tun6_send (tun6 *t, const void *packet, size_t len) LIBTUN6_NONNULL;
 
 # ifdef __cplusplus
 }

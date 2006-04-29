@@ -101,7 +101,7 @@ miredo_diagnose (void)
 
 typedef struct miredo_tunnel
 {
-	const tun6 *tunnel;
+	tun6 *tunnel;
 	int priv_fd;
 } miredo_tunnel;
 
