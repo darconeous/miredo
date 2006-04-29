@@ -809,14 +809,23 @@ tun6_setMTU (tun6 *t, unsigned mtu)
 
 /**
  * Registers file descriptors in an fd_set for use with select().
+ * If any of the file descriptors is out of range (>= FD_SETSIZE), it
+ * will not be registered.
+ *
+ * @param readset a fd_set (with FD_SETSIZE no smaller than the default
+ * libc value libtun6 was compiled with).
  *
  * @return the "biggest" file descriptor registered (useful as the
- * first parameter to select()).
+ * first parameter to select()). -1 if any of the file descriptors was
+ * bigger than FD_SETSIZE - 1.
  */
 int
 tun6_registerReadSet (const tun6 *t, fd_set *readset)
 {
 	assert (t != NULL);
+
+	if (t->fd >= FD_SETSIZE)
+		return -1;
 
 	FD_SET (t->fd, readset);
 	return t->fd;
@@ -875,7 +884,7 @@ tun6_recv (tun6 *t, const fd_set *readset, void *buffer, size_t maxlen)
 	assert (t != NULL);
 
 	int fd = t->fd;
-	if (!FD_ISSET (fd, readset))
+	if ((fd < FD_SETSIZE) && !FD_ISSET (fd, readset))
 	{
 		errno = EAGAIN;
 		return -1;
