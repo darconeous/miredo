@@ -33,6 +33,7 @@
 #endif
 #include <sys/types.h>
 #include <sys/uio.h>
+#include <poll.h>
 #include <netinet/in.h>
 #include <netinet/ip6.h>
 
@@ -302,11 +303,10 @@ int teredo_recv (int fd, struct teredo_packet *p)
  */
 int teredo_wait_recv (int fd, struct teredo_packet *p)
 {
-	fd_set readset;
-	int val;
+	struct pollfd ufd;
 
-	FD_ZERO (&readset);
-	FD_SET (fd, &readset);
-	val = select (fd + 1, &readset, NULL, NULL, NULL);
-	return (val == 1) ? teredo_recv (fd, p) : -1;
+	memset (&ufd, 0, sizeof (ufd));
+	ufd.fd = fd;
+	ufd.events = POLLIN;
+	return (poll (&ufd, 1, -1) > 0) ? teredo_recv (fd, p) : -1;
 }
