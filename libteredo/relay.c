@@ -992,7 +992,8 @@ void teredo_destroy (teredo_tunnel *t)
  * Registers file descriptors in an fd_set for use with select().
  *
  * @return the "biggest" file descriptor registered (useful as the
- * first parameter to select()).
+ * first parameter to select()). -1 if any of the descriptors exceeded
+ * FD_SETSIZE - 1.
  */
 int teredo_register_readset (teredo_tunnel *t, fd_set *rdset)
 {
@@ -1001,6 +1002,9 @@ int teredo_register_readset (teredo_tunnel *t, fd_set *rdset)
 
 	// FIXME: May be problematic once multicast local discovery gets
 	// implemented.
+
+	if (t->fd >= FD_SETSIZE)
+		return -1;
 
 	FD_SET (t->fd, rdset);
 	return t->fd;
