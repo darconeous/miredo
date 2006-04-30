@@ -1,0 +1,97 @@
+
+ChangeLog from first internal CVS repository:
+
+2004-05-24  remi
+
+	* src/ipv6-tunnel.cpp:
+	- support for FreeBSD tunneling driver (still a stupid compilation
+	  error, routing change not implemented).
+
+2004-05-20  remi
+
+	* configure.ac, src/*:
+	- FreeBSD compilation fixes, except tunneling driver.
+	* src/main.cpp, src/ipv6-tunnel.cpp, src/miredo.cpp:
+	- removed useless option to specify tunnel device file,
+	- automatically add a route to the tunnel for the Teredo prefix.
+
+2004-05-19  remi
+
+	* src/main.cpp, src/miredo.cpp:
+	- automatic interface addres configuration,
+	- properly drop additionnal POSIX groups.
+
+2004-05-17  remi
+
+	* src/miredo.cpp, src/ipv6-tunnel.cpp:
+	- set Teredo interface MTU to 1280 bytes,
+	- setup Teredo interface address,
+	- support for changing Teredo's prefix,
+	- detach in the background.
+
+2004-05-15  remi
+
+	* src/main.c, src/miredo.cpp:
+	- support for changing Teredo relay/client port,
+	- automatic relay IPv4 address selection.
+
+2004-05-14  remi
+
+	* src/main.c, configure.ac:
+	- support for non-root miredo user/group,
+	* src/ipv6-tunnel.cpp:
+	- automatically bring tunnel interface up.
+
+2004-05-12  remi
+
+	* main.c:
+	- getopt-based command line handling: in particular,
+	  support for disabling server and/or relay,
+	* miredo.cpp, main.c:
+	- split from main.cpp, partial code cleanup.
+
+2004-05-07  remi
+
+	* README:
+	- initial english-public version,
+	- removed French internal doc.
+	* doc/*:
+	- removed non-GPL documentation,
+	* dump/*:
+	- removed possibly ECP-ownership encumbered files.
+
+2004-03-27  remi
+
+	* src/*: forwarding of packet from UDP to IPv6 or from UDP to
+	UDP for the server. Server implementation should be complete,
+	possibly with bugs.
+
+2004-03-22  remi
+
+	* src/*: 
+	- hopefully fixed the handling if the "Cone" flag for client
+	qualification => client should now qualify properly with the
+	server,
+	- (partial) Solaris 8 compilation fix.
+
+2004-03-21  remi
+
+	* src/server_pkt.cpp:
+	- sending of Router Advertisement for client "qualification".
+
+2004-03-20  remi
+
+	* src/teredo-udp.cpp:
+	- parsing of Teredo packets headers.
+
+2004-03-14  remi
+
+	* src/main.cpp:
+	- initial source code (non-working).
+
+2004-03-10  remi
+
+	* configure.ac, Makefile.am:
+	- initial CVS repository,
+	- initial configure scripts, and Makefiles.
+

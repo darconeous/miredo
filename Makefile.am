@@ -48,3 +48,31 @@ install-data-hook:
 	@echo "if necessary. Once finished, save the file as:"
 	@echo "  $(miredo_conf) and run miredo (as root)."
 
+# Safe automatic ChangeLog update
+DISTCLEANFILES = stamp-svn
+
+distclean-local:
+	test "$(top_srcdir)" = "$(top_builddir)" || rm -f ChangeLog
+
+dist-hook: stamp-svn
+
+stamp-svn:
+	@rev=$$(LANG=C svnversion "$(srcdir)" 2>/dev/null || echo exported) ; \
+	oldrev=$$(cat stamp-svn 2>/dev/null || true) ; \
+	if test "$$rev" != "$$oldrev"; then \
+		echo "New SVN revision is $$rev." ; \
+		if test "$$rev" != "exported"; then \
+			echo -n "Rebuilding ChangeLog... " ; \
+			LANG=C svn -v log "$(srcdir)" > ChangeLog.tmp || exit $$? ; \
+			cat "$(srcdir)/ChangeLog.old" >> ChangeLog.tmp ; \
+			mv -f ChangeLog.tmp ChangeLog || exit $$? ; \
+			echo "OK" ; \
+		fi ; \
+		echo "$$rev" > $@ ; \
+	fi
+
+ChangeLog:
+	$(MAKE) $(AM_MAKEFLAGS) stamp-svn
+	touch $@
+
+.PHONY: stamp-svn
