@@ -161,7 +161,7 @@ struct teredo_peerlist
 /**
  * Peer list garbage collector entry point.
  *
- * @return when signaled.
+ * @return when signaled while running flag is false.
  */
 static void *garbage_collector (void *data)
 {
@@ -195,9 +195,7 @@ static void *garbage_collector (void *data)
 				if ((p->atime + l->expiration) > (unsigned)deadline.tv_sec)
 					break;
 
-				/*
-				 * The victim was not touched in the mean time... destroy it.
-				 */
+				// The victim was not touched in the mean time... destroy it.
 #if HAVE_LIBJUDY
 				int Rc_int;
 				JHSD (Rc_int, l->PJHSArray, (uint8_t *)&p->key, 16);
@@ -301,6 +299,11 @@ void teredo_list_reset (teredo_peerlist *l, unsigned max)
 	else
 		p = NULL;
 
+#if HAVE_LIBJUDY
+	long Rc_word;
+	JHSFA (Rc_word, array);
+#endif
+
 	pthread_mutex_unlock (&l->lock);
 
 	/* the mutex is not needed for actual memory release */
@@ -311,11 +314,6 @@ void teredo_list_reset (teredo_peerlist *l, unsigned max)
 		free (p);
 		p = buf;
 	}
-
-#if HAVE_LIBJUDY
-	long Rc_word;
-	JHSFA (Rc_word, array);
-#endif
 }
 
 /**
