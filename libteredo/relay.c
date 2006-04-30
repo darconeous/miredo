@@ -931,7 +931,7 @@ teredo_tunnel *teredo_create (uint32_t ipv4, uint16_t port)
 	if (tunnel == NULL)
 		return NULL;
 
-	memset (tunnel, 0, sizeof (tunnel));
+	memset (tunnel, 0, sizeof (*tunnel));
 	tunnel->state.addr.teredo.prefix = htonl (TEREDO_PREFIX);
 
 	/*
@@ -987,6 +987,10 @@ void teredo_destroy (teredo_tunnel *t)
 	assert (t->list != NULL);
 
 #ifdef MIREDO_TEREDO_CLIENT
+	/* NOTE: We must NOT lock the state r/w lock here,
+	 * to avoid a potential deadlock, if the state callback is called by the
+	 * maintenance thread. Anyway, if the user obey the specified constraints,
+	 * we need not lock anyting in teredo_destroy(). */
 	if (t->maintenance != NULL)
 		teredo_maintenance_stop (t->maintenance);
 #endif
