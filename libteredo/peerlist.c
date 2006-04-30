@@ -280,6 +280,7 @@ void teredo_list_reset (teredo_peerlist *l, unsigned max)
 	pthread_mutex_lock (&l->lock);
 
 #if HAVE_LIBJUDY
+	// detach old array
 	Pvoid_t array = l->PJHSArray;
 	l->PJHSArray = (Pvoid_t)NULL;
 #endif	
@@ -311,6 +312,7 @@ void teredo_list_reset (teredo_peerlist *l, unsigned max)
 	}
 
 #if HAVE_LIBJUDY
+	// destroy the old array that was detached before unlocking
 	long Rc_word;
 	JHSFA (Rc_word, array);
 #endif
