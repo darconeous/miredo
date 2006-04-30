@@ -44,7 +44,6 @@ Security:
 
 Performance/scalability:
 -------------------------
-(!) multi-threading in relay/client
 ( ) check if libtun6 could use kernel checksumming
     or if it should disable it
 ( ) check if libteredo-server could use kernel for checksumming
@@ -67,4 +66,3 @@ Documentation & support:
 Re-usability:
 --------------
 (F) libteredo API stabilization
-(?) thread-safety in libteredo

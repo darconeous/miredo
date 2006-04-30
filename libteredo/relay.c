@@ -88,9 +88,6 @@ struct teredo_tunnel
 	bool allow_cone;
 };
 
-// big TODO: make all functions re-entrant safe
-//           make all functions thread-safe
-
 #ifdef HAVE_LIBJUDY
 # define MAX_PEERS 1048576
 #else
@@ -318,6 +315,8 @@ static inline void SetMappingFromPacket (teredo_peer *peer,
  * In any case, sending will fail if the packets size exceeds 65507 bytes
  * (maximum size for a UDP packet's payload).
  *
+ * Thread-safety: This function is thread-safe.
+ *
  * @return 0 on success, -1 on error.
  */
 int teredo_transmit (teredo_tunnel *tunnel,
@@ -540,8 +539,9 @@ int teredo_transmit (teredo_tunnel *tunnel,
  * This function will NOT block until a Teredo packet is received
  * (but maybe it should).
  *
+ * Thread-safety: This function is thread-safe.
+ *
  * TODO:
- * - review for thread-safety,
  * - run (possibly optionaly) in a separate thread.
  */
 void teredo_run (teredo_tunnel *tunnel)
@@ -912,7 +912,7 @@ static void teredo_dummy_state_down_cb (void *o)
  * Creates a teredo_tunnel instance. teredo_preinit() must have been
  * called first.
  *
- * This function is thread-safe.
+ * Thread-safety: This function is thread-safe.
  *
  * @param ipv4 IPv4 (network byte order) to bind to, or 0 if unspecified.
  * @param port UDP/IPv4 port number (network byte order) or 0 if unspecified.
@@ -972,6 +972,10 @@ teredo_tunnel *teredo_create (uint32_t ipv4, uint16_t port)
  * Releases all resources (sockets, memory chunks...) and terminates all
  * threads associated with a teredo_tunnel instance.
  *
+ * Thread-safety: This function is thread-safe. However, you must obviously
+ * not call it if any other thread (including the calling one) is still using
+ * the specified tunnel in some way.
+ *
  * @param t tunnel to be destroyed. No longer useable thereafter.
  *
  * @return nothing (always succeeds).
@@ -997,6 +1001,8 @@ void teredo_destroy (teredo_tunnel *t)
 
 /**
  * Registers file descriptors in an fd_set for use with select().
+ *
+ * Thread-safety: This function is thread-safe.
  *
  * @return the "biggest" file descriptor registered (useful as the
  * first parameter to select()). -1 if any of the descriptors exceeded
@@ -1024,6 +1030,8 @@ int teredo_register_readset (teredo_tunnel *t, fd_set *rdset)
  * tunnel is configured as a Teredo client. teredo_set_prefix() is
  * undefined if teredo_set_cone_flag() was already invoked.
  *
+ * Thread-safety: This function is thread-safe.
+ *
  * @param prefix Teredo 32-bits (network byte order) prefix.
  *
  * @return 0 on success, -1 if the prefix is invalid (in which case the
@@ -1039,7 +1047,9 @@ int teredo_set_prefix (teredo_tunnel *t, uint32_t prefix)
 	if (!is_valid_teredo_prefix (prefix))
 		return -1;
 
+	pthread_rwlock_wrlock (&t->state_lock);
 	t->state.addr.teredo.prefix = prefix;
+	pthread_rwlock_unlock (&t->state_lock);
 	return 0;
 }
 
@@ -1065,12 +1075,14 @@ int teredo_set_cone_flag (teredo_tunnel *t, bool cone)
 	assert (t->maintenance == NULL);
 #endif
 
+	pthread_rwlock_wrlock (&t->state_lock);
 	if (cone)
 	{
 		t->state.addr.teredo.flags = htons (TEREDO_FLAG_CONE);
 		t->state.cone = true;
 	}
 	t->state.up = true;
+	pthread_rwlock_unlock (&t->state_lock);
 
 	return 0;
 }
@@ -1079,8 +1091,14 @@ int teredo_set_cone_flag (teredo_tunnel *t, bool cone)
 /**
  * Enables Teredo client mode for a teredo_tunnel and starts the Teredo
  * client maintenance procedure in a separate thread. This is undefined if
- * either teredo_set_cone_flag() or teredo_set_prefix() were previously
- * called for this tunnel.
+ * either teredo_set_cone_flag(), teredo_set_prefix() were previously called
+ * for this tunnel.
+ *
+ * NOTE: calling teredo_set_client_mode() multiple times on the same tunnel
+ * is currently not supported, and will safely return an error. Future
+ * versions might support this.
+ *
+ * Thread-safety: This function is thread-safe.
  *
  * @param s Teredo server's host name or “dotted quad” primary IPv4 address.
  * @param s2 Teredo server's secondary address (or host name), or NULL to
@@ -1089,20 +1107,26 @@ int teredo_set_cone_flag (teredo_tunnel *t, bool cone)
  * @return 0 on success, -1 in case of error.
  * In case of error, the teredo_tunnel instance is not modifed.
  */
-int teredo_set_client_mode (teredo_tunnel *t, const char *s,
-                               const char *s2)
+int teredo_set_client_mode (teredo_tunnel *t, const char *s, const char *s2)
 {
 #ifdef MIREDO_TEREDO_CLIENT
 	assert (t != NULL);
 
+	pthread_rwlock_wrlock (&t->state_lock);
+	if (t->maintenance != NULL)
+	{
+		pthread_rwlock_unlock (&t->state_lock);
+		return -1;
+	}
+
 	struct teredo_maintenance *m;
 	m = teredo_maintenance_start (t->fd, teredo_state_change, t, s, s2);
+	t->maintenance = m;
+	pthread_rwlock_unlock (&t->state_lock);
 
 	if (m != NULL)
-	{
-		t->maintenance = m;
 		return 0;
-	}
+
 #else
 	(void)t;
 	(void)s;
@@ -1126,6 +1150,9 @@ void teredo_set_cone_ignore (teredo_tunnel *t, bool ignore)
 }
 
 
+/**
+ * Thread-safety: FIXME.
+ */
 void *teredo_set_privdata (teredo_tunnel *t, void *opaque)
 {
 	assert (t != NULL);
@@ -1136,6 +1163,9 @@ void *teredo_set_privdata (teredo_tunnel *t, void *opaque)
 }
 
 
+/**
+ * Thread-safety: FIXME.
+ */
 void *teredo_get_privdata (const teredo_tunnel *t)
 {
 	assert (t != NULL);
@@ -1144,6 +1174,9 @@ void *teredo_get_privdata (const teredo_tunnel *t)
 }
 
 
+/**
+ * Thread-safety: FIXME.
+ */
 void teredo_set_recv_callback (teredo_tunnel *t, teredo_recv_cb cb)
 {
 	assert (t != NULL);
@@ -1151,6 +1184,9 @@ void teredo_set_recv_callback (teredo_tunnel *t, teredo_recv_cb cb)
 }
 
 
+/**
+ * Thread-safety: FIXME.
+ */
 void teredo_set_icmpv6_callback (teredo_tunnel *t,
                                     teredo_icmpv6_cb cb)
 {
@@ -1168,6 +1204,8 @@ void teredo_set_icmpv6_callback (teredo_tunnel *t,
  * Any packet sent when the relay/client is down will be ignored.
  * The callbacks function might be called from a separate thread.
  *
+ * Thread-safety: This function is thread-safe.
+ *
  * If a callback is set to NULL, it is ignored.
  */
 void teredo_set_state_cb (teredo_tunnel *t, teredo_state_up_cb u,
@@ -1175,8 +1213,11 @@ void teredo_set_state_cb (teredo_tunnel *t, teredo_state_up_cb u,
 {
 #ifdef MIREDO_TEREDO_CLIENT
 	assert (t != NULL);
+
+	pthread_rwlock_wrlock (&t->state_lock);
 	t->up_cb = (u != NULL) ? u : teredo_dummy_state_up_cb;
 	t->down_cb = (d != NULL) ? d : teredo_dummy_state_down_cb;
+	pthread_rwlock_unlock (&t->state_lock);
 #else
 	(void)t;
 	(void)u;
