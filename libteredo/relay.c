@@ -442,14 +442,14 @@ int teredo_transmit (teredo_tunnel *tunnel,
 		/* Case 1 (paragraphs 5.2.4 & 5.4.1): trusted peer */
 		if (p->trusted && IsValid (p, now))
 		{
-			int res;
-
 			/* Already known -valid- peer */
 			TouchTransmit (p, now);
-			res = teredo_send (tunnel->fd, packet, length, p->mapped_addr,
-			                   p->mapped_port) == (int)length ? 0 : -1;
+			uint32_t ipv4 = p->mapped_addr;
+			uint16_t port = p->mapped_port;
 			teredo_list_release (list);
-			return res;
+
+			return (teredo_send (tunnel->fd, packet, length, ipv4, port)
+					== (int)length) ? 0 : -1;
 		}
 	}
  	else
@@ -501,15 +501,14 @@ int teredo_transmit (teredo_tunnel *tunnel,
 	/* Client case 4 & relay case 2: new cone peer */
 	if (tunnel->allow_cone && IN6_IS_TEREDO_ADDR_CONE (dst))
 	{
-		int res;
-
 		p->trusted = 1;
 		p->bubbles = /*p->pings -USELESS- =*/ 0;
 		TouchTransmit (p, now);
-		res = teredo_send (tunnel->fd, packet, length, p->mapped_addr,
-		                   p->mapped_port) == (int)length ? 0 : -1;
+		uint32_t ipv4 = p->mapped_addr;
+		uint16_t port = p->mapped_port;
 		teredo_list_release (list);
-		return res;
+		return teredo_send (tunnel->fd, packet, length, ipv4, port)
+				== (int)length ? 0 : -1;
 	}
 
 	/* Client case 5 & relay case 3: untrusted non-cone peer */
