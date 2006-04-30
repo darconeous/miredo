@@ -237,17 +237,6 @@ static int CountPing (teredo_peer *peer, time_t now)
 }
 
 
-static int PingPeer (int fd, teredo_peer *p, time_t now,
-                     const union teredo_addr *src, const struct in6_addr *dst)
-{
-	int res = CountPing (p, now);
-
-	if (res == 0)
-		return SendPing (fd, src, dst);
-	return res;
-}
-
-
 static inline bool IsClient (const teredo_tunnel *tunnel)
 {
 	return tunnel->maintenance != NULL;
@@ -478,14 +467,17 @@ int teredo_transmit (teredo_tunnel *tunnel,
 		}
 
 		QueueOutgoing (p, packet, length);
-		res = PingPeer (tunnel->fd, p, now, &s.addr, &dst->ip6);
+		res = CountPing (p, now);
+		teredo_list_release (list);
 
- 		teredo_list_release (list);
+		if (res == 0)
+			res = SendPing (tunnel->fd, &s.addr, &dst->ip6);
+
 		if (res == -1)
 			teredo_send_unreach (tunnel, ICMP6_DST_UNREACH_ADDR,
-			                        packet, length);
+			                     packet, length);
 
-// 		syslog (LOG_DEBUG, " ping peer returned %d", res);
+//		syslog (LOG_DEBUG, " ping peer returned %d", res);
 		return 0;
 	}
 #endif
@@ -849,9 +841,13 @@ void teredo_run (teredo_tunnel *tunnel)
 //		syslog (LOG_DEBUG, " packet queued pending Echo Reply");
 		QueueIncoming (p, buf, length);
 		TouchReceive (p, now);
-	
-		PingPeer (tunnel->fd, p, now, &s.addr, &ip6.ip6_src);
+
+		int res = CountPing (p, now);
 		teredo_list_release (list);
+
+		if (res == 0)
+			SendPing (tunnel->fd, &s.addr, &ip6.ip6_src);
+
 // 		syslog (LOG_DEBUG, " PingPeer returned %d", res);
 		return;
 	}
