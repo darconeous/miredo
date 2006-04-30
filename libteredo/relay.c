@@ -919,7 +919,7 @@ teredo_tunnel *teredo_create (uint32_t ipv4, uint16_t port)
 	if (tunnel == NULL)
 		return NULL;
 
-	memset (tunnel, 0, sizeof (tunnel));
+	memset (tunnel, 0, sizeof (*tunnel));
 	tunnel->state.addr.teredo.prefix = htonl (TEREDO_PREFIX);
 
 	/*
