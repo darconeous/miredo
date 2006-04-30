@@ -55,9 +55,9 @@
 /*
  * Packets queueing
  */
-struct packet
+struct teredo_queue
 {
-	packet *next;
+	teredo_queue *next;
 	size_t length;
 	bool incoming;
 	uint8_t data[];
@@ -75,11 +75,11 @@ static inline void teredo_peer_init (teredo_peer *peer)
 
 static void teredo_peer_destroy (teredo_peer *peer)
 {
-	struct packet *p = peer->queue;
+	teredo_queue *p = peer->queue;
 
 	while (p != NULL)
 	{
-		packet *buf;
+		teredo_queue *buf;
 
 		buf = p->next;
 		free (p);
@@ -91,13 +91,13 @@ static void teredo_peer_destroy (teredo_peer *peer)
 void teredo_peer_queue (teredo_peer *peer, const void *data, size_t len,
                         bool incoming)
 {
-	packet *p;
+	teredo_queue *p;
 
 	if (len > peer->queue_left)
 		return;
 	peer->queue_left -= len;
 
-	p = (packet *)malloc (sizeof (*p) + len);
+	p = (teredo_queue *)malloc (sizeof (*p) + len);
 	p->length = len;
 	memcpy (p->data, data, len);
 	p->incoming = incoming;
@@ -111,14 +111,14 @@ void teredo_peer_dequeue (teredo_peer *peer, int fd,
                           teredo_dequeue_cb cb, void *opaque)
 {
 	/* lock peer */
-	packet *ptr = peer->queue;
+	teredo_queue *ptr = peer->queue;
 	peer->queue = NULL;
 	peer->queue_left = teredo_MaxQueueBytes;
 	/* unlock */
 
 	while (ptr != NULL)
 	{
-		packet *buf;
+		teredo_queue *buf;
 
 		buf = ptr->next;
 		if (ptr->incoming)

@@ -25,11 +25,11 @@
 # define TEREDO_TIMEOUT 30 // seconds
 # define MAXQUEUE 1280u // bytes
 
-typedef struct packet packet;
+typedef struct teredo_queue teredo_queue;
 
 typedef struct teredo_peer
 {
-	packet *queue;
+	teredo_queue *queue;
 	size_t queue_left;
 	time_t last_rx;
 	time_t last_tx;

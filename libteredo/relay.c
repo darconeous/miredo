@@ -712,6 +712,7 @@ void teredo_run (teredo_tunnel *tunnel)
 		 && (packet.source_port == p->mapped_port))
 		{
 			TouchReceive (p, now);
+			/* FIXME: dequeue after release */
 			Dequeue (p, tunnel->fd, tunnel->recv_cb, tunnel->opaque);
 			p->bubbles = p->pings = 0;
 			teredo_list_release (list);
@@ -728,6 +729,7 @@ void teredo_run (teredo_tunnel *tunnel)
 
 			SetMappingFromPacket (p, &packet);
 			TouchReceive (p, now);
+			/* FIXME: dequeue after release */
 			Dequeue (p, tunnel->fd, tunnel->recv_cb, tunnel->opaque);
 			teredo_list_release (list);
 			return; /* don't pass ping to kernel */
@@ -780,9 +782,10 @@ void teredo_run (teredo_tunnel *tunnel)
 				 * us a choice here. It is arguable whether accepting these
 				 * packets would make it easier to DoS the peer list.
 				 */
-					return; // list not locked
+					return; // list not locked (p = NULL)
 			}
 			else
+				/* FIXME: dequeue after release */
 				Dequeue (p, tunnel->fd, tunnel->recv_cb, tunnel->opaque);
 
 			p->trusted = 1;
@@ -848,7 +851,7 @@ void teredo_run (teredo_tunnel *tunnel)
 		if (res == 0)
 			SendPing (tunnel->fd, &s.addr, &ip6.ip6_src);
 
-// 		syslog (LOG_DEBUG, " PingPeer returned %d", res);
+// 		syslog (LOG_DEBUG, " ping peer returned %d", res);
 		return;
 	}
 #endif /* ifdef MIREDO_TEREDO_CLIENT */
