@@ -160,9 +160,8 @@ struct teredo_peerlist
 
 /**
  * Peer list garbage collector entry point.
- * Thread cancellation-safe.
  *
- * @return never ever.
+ * @return when signaled.
  */
 static void *garbage_collector (void *data)
 {
