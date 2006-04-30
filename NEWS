@@ -1,18 +1,24 @@
 RELEASE NOTES for Miredo
-version 0.8.2 (stable version)
+version 0.8.4 (stable version)
 ===============================
 $Id$
 
   This is an officially stable release of the program. The package is
 functional, though it lacks some optional features. There are also no
 known outstanding issues. Users of previous releases are encouraged
-to upgrade, as this version includes some minor bug fixes.
+to upgrade, as this version includes some bug fixes.
   Please report any problem by email to rdenis (at) simphalempin (dot) com
 
   You can find major changes since version 0.1.0 below. For more general
 informations on this program, see README. For syntax details and
 changes, run 'miredo -h' to get help. For detailled internal changes, see
 ChangeLog.
+
+=============================================================================
+STABLE RELEASE 0.8.4 : Minor bugfixes
+
+# Fix possible crash at startup due to insufficient memory initialization
+  (regression from 0.8.2)
 
 =============================================================================
 STABLE RELEASE 0.8.2 : Minor bugfixes
