@@ -34,6 +34,9 @@
 
 #include <libteredo/teredo-udp.h>
 #include <libteredo/checksum.h>
+#ifdef HAVE_GETOPT_H
+# include <getopt.h>
+#endif
 
 static void
 process_icmpv6 (int fd, const struct ip6_hdr *ip6, size_t plen,
@@ -153,8 +156,38 @@ process_unknown (int fd, const struct ip6_hdr *ip6, size_t plen,
 }
 
 
-int main (void)
+static int usage (const char *path)
 {
+	printf ("Usage: %s\n", path);
+	return 0;
+}
+
+static int version (void)
+{
+	puts (PACKAGE_NAME" v"PACKAGE_VERSION);
+	return 0;
+}
+
+int main(int argc, char *argv[])
+{
+	static const struct option opts[] =
+	{
+		{ "help",       no_argument,       NULL, 'h' },
+		{ "version",    no_argument,       NULL, 'V' },
+		{ NULL,         no_argument,       NULL, '\0'}
+	};
+
+	int c;
+	while ((c = getopt_long (argc, argv, "hV", opts, NULL)) != -1)
+		switch (c)
+		{
+			case 'h':
+				return usage(argv[0]);
+
+			case 'V':
+				return version();
+		}
+
 	int fd = teredo_socket (0, htons (3544));
 	if (fd == -1)
 	{
