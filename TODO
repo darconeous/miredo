@@ -68,4 +68,3 @@ Re-usability:
 --------------
 (F) libteredo API stabilization
 (?) thread-safety in libteredo
-(!) do NOT call libteredo receive callback with the list lock held

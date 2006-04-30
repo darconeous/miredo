@@ -107,27 +107,29 @@ void teredo_peer_queue (teredo_peer *peer, const void *data, size_t len,
 }
 
 
-void teredo_peer_dequeue (teredo_peer *peer, int fd,
-                          teredo_dequeue_cb cb, void *opaque)
+teredo_queue *teredo_peer_queue_yield (teredo_peer *peer)
 {
-	/* lock peer */
-	teredo_queue *ptr = peer->queue;
+	teredo_queue *q = peer->queue;
 	peer->queue = NULL;
 	peer->queue_left = teredo_MaxQueueBytes;
-	/* unlock */
+	return q;
+}
 
-	while (ptr != NULL)
+
+void teredo_queue_emit (teredo_queue *q, int fd, uint32_t ipv4, uint16_t port,
+                        teredo_dequeue_cb cb, void *opaque)
+{
+	while (q != NULL)
 	{
 		teredo_queue *buf;
 
-		buf = ptr->next;
-		if (ptr->incoming)
-			cb (opaque, ptr->data, ptr->length);
+		buf = q->next;
+		if (q->incoming)
+			cb (opaque, q->data, q->length);
 		else
-			teredo_send (fd, ptr->data, ptr->length,
-			             peer->mapped_addr, peer->mapped_port);
-		free (ptr);
-		ptr = buf;
+			teredo_send (fd, q->data, q->length, ipv4, port);
+		free (q);
+		q = buf;
 	}
 }
 

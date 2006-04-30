@@ -466,7 +466,7 @@ int teredo_transmit (teredo_tunnel *tunnel,
 			p->mapped_addr = 0;
 		}
 
-		QueueOutgoing (p, packet, length);
+		teredo_enqueue_out (p, packet, length);
 		res = CountPing (p, now);
 		teredo_list_release (list);
 
@@ -504,7 +504,7 @@ int teredo_transmit (teredo_tunnel *tunnel,
 	}
 
 	/* Client case 5 & relay case 3: untrusted non-cone peer */
-	QueueOutgoing (p, packet, length);
+	teredo_enqueue_out (p, packet, length);
 
 	// Sends bubble, if rate limit allows
 	int res = CountBubble (p, now);
@@ -712,10 +712,13 @@ void teredo_run (teredo_tunnel *tunnel)
 		 && (packet.source_port == p->mapped_port))
 		{
 			TouchReceive (p, now);
-			/* FIXME: dequeue after release */
-			Dequeue (p, tunnel->fd, tunnel->recv_cb, tunnel->opaque);
 			p->bubbles = p->pings = 0;
+			teredo_queue *q = teredo_peer_queue_yield (p);
 			teredo_list_release (list);
+
+			teredo_queue_emit (q, tunnel->fd,
+			                   packet.source_ipv4, packet.source_port,
+			                   tunnel->recv_cb, tunnel->opaque);
 			tunnel->recv_cb (tunnel->opaque, buf, length);
 			return;
 		}
@@ -724,14 +727,18 @@ void teredo_run (teredo_tunnel *tunnel)
 		// Client case 2 (untrusted non-Teredo node):
 		if (IsClient (tunnel) && (!p->trusted) && (CheckPing (&packet) == 0))
 		{
+			// FIXME: lots of duplicated code here (see case 1)
 			p->trusted = 1;
-			p->bubbles = p->pings = 0;
-
 			SetMappingFromPacket (p, &packet);
+
 			TouchReceive (p, now);
-			/* FIXME: dequeue after release */
-			Dequeue (p, tunnel->fd, tunnel->recv_cb, tunnel->opaque);
+			p->bubbles = p->pings = 0;
+			teredo_queue *q = teredo_peer_queue_yield (p);
 			teredo_list_release (list);
+
+			teredo_queue_emit (q, tunnel->fd,
+			                   packet.source_ipv4, packet.source_port,
+			                   tunnel->recv_cb, tunnel->opaque);
 			return; /* don't pass ping to kernel */
 		}
 #endif /* ifdef MIREDO_TEREDO_CLIENT */
@@ -784,14 +791,16 @@ void teredo_run (teredo_tunnel *tunnel)
 				 */
 					return; // list not locked (p = NULL)
 			}
-			else
-				/* FIXME: dequeue after release */
-				Dequeue (p, tunnel->fd, tunnel->recv_cb, tunnel->opaque);
 
 			p->trusted = 1;
 			p->bubbles = /*p->pings -USELESS- =*/ 0;
 			TouchReceive (p, now);
+			teredo_queue *q = teredo_peer_queue_yield (p);
 			teredo_list_release (list);
+
+			teredo_queue_emit (q, tunnel->fd, IN6_TEREDO_IPV4 (&ip6.ip6_src),
+			                   IN6_TEREDO_PORT (&ip6.ip6_src),
+			                   tunnel->recv_cb, tunnel->opaque);
 
 			if (!IsBubble (&ip6)) // discard Teredo bubble
 				tunnel->recv_cb (tunnel->opaque, buf, length);
@@ -842,7 +851,7 @@ void teredo_run (teredo_tunnel *tunnel)
 		}
 
 //		syslog (LOG_DEBUG, " packet queued pending Echo Reply");
-		QueueIncoming (p, buf, length);
+		teredo_enqueue_in (p, buf, length);
 		TouchReceive (p, now);
 
 		int res = CountPing (p, now);
