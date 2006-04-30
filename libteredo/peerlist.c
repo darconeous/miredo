@@ -160,7 +160,7 @@ struct teredo_peerlist
  * Peer list garbage collector entry point.
  * Thread cancellation-safe.
  *
- * @return never ever.
+ * @return when signaled while running flag is false.
  */
 static void *garbage_collector (void *data)
 {
@@ -300,6 +300,11 @@ void teredo_list_reset (teredo_peerlist *l, unsigned max)
 	else
 		p = NULL;
 
+#if HAVE_LIBJUDY
+	long Rc_word;
+	JHSFA (Rc_word, array);
+#endif
+
 	pthread_mutex_unlock (&l->lock);
 
 	/* the mutex is not needed for actual memory release */
@@ -310,11 +315,6 @@ void teredo_list_reset (teredo_peerlist *l, unsigned max)
 		free (p);
 		p = buf;
 	}
-
-#if HAVE_LIBJUDY
-	long Rc_word;
-	JHSFA (Rc_word, array);
-#endif
 }
 
 /**
