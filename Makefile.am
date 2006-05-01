@@ -63,7 +63,7 @@ stamp-svn:
 		echo "New SVN revision is $$rev." ; \
 		if test "$$rev" != "exported"; then \
 			echo -n "Rebuilding ChangeLog... " ; \
-			LANG=C svn -v log "$(srcdir)" > ChangeLog.tmp || exit $$? ; \
+			LANG=C svn -v --non-interactive log "$(srcdir)" > ChangeLog.tmp || exit $$? ; \
 			cat "$(srcdir)/ChangeLog.old" >> ChangeLog.tmp ; \
 			mv -f ChangeLog.tmp ChangeLog || exit $$? ; \
 			echo "OK" ; \
