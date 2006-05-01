@@ -30,6 +30,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <string.h>
 
 #include <unistd.h>
 #ifdef HAVE_STDINT_H
@@ -46,11 +47,26 @@
 
 class MiredoCheckConf : public MiredoConf
 {
-	virtual void Log (bool, const char *fmt, va_list ap)
-	{
-		vfprintf (stderr, fmt, ap);
-		fputc ('\n', stderr);
-	}
+	private:
+		bool fail;
+
+	protected:
+		virtual void Log (bool, const char *fmt, va_list ap)
+		{
+			fail = true;
+			vfprintf (stderr, fmt, ap);
+			fputc ('\n', stderr);
+		}
+
+	public:
+		MiredoCheckConf (void) : MiredoConf (), fail (false)
+		{
+		}
+
+		bool HasFailed (void) const
+		{
+			return fail;
+		}
 };
 
 /* FIXME: use same more clever code as in main.c */
@@ -58,33 +74,69 @@ static const char conffile[] = SYSCONFDIR"/miredo.conf";
 
 static int miredo_checkconf (MiredoConf& conf)
 {
-	int i;
+	int i, res = 0;
 	if (!ParseSyslogFacility (conf, "SyslogFacility", &i))
-		return -1;
+		res = -1;
+
+	bool client = true;
+
+	unsigned line;
+	char *val = conf.GetRawValue ("RelayType", &line);
+
+	if (val != NULL)
+	{
+		if ((strcasecmp (val, "client") == 0)
+		 || (strcasecmp (val, "autoclient") == 0))
+			client = true;
+		else
+		if ((strcasecmp (val, "cone") == 0)
+		 || (strcasecmp (val, "restricted") == 0))
+			client = false;
+		else
+		{
+			fprintf (stderr, _("Invalid relay type \"%s\" at line %u"),
+			         val, line);
+			fputc ('\n', stderr);
+			res = -1;
+		}
+		free (val);
+	}
 
 	uint32_t u32;
 	uint16_t u16;
-	if (!ParseIPv4 (conf, "ServerAddress", &u32)
-			|| !ParseIPv4 (conf, "ServerAddress2", &u32))
-		return -1;
 
-	struct in6_addr ip6;
-	if (!ParseIPv6 (conf, "Prefix", &ip6)
-			|| !conf.GetInt16 ("InterfaceMTU", &u16))
-		return -1;
+	if (client)
+	{
+#ifdef MIREDO_TEREDO_CLIENT
+		if (!ParseIPv4 (conf, "ServerAddress", &u32)
+		 || !ParseIPv4 (conf, "ServerAddress2", &u32))
+			res = -1;
+#else
+		fputs (_("Unsupported Teredo client mode"), stderr);
+		fputc ('\n', stderr);
+		res = -1;
+#endif
+	}
+	else
+	{
+		struct in6_addr ip6;
+		if (!ParseIPv6 (conf, "Prefix", &ip6)
+		 || !conf.GetInt16 ("InterfaceMTU", &u16))
+			res = -1;
+	}
 
 	bool b;
 	if (!ParseIPv4 (conf, "BindAddress", &u32)
-			|| !conf.GetInt16 ("BindPort", &u16)
-			|| !conf.GetBoolean ("IgnoreConeBit", &b))
-		return -1;
+	 || !conf.GetInt16 ("BindPort", &u16)
+	 || !conf.GetBoolean ("IgnoreConeBit", &b))
+		res = -1;
 
 	char *str = conf.GetRawValue ("InterfaceName");
 	if (str != NULL)
 		free (str);
 
-	conf.Clear (0);
-	return 0;
+	conf.Clear (5);
+	return res;
 }
 
 
@@ -95,7 +147,7 @@ static int miredo_checkconffile (const char *filename)
 	if (!conf.ReadFile (filename))
 		return -1;
 
-	return miredo_checkconf (conf);
+	return (miredo_checkconf (conf) || conf.HasFailed ()) ? -1 : 0;
 }
 
 
