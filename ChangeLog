@@ -1,4 +1,53 @@
 ------------------------------------------------------------------------
+r1293 | remi | 2006-04-30 18:23:11 +0200 (Sun, 30 Apr 2006) | 2 lines
+Changed paths:
+   M /branches/0.8.4/NEWS
+   M /branches/0.8.4/configure.ac
+
+- Version is 0.8.4
+
+------------------------------------------------------------------------
+r1291 | remi | 2006-04-30 18:21:02 +0200 (Sun, 30 Apr 2006) | 2 lines
+Changed paths:
+   M /branches/0.8.4/libteredo/peerlist.c
+
+Hmm revert [1290] which was not actually fixing any bug
+
+------------------------------------------------------------------------
+r1290 | remi | 2006-04-30 18:15:35 +0200 (Sun, 30 Apr 2006) | 3 lines
+Changed paths:
+   M /branches/0.8.4/libteredo/peerlist.c
+
+Backport [1287]
+Thread-safety fix when using Judy dynamic arrays
+
+------------------------------------------------------------------------
+r1289 | remi | 2006-04-30 18:14:45 +0200 (Sun, 30 Apr 2006) | 4 lines
+Changed paths:
+   M /branches/0.8.4/libteredo/relay.c
+
+Backport [1286]
+teredo_create failed to zero new tunnel data properly which could lead
+to crash during the initialization of miredo.
+
+------------------------------------------------------------------------
+r1288 | remi | 2006-04-30 18:10:11 +0200 (Sun, 30 Apr 2006) | 2 lines
+Changed paths:
+   A /branches/0.8.4 (from /tags/0.8.2:1287)
+
+Start 0.8.4 stable bugfix branch
+
+------------------------------------------------------------------------
+r1258 | remi | 2006-04-14 23:17:50 +0200 (Fri, 14 Apr 2006) | 4 lines
+Changed paths:
+   M /tags/0.8.2/ChangeLog
+   M /tags/0.8.2/bootstrap
+
+Last minute fixes before packaging
+(ooh! modifications in tags are evil, but nobody notices them as they
+ don't appear in any ChangeLog)
+
+------------------------------------------------------------------------
 r1253 | remi | 2006-04-14 23:00:34 +0200 (Fri, 14 Apr 2006) | 2 lines
 Changed paths:
    M /trunk/NEWS
