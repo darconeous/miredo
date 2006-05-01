@@ -23,7 +23,7 @@ miredo-checkconf \- Miredo configuration file syntax checking tool
 .B miredo-checkconf
 checks the syntax of a configuration file for Miredo.
 miredo-checkconf exits with an error code if the syntax was found to be
-incorrect or if the file could not be opened.
+incorrect, contained unused directives or if the file could not be opened.
 
 .SH OPTIONS
 
@@ -43,11 +43,6 @@ assumed.
 
 .\".SH DIAGNOSTICS
 .SH BUGS
-Miredo and miredo-checkconf ignore unrecognized configuration
-directives. As such, it will not detect a syntax error if it finds an
-unknown directive, but only if it fails to parse the parameters of a
-known directive. 
-
 miredo-checkconf cannot check the syntax of a configuration file for
 miredo-server.
 
