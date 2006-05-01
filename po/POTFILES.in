@@ -9,3 +9,4 @@ src/miredo.cpp
 src/relay.cpp
 src/server.cpp
 src/conf.cpp
+src/checkconf.cpp
