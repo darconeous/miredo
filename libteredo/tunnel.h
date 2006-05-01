@@ -40,6 +40,7 @@ teredo_tunnel *teredo_create (uint32_t ipv4, uint16_t port);
 void teredo_destroy (teredo_tunnel *t);
 int teredo_register_readset (teredo_tunnel *t, fd_set *rdset);
 void teredo_run (teredo_tunnel *t);
+int teredo_run_async (teredo_tunnel *t);
 
 int teredo_set_prefix (teredo_tunnel *t, uint32_t pref);
 int teredo_set_cone_flag (teredo_tunnel *t, bool flag);
@@ -58,8 +59,7 @@ int teredo_transmit (teredo_tunnel *t, const struct ip6_hdr *buf, size_t n);
 
 typedef void (*teredo_icmpv6_cb) (void *, const void *, size_t,
                                      const struct in6_addr *dst);
-void teredo_set_icmpv6_callback (teredo_tunnel *t,
-                                    teredo_icmpv6_cb cb);
+void teredo_set_icmpv6_callback (teredo_tunnel *t, teredo_icmpv6_cb cb);
 
 typedef void (*teredo_state_up_cb) (void *, const struct in6_addr *,
                                        uint16_t);

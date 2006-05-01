@@ -47,6 +47,8 @@
 #include <netinet/icmp6.h> // ICMP6_DST_UNREACH_*
 #include <syslog.h>
 #include <pthread.h>
+#include <unistd.h> // pipe(), close()
+#include <poll.h> // poll()
 
 #include "teredo.h"
 #include "v4global.h" // is_ipv4_global_unicast()
@@ -77,12 +79,20 @@ struct teredo_tunnel
 	teredo_state state;
 	pthread_rwlock_t state_lock;
 
+	// ICMPv6 rate limiting
 	struct
 	{
 		pthread_mutex_t lock;
 		int count;
 		time_t last;
 	} ratelimit;
+
+	// Asynchronous packet reception
+	struct
+	{
+		int fd[2];
+		pthread_t thread;
+	} async_recv;
 
 	int fd;
 	bool allow_cone;
@@ -942,8 +952,10 @@ teredo_tunnel *teredo_create (uint32_t ipv4, uint16_t port)
 	 */
 	tunnel->state.addr.teredo.client_port = ~port;
 	tunnel->state.addr.teredo.client_ip = ~ipv4;
+
 	tunnel->state.up = false;
 	tunnel->ratelimit.count = 1;
+	tunnel->async_recv.fd[0] = tunnel->async_recv.fd[1] = -1;
 
 	tunnel->recv_cb = teredo_dummy_recv_cb;
 	tunnel->icmpv6_cb = teredo_dummy_icmpv6_cb;
@@ -995,6 +1007,13 @@ void teredo_destroy (teredo_tunnel *t)
 		teredo_maintenance_stop (t->maintenance);
 #endif
 
+	if (t->async_recv.fd[0] != -1)
+	{
+		close (t->async_recv.fd[1]);
+		pthread_join (t->async_recv.thread, NULL);
+		close (t->async_recv.fd[0]);
+	}
+
 	teredo_list_destroy (t->list);
 	pthread_rwlock_destroy (&t->state_lock);
 	pthread_mutex_destroy (&t->ratelimit.lock);
@@ -1002,6 +1021,65 @@ void teredo_destroy (teredo_tunnel *t)
 	free (t);
 }
 
+
+static void *teredo_recv_thread (void *t)
+{
+	struct pollfd ufd[2];
+	memset (ufd, 0, sizeof (ufd));
+	ufd[0].fd = ((teredo_tunnel *)t)->fd;
+	ufd[0].events = POLLIN;
+	ufd[1].fd = ((teredo_tunnel *)t)->async_recv.fd[0];
+	ufd[1].events = POLLIN;
+
+	while (poll (ufd, 2, -1) > 0)
+	{
+		if (ufd[0].revents)
+		{
+			teredo_run ((teredo_tunnel *)t);
+			ufd[0].revents = 0;
+		}
+		if (ufd[1].revents)
+			return NULL;
+	}
+
+	return NULL;
+}
+
+/**
+ * Spawns a new thread to perform Teredo packet reception in the background.
+ * The thread will be automatically terminated when the tunnel is destroyed.
+ *
+ * It is safe to call teredo_run_async multiple times for the same tunnel,
+ * however all call will fail (safe) after the first succesful one.
+ *
+ * Thread-safety: teredo_run_async() is not re-entrant. Calling it from
+ * multiple threads with the same teredo_tunnel objet simultanously is
+ * undefined. It is safe to call teredo_run_async() from different threads
+ * each with a different teredo_tunnel object.
+ *
+ * @return 0 on success, -1 on error.
+ */
+int teredo_run_async (teredo_tunnel *t)
+{
+	assert (t != NULL);
+
+	/* already running */
+	if (t->async_recv.fd[1] != -1)
+		return -1;
+
+	if (pipe (t->async_recv.fd))
+		return -1;
+
+	if (pthread_create (&t->async_recv.thread, NULL, teredo_recv_thread, t))
+	{
+		close (t->async_recv.fd[0]);
+		close (t->async_recv.fd[1]);
+		t->async_recv.fd[0] = t->async_recv.fd[1] = -1;
+		return -1;
+	}
+
+	return 0;
+}
 
 /**
  * Registers file descriptors in an fd_set for use with select().
