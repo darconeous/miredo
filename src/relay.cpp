@@ -318,10 +318,10 @@ run_tunnel (teredo_tunnel *relay, tun6 *tunnel, miredo_addrwatch *w)
 	FD_ZERO (&refset);
 	int maxfd = tun6_registerReadSet (tunnel, &refset);
 
-	int val = teredo_register_readset (relay, &refset);
-	if (val > maxfd)
-		maxfd = val;
+	if (teredo_run_async (relay))
+		return -1;
 
+	int val;
 	if ((val = miredo_addrwatch_getfd (w)) != -1)
 	{
 		FD_SET (val, &refset);
@@ -359,10 +359,6 @@ run_tunnel (teredo_tunnel *relay, tun6 *tunnel, miredo_addrwatch *w)
 		val = tun6_recv (tunnel, &readset, &pbuf.ip6, sizeof (pbuf));
 		if (val >= 40)
 			teredo_transmit (relay, &pbuf.ip6, val);
-
-		/* Forwards Teredo packet to IPv6
-		* (Packet reception) */
-		teredo_run (relay);
 	}
 	return -2;
 }
