@@ -38,7 +38,6 @@ typedef struct teredo_tunnel teredo_tunnel;
 
 teredo_tunnel *teredo_create (uint32_t ipv4, uint16_t port);
 void teredo_destroy (teredo_tunnel *t);
-int teredo_register_readset (teredo_tunnel *t, fd_set *rdset);
 void teredo_run (teredo_tunnel *t);
 int teredo_run_async (teredo_tunnel *t);
 
