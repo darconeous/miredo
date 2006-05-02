@@ -546,15 +546,12 @@ int teredo_transmit (teredo_tunnel *tunnel,
  * Receives a packet coming from the Teredo tunnel (as specified per
  * paragraph 5.4.2). That's called “Packet reception”.
  *
- * This function will NOT block until a Teredo packet is received
- * (but maybe it should).
+ * This function will NOT block if no packet are pending processing; it
+ * will return immediatly.
  *
  * Thread-safety: This function is thread-safe.
- *
- * TODO:
- * - loop until all packets were processed.
  */
-void teredo_run (teredo_tunnel *tunnel)
+static void teredo_run_inner (teredo_tunnel *tunnel)
 {
 	assert (tunnel != NULL);
 
@@ -1035,7 +1032,7 @@ static void *teredo_recv_thread (void *t)
 	{
 		if (ufd[0].revents)
 		{
-			teredo_run ((teredo_tunnel *)t);
+			teredo_run_inner ((teredo_tunnel *)t);
 			ufd[0].revents = 0;
 		}
 		if (ufd[1].revents)
@@ -1079,6 +1076,35 @@ int teredo_run_async (teredo_tunnel *t)
 	}
 
 	return 0;
+}
+
+
+/**
+ * Receives all pending packets coming from the Teredo tunnel. If you
+ * don't use teredo_run_async(), you have to call this function as
+ * often as possible. It is up to you to find the correct tradeoff
+ * between busy waiting on this function for better response time of
+ * the Teredo tunnel, and a long delay to not waste too much CPU
+ * cycles. You should really consider using teredo_run_async() instead!
+ * libteredo will spawn some threads even if you don't call
+ * teredo_run_async() anyway...
+ *
+ * Thread-safety: This function is thread-safe.
+ */
+void teredo_run (teredo_tunnel *tunnel)
+{
+	assert (tunnel != NULL);
+
+	struct pollfd ufd[1];
+	memset (ufd, 0, sizeof (ufd));
+	ufd[0].fd = tunnel->fd;
+	ufd[0].events = POLLIN;
+
+	while (poll (ufd, 1, 0) > 0)
+	{
+		teredo_run_inner (tunnel);
+		ufd[0].revents = 0;
+	}
 }
 
 
