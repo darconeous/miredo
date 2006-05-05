@@ -208,17 +208,18 @@ tun6 *tun6_create (const char *req_name)
 	 * before and after open().
 	 */
 	int fd = open ("/dev/tun", O_RDWR);
-	if (fd == -1)
+	if ((fd == -1) && (errno == ENOENT))
 	{
 		/*
 		 * Some BSD variants or older kernel versions do not support /dev/tun,
 		 * so fallback to the old scheme.
 		 */
-		for (unsigned i = 0; (fd == -1) && (errno != ENOENT); i++)
+		int saved_errno = 0;
+		for (unsigned i = 0; fd == -1; i++)
 		{
 			char tundev[5 + IFNAMSIZ];
 			snprintf (tundev, sizeof (tundev), "/dev/tun%u", i);
-	
+
 			fd = open (tundev, O_RDWR);
 			if (fd != -1)
 			{
@@ -230,7 +231,13 @@ tun6 *tun6_create (const char *req_name)
 				id = if_nametoindex (tundev + 5);
 				safe_strcpy (t->orig_name, tundev + 5);
 			}
+
+			// If /dev/tun<i> does not exist, /dev/tun<i+1> won't exist either
+			if (errno == ENOENT)
+				break;
+			saved_errno = errno;
 		}
+		errno = saved_errno;
 	}
 
 	if (fd == -1)
