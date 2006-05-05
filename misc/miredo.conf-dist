@@ -6,7 +6,7 @@
 # Miredo can safely run as a Teredo client, which is the default.
 #RelayType client
 
-# Name of the network tunneling interface.
+# Name of the network tunneling interface.
 InterfaceName	teredo
 
 # Depending on the local firewall/NAT rules, you might need to force
