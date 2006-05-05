@@ -18,7 +18,9 @@
 # ***********************************************************************
 
 EXTRA_DIST = miredo.sh-in miredo-server.sh-in
+if SAMPLE_CONF
 dist_sysconf_DATA = miredo.conf-dist miredo-server.conf-dist
+endif
 noinst_SCRIPTS = miredo.sh miredo-server.sh
 CLEANFILES = $(noinst_SCRIPTS)
 

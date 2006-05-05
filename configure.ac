@@ -153,7 +153,16 @@ AS_IF([test "x${enable_debug}" = "xno"],
 	[AC_DEFINE(NDEBUG)], [enable_debug=yes])
 AC_MSG_RESULT(${enable_debug})
 
-# unprivileged user
+# Config sample installation
+AC_MSG_CHECKING([whether to install sample config files])
+AC_ARG_ENABLE(sample-conf,
+	      [AS_HELP_STRING(--disable-sample-conf,
+			      [do not install sample config files (default enabled)])])
+AM_CONDITIONAL(SAMPLE_CONF, [test "x{enable_sample_conf}" != "xno"])
+AS_IF([test "x{enable_teredo_client}" != "xno"],
+	[AC_MSG_RESULT(yes)], [AC_MSG_RESULT(no)])
+
+# Unprivileged user
 AC_MSG_CHECKING([user to run as])
 AC_ARG_ENABLE(miredo-user,
 	      [AS_HELP_STRING(--enable-miredo-user,

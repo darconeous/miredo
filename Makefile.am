@@ -24,6 +24,7 @@ DIST_SUBDIRS = m4 $(SUBDIRS)
 noinst_HEADERS = include/gettext.h
 EXTRA_DIST = bootstrap autopackage/default.apspec.in
 
+if SAMPLE_CONF
 miredo_conf = $(sysconfdir)/miredo.conf
 
 install-data-hook:
@@ -47,6 +48,7 @@ install-data-hook:
 	@echo "Please take time to review the settings and adjust them"
 	@echo "if necessary. Once finished, save the file as:"
 	@echo "  $(miredo_conf) and run miredo (as root)."
+endif
 
 # Safe automatic ChangeLog update
 DISTCLEANFILES = stamp-svn
