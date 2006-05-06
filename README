@@ -29,8 +29,8 @@ production/critical environment. Contributions, feedback and bug
 reports are most welcome. You might get additonnal informations from
 the website at : http://www.simphalempin.com/dev/miredo/
 
-  If you have further questions, you can contact me via email at :
-    rdenis (at) simphalempin (dot) com
+  If you have further questions, please send an email to:
+    miredo (dash) devel (at) remlab (dot) net
 
 
 What is Miredo?
@@ -251,9 +251,9 @@ POSIX capabilities library development files, before building Miredo.
 Feedback:
 ==========
 
-  If you have further questions, you can contact me via email at :
+  If you have further questions, please write to:
 
-    rdenis (at) simphalempin (dot) com
+    miredo (dash) devel (at) remlab (dot) net
 
 -- 
 Rémi Denis-Courmont <rdenis (at) simphalempin (dot) com>
