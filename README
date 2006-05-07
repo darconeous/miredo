@@ -3,12 +3,12 @@ Miredo : open-source Teredo
 $Id$
 Copyright (C) 2004-2006 Rémi Denis-Courmont.
 
-  Welcome to Miredo's user's guide!
+  Welcome to Miredo’s user’s guide!
 
 Where to go?
 =============
 
-  If you've used olders versions of this program, you should read NEWS
+  If you’ve used olders versions of this program, you should read NEWS
 for a summary of the most recent updates and changes.
 
   For detailled usage instructions, you should refer to the Unix manual
@@ -18,7 +18,7 @@ For quick usage instructions, see below.
   See INSTALL for general instructions on how to build the package and
 install the program from sources. Additionnal informations may be found
 below. If you are building from the Subversion repository, run the
-'./bootstrap' script first.
+“./bootstrap” script first.
 
   This package is distributed under the terms of the General Public
 License (GPL) version 2 written by the Free Software Foundation, Inc.
@@ -127,7 +127,7 @@ Starting the program:
 and that it will detach and run in the background. If something goes
 wrong, there are two ways two know what :
 - read your system logs (typically /var/log/syslog),
-- force Miredo to run in the background (that's meant for debugging),
+- force Miredo to run in the background (that’s meant for debugging),
   by starting it with the “--foreground” command line parameter, and
   wait for about 20 seconds.
 
@@ -239,7 +239,7 @@ fine “out of the box”.
 are available. You should not need to worry as it is entirely
 automatic.
 
-  If you are a packager, you should consider installing your system's
+  If you are a packager, you should consider installing your system’s
 POSIX capabilities library development files, before building Miredo.
 
 

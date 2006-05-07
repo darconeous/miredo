@@ -8,7 +8,7 @@ Gene Cronk
 	Extremely useful FreeBSD testing platform and shell.
 
 Laurent Granger
-	Some testing of the server and relay with Windows XP's client.
+	Some testing of the server and relay with the Windows XP client.
 
 Michael H. Warfield
 	Compilation fix on RedHat 7.3, testing.
@@ -25,7 +25,7 @@ Richard Bejtlich
 Rui Paulo
 	NetBSD port and compilation fixes.
 
-Marco d'Itri (ITGate)
+Marco d’Itri (ITGate)
 	Big scale testing.
 
 $Id$

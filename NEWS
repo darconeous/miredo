@@ -1,5 +1,5 @@
 RELEASE NOTES for Miredo
-version 0.8.2 (stable version)
+version 0.9.0-pre (stable version)
 ===============================
 $Id$
 
@@ -11,7 +11,7 @@ to upgrade, as this version includes some minor bug fixes.
 
   You can find major changes since version 0.1.0 below. For more general
 informations on this program, see README. For syntax details and
-changes, run 'miredo -h' to get help. For detailled internal changes, see
+changes, run “miredo -h” to get help. For detailled internal changes, see
 ChangeLog.
 
 =============================================================================
@@ -120,7 +120,7 @@ BETA RELEASE 0.5.2 : Major bugfixes
 =============================================================================
 BETA RELEASE 0.5.1 : Minor bugfixes
 
-# Set a bigger metric (lower priority) for Teredo's default IPv6 route than
+# Set a bigger metric (lower priority) for Teredo’s default IPv6 route than
   usual default IPv6 route, so that one can safely run miredo even if/when
   other/better IPv6 connectivity is otherwise available (Linux-only).
 # Some code optimization for better performance.
@@ -147,14 +147,14 @@ BETA RELEASE 0.5.0 : Major features enhancement
 # Safe work-around to reach peers that rejects ICMPv6 Echo Requests.
 # Support for MTU setting (in server and relay),
   clients now gets MTU setting from server.
-# Support for changing Teredo server's secondary address (ServerAddress2
+# Support for changing Teredo server’s secondary address (ServerAddress2
   and ServerBindAddress2 directives).
 # Fix a minor race condition when the Teredo tunnel is brought up.
 
 # Teredo server support separated : it is now provided by a separate binary
   “miredo-server”, that reads its configuration from “miredo-server.conf”.
   Additionnally, the Teredo server now use raw IPv6 socket rather than the
-  Teredo tunneling interface, so that one doesn't need to enabled IPv6
+  Teredo tunneling interface, so that one doesn’t need to enabled IPv6
   forwarding on the Teredo server (and it is more portable).
 
 # Rudimentary Autopackage support (autopackage being still buggy).
@@ -252,7 +252,7 @@ BETA RELEASE 0.3.0 : Major features enhancement
   issues most particularly with, though not limited to, Teredo clients.
 
 # Automatically select an available UDP port for relay and client.
-  You can use the '-p' command line option to specify a particular port
+  You can use the “-p” command line option to specify a particular port
   number.
 
 # Automatically add a default route through the Teredo tunneling interface
@@ -294,7 +294,7 @@ BETA RELEASE 0.2.0 : Major features enhancement
   client mode to work.
 
 # Ability to run behind a restricted NAT device:
-    Miredo's Teredo relaying functions should now work fine from behind a
+    Miredo’s Teredo relaying functions should now work fine from behind a
   restricted NAT device (such as most Linux/Netfilter-based NAT). If you are
   not behind a NAT or if you are behind a cone NAT, you can use command line
   option “-C” for optimization.
