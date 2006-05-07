@@ -38,15 +38,8 @@ functionnality. A separate program, miredo-server is also included in
 the package; it consists of a Teredo server.
 
   Miredo can be used to provide IPv6 connectivity to users behind NAT
-which do not support IPv6, and not even proto-41 forwarding. For this
-to work, users need to have a Teredo client running on their system.
-That can be Miredo itself on Linux/FreeBSD/OpenBSD/NetBSD/Darwin.
-Microsoft provides a Teredo client built-in with Windows XP SP2, 2003
-and Vista IPv6 stacks, and in its “Advanced Networking pack” for
-Windows XP SP1.
-
-  For more informations on the Teredo technology, please refer to the
-Microsoft IPv6 : Teredo overview.
+devices, such as broadband routers. Most of these device do not support
+IPv6, and do not allow forwarding of proto-41 (including 6to4).
 
 
 System requirements
@@ -60,9 +53,9 @@ for system specific notes.
 properly tested on i386.
 
   When available, Miredo can use the following optional libraries :
- - GNU gettext for localization,
- - libcap (or non-Linux equivalent) for POSIX capabilities.
-  They should be detected automatically by the configure script.
+ - GNU gettext for localization,
+ - libcap (or non-Linux equivalent) for POSIX capabilities,
+ - Judy dynamic arrays library for better scalability.
 
 Linux:
 -------
@@ -111,23 +104,23 @@ instructions. Miredo can be installed the usual way:
 # su
 # make install
 
-  Miredo has no particular depencies (besides gcc, g++, make and the
-standard C/C++ headers), so there should be no problem so far.
+  Miredo has no particular required dependencies, besides the usual
+C/C++ compilers and development libraries.
 
   A sample configuration file is automatically installed at
 /usr/local/etc/miredo.conf - unless the file already existed (which
 means you are probably reinstalling or upgrading Miredo). This sample
 will cause Miredo to run as a Teredo client, with “teredo.remlab.net”
-(Miredo official testing Teredo server) as its Teredo server. You can
-find more extensive explanations in the configuration file.
+(Miredo official testing Teredo server) as its Teredo server. These
+default settings should be fine for most users.
 
 Starting the program:
 ----------------------
   Before you start, please note that Miredo must be started by root,
 and that it will detach and run in the background. If something goes
 wrong, there are two ways two know what :
-- read your system logs (typically /var/log/syslog),
-- force Miredo to run in the background (that’s meant for debugging),
+- read your system logs (typically /var/log/syslog),
+- force Miredo to run in the background (that’s meant for debugging),
   by starting it with the “--foreground” command line parameter, and
   wait for about 20 seconds.
 
@@ -148,9 +141,6 @@ teredo    Link encap:UNSPEC  HWaddr 00-00-00-00-00-00-00-00-00-00-00...
           TX packets:7 errors:0 dropped:0 overruns:0 carrier:0
           collisions:0 txqueuelen:500
           RX bytes:468 (468.0 b)  TX bytes:560 (560.0 b)
-
-NOTE: on *BSD operating systems, the interface will usually be called
-tun0 (or tun1, tun2...).
 
 # ping6 -c 4 www.kame.net
 PING www.kame.net(orange.kame.net) 56 data bytes
