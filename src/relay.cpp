@@ -94,7 +94,7 @@ miredo_diagnose (void)
 		fputs (errbuf, stderr);
 		return -1;
 	}
-	
+
 	return 0;
 }
 
