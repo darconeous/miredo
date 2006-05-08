@@ -67,7 +67,7 @@ process_icmpv6 (int fd, const struct ip6_hdr *ip6, size_t plen,
 		uint8_t          data[plen - sizeof (struct icmp6_hdr)];
 	} reply;
 
-	reply.ip6.ip6_vfc = htonl (6 << 28);
+	reply.ip6.ip6_flow = htonl (6 << 28);
 	reply.ip6.ip6_plen = htons (plen);
 	reply.ip6.ip6_nxt = IPPROTO_ICMPV6;
 	reply.ip6.ip6_hlim = 255;
@@ -138,7 +138,7 @@ process_unknown (int fd, const struct ip6_hdr *ip6, size_t plen,
 		uint8_t          payload[plen];
 	} reply;
 
-	reply.ip6.ip6_vfc = htonl (6 << 28);
+	reply.ip6.ip6_flow = htonl (6 << 28);
 	reply.ip6.ip6_plen = htons (sizeof (struct icmp6_hdr) + plen);
 	reply.ip6.ip6_nxt = IPPROTO_ICMPV6;
 	reply.ip6.ip6_hlim = 255;
