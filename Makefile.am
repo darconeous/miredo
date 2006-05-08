@@ -19,7 +19,7 @@
 
 ACLOCAL_AMFLAGS = -I m4
 
-SUBDIRS = po doc misc compat libtun6 libteredo src
+SUBDIRS = po doc misc compat libteredo libtun6 src
 DIST_SUBDIRS = m4 $(SUBDIRS)
 noinst_HEADERS = include/gettext.h
 EXTRA_DIST = bootstrap autopackage/default.apspec.in
