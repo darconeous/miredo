@@ -213,7 +213,7 @@ run_tunnel (int ipv6fd, tun6 *tunnel)
 		union
 		{
 			struct ip6_hdr ip6;
-			struct iphdr ip4;
+			struct ip ip4;
 			uint8_t fill[65535];
 		} buf;
 
@@ -250,15 +250,15 @@ run_tunnel (int ipv6fd, tun6 *tunnel)
 			val = recv (ipv6fd, &buf, sizeof (buf), 0);
 
 			if ((val < (int)sizeof (struct iphdr))
-			 || (ntohs (buf.ip4.tot_len) != val))
+			 || (ntohs (buf.ip4.ip_len) != val))
 				break;
 
-			val -= buf.ip4.ihl << 2;
+			val -= buf.ip4.ip_hl << 2;
 			if (val < (int)sizeof (struct ip6_hdr))
 				break; // no room for IPv6 header
 
 			const struct ip6_hdr *ip6 =
-				(const struct ip6_hdr *)(buf.fill + (buf.ip4.ihl << 2));
+				(const struct ip6_hdr *)(buf.fill + (buf.ip4.ip_hl << 2));
 
 			if (((ip6->ip6_vfc >> 4) != 6)
 			 || (ntohs (ip6->ip6_plen) != val))
@@ -269,7 +269,7 @@ run_tunnel (int ipv6fd, tun6 *tunnel)
 			if ((ntohl (v) & 0xfcffffff) != 0x00005efe)
 				break; // TODO: check if it comes from the router
 
-			if (memcmp (ip6->ip6_src.s6_addr + 12, &buf.ip4.saddr, 4))
+			if (memcmp (ip6->ip6_src.s6_addr + 12, &buf.ip4.ip_src, 4))
 				break;
 
 			tun6_send (tunnel, ip6, val);
