@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <sys/types.h>
 #include <netinet/in.h> // htons()
 #include <netinet/ip6.h>
 #include <netinet/icmp6.h>
