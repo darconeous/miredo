@@ -44,6 +44,18 @@ extern int closefrom (int fd)
 	if (getrlimit (RLIMIT_NOFILE, &lim))
 		return -1;
 
+	/* This is way too much.
+	 * Mac OS X returns (2^31 - 1) as its limit, and closefrom() is way
+	 * too long (and intensive) in this case. We shall assume we will
+	 * never use more than 65535 file descriptors.
+	 */
+	if (lim.rlim_max >= 0x10000)
+	{
+		lim.rlim_cur = (lim.rlim_cur >= 0x10000) ? 0xffff : lim.rlim_cur;
+		lim.rlim_max = 0xffff;
+		setrlimit (RLIMIT_NOFILE, &lim);
+	}
+
 	saved_errno = errno;
 	while ((unsigned)fd < lim.rlim_max)
 		if (close (fd++) == 0)
