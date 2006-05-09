@@ -86,9 +86,10 @@ supported because their userland tunneling driver did not support IPv6.
 
 Darwin:
 --------
-  Miredo could not be tested on Mac OS X or any other Darwin variant.
-It might work with a third party-provided tunneling driver (that is not
-provided with Apple Mac OS X).
+  Miredo works on Mac OS X (Panther, Tiger) and might work on other
+Darwin variants. On Mac OS X, you will have to install a third party
+tunneling driver; Miredo was tested with Mattis Nissler's tuntap from:
+http://www-user.rhrk.uni-kl.de/~nissler/tuntap/
 
 
 Quick usage
