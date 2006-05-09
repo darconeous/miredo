@@ -22,7 +22,8 @@ localedir = @datadir@/locale
 LTLIBINTL = @LTLIBINTL@
 
 AM_CPPFLAGS = -I@top_srcdir@/include -I@top_srcdir@ \
-	-D_REENTRANT -D_GNU_SOURCE -DLOCALEDIR=\"$(localedir)\"
+	-D_REENTRANT -D_GNU_SOURCE -D_APPLE_C_SOURCE \
+	-DLOCALEDIR=\"$(localedir)\"
 AM_CFLAGS = -std=c99
 
 LIBADD = $(LTLIBINTL) ../compat/libcompat.la libteredo-common.la
