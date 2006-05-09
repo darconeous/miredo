@@ -249,7 +249,7 @@ run_tunnel (int ipv6fd, tun6 *tunnel)
 
 			val = recv (ipv6fd, &buf, sizeof (buf), 0);
 
-			if ((val < (int)sizeof (struct iphdr))
+			if ((val < (int)sizeof (struct ip))
 			 || (ntohs (buf.ip4.ip_len) != val))
 				break;
 
