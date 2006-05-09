@@ -7,8 +7,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: miredo 0.8.1\n"
-"Report-Msgid-Bugs-To: rdenis@simphalempin.com\n"
-"POT-Creation-Date: 2006-04-14 22:34+0200\n"
+"Report-Msgid-Bugs-To: miredo-devel_no_bulk_mail@remlab.net\n"
+"POT-Creation-Date: 2006-05-09 21:05+0300\n"
 "PO-Revision-Date: 2006-03-20 15:39+0100\n"
 "Last-Translator: Rémi Denis-Courmont <rdenis (at) simphalempin (dot) com>\n"
 "Language-Team: N/A\n"
@@ -16,13 +16,13 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: libteredo/relay.c:636
+#: libteredo/relay.c:634
 msgid "Ignoring invalid bubble: your Teredo server is probably buggy."
 msgstr ""
 
 #: libteredo/security.c:68 libteredo/security.c:136 libteredo/server.c:494
-#: libteredo/server.c:505 libteredo/maintain.c:511 libtun6/tun6.c:683
-#: src/main.c:301 src/main.c:312 src/main.c:320 src/main.c:348 src/main.c:485
+#: libteredo/server.c:505 libteredo/maintain.c:511 libtun6/tun6.c:698
+#: src/main.c:288 src/main.c:316 src/main.c:354 src/main.c:491
 #: src/miredo.cpp:106 src/miredo.cpp:114 src/miredo.cpp:235
 #, c-format
 msgid "Error (%s): %s\n"
@@ -92,18 +92,18 @@ msgstr ""
 msgid "restricted"
 msgstr ""
 
-#: libtun6/tun6.c:176 libtun6/tun6.c:186 libtun6/tun6.c:237 libtun6/tun6.c:300
-#: libtun6/tun6.c:311 libtun6/tun6.c:326 libtun6/tun6.c:344
+#: libtun6/tun6.c:177 libtun6/tun6.c:187 libtun6/tun6.c:245 libtun6/tun6.c:308
+#: libtun6/tun6.c:324 libtun6/tun6.c:339 libtun6/tun6.c:357
 #, c-format
 msgid "Tunneling driver error (%s): %s"
 msgstr "Tunnelling driver error (%s): %s"
 
-#: libtun6/tun6.c:364
+#: libtun6/tun6.c:379
 #, c-format
 msgid "%s tunneling interface creation failure"
 msgstr "%s tunnelling interface creation failure"
 
-#: libtun6/tun6.c:943
+#: libtun6/tun6.c:1011
 msgid ""
 "You should run these commands to create it:\n"
 "# mkdir -p /dev/net\n"
@@ -111,20 +111,20 @@ msgid ""
 "(you must be root to do that).\n"
 msgstr ""
 
-#: libtun6/tun6.c:948
+#: libtun6/tun6.c:1016 libtun6/tun6.c:1041
 msgid ""
 "You can obtain a tunnel driver for the Darwin kernel (Mac OS X) from:\n"
 "http://www-user.rhrk.uni-kl.de/~nissler/tuntap/\n"
 msgstr ""
 
-#: libtun6/tun6.c:956
+#: libtun6/tun6.c:1024
 #, c-format
 msgid ""
 "Error: %s character device not found or unavailable.\n"
 "%s"
 msgstr ""
 
-#: libtun6/tun6.c:969
+#: libtun6/tun6.c:1037
 msgid ""
 "Make sure your Linux kernel includes the \"Universal TUNTAP driver\"\n"
 "(CONFIG_TUN option), possibly as a module.\n"
@@ -132,13 +132,7 @@ msgstr ""
 "Make sure your Linux kernel includes the “Universal TUNTAP driver”\n"
 "(CONFIG_TUN option), possibly as a module.\n"
 
-#: libtun6/tun6.c:973
-msgid ""
-"You can obtain a tunnel driver for the Darwin kernel (Mac OS X) from:\n"
-"http://chrisp.de/en/projects/tunnel.html\n"
-msgstr ""
-
-#: libtun6/tun6.c:981
+#: libtun6/tun6.c:1049
 #, c-format
 msgid ""
 "Error: your operating system does not seem to provide a network tunneling\n"
@@ -149,7 +143,7 @@ msgstr ""
 "device driver, which is required.\n"
 "%s"
 
-#: libtun6/tun6.c:990
+#: libtun6/tun6.c:1058
 #, c-format
 msgid ""
 "Error: cannot open device file %s (%s)\n"
@@ -246,16 +240,16 @@ msgstr ""
 "the programme as an user with insufficient system privileges.\n"
 "This programme should normally be started by root.\n"
 
-#: src/main.c:241
+#: src/main.c:243
 #, c-format
 msgid "User \"%s\": %s\n"
 msgstr "User “%s”: %s\n"
 
-#: src/main.c:243
+#: src/main.c:245
 msgid "User not found"
 msgstr ""
 
-#: src/main.c:245
+#: src/main.c:247
 #, c-format
 msgid ""
 "Error: This program was asked to run in the\n"
@@ -274,7 +268,7 @@ msgstr ""
 "this programme in the security context of another\n"
 "user.\n"
 
-#: src/main.c:259
+#: src/main.c:261
 msgid ""
 "Error: This program is not supposed to keep root\n"
 "privileges. That is potentially very dangerous\n"
@@ -286,28 +280,23 @@ msgstr ""
 "(all the more as it is beta quality code that has\n"
 "never been audited for security vulnerabilities).\n"
 
-#: src/main.c:276
-#, c-format
-msgid "SetGID to group ID %u: %s\n"
-msgstr ""
-
-#: src/main.c:289
+#: src/main.c:277
 #, c-format
 msgid "SetUID to root: %s\n"
 msgstr ""
 
-#: src/main.c:334
+#: src/main.c:340
 #, c-format
 msgid ""
 "Cannot create PID file %s:\n"
 " %s\n"
 msgstr ""
 
-#: src/main.c:338 src/server.cpp:170
+#: src/main.c:344 src/server.cpp:167
 msgid "Make sure another instance of the program is not already running."
 msgstr "Make sure another instance of the programme is not already running."
 
-#: src/main.c:469
+#: src/main.c:475
 #, c-format
 msgid "Reading configuration from %s: %s\n"
 msgstr ""
@@ -349,56 +338,56 @@ msgstr ""
 msgid "Terminated with no error."
 msgstr ""
 
-#: src/relay.cpp:204
+#: src/relay.cpp:201 src/checkconf.cpp:97
 #, c-format
 msgid "Invalid relay type \"%s\" at line %u"
 msgstr "Invalid relay type “%s” at line %u"
 
-#: src/relay.cpp:243
+#: src/relay.cpp:240
 msgid "Teredo pseudo-tunnel started"
 msgstr ""
 
-#: src/relay.cpp:245
+#: src/relay.cpp:242
 #, c-format
 msgid " (address: %s, MTU: %u)"
 msgstr ""
 
-#: src/relay.cpp:264
+#: src/relay.cpp:261
 msgid "Teredo pseudo-tunnel stopped"
 msgstr ""
 
-#: src/relay.cpp:387 src/relay.cpp:406 src/relay.cpp:423 src/relay.cpp:435
-#: src/relay.cpp:461 src/server.cpp:111 src/server.cpp:119 src/server.cpp:136
+#: src/relay.cpp:380 src/relay.cpp:399 src/relay.cpp:416 src/relay.cpp:428
+#: src/relay.cpp:454 src/server.cpp:108 src/server.cpp:116 src/server.cpp:133
 msgid "Fatal configuration error"
 msgstr ""
 
-#: src/relay.cpp:405 src/server.cpp:118
+#: src/relay.cpp:398 src/server.cpp:115
 msgid "Server address not specified"
 msgstr ""
 
-#: src/relay.cpp:422
+#: src/relay.cpp:415 src/checkconf.cpp:115
 msgid "Unsupported Teredo client mode"
 msgstr ""
 
-#: src/relay.cpp:488 src/relay.cpp:494 src/relay.cpp:557
+#: src/relay.cpp:481 src/relay.cpp:487 src/relay.cpp:550
 #, c-format
 msgid "Miredo setup failure: %s"
 msgstr ""
 
-#: src/relay.cpp:489
+#: src/relay.cpp:482
 msgid "Cannot create IPv6 tunnel"
 msgstr ""
 
-#: src/relay.cpp:495 src/relay.cpp:558
+#: src/relay.cpp:488 src/relay.cpp:551
 msgid "libteredo cannot be initialized"
 msgstr "libteredo cannot be initialised"
 
-#: src/server.cpp:101
+#: src/server.cpp:98
 #, c-format
 msgid "Invalid server hostname \"%s\": %s"
 msgstr "Invalid server host name “%s”: %s"
 
-#: src/server.cpp:169
+#: src/server.cpp:166
 msgid "Teredo server fatal error"
 msgstr ""
 
