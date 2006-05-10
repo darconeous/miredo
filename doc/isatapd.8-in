@@ -1,0 +1,124 @@
+.\" ***********************************************************************
+.\" *  Copyright © 2004-2006 Rémi Denis-Courmont.                         *
+.\" *  This program is free software; you can redistribute and/or modify  *
+.\" *  it under the terms of the GNU General Public License as published  *
+.\" *  by the Free Software Foundation; version 2 of the license.         *
+.\" *                                                                     *
+.\" *  This program is distributed in the hope that it will be useful,    *
+.\" *  but WITHOUT ANY WARRANTY; without even the implied warranty of     *
+.\" *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.               *
+.\" *  See the GNU General Public License for more details.               *
+.\" *                                                                     *
+.\" *  You should have received a copy of the GNU General Public License  *
+.\" *  along with this program; if not, you can get it from:              *
+.\" *  http://www.gnu.org/copyleft/gpl.html                               *
+.\" ***********************************************************************
+.TH "ISATAPD" "8" "$Date$" "isatapd" "System Manager's Manual"
+.SH NAME
+isatapd \- userland ISATAP router daemon
+.SH SYNOPSIS
+.BR "isatapd" " [" "-c config_file" "] [" "-f" "] [" "-u user" "] ["
+.BR "-t chrootdir" "]"
+
+.SH DESCRIPTON
+.B ISATAPd
+is a daemon program providing an ISATAP router interface in userland,
+compatible with the "Intra-Site Automatic Tunnel Addressing Protocol"
+Internet experimental protocol (RFC 4214).
+
+This is mostly useful to provide IPv6 connectivity to dual-stack nodes
+on a IPv4 network.
+
+You will also most likely want to run radvd on the tunnel interface, to
+provide autoconf services to other nodes.
+
+.SH OPTIONS
+
+.TP
+.BR "\-c config_file" " or " "\-\-config config_file"
+Specify an alternate configuration file for ISATAPd instead of the
+.RI "default, " "@sysconfdir@/isatapd.conf" "."
+
+.TP
+.BR "\-f" " or " "\-\-foreground"
+Do not detach from the console. Run the program in the foreground.
+
+.TP
+.BR "\-h" " or " "\-\-help"
+Display some help and exit.
+
+.TP
+.BR "\-t" " or " "\-\-chrootdir"
+Specify a directory to use as a root after initialization is completed.
+When used as a Teredo client, the hostname resolver library files must
+be present in the chroot. The directory can safely be left empty for a
+Teredo relay.
+
+.TP
+.BR "\-u username" " or " "\-\-user username"
+Override the user that the program will run as. By default, it runs as
+.BR "nobody" "."
+
+.TP
+.BR "\-V" " or " "\-\-version"
+Display program version and license and exit.
+
+.\".SH DIAGNOSTICS
+.SH BUGS
+It would not be very complicated to implement support for ISATAP within
+the existing IPv6-over-IPv4 tunnel framework that exists in the Linux
+and BSD kernels. This has even been implemented before, but these
+implementation never entered the official kernels, and eventually got
+withdrawn, because of a patent claim. In the mean time, the patent's
+holder has defined its policy as
+.IR "No License Required for Implementers" ", "
+so we will hopefully see in-kernel implementations back soon.
+
+ISATAPd does not support operating as an ISATAP client at the moment.
+It can only server as an ISATAP router.
+
+.SH SECURITY
+.B ISATAPd
+requires
+.I root
+privileges to create its IPv6 tunneling network interface, to set
+it up properly, and also to open a raw IPv6-over-IPv4 socket. Once its
+initialization is complete, it will
+.IR "setgid" ", " "chroot" " into an empty directory and ultimately"
+.IR "setuid" " (see option " "-u" "), so as to decrease the system's"
+exposure to potential security issues.
+
+.B Extreme care
+must be taken to ensure that ISATAP packets cannot cross the network
+edge. Otherwise, it might be possible for IPv4 outsiders to pretend to
+be part of the local IPv6 network segment. Blocking incoming and
+outgoing IPv6-over-IPv4 (proto-41) packets crossing the border firewall
+should address this issue.
+
+.SH SIGNALS
+.BR "SIGHUP" " Force a reload of the daemon."
+
+.BR "SIGINT" ", " "SIGTERM" " Shutdown the daemon."
+
+.BR "SIGUSR1" ", " "SIGUSR2" " Do nothing, might be used in future "
+versions.
+
+.SH FILES
+.TP
+.I @sysconfdir@/isatapd.conf
+The default configuration file.
+
+.TP
+.I @localstatedir@/run/isatapd.pid
+The process-id file.
+
+.SH "SEE ALSO"
+isatapd.conf(5), radvd(8), ipv6(7)
+
+.SH AUTHOR
+Rémi Denis-Courmont <rdenis at simphalempin.com>
+
+$Id$
+
+http://www.simphalempin.com/dev/miredo/
+
