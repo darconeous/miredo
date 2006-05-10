@@ -100,15 +100,6 @@ change the tunneling network interface settings automatically. To
 .IR "separation" ". The process that handles data from the network is"
 not privileged.
 
-Miredo is still beta quality code. As such, it should not be deployed
-in production or security-sensitive environment. It is supposedly easy
-to deny service by flooding the relay with vaguely carefully crafted
-IPv6 packets.
-
-Teredo connectivity throughout the IPv6 Internet seems pretty poor and
-unstable at the time of writing these lines. That will hopefully
-improve as time goes.
-
 While that is not specific to nor dependant on Miredo, it should be
 noted that Teredo connectivity allows anyone behind a NAT to obtain
 global public IPv6 connectivity. It might break some corporate policy.
