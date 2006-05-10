@@ -308,8 +308,10 @@ tun6 *tun6_create (const char *req_name)
 			syslog (LOG_ERR, _("Tunneling driver error (%s): %s"),
 			        "TUNSIFHEAD", strerror (errno));
 #  if defined (__APPLE__)
-			syslog (LOG_NOTICE,
-			        "*** Ignoring tun-tap-osx spurious error ***\n");
+			if (errno == EINVAL)
+				syslog (LOG_NOTICE,
+				        "*** Ignoring tun-tap-osx spurious error ***\n");
+			else
 #  else
 			goto error;
 #  endif
