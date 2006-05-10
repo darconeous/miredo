@@ -5,7 +5,7 @@ $Id$
 This task list is only indicative. It is not exhaustive nor
 authoritative.
 
-(!) before next release (0.9.0)
+(!) before next release (0.9.3)
 (*) before stable release (1.0.0)
 ( ) unscheduled
 (H) help needed - cannot be done unless someone volunteers
@@ -19,6 +19,7 @@ Important features & fixes:
 ( ) fixed TODOs and FIXMEs in source code
 (*) local Teredo discovery
 (*) interval determination procedure
+(!) document libteredo-mire (manpage? --help, --version)
 
 Not so important features:
 ---------------------------
@@ -36,9 +37,9 @@ Conformance:
 
 Security:
 ----------
-(?) full secure qualification support with user ID,
+(?) full secure qualification support with user ID
 ( ) relay/server IPv4 _modifiable_ access control lists
-    (currently hard-coded to reject private IPv4 space),
+    (currently hard-coded to reject private IPv4 space)
 ( ) automatic/dynamic relay access control list
     (stateful firewall-like)
 
@@ -47,6 +48,11 @@ Performance/scalability:
 ( ) check if libtun6 could use kernel checksumming
     or if it should disable it
 ( ) check if libteredo-server could use kernel for checksumming
+
+Extension:
+-----------
+( ) support symmetric to non-symmetric NAT traversal
+(?) support symmetric NAT traversal
 
 Portability:
 -------------
@@ -66,3 +72,5 @@ Documentation & support:
 Re-usability:
 --------------
 (F) libteredo API stabilization
+( ) avoid syslog() in libtun6
+( ) avoid syslog() in libteredo

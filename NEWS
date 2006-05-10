@@ -1,6 +1,6 @@
 RELEASE NOTES for Miredo
-version 0.9.0-pre (stable version)
-===============================
+version 0.9.1 (beta version)
+=============================
 $Id$
 
   This is an officially stable release of the program. The package is
@@ -13,6 +13,29 @@ to upgrade, as this version includes some minor bug fixes.
 informations on this program, see README. For syntax details and
 changes, run “miredo -h” to get help. For detailled internal changes, see
 ChangeLog.
+
+=============================================================================
+BETA RELEASE 0..9.1 : Major features enhancement
+
+# Created and referenced a developper mailing list: <miredo-devel at
+  remlab.net>. Send a mail with subject “subscribe” to <miredo-devel-request
+  at remlab.net> to subscribe.
+
+# Added isatap, an ISATAP router based on libtun6 and miredo.
+  After careful IETF IPR claim check, it seems ISATAP can be freely
+  implemented anyway.
+
+# Working support for Mac OS X:
+  - work-around overly long closefrom() replacement,
+  - work-around tuntap for OS X spurious initialization error.
+  - add required defines for pthread to work properly.
+
+# Added libteredo-miredo, an undocumented Teredo “test card”.
+# Improve miredo-checkconf semantics.
+# Multi-threaded libteredo, and finer grained locking.
+# Fix initialization in libteredo sometimes causing a crash at startup.
+# Fix race condition in libteredo-list unit test.
+# Fix _impossible_ overflow of FD_SET().
 
 =============================================================================
 STABLE RELEASE 0.8.2 : Minor bugfixes
