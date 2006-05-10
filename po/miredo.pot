@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: miredo-devel_no_bulk_mail@remlab.net\n"
-"POT-Creation-Date: 2006-05-09 21:05+0300\n"
+"POT-Creation-Date: 2006-05-10 21:13+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -21,14 +21,14 @@ msgid "Ignoring invalid bubble: your Teredo server is probably buggy."
 msgstr ""
 
 #: libteredo/security.c:68 libteredo/security.c:136 libteredo/server.c:494
-#: libteredo/server.c:505 libteredo/maintain.c:511 libtun6/tun6.c:698
+#: libteredo/server.c:505 libteredo/maintain.c:511 libtun6/tun6.c:700
 #: src/main.c:288 src/main.c:316 src/main.c:354 src/main.c:491
 #: src/miredo.cpp:106 src/miredo.cpp:114 src/miredo.cpp:235
 #, c-format
 msgid "Error (%s): %s\n"
 msgstr ""
 
-#: libteredo/server.c:390 libteredo/server.c:459
+#: libteredo/server.c:390 libteredo/server.c:459 src/isatap.cpp:89
 #, c-format
 msgid "Raw IPv6 socket not working: %s"
 msgstr ""
@@ -93,17 +93,17 @@ msgid "restricted"
 msgstr ""
 
 #: libtun6/tun6.c:177 libtun6/tun6.c:187 libtun6/tun6.c:245 libtun6/tun6.c:308
-#: libtun6/tun6.c:324 libtun6/tun6.c:339 libtun6/tun6.c:357
+#: libtun6/tun6.c:326 libtun6/tun6.c:341 libtun6/tun6.c:359
 #, c-format
 msgid "Tunneling driver error (%s): %s"
 msgstr ""
 
-#: libtun6/tun6.c:379
+#: libtun6/tun6.c:381
 #, c-format
 msgid "%s tunneling interface creation failure"
 msgstr ""
 
-#: libtun6/tun6.c:1011
+#: libtun6/tun6.c:1013
 msgid ""
 "You should run these commands to create it:\n"
 "# mkdir -p /dev/net\n"
@@ -111,26 +111,26 @@ msgid ""
 "(you must be root to do that).\n"
 msgstr ""
 
-#: libtun6/tun6.c:1016 libtun6/tun6.c:1041
+#: libtun6/tun6.c:1018 libtun6/tun6.c:1043
 msgid ""
 "You can obtain a tunnel driver for the Darwin kernel (Mac OS X) from:\n"
 "http://www-user.rhrk.uni-kl.de/~nissler/tuntap/\n"
 msgstr ""
 
-#: libtun6/tun6.c:1024
+#: libtun6/tun6.c:1026
 #, c-format
 msgid ""
 "Error: %s character device not found or unavailable.\n"
 "%s"
 msgstr ""
 
-#: libtun6/tun6.c:1037
+#: libtun6/tun6.c:1039
 msgid ""
 "Make sure your Linux kernel includes the \"Universal TUNTAP driver\"\n"
 "(CONFIG_TUN option), possibly as a module.\n"
 msgstr ""
 
-#: libtun6/tun6.c:1049
+#: libtun6/tun6.c:1051
 #, c-format
 msgid ""
 "Error: your operating system does not seem to provide a network tunneling\n"
@@ -138,7 +138,7 @@ msgid ""
 "%s"
 msgstr ""
 
-#: libtun6/tun6.c:1058
+#: libtun6/tun6.c:1060
 #, c-format
 msgid ""
 "Error: cannot open device file %s (%s)\n"
@@ -320,10 +320,11 @@ msgstr ""
 
 #: src/relay.cpp:380 src/relay.cpp:399 src/relay.cpp:416 src/relay.cpp:428
 #: src/relay.cpp:454 src/server.cpp:108 src/server.cpp:116 src/server.cpp:133
+#: src/isatap.cpp:297 src/isatap.cpp:310
 msgid "Fatal configuration error"
 msgstr ""
 
-#: src/relay.cpp:398 src/server.cpp:115
+#: src/relay.cpp:398 src/server.cpp:115 src/isatap.cpp:296
 msgid "Server address not specified"
 msgstr ""
 
@@ -331,12 +332,13 @@ msgstr ""
 msgid "Unsupported Teredo client mode"
 msgstr ""
 
-#: src/relay.cpp:481 src/relay.cpp:487 src/relay.cpp:550
+#: src/relay.cpp:481 src/relay.cpp:487 src/relay.cpp:550 src/isatap.cpp:338
+#: src/isatap.cpp:360
 #, c-format
 msgid "Miredo setup failure: %s"
 msgstr ""
 
-#: src/relay.cpp:482
+#: src/relay.cpp:482 src/isatap.cpp:339
 msgid "Cannot create IPv6 tunnel"
 msgstr ""
 

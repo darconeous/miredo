@@ -8,5 +8,6 @@ src/main.c
 src/miredo.cpp
 src/relay.cpp
 src/server.cpp
+src/isatap.cpp
 src/conf.cpp
 src/checkconf.cpp
