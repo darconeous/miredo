@@ -60,7 +60,6 @@ Portability:
 (H) byte alignement tests on problematic platforms (not i386)
 (H) Solaris: libtun6 support
 (H) Solaris: tests & fixes
-(H) Darwin: tests & fixes
 (H) DragonFlyBSD: tests & fixes
 
 Documentation & support:
