@@ -2,16 +2,16 @@ ToDo list:
 ===========
 $Id$
 
-This task list is only indicative. It is not exhaustive nor
-authoritative.
+This task list is only indicative. It is not fully comprehensive.
+If you have an idea, please submit it to the miredo-devel mailing list.
 
-(!) before next release (0.9.3)
-(*) before stable release (1.0.0)
-( ) unscheduled
-(H) help needed - cannot be done unless someone volunteers
-(X) being taken care of by someone else externaly
-(F) in the distant future - unless someone volunteers
-(?) not sure if it should/could be done
+(!) must be done before next release
+(*) must be before stable release
+( ) should probably be done someday if one finds time and interest
+(?) should be evaluated for usefulness and/or feasibility first
+(F) should be done, but probably not at the moment
+(H) should be done, but a capable volunteer is required
+(X) being taken care of (outside of miredo SVN)
 
 Important features & fixes:
 ----------------------------
