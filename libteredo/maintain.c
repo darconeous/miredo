@@ -154,9 +154,9 @@ maintenance_recv (const teredo_packet *packet, uint32_t server_ip,
                   union teredo_addr *newaddr)
 {
 	/*
-	* We don't accept router advertisement without nonce.
-	* It is far too easy to spoof such packets.
-	*/
+	 * We don't accept router advertisement without nonce.
+	 * It is far too easy to spoof such packets.
+	 */
 	if ((packet->auth_nonce == NULL)
 	 || memcmp (packet->auth_nonce, nonce, 8))
 		return false;
@@ -281,7 +281,7 @@ static inline void maintenance_thread (teredo_maintenance *m)
 				if (!is_ipv4_global_unicast (server_ip)
 				|| !is_ipv4_global_unicast (server_ip2))
 					syslog (LOG_WARNING, _("Server has a non global IPv4 address. "
-										"It will most likely not work."));
+					                       "It will most likely not work."));
 	
 				/* Tells Teredo client about the new server's IP */
 				assert (!c_state->up);
