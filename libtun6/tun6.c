@@ -93,11 +93,15 @@ typedef struct
 static const char *os_driver = "BSD";
 # define USE_BSD 1
 
+// TUNSIFHEAD or TUNSLMODE
 # if defined (HAVE_NET_IF_TUN_H)
-#  include <net/if_tun.h> // TUNSIFHEAD, TUNSLMODE
+#  include <net/if_tun.h>
+# elif defined (HAVE_NET_TUN_IF_TUN_H)
+#  include <net/tun/if_tun.h>
 # elif defined (__APPLE__)
 #  define TUNSIFHEAD  _IOW('t', 96, int)
 # endif
+
 # ifdef HAVE_NET_IF_VAR_H
 #  include <net/if_var.h>
 # endif
