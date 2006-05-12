@@ -70,8 +70,8 @@ assumption issue (fixed in 2.6.9).
 FreeBSD:
 ---------
   Miredo works fine with FreeBSD 6.0, but there should be no problem
-with the branch 5.x either. You might have some compilation issues with
-the old 4.x branch.
+with the branch 5.x either. See DragonFly instructions below if you are
+using the old FreeBSD 4.x branch.
 
 OpenBSD:
 ---------
@@ -90,6 +90,12 @@ Darwin:
 Darwin variants. On Mac OS X, you will have to install a third party
 tunneling driver; Miredo was tested with Mattis Nissler's tuntap from:
 http://www-user.rhrk.uni-kl.de/~nissler/tuntap/
+
+DragonFly:
+-----------
+  Miredo should work. You will have to define the CFLAGS and CXXFLAGS
+environment variable to include "-pthread" before running the configure
+script (e.g. “setenv CFLAGS "-pthread"; setenv CXXFLAGS "-pthread"”).
 
 
 Quick usage
