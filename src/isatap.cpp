@@ -46,6 +46,7 @@
 
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <netinet/in_systm.h>
 #include <netinet/ip.h>
 #include <netinet/ip6.h>
 #include <netdb.h> // NI_MAXHOST
