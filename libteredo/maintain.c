@@ -177,23 +177,38 @@ maintenance_recv (const teredo_packet *packet, uint32_t server_ip,
 }
 
 
+static inline void
+tv2ts (struct timespec *ts, const struct timeval *tv)
+{
+	ts->tv_sec = tv->tv_sec;
+	ts->tv_nsec = tv->tv_usec * 1000;
+}
+
+
+static inline void gettimespec (struct timespec *ts)
+{
+	struct timeval now;
+	gettimeofday (&now, NULL);
+	tv2ts (ts, &now);
+}
+
+
 /**
  * Make sure tv is in the future. If not, set it to the current time.
  * @return false if (*tv) was changed, true otherwise.
  */
 static bool
-checkTimeDrift (struct timespec *tv)
+checkTimeDrift (struct timespec *ts)
 {
 	struct timeval now;
 
 	(void)gettimeofday (&now, NULL);
-	if ((now.tv_sec > tv->tv_sec)
-	 || ((now.tv_sec == tv->tv_sec) && (now.tv_sec >= (tv->tv_nsec / 1000))))
+	if ((now.tv_sec > ts->tv_sec)
+	 || ((now.tv_sec == ts->tv_sec) && (now.tv_sec >= (ts->tv_nsec / 1000))))
 	{
 		/* process stopped, CPU starved, or (ACPI, APM, etc) suspend */
 		syslog (LOG_WARNING, _("Too much time drift. Resynchronizing."));
-		tv->tv_sec = now.tv_sec;
-		tv->tv_nsec = now.tv_usec * 1000;
+		tv2ts (ts, &now);
 		return false;
 	}
 	return true;
@@ -249,15 +264,11 @@ static inline void maintenance_thread (teredo_maintenance *m)
 		/* Resolve server IPv4 addresses */
 		while (server_ip == 0)
 		{
-			struct timeval now;
-
 			/* FIXME: mutex kept while resolving - very bad */
 			val = resolveServerIP (m->server, &server_ip,
 			                       m->server2, &server_ip2);
 
-			gettimeofday (&now, NULL);
-			deadline.tv_sec = now.tv_sec;
-			deadline.tv_nsec = now.tv_usec * 1000;
+			gettimespec (&deadline);
 
 			if (val)
 			{
@@ -387,6 +398,7 @@ static inline void maintenance_thread (teredo_maintenance *m)
 			case PROBE_RESTRICT:
 				state = PROBE_SYMMETRIC;
 				memcpy (&c_state->addr, &newaddr, sizeof (c_state->addr));
+				gettimespec (&deadline);
 				break;
 
 			case PROBE_SYMMETRIC:
@@ -403,7 +415,7 @@ static inline void maintenance_thread (teredo_maintenance *m)
 					sleep = RestartDelay;
 					break;
 				}
-				/* DO NOT break; */
+				/* DO NOT break; fallback */
 			case PROBE_CONE:
 				syslog (LOG_INFO, _("Qualified (NAT type: %s)"),
 				        dgettext (PACKAGE_NAME, c_state->cone
