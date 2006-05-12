@@ -308,27 +308,28 @@ static inline void maintenance_thread (teredo_maintenance *m)
 		        nonce.value, c_state->cone);
 
 		/* RECEIVE ROUTER ADVERTISEMENT */
-		do
+		for (;;)
 		{
 			val = pthread_cond_timedwait (&m->received, &m->lock, &deadline);
 
-			if (val == 0)
-			{
-				bool accept;
-				/* check received packet */
-				accept = maintenance_recv (m->incoming, server_ip,
-				                           nonce.value, c_state->cone,
-				                           &mtu, &newaddr);
+			if (val == ETIMEDOUT)
+				break;
+			if (val) // EINTR
+				continue;
 
-				(void)pthread_barrier_wait (&m->processed);
-				if (accept)
-					break;
-			}
+			/* check received packet */
+			bool accept;
+			accept = maintenance_recv (m->incoming, server_ip,
+			                           nonce.value, c_state->cone,
+			                           &mtu, &newaddr);
+
+			(void)pthread_barrier_wait (&m->processed);
+			if (accept)
+				break;
 		}
-		while (val == EINTR);
 
 		/* UPDATE FINITE STATE MACHINE */
-		if (val)
+		if (val /* == ETIMEDOUT */)
 		{
 			/* no response */
 			if (state == PROBE_SYMMETRIC)
@@ -364,6 +365,7 @@ static inline void maintenance_thread (teredo_maintenance *m)
 			}
 		}
 		else
+		/* RA received and parsed succesfully */
 		switch (state)
 		{
 			case QUALIFIED:
