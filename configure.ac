@@ -61,7 +61,8 @@ AC_DEFINE_UNQUOTED(PACKAGE_HOST, "$host",
 AS_MESSAGE([checking header files...])
 AC_CHECK_HEADERS([libintl.h net/if_tun.h])
 AC_CHECK_HEADERS([net/if_var.h],,,
-[#include <sys/socket.h>
+[#include <sys/types.h>
+#include <sys/socket.h>
 #include <net/if.h>
 ])
 
