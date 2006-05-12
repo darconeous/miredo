@@ -206,7 +206,11 @@ run_tunnel (int ipv6fd, tun6 *tunnel)
 		/* Wait until one of them is ready for read */
 		int val = pselect (maxfd, &readset, NULL, NULL, NULL, &sigset);
 		if (val < 0)
-			return 0;
+		{
+			if (miredo_done ())
+				return 0;
+			continue;
+		}
 		if (val == 0)
 			continue;
 

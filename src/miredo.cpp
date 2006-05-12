@@ -89,6 +89,12 @@ reload_handler (int signum)
 }
 
 
+int miredo_done (void)
+{
+	return should_exit || should_reload;
+}
+
+
 uid_t unpriv_uid = 0;
 const char *miredo_chrootdir = NULL;
 

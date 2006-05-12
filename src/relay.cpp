@@ -343,7 +343,11 @@ run_tunnel (teredo_tunnel *relay, tun6 *tunnel, miredo_addrwatch *w)
 		/* Wait until one of them is ready for read */
 		val = pselect (maxfd, &readset, NULL, NULL, NULL, &sigset);
 		if (val < 0)
-			return 0;
+		{
+			if (miredo_done ())
+				return 0;
+			continue;
+		}
 		if (val == 0)
 			continue;
 

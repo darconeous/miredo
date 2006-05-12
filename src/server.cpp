@@ -152,7 +152,9 @@ miredo_run (MiredoConf& conf, const char *server_name)
 			int dummy;
 
 			sigfillset (&set);
-			sigwait (&set, &dummy);
+			do
+				sigwait (&set, &dummy);
+			while (!miredo_done ());
 
 			teredo_server_stop (server);
 			teredo_server_destroy (server);
