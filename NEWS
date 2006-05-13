@@ -1,5 +1,5 @@
 RELEASE NOTES for Miredo
-version 0.8.4 (stable version)
+version 0.8.5 (stable version)
 ===============================
 $Id$
 
@@ -13,6 +13,14 @@ to upgrade, as this version includes some bug fixes.
 informations on this program, see README. For syntax details and
 changes, run 'miredo -h' to get help. For detailled internal changes, see
 ChangeLog.
+
+=============================================================================
+STABLE RELEASE 0.8.5 : Security and portability fixes
+
+# Handle incorrect or unauthenticated Router Advertisements correctly
+  (regression from 0.7.0).
+# Support for Mac OS X Tiger and Panther (backport from unstable branch).
+# Better support for DragonFly BSD (backport from unstable branch).
 
 =============================================================================
 STABLE RELEASE 0.8.4 : Minor bugfixes
