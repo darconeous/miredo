@@ -30,7 +30,29 @@
  ***********************************************************************/
 
 #include <errno.h>
+
+/*
+ * Apparently, on DragonFly, <pthread.h> defines prototypes for
+ * pthread_barrier stuff, even though libc does not implement it.
+ * This fix is an adapted from version 0.8.4nb1 in NetBSD pkgsrc.
+ */
+#define pthread_barrier_init broken_pthread_barrier_init
+#define pthread_barrier_destroy broken_pthread_barrier_destroy
+#define pthread_barrier_wait broken_pthread_barrier_wait
+#define pthread_barrier_t broken_pthread_barrier_t
+#define pthread_barrierattr_init broken_pthread_barrierattr_init
+#define pthread_barrierattr_destroy broken_pthread_barrierattr_destroy
+#define pthread_barrierattr_t broken_pthread_barrierattr_t
 #include <pthread.h>
+#undef pthread_barrier_init
+#undef pthread_barrier_destroy
+#undef pthread_barrier_wait
+#undef pthread_barrier_t
+#undef pthread_barrierattr_init
+#undef pthread_barrierattr_destroy
+#undef pthread_barrierattr_t
+#undef PTHREAD_BARRIER_SERIAL_THREAD
+
 #include "barrier.h"
 
 extern int
