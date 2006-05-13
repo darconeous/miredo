@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: miredo 0.8.1\n"
 "Report-Msgid-Bugs-To: rdenis@simphalempin.com\n"
-"POT-Creation-Date: 2006-04-14 22:34+0200\n"
+"POT-Creation-Date: 2006-05-13 12:05+0300\n"
 "PO-Revision-Date: 2006-03-20 15:39+0100\n"
 "Last-Translator: Rémi Denis-Courmont <rdenis (at) simphalempin (dot) com>\n"
 "Language-Team: N/A\n"
@@ -21,7 +21,7 @@ msgid "Ignoring invalid bubble: your Teredo server is probably buggy."
 msgstr ""
 
 #: libteredo/security.c:68 libteredo/security.c:136 libteredo/server.c:494
-#: libteredo/server.c:505 libteredo/maintain.c:511 libtun6/tun6.c:683
+#: libteredo/server.c:505 libteredo/maintain.c:512 libtun6/tun6.c:701
 #: src/main.c:301 src/main.c:312 src/main.c:320 src/main.c:348 src/main.c:485
 #: src/miredo.cpp:106 src/miredo.cpp:114 src/miredo.cpp:235
 #, c-format
@@ -63,47 +63,47 @@ msgstr "Cannot resolve Teredo server address “%s”: %s"
 msgid "Server has a non global IPv4 address. It will most likely not work."
 msgstr ""
 
-#: libteredo/maintain.c:343
+#: libteredo/maintain.c:344
 msgid "Lost Teredo connectivity"
 msgstr ""
 
-#: libteredo/maintain.c:358
+#: libteredo/maintain.c:359
 msgid "No reply from Teredo server"
 msgstr ""
 
-#: libteredo/maintain.c:380
+#: libteredo/maintain.c:381
 msgid "Teredo address/MTU changed"
 msgstr ""
 
-#: libteredo/maintain.c:397
+#: libteredo/maintain.c:398
 msgid "Unsupported symmetric NAT detected."
 msgstr ""
 
-#: libteredo/maintain.c:406
+#: libteredo/maintain.c:407
 #, c-format
 msgid "Qualified (NAT type: %s)"
 msgstr ""
 
-#: libteredo/maintain.c:408
+#: libteredo/maintain.c:409
 msgid "cone"
 msgstr ""
 
-#: libteredo/maintain.c:408
+#: libteredo/maintain.c:409
 msgid "restricted"
 msgstr ""
 
-#: libtun6/tun6.c:176 libtun6/tun6.c:186 libtun6/tun6.c:237 libtun6/tun6.c:300
-#: libtun6/tun6.c:311 libtun6/tun6.c:326 libtun6/tun6.c:344
+#: libtun6/tun6.c:180 libtun6/tun6.c:190 libtun6/tun6.c:248 libtun6/tun6.c:311
+#: libtun6/tun6.c:329 libtun6/tun6.c:344 libtun6/tun6.c:362
 #, c-format
 msgid "Tunneling driver error (%s): %s"
 msgstr "Tunnelling driver error (%s): %s"
 
-#: libtun6/tun6.c:364
+#: libtun6/tun6.c:382
 #, c-format
 msgid "%s tunneling interface creation failure"
 msgstr "%s tunnelling interface creation failure"
 
-#: libtun6/tun6.c:943
+#: libtun6/tun6.c:961
 msgid ""
 "You should run these commands to create it:\n"
 "# mkdir -p /dev/net\n"
@@ -111,20 +111,20 @@ msgid ""
 "(you must be root to do that).\n"
 msgstr ""
 
-#: libtun6/tun6.c:948
+#: libtun6/tun6.c:966 libtun6/tun6.c:991
 msgid ""
 "You can obtain a tunnel driver for the Darwin kernel (Mac OS X) from:\n"
 "http://www-user.rhrk.uni-kl.de/~nissler/tuntap/\n"
 msgstr ""
 
-#: libtun6/tun6.c:956
+#: libtun6/tun6.c:974
 #, c-format
 msgid ""
 "Error: %s character device not found or unavailable.\n"
 "%s"
 msgstr ""
 
-#: libtun6/tun6.c:969
+#: libtun6/tun6.c:987
 msgid ""
 "Make sure your Linux kernel includes the \"Universal TUNTAP driver\"\n"
 "(CONFIG_TUN option), possibly as a module.\n"
@@ -132,13 +132,7 @@ msgstr ""
 "Make sure your Linux kernel includes the “Universal TUNTAP driver”\n"
 "(CONFIG_TUN option), possibly as a module.\n"
 
-#: libtun6/tun6.c:973
-msgid ""
-"You can obtain a tunnel driver for the Darwin kernel (Mac OS X) from:\n"
-"http://chrisp.de/en/projects/tunnel.html\n"
-msgstr ""
-
-#: libtun6/tun6.c:981
+#: libtun6/tun6.c:999
 #, c-format
 msgid ""
 "Error: your operating system does not seem to provide a network tunneling\n"
@@ -149,7 +143,7 @@ msgstr ""
 "device driver, which is required.\n"
 "%s"
 
-#: libtun6/tun6.c:990
+#: libtun6/tun6.c:1008
 #, c-format
 msgid ""
 "Error: cannot open device file %s (%s)\n"
