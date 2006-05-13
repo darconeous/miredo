@@ -60,7 +60,7 @@ int main (void)
 	}
 
 	// further test empty list
-	l = teredo_list_create (0, 0);
+	l = teredo_list_create (0, 3);
 	time (&now);
 	if (l == NULL)
 		return -1;
