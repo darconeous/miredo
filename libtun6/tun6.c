@@ -303,7 +303,14 @@ tun6 *tun6_create (const char *req_name)
 		{
 			syslog (LOG_ERR, _("Tunneling driver error (%s): %s"),
 			        "TUNSIFHEAD", strerror (errno));
+#  if defined (__APPLE__)
+			if (errno == EINVAL)
+				syslog (LOG_NOTICE,
+				        "*** Ignoring tun-tap-osx spurious error ***\n");
+			else
+#  else
 			goto error;
+#  endif
 		}
 	}
 # elif defined (TUNSLMODE)
@@ -976,7 +983,7 @@ int tun6_driver_diagnose (char *errbuf)
 #elif defined (__APPLE__)
 		specific = N_("You can obtain a tunnel driver for the "
 			"Darwin kernel (Mac OS X) from:\n"
-			"http://chrisp.de/en/projects/tunnel.html\n");
+			"http://www-user.rhrk.uni-kl.de/~nissler/tuntap/\n");
 #else
 		specific = NULL;
 #endif
