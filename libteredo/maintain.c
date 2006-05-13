@@ -323,6 +323,7 @@ static inline void maintenance_thread (teredo_maintenance *m)
 				(void)pthread_barrier_wait (&m->processed);
 				if (accept)
 					break;
+				errno = EINTR;
 			}
 		}
 		while (val == EINTR);
