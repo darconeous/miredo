@@ -28,6 +28,7 @@
 #include <sys/resource.h> /* getrlimit() */
 #include <unistd.h>
 #include <errno.h> /* errno */
+#include <sys/select.h> /* FD_SETSIZE */
 
 /**
  * BSD closefrom() replacement.
@@ -45,6 +46,33 @@ extern int closefrom (int fd)
 		return -1;
 
 	saved_errno = errno;
+
+	/*
+	 * Make sure closefrom() does not take ages if the file number limit
+	 * is very big. closefrom() is not supposed to setrlimit(), but it is
+	 * not standard, neither common (Darwin, Linux don't have it at the
+	 * moment, and IIRC, FreeBSD and NetBSD neither).
+	 *
+	 * Rather than put some completely arbitrary limit, we use FD_SETSIZE.
+	 * As such we can warranty that subsequent FD_SET() won't overflow.
+	 * Miredo has a O(1) open file descriptors number behavior anyway. If
+	 * you want to use this in another project, you should first consider
+	 * using BSD kqueue/Linux epoll or a portable wrapper of these
+	 * scalable I/O polling calls, and *THEN* use a higher limit here
+	 * instead of FD_SETSIZE.
+	 *
+	 * Mac OS X returns (2^31 - 1) as its limit, and closefrom() is way
+	 * too long (and intensive) in this case. Linux usually returns 1024,
+	 * though root can raise the limit to 1048576.
+	 */
+	if (lim.rlim_max > FD_SETSIZE)
+	{
+		if (lim.rlim_cur > FD_SETSIZE)
+			lim.rlim_cur = FD_SETSIZE;
+		lim.rlim_max = FD_SETSIZE;
+		setrlimit (RLIMIT_NOFILE, &lim);
+	}
+
 	while ((unsigned)fd < lim.rlim_max)
 		if (close (fd++) == 0)
 			found++;
