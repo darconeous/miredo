@@ -1028,15 +1028,18 @@ static void *teredo_recv_thread (void *t)
 	ufd[1].fd = ((teredo_tunnel *)t)->async_recv.fd[0];
 	ufd[1].events = POLLIN;
 
-	while (poll (ufd, 2, -1) > 0)
+	for (;;)
 	{
+		if (poll (ufd, 2, -1) <= 0)
+			continue;
+
 		if (ufd[0].revents)
 		{
 			teredo_run_inner ((teredo_tunnel *)t);
 			ufd[0].revents = 0;
 		}
 		if (ufd[1].revents)
-			return NULL;
+			break;
 	}
 
 	return NULL;
