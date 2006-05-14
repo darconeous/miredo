@@ -402,6 +402,7 @@ static void *thread_primary (void *data)
 		pthread_testcancel ();
 		teredo_process_packet (s, false);
 	}
+	return NULL;
 }
 
 
@@ -414,6 +415,7 @@ static void *thread_secondary (void *data)
 		pthread_testcancel ();
 		teredo_process_packet (s, true);
 	}
+	return NULL;
 }
 
 
