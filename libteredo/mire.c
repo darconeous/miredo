@@ -201,11 +201,7 @@ int main(int argc, char *argv[])
 	{
 		struct teredo_packet p;
 		if (teredo_wait_recv (fd, &p))
-		{
-			if (errno == EINTR)
-				break;
 			continue;
-		}
 
 		// Beware: the inner IPv6 packet might not be aligned
 		// so only single bytes shall be read
@@ -224,7 +220,6 @@ int main(int argc, char *argv[])
 		 || ((plen + sizeof (*ip6)) != p.ip6_len))
 			continue;
 
-		printf ("Received %d bytes packet\n", plen);
 		switch (ip6->ip6_nxt)
 		{
 			case IPPROTO_NONE:
