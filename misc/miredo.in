@@ -1,7 +1,7 @@
-#!/bin/sh
+#! /bin/sh
 # $Id$
 #
-# Miredo start/stop script for Debian GNU/Linux
+# miredo start/stop script for Debian GNU/Linux
 # Author: Rémi Denis-Courmont <rdenis (at) simphalempin (dot) com>
 #
 # chkconfig: 345 17 83
@@ -9,31 +9,33 @@
 #	       used to provide IPv6 tunneling over UDP through NAT.
 #
 ### BEGIN INIT INFO
-# Provides: teredo ipv6
-# Requires: $local_fs $network $syslog $time
+# Provides:          teredo ipv6
+# Requires:          $local_fs $network $syslog $time
 # Short-Description: Teredo IPv6 tunnel
-# Description: Miredo daemon for tunneling of IPv6 through NAT
-#	within UDP/IPv4, as specified by the Teredo mechanism.
-# Default-Start: 3 4 5
-# Default-Stop: 0 1 2 6
+# Description:       Miredo daemon for tunneling of IPv6 through NAT
+#                    within UDP/IPv4, as specified by the Teredo mechanism.
+# Default-Start:     3 4 5
+# Default-Stop:      S 0 1 2 6
 ### END INIT INFO
 
 
-PATH=/sbin:/usr/sbin:/bin:/usr/bin
+PATH=/usr/sbin:/usr/bin:/sbin:/bin
+DESC="Teredo IPv6 tunneling daemon"
 NAME=miredo
 DAEMON=@sbindir@/$NAME
-DESC="Teredo IPv6 tunneling daemon"
 DAEMON_ARGS=""
 PIDFILE=@localstatedir@/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
+
+[ -x "$DAEMON" ] || exit 0
 
 # Source defaults.
 [ -r /etc/default/$NAME ] && . /etc/default/$NAME
 
 # Ensure configuration is readable.
-test -r @sysconfdir@/$NAME.conf || exit 0
+[ -r @sysconfdir@/$NAME.conf ] || exit 0
 
-test -x $DAEMON || exit 0
+. /lib/lsb/init-functions
 
 case "$1" in
   start)
@@ -42,20 +44,22 @@ case "$1" in
 		echo "$DAEMON not starting"
 		exit 0
 	fi
-	echo -n "Starting $DESC: $NAME"
-	start-stop-daemon --start --quiet --pidfile $PIDFILE \
-		--exec $DAEMON -- $DAEMON_ARGS
-	echo "."
+	log_daemon_msg "Starting $DESC" "$NAME"
+	start-stop-daemon --start --quiet --pidfile "$PIDFILE" \
+		--exec "$DAEMON" --oknodo -- $DAEMON_ARGS
+	log_end_msg $?
 	;;
   stop)
-	echo -n "Stopping $DESC: $NAME"
-	start-stop-daemon --stop --quiet --pidfile $PIDFILE --retry 1
-	echo "."
+	log_daemon_msg "Stopping $DESC" "$NAME"
+	start-stop-daemon --stop --quiet --pidfile "$PIDFILE" \
+		--retry 1 --oknodo
+	log_end_msg $?
 	;;
   reload|force-reload)
-	echo -n "Reloading $DESC: $NAME"
-	start-stop-daemon --stop --signal 1 --quiet --exec $DAEMON
-	echo "."
+	log_daemon_msg "Reloading $DESC" "$NAME"
+	start-stop-daemon --stop --signal 1 --quiet --pidfile "$PIDFILE" \
+		--exec "$DAEMON"
+	log_end_msg $?
 	;;
   restart)
 	$0 stop
@@ -68,5 +72,5 @@ case "$1" in
 	;;
 esac
 
-exit 0
+exit $?
 
