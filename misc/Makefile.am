@@ -17,25 +17,25 @@
 # *  http://www.gnu.org/copyleft/gpl.html                               *
 # ***********************************************************************
 
-EXTRA_DIST = miredo.sh-in miredo-server.sh-in
+EXTRA_DIST = miredo.in miredo-server.in
 if SAMPLE_CONF
 dist_sysconf_DATA = miredo.conf-dist miredo-server.conf-dist
 endif
-noinst_SCRIPTS = miredo.sh miredo-server.sh
+noinst_SCRIPTS = miredo miredo-server
 CLEANFILES = $(noinst_SCRIPTS)
 
 edit = sed \
 	-e 's,@localstatedir\@,$(localstatedir),g' \
 	-e 's,@sbindir\@,$(sbindir),g' \
 	-e 's,@sysconfdir\@,$(sysconfdir),g'
-
-miredo.sh: Makefile
-
-miredo-server.sh: Makefile
-
-.sh-in.sh:
-	rm -f -- $@ $@.tmp
-	$(edit) $< > $@.tmp
-	chmod -- +x $@.tmp
+editexec = \
+	rm -f -- $@ $@.tmp ; \
+	$(edit) $< > $@.tmp ; \
+	chmod -- +x $@.tmp ; \
 	mv -- $@.tmp $@
 
+miredo: miredo.in Makefile
+	$(editexec)
+
+miredo-server: miredo-server.in Makefile
+	$(editexec)
