@@ -37,10 +37,12 @@
 #elif HAVE_INTTYPES_H
 # include <inttypes.h>
 #endif
+#include <stdlib.h> /* ldiv() */
 
 #include <sys/types.h>
-#include <time.h>
+#include <unistd.h> /* sysconf() */
 #include <sys/time.h>
+#include <sys/times.h> /* times() */
 #include <netinet/in.h> /* struct in6_addr */
 #include <netdb.h> /* getaddrinfo(), gai_strerror() */
 #include <syslog.h>
@@ -185,30 +187,75 @@ tv2ts (struct timespec *ts, const struct timeval *tv)
 }
 
 
-static inline void gettimespec (struct timespec *ts)
+static void getsafetime (struct timespec *ts)
 {
-	struct timeval now;
-	gettimeofday (&now, NULL);
-	tv2ts (ts, &now);
+	static long freq = 0, period_ns;
+	if (freq == 0) /* thread-safe */
+	{
+		freq = sysconf (_SC_CLK_TCK);
+		period_ns = 1000000000 / freq;
+	}
+
+	struct tms dummy;
+	long uptime = times (&dummy);
+
+	ldiv_t d = ldiv (uptime, freq);
+	ts->tv_sec = d.quot;
+	ts->tv_nsec = d.rem * period_ns;
+}
+
+
+static bool
+pthread_cond_safewait (pthread_cond_t *cond, pthread_mutex_t *mutex,
+                       const struct timespec *deadline)
+{
+	struct timeval tv;
+	gettimeofday (&tv, NULL);
+
+	struct timespec ts;
+	getsafetime (&ts);
+
+	ts.tv_sec = tv.tv_sec + (deadline->tv_sec - ts.tv_sec);
+	ts.tv_nsec = tv.tv_usec * 1000 + (deadline->tv_nsec - ts.tv_nsec);
+	while (ts.tv_nsec > 1000000000)
+	{
+		ts.tv_nsec -= 1000000000;
+		ts.tv_sec++;
+	}
+	while (ts.tv_nsec < 0)
+	{
+		ts.tv_nsec += 1000000000;
+		ts.tv_sec--;
+	}
+
+	/* Fix spurious wakeups */
+	int val;
+	do
+	{
+		val = pthread_cond_timedwait (cond, mutex, &ts);
+	}
+	while (val && (val != ETIMEDOUT));
+
+	return val != 0;
 }
 
 
 /**
- * Make sure tv is in the future. If not, set it to the current time.
- * @return false if (*tv) was changed, true otherwise.
+ * Make sure ts is in the future. If not, set it to the current time.
+ * @return false if (*ts) was changed, true otherwise.
  */
 static bool
 checkTimeDrift (struct timespec *ts)
 {
-	struct timeval now;
+	struct timespec now;
+	getsafetime (&now);
 
-	(void)gettimeofday (&now, NULL);
 	if ((now.tv_sec > ts->tv_sec)
-	 || ((now.tv_sec == ts->tv_sec) && (now.tv_sec >= (ts->tv_nsec / 1000))))
+	 || ((now.tv_sec == ts->tv_sec) && (now.tv_nsec > ts->tv_nsec)))
 	{
 		/* process stopped, CPU starved, or (ACPI, APM, etc) suspend */
 		syslog (LOG_WARNING, _("Too much time drift. Resynchronizing."));
-		tv2ts (ts, &now);
+		memcpy (ts, &now, sizeof (*ts));
 		return false;
 	}
 	return true;
@@ -256,19 +303,14 @@ static inline void maintenance_thread (teredo_maintenance *m)
 	pthread_cleanup_push (cleanup_unlock, &m->lock);
 	for (;;)
 	{
-		int val;
-		unsigned sleep = 0;
-		union teredo_addr newaddr;
-		uint16_t mtu = 1280;
-
 		/* Resolve server IPv4 addresses */
 		while (server_ip == 0)
 		{
 			/* FIXME: mutex kept while resolving - very bad */
-			val = resolveServerIP (m->server, &server_ip,
-			                       m->server2, &server_ip2);
+			int val = resolveServerIP (m->server, &server_ip,
+			                           m->server2, &server_ip2);
 
-			gettimespec (&deadline);
+			getsafetime (&deadline);
 
 			if (val)
 			{
@@ -279,12 +321,9 @@ static inline void maintenance_thread (teredo_maintenance *m)
 
 				/* wait some time before next resolution attempt */
 				deadline.tv_sec += RestartDelay;
-				do
-				{
-					val = pthread_cond_timedwait (&m->received, &m->lock,
-					                              &deadline);
-				}
-				while (val != ETIMEDOUT);
+				while (!pthread_cond_safewait (&m->received, &m->lock,
+				                               &deadline));
+					(void)pthread_barrier_wait (&m->processed);
 			}
 			else
 			{
@@ -318,15 +357,18 @@ static inline void maintenance_thread (teredo_maintenance *m)
 		SendRS (m->fd, (state == PROBE_RESTRICT) ? server_ip2 : server_ip,
 		        nonce.value, c_state->cone);
 
+		int val = 0;
+		union teredo_addr newaddr;
+		uint16_t mtu = 1280;
+
 		/* RECEIVE ROUTER ADVERTISEMENT */
 		for (;;)
 		{
-			val = pthread_cond_timedwait (&m->received, &m->lock, &deadline);
-
-			if (val == ETIMEDOUT)
+			if (pthread_cond_safewait (&m->received, &m->lock, &deadline))
+			{
+				val = ETIMEDOUT;
 				break;
-			if (val) // EINTR
-				continue;
+			}
 
 			/* check received packet */
 			bool accept;
@@ -338,6 +380,8 @@ static inline void maintenance_thread (teredo_maintenance *m)
 			if (accept)
 				break;
 		}
+
+		unsigned sleep = 0;
 
 		/* UPDATE FINITE STATE MACHINE */
 		if (val /* == ETIMEDOUT */)
@@ -398,7 +442,7 @@ static inline void maintenance_thread (teredo_maintenance *m)
 			case PROBE_RESTRICT:
 				state = PROBE_SYMMETRIC;
 				memcpy (&c_state->addr, &newaddr, sizeof (c_state->addr));
-				gettimespec (&deadline);
+				getsafetime (&deadline);
 				break;
 
 			case PROBE_SYMMETRIC:
@@ -440,16 +484,10 @@ static inline void maintenance_thread (teredo_maintenance *m)
 		{
 			deadline.tv_sec -= QualificationTimeOut;
 			deadline.tv_sec += sleep;
-			do
-			{
+			while (!pthread_cond_safewait (&m->received, &m->lock, &deadline))
 				/* we should not be signaled any way */
-				val = pthread_cond_timedwait (&m->received,
-				                              &m->lock, &deadline);
-				if (val == 0)
-					/* ignore unexpected packet */
-					(void)pthread_barrier_wait (&m->processed);
-			}
-			while (val != ETIMEDOUT);
+				/* ignore unexpected packet */
+				(void)pthread_barrier_wait (&m->processed);
 		}
 	}
 	/* dead code */
