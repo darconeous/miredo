@@ -127,7 +127,7 @@ Starting the program:
 and that it will detach and run in the background. If something goes
 wrong, there are two ways two know what :
 - read your system logs (typically /var/log/syslog),
-- force Miredo to run in the background (that’s meant for debugging),
+- force Miredo to run in the foreground (that’s meant for debugging),
   by starting it with the “--foreground” command line parameter, and
   wait for about 20 seconds.
 
