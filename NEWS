@@ -1,12 +1,12 @@
 RELEASE NOTES for Miredo
-version 0.9.1 (beta version)
-=============================
+beta version 0.9.3
+=========================
 $Id$
 
   This is an officially stable release of the program. The package is
 functional, though it lacks some optional features. There are also no
 known outstanding issues. Users of previous releases are encouraged
-to upgrade, as this version includes some minor bug fixes.
+to upgrade, as this version includes some bug fixes.
   Please report any problem by email to rdenis (at) simphalempin (dot) com
 
   You can find major changes since version 0.1.0 below. For more general
@@ -15,7 +15,7 @@ changes, run “miredo -h” to get help. For detailled internal changes, see
 ChangeLog.
 
 =============================================================================
-BETA RELEASE 0..9.1 : Major features enhancement
+BETA RELEASE 0.9.1 : Major features enhancement
 
 # Created and referenced a developper mailing list: <miredo-devel at
   remlab.net>. Send a mail with subject “subscribe” to <miredo-devel-request
