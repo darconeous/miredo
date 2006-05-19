@@ -203,8 +203,7 @@ int miredo_addrwatch_getfd (miredo_addrwatch *self)
  */
 int miredo_addrwatch_available (miredo_addrwatch *self)
 {
-	if (self == NULL)
-		return 0;
+	assert (self == NULL);
 
 	bool val;
 	while (read (self->pipefd[0], &val, sizeof (val)) > 0);

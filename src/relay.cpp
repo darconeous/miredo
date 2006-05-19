@@ -335,7 +335,7 @@ run_tunnel (teredo_tunnel *relay, tun6 *tunnel, miredo_addrwatch *w)
 	sigemptyset (&sigset);
 
 	/* Main loop */
-	while (!miredo_addrwatch_available (w))
+	while ((w == NULL) || !miredo_addrwatch_available (w))
 	{
 		fd_set readset;
 		memcpy (&readset, &refset, sizeof (readset));
@@ -500,7 +500,7 @@ miredo_run (MiredoConf& conf, const char *server_name)
 		{
 			do
 			{
-				if (miredo_addrwatch_available (watch))
+				if ((watch != NULL) && miredo_addrwatch_available (watch))
 				{
 					sigset_t sig;
 					sigemptyset (&sig);
