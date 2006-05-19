@@ -209,8 +209,5 @@ int miredo_addrwatch_available (miredo_addrwatch *self)
 	bool val;
 	while (read (self->pipefd[0], &val, sizeof (val)) > 0);
 
-	pthread_mutex_lock (&self->mutex);
-	val = self->status;
-	pthread_mutex_unlock (&self->mutex);
-	return val ? 1 : 0;
+	return self->status ? 1 : 0;
 }
