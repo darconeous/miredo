@@ -81,8 +81,10 @@ int teredo_socket (uint32_t bind_ip, uint16_t port)
 		return -1; // failure
 
 	fcntl (fd, F_SETFD, FD_CLOEXEC);
+	int flags = 1;
+	setsockopt (fd, SOL_SOCKET, SO_REUSEADDR, &flags, sizeof (flags));
 
-	int flags = fcntl (fd, F_GETFL, 0);
+	flags = fcntl (fd, F_GETFL, 0);
 	if (flags == -1)
 		flags = 0;
 	if (fcntl (fd, F_SETFL, O_NONBLOCK | flags))
@@ -98,7 +100,6 @@ int teredo_socket (uint32_t bind_ip, uint16_t port)
 	}
 
 	flags = 1;
-	setsockopt (fd, SOL_SOCKET, SO_REUSEADDR, &flags, sizeof (flags));
 #ifdef IP_PMTUDISC_DONT
 	/* 
 	 * This tells the (Linux) kernel not to set the Don't Fragment flags
