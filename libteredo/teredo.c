@@ -118,7 +118,6 @@ int teredo_sendv (int fd, const struct iovec *iov, size_t count,
 {
 	struct msghdr msg;
 	struct sockaddr_in addr;
-	int res, tries;
 
 	memset (&addr, 0, sizeof (addr));
 	addr.sin_family = AF_INET;
@@ -136,9 +135,9 @@ int teredo_sendv (int fd, const struct iovec *iov, size_t count,
 	msg.msg_controllen = 0;
 	msg.msg_flags = 0;
 
-	for (tries = 0; tries < 10; tries++)
+	for (int tries = 0; tries < 10; tries++)
 	{
-		res = sendmsg (fd, &msg, 0);
+		int res = sendmsg (fd, &msg, 0);
 		if (res != -1)
 			return res;
 		/*
