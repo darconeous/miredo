@@ -872,17 +872,11 @@ tun6_recv_inner (int fd, void *buffer, size_t maxlen)
 	vect[1].iov_len = maxlen;
 
 	int len = readv (fd, vect, 2);
-	if (len == -1)
-		return -1;
-
-	len -= sizeof (head);
-	if (len < 0)
-		return -1;
-
-	if (!tun_head_is_ipv6 (head))
+	if ((len < (int)sizeof (head))
+	 || !tun_head_is_ipv6 (head))
 		return -1; /* only accept IPv6 packets */
 
-	return len;
+	return len - sizeof (head);
 }
 
 
