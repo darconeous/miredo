@@ -336,7 +336,6 @@ int teredo_transmit (teredo_tunnel *tunnel,
 
 	const union teredo_addr *dst = (union teredo_addr *)&packet->ip6_dst,
 				*src = (union teredo_addr *)&packet->ip6_src;
-	teredo_state s;
 
 	/* Drops multicast destination, we cannot handle these */
 	if ((dst->ip6.s6_addr[0] == 0xff)
@@ -344,6 +343,7 @@ int teredo_transmit (teredo_tunnel *tunnel,
 	 || (src->ip6.s6_addr[0] == 0xff))
 		return 0;
 
+	teredo_state s;
 	pthread_rwlock_rdlock (&tunnel->state_lock);
 	memcpy (&s, &tunnel->state, sizeof (s));
 	/*
@@ -723,9 +723,10 @@ static void teredo_run_inner (teredo_tunnel *tunnel)
 			teredo_queue *q = teredo_peer_queue_yield (p);
 			teredo_list_release (list);
 
-			teredo_queue_emit (q, tunnel->fd,
-			                   packet.source_ipv4, packet.source_port,
-			                   tunnel->recv_cb, tunnel->opaque);
+			if (q != NULL)
+				teredo_queue_emit (q, tunnel->fd,
+				                   packet.source_ipv4, packet.source_port,
+				                   tunnel->recv_cb, tunnel->opaque);
 			tunnel->recv_cb (tunnel->opaque, buf, length);
 			return;
 		}
@@ -743,9 +744,10 @@ static void teredo_run_inner (teredo_tunnel *tunnel)
 			teredo_queue *q = teredo_peer_queue_yield (p);
 			teredo_list_release (list);
 
-			teredo_queue_emit (q, tunnel->fd,
-			                   packet.source_ipv4, packet.source_port,
-			                   tunnel->recv_cb, tunnel->opaque);
+			if (q != NULL)
+				teredo_queue_emit (q, tunnel->fd,
+				                   packet.source_ipv4, packet.source_port,
+				                   tunnel->recv_cb, tunnel->opaque);
 			return; /* don't pass ping to kernel */
 		}
 #endif /* ifdef MIREDO_TEREDO_CLIENT */
@@ -776,7 +778,7 @@ static void teredo_run_inner (teredo_tunnel *tunnel)
 						return; // insufficient memory
 
 					/*
-                     * This is useless:
+					 * This is useless:
 					 * trusted and bubbles are set above, pings is never used
 					 * for other Teredo clients.
 					if (create)
@@ -805,9 +807,10 @@ static void teredo_run_inner (teredo_tunnel *tunnel)
 			teredo_queue *q = teredo_peer_queue_yield (p);
 			teredo_list_release (list);
 
-			teredo_queue_emit (q, tunnel->fd, IN6_TEREDO_IPV4 (&ip6.ip6_src),
-			                   IN6_TEREDO_PORT (&ip6.ip6_src),
-			                   tunnel->recv_cb, tunnel->opaque);
+			if (q != NULL)
+				teredo_queue_emit (q, tunnel->fd, IN6_TEREDO_IPV4 (&ip6.ip6_src),
+				                   IN6_TEREDO_PORT (&ip6.ip6_src),
+				                   tunnel->recv_cb, tunnel->opaque);
 
 			if (!IsBubble (&ip6)) // discard Teredo bubble
 				tunnel->recv_cb (tunnel->opaque, buf, length);
@@ -1028,18 +1031,13 @@ static void *teredo_recv_thread (void *t)
 	ufd[1].fd = ((teredo_tunnel *)t)->async_recv.fd[0];
 	ufd[1].events = POLLIN;
 
-	for (;;)
+	while (ufd[1].revents == 0)
 	{
-		if (poll (ufd, 2, -1) <= 0)
-			continue;
-
-		if (ufd[0].revents)
+		if (poll (ufd, 2, -1) > 0)
 		{
 			teredo_run_inner ((teredo_tunnel *)t);
 			ufd[0].revents = 0;
 		}
-		if (ufd[1].revents)
-			break;
 	}
 
 	return NULL;
