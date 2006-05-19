@@ -90,12 +90,12 @@ struct teredo_tunnel
 	// Asynchronous packet reception
 	struct
 	{
-		int fd[2];
 		pthread_t thread;
-	} async_recv;
+		bool running;
+	} recv;
 
-	int fd;
 	bool allow_cone;
+	int fd;
 };
 
 #ifdef HAVE_LIBJUDY
@@ -955,7 +955,6 @@ teredo_tunnel *teredo_create (uint32_t ipv4, uint16_t port)
 
 	tunnel->state.up = false;
 	tunnel->ratelimit.count = 1;
-	tunnel->async_recv.fd[0] = tunnel->async_recv.fd[1] = -1;
 
 	tunnel->recv_cb = teredo_dummy_recv_cb;
 	tunnel->icmpv6_cb = teredo_dummy_icmpv6_cb;
@@ -1007,11 +1006,10 @@ void teredo_destroy (teredo_tunnel *t)
 		teredo_maintenance_stop (t->maintenance);
 #endif
 
-	if (t->async_recv.fd[0] != -1)
+	if (t->recv.running)
 	{
-		close (t->async_recv.fd[1]);
-		pthread_join (t->async_recv.thread, NULL);
-		close (t->async_recv.fd[0]);
+		pthread_cancel (t->recv.thread);
+		pthread_join (t->recv.thread, NULL);
 	}
 
 	teredo_list_destroy (t->list);
@@ -1024,19 +1022,19 @@ void teredo_destroy (teredo_tunnel *t)
 
 static void *teredo_recv_thread (void *t)
 {
-	struct pollfd ufd[2];
-	memset (ufd, 0, sizeof (ufd));
-	ufd[0].fd = ((teredo_tunnel *)t)->fd;
-	ufd[0].events = POLLIN;
-	ufd[1].fd = ((teredo_tunnel *)t)->async_recv.fd[0];
-	ufd[1].events = POLLIN;
+	struct pollfd ufd;
+	memset (&ufd, 0, sizeof (ufd));
+	ufd.fd = ((teredo_tunnel *)t)->fd;
+	ufd.events = POLLIN;
 
-	while (ufd[1].revents == 0)
+	for (;;)
 	{
-		if (poll (ufd, 2, -1) > 0)
+		if (poll (&ufd, 1, -1) > 0)
 		{
+			pthread_setcancelstate (PTHREAD_CANCEL_DISABLE, NULL);
 			teredo_run_inner ((teredo_tunnel *)t);
-			ufd[0].revents = 0;
+			pthread_setcancelstate (PTHREAD_CANCEL_ENABLE, NULL);
+			ufd.revents = 0;
 		}
 	}
 
@@ -1062,20 +1060,13 @@ int teredo_run_async (teredo_tunnel *t)
 	assert (t != NULL);
 
 	/* already running */
-	if (t->async_recv.fd[1] != -1)
+	if (t->recv.running)
 		return -1;
 
-	if (pipe (t->async_recv.fd))
+	if (pthread_create (&t->recv.thread, NULL, teredo_recv_thread, t))
 		return -1;
 
-	if (pthread_create (&t->async_recv.thread, NULL, teredo_recv_thread, t))
-	{
-		close (t->async_recv.fd[0]);
-		close (t->async_recv.fd[1]);
-		t->async_recv.fd[0] = t->async_recv.fd[1] = -1;
-		return -1;
-	}
-
+	t->recv.running = true;
 	return 0;
 }
 
