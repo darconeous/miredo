@@ -58,8 +58,11 @@ const struct in6_addr teredo_cone =
 	{ { { 0xfe, 0x80, 0, 0, 0, 0, 0, 0,
 		    0x80, 0, 'T', 'E', 'R', 'E', 'D', 'O' } } };
 
-/*
+/**
  * Opens a Teredo UDP/IPv4 socket.
+ * Thread-safe, not cancellation-safe.
+ *
+ * @return -1 on error.
  */
 int teredo_socket (uint32_t bind_ip, uint16_t port)
 {
@@ -112,6 +115,19 @@ int teredo_socket (uint32_t bind_ip, uint16_t port)
 	return fd;
 }
 
+
+/**
+ * Sends an UDP/IPv4 datagram.
+ * Thread-safe, cancellation-safe, cancellation point.
+ *
+ * @param fd socket from which to send.
+ * @param iov scatter-gather array containing the datagram payload.
+ * @param count number of entry in the scatter-gather array.
+ * @param dest_ip destination IPv4 (network byte order).
+ * @param dest_port destination UDP port (network byte order).
+ *
+ * @return number of bytes sent or -1 on error.
+ */
 
 int teredo_sendv (int fd, const struct iovec *iov, size_t count,
                   uint32_t dest_ip, uint16_t dest_port)
@@ -182,6 +198,12 @@ int teredo_sendv (int fd, const struct iovec *iov, size_t count,
 }
 
 
+/**
+ * Sends an UDP/IPv4 datagram.
+ * Thread-safe, cancellation safe, cancellation point.
+ *
+ * @return number of bytes sent, or -1 on error.
+ */
 int teredo_send (int fd, const void *packet, size_t plen,
                  uint32_t dest_ip, uint16_t dest_port)
 {
@@ -193,6 +215,7 @@ int teredo_send (int fd, const void *packet, size_t plen,
 /**
  * Receives and parses a Teredo packet from a socket.
  * Blocks if the socket is blocking, don't block if not.
+ * Thread-safe, cancellation-safe, cancellation point.
  *
  * @param fd socket file descriptor
  * @param p teredo_packet receive buffer
