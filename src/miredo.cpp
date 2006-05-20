@@ -89,12 +89,6 @@ reload_handler (int signum)
 }
 
 
-int miredo_done (void)
-{
-	return should_exit || should_reload;
-}
-
-
 uid_t unpriv_uid = 0;
 const char *miredo_chrootdir = NULL;
 
@@ -184,7 +178,7 @@ InitSignals (void)
 	sigaddset (&set, SIGHUP);
 
 	/* Block all handled signals */
-	pthread_sigmask (SIG_SETMASK, &set, NULL);
+	pthread_sigmask (SIG_BLOCK, &set, NULL);
 }
 
 

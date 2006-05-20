@@ -39,7 +39,6 @@ int drop_privileges (void);
 int miredo_diagnose (void);
 void miredo_setup_fd (int fd);
 void miredo_setup_nonblock_fd (int fd);
-int miredo_done (void);
 
 # ifdef __cplusplus
 }
