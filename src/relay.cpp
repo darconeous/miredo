@@ -270,16 +270,10 @@ setup_client (teredo_tunnel *client, const char *server, const char *server2)
 	teredo_set_state_cb (client, miredo_up_callback, miredo_down_callback);
 	return teredo_set_client_mode (client, server, server2);
 }
-
-static inline int
-safe_miredo_addrwatch_avail (miredo_addrwatch *w)
-{
-	return (w != NULL) && miredo_addrwatch_available (w);
-}
 #else
 # define create_dynamic_tunnel( a, b )   NULL
 # define setup_client( a, b, c )         (-1)
-# define safe_miredo_addrwatch_avail( a ) 0
+# define miredo_addrwatch_available( a ) 0
 # define miredo_addrwatch_getfd( a )     (-1)
 # define run_tunnel( a, b )           run_tunnel_RELAY_ONLY( a )
 #endif
@@ -363,7 +357,7 @@ run_tunnel (miredo_tunnel *tunnel, miredo_addrwatch *w)
 	/* Main loop */
 	int retval = -2;
 
-	while (!safe_miredo_addrwatch_avail (w))
+	while (!miredo_addrwatch_available (w))
 	{
 		fd_set readset;
 		FD_ZERO (&readset);
@@ -519,7 +513,7 @@ miredo_run (MiredoConf& conf, const char *server_name)
 		{
 			do
 			{
-				if (safe_miredo_addrwatch_avail (watch))
+				if (miredo_addrwatch_available (watch))
 				{
 					sigset_t sig;
 					sigemptyset (&sig);
