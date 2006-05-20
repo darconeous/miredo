@@ -378,7 +378,7 @@ run_tunnel (miredo_tunnel *tunnel, miredo_addrwatch *w)
 	/* Main loop */
 	int retval = -2;
 
-	while (safe_miredo_addrwatch_avail (w))
+	while (!safe_miredo_addrwatch_avail (w))
 	{
 		fd_set readset;
 		memcpy (&readset, &refset, sizeof (readset));
