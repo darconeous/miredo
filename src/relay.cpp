@@ -242,7 +242,7 @@ miredo_up_callback (void *data, const struct in6_addr *addr, uint16_t mtu)
 	syslog (LOG_NOTICE, _("Teredo pseudo-tunnel started"));
 	if (inet_ntop (AF_INET6, addr, str, sizeof (str)) != NULL)
 		syslog (LOG_INFO, _(" (address: %s, MTU: %u)"),
-				str, (unsigned)mtu);
+		        str, (unsigned)mtu);
 
 	assert (data != NULL);
 
@@ -354,23 +354,21 @@ static int
 run_tunnel (miredo_tunnel *tunnel, miredo_addrwatch *w)
 {
 	pthread_t encap_th;
-	fd_set refset;
-
-	FD_ZERO (&refset);
-
 	if (teredo_run_async (tunnel->relay)
 	 || pthread_create (&encap_th, NULL, miredo_encap_thread, tunnel))
 		return -1;
 
+	/*fd_set readset;
+	FD_ZERO (&readset);
+
 	int val, maxfd = -1;
 	if ((val = miredo_addrwatch_getfd (w)) != -1)
 	{
-		FD_SET (val, &refset);
+		FD_SET (val, &readset);
 		if (val > maxfd)
 			maxfd = val;
 	}
-
-	maxfd++;
+	maxfd++;*/
 
 	sigset_t sigset;
 	sigemptyset (&sigset);
@@ -378,24 +376,15 @@ run_tunnel (miredo_tunnel *tunnel, miredo_addrwatch *w)
 	/* Main loop */
 	int retval = -2;
 
-	while (!safe_miredo_addrwatch_avail (w))
+	//while (!safe_miredo_addrwatch_avail (w))
+	(void)w;
 	{
-		fd_set readset;
-		memcpy (&readset, &refset, sizeof (readset));
+		sigset_t set;
+		sigfillset (&set);
 
-		/* Wait until one of them is ready for read */
-		val = pselect (maxfd, &readset, NULL, NULL, NULL, &sigset);
-		if (val < 0)
-		{
-			if (miredo_done ())
-			{
-				retval = 0;
-				break;
-			}
-			continue;
-		}
-		if (val == 0)
-			continue;
+		int dummy;
+		sigwait (&set, &dummy);
+		retval = 0;
 	}
 
 	pthread_cancel (encap_th);
