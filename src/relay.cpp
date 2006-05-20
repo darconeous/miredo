@@ -43,6 +43,7 @@
 #include <signal.h> // sigemptyset()
 #include <compat/pselect.h>
 #include <syslog.h>
+#include <pthread.h>
 
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -103,6 +104,7 @@ typedef struct miredo_tunnel
 {
 	tun6 *tunnel;
 	int priv_fd;
+	teredo_tunnel *relay;
 } miredo_tunnel;
 
 static int icmp6_fd = -1;
@@ -307,21 +309,54 @@ setup_relay (teredo_tunnel *relay, uint32_t prefix, bool cone)
 
 
 /**
+ * Thread to encapsulate IPv6 packets into UDP.
+ * Cancellation safe.
+ */
+static void *miredo_encap_thread (void *d)
+{
+	teredo_tunnel *relay = ((miredo_tunnel *)d)->relay;
+	tun6 *tunnel = ((miredo_tunnel *)d)->tunnel;
+
+	for (;;)
+	{
+		/* Handle incoming data */
+		union
+		{
+			struct ip6_hdr ip6;
+			uint8_t fill[65507];
+		} pbuf;
+
+		/* Forwards IPv6 packet to Teredo
+		 * (Packet transmission) */
+		int val = tun6_wait_recv (tunnel, &pbuf.ip6, sizeof (pbuf));
+		if (val >= 40)
+		{
+			pthread_setcancelstate (PTHREAD_CANCEL_DISABLE, NULL);
+			teredo_transmit (relay, &pbuf.ip6, val);
+			pthread_setcancelstate (PTHREAD_CANCEL_ENABLE, NULL);
+		}
+	}
+	return NULL;
+}
+
+
+/**
  * Miredo main daemon function, with UDP datagrams and IPv6 packets
  * receive loop.
  */
 static int
-run_tunnel (teredo_tunnel *relay, tun6 *tunnel, miredo_addrwatch *w)
+run_tunnel (miredo_tunnel *tunnel, miredo_addrwatch *w)
 {
+	pthread_t encap_th;
 	fd_set refset;
 
 	FD_ZERO (&refset);
-	int maxfd = tun6_registerReadSet (tunnel, &refset);
 
-	if (teredo_run_async (relay))
+	if (teredo_run_async (tunnel->relay)
+	 || pthread_create (&encap_th, NULL, miredo_encap_thread, tunnel))
 		return -1;
 
-	int val;
+	int val, maxfd = -1;
 	if ((val = miredo_addrwatch_getfd (w)) != -1)
 	{
 		FD_SET (val, &refset);
@@ -335,6 +370,8 @@ run_tunnel (teredo_tunnel *relay, tun6 *tunnel, miredo_addrwatch *w)
 	sigemptyset (&sigset);
 
 	/* Main loop */
+	int retval = -2;
+
 	while ((w == NULL) || !miredo_addrwatch_available (w))
 	{
 		fd_set readset;
@@ -345,26 +382,19 @@ run_tunnel (teredo_tunnel *relay, tun6 *tunnel, miredo_addrwatch *w)
 		if (val < 0)
 		{
 			if (miredo_done ())
-				return 0;
+			{
+				retval = 0;
+				break;
+			}
 			continue;
 		}
 		if (val == 0)
 			continue;
-
-		/* Handle incoming data */
-		union
-		{
-			struct ip6_hdr ip6;
-			uint8_t fill[65507];
-		} pbuf;
-
-		/* Forwards IPv6 packet to Teredo
-		* (Packet transmission) */
-		val = tun6_recv (tunnel, &readset, &pbuf.ip6, sizeof (pbuf));
-		if (val >= 40)
-			teredo_transmit (relay, &pbuf.ip6, val);
 	}
-	return -2;
+
+	pthread_cancel (encap_th);
+	pthread_join (encap_th, NULL);
+	return retval;
 }
 
 
@@ -523,7 +553,7 @@ miredo_run (MiredoConf& conf, const char *server_name)
 				teredo_tunnel *relay = teredo_create (bind_ip, bind_port);
 				if (relay != NULL)
 				{
-					miredo_tunnel data = { tunnel, fd };
+					miredo_tunnel data = { tunnel, fd, relay };
 					teredo_set_privdata (relay, &data);
 					teredo_set_cone_ignore (relay, ignore_cone);
 					teredo_set_recv_callback (relay, miredo_recv_callback);
@@ -539,7 +569,7 @@ miredo_run (MiredoConf& conf, const char *server_name)
 					 */
 					if (retval == 0)
 					{
-						retval = run_tunnel (relay, tunnel, watch);
+						retval = run_tunnel (&data, watch);
 #ifdef MIREDO_TEREDO_CLIENT
 						if (retval == -2)
 							miredo_down_callback (&data);
