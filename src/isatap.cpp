@@ -194,8 +194,10 @@ run_tunnel (int ipv6fd, tun6 *tunnel)
 		maxfd = ipv6fd;
 
 	maxfd++;
-	sigset_t sigset;
-	sigemptyset (&sigset);
+	sigset_t dummyset, set;
+	sigemptyset (&dummyset);
+	/* changes nothing, only gets the current mask */
+	pthread_sigmask (SIG_BLOCK, &dummyset, &set);
 
 	/* Main loop */
 	for (;;)
@@ -204,13 +206,9 @@ run_tunnel (int ipv6fd, tun6 *tunnel)
 		memcpy (&readset, &refset, sizeof (readset));
 
 		/* Wait until one of them is ready for read */
-		int val = pselect (maxfd, &readset, NULL, NULL, NULL, &sigset);
+		int val = pselect (maxfd, &readset, NULL, NULL, NULL, &set);
 		if (val < 0)
-		{
-			if (miredo_done ())
-				return 0;
-			continue;
-		}
+			return 0;
 		if (val == 0)
 			continue;
 
