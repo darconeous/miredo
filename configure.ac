@@ -90,7 +90,11 @@ AS_IF([test "${PTHREAD_LDFAGS}${PTHREAD_LIBS}"], [
 ], [
 	AC_CHECK_LIB(pthread, pthread_create)
 ])
-AC_CHECK_FUNC([pthread_barrier_wait],, [AC_LIBOBJ([barrier])])
+AC_CHECK_FUNC([pthread_barrier_wait], [
+  AC_DEFINE([HAVE_PTHREAD_BARRIER], 1, [Define to 1 if you have pthread_barrier_*.])
+], [
+  AC_LIBOBJ([barrier])
+])
 
 # Checks for optionnal features
 AS_MESSAGE([checking optional features...])

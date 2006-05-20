@@ -25,7 +25,11 @@
 
 # ifndef PTHREAD_BARRIER_SERIAL_THREAD
 #  define PTHREAD_BARRIER_SERIAL_THREAD (-1)
+# endif
 
+# if !HAVE_PTHREAD_BARRIER
+#  define pthread_barrier_t compat_pthread_barrier_t
+#  define pthread_barrierattr_t compat_pthread_barrierattr_t
 typedef struct
 {
 	pthread_mutex_t mutex;
@@ -52,5 +56,5 @@ int pthread_barrierattr_destroy (pthread_barrierattr_t *attr);
 #  ifdef __cplusplus
 }
 #  endif
-# endif /* !PTHREAD_BARRIER_SERIAL_THREAD */
+# endif /* !HAVE_PTHREAD_BARRIER */
 #endif /* __MIREDO_COMPAT_BARRIER_H */
