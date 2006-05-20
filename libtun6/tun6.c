@@ -371,8 +371,8 @@ tun6 *tun6_create (const char *req_name)
 #endif /* HAVE_os */
 
 	fcntl (fd, F_SETFD, FD_CLOEXEC);
-	int val = fcntl (fd, F_GETFL);
-	fcntl (fd, F_SETFL, ((val != -1) ? val : 0) | O_NONBLOCK);
+	/*int val = fcntl (fd, F_GETFL);
+	fcntl (fd, F_SETFL, ((val != -1) ? val : 0) | O_NONBLOCK);*/
 
 	t->id = id;
 	t->fd = fd;
@@ -855,12 +855,11 @@ tun6_registerReadSet (const tun6 *t, fd_set *readset)
  * @param buffer address to store packet
  * @param maxlen buffer length in bytes (should be 65535)
  *
- * This function will not block if there is no input.
- * Use tun6_wait_recv() if you want to wait until a packet arrives.
+ * This function will block if there is no input.
  *
  * @return the packet length on success, -1 if no packet were to be received.
  */
-static int
+static inline int
 tun6_recv_inner (int fd, void *buffer, size_t maxlen)
 {
 	struct iovec vect[2];
@@ -917,15 +916,7 @@ tun6_recv (tun6 *t, const fd_set *readset, void *buffer, size_t maxlen)
 int
 tun6_wait_recv (tun6 *t, void *buffer, size_t maxlen)
 {
-	struct pollfd ufd;
-
-	memset (&ufd, 0, sizeof (ufd));
-	ufd.fd = t->fd;
-	ufd.events = POLLIN;
-	if (poll (&ufd, 1, -1) <= 0)
-		return -1;
-
-	return tun6_recv_inner (ufd.fd, buffer, maxlen);
+	return tun6_recv_inner (t->fd, buffer, maxlen);
 }
 
 
