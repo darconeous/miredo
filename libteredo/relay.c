@@ -47,8 +47,6 @@
 #include <netinet/icmp6.h> // ICMP6_DST_UNREACH_*
 #include <syslog.h>
 #include <pthread.h>
-#include <unistd.h> // pipe(), close()
-#include <poll.h> // poll()
 
 #include "teredo.h"
 #include "v4global.h" // is_ipv4_global_unicast()
@@ -551,17 +549,14 @@ int teredo_transmit (teredo_tunnel *tunnel,
  *
  * Thread-safety: This function is thread-safe.
  */
-static void teredo_run_inner (teredo_tunnel *tunnel)
+static void
+teredo_run_inner (teredo_tunnel *tunnel, struct teredo_packet *packet)
 {
 	assert (tunnel != NULL);
+	assert (packet != NULL);
 
-	struct teredo_packet packet;
-
-	if (teredo_recv (tunnel->fd, &packet))
-		return;
-
-	const uint8_t *buf = packet.ip6;
-	size_t length = packet.ip6_len;
+	const uint8_t *buf = packet->ip6;
+	size_t length = packet->ip6_len;
 	struct ip6_hdr ip6;
 
 	// Checks packet
@@ -586,11 +581,11 @@ static void teredo_run_inner (teredo_tunnel *tunnel)
 
 #ifdef MIREDO_TEREDO_CLIENT
 	/* Maintenance */
-	if (IsClient (tunnel) && (packet.source_port == htons (IPPORT_TEREDO)))
+	if (IsClient (tunnel) && (packet->source_port == htons (IPPORT_TEREDO)))
 	{
-		if (packet.auth_nonce != NULL)
+		if (packet->auth_nonce != NULL)
 		{
-			teredo_maintenance_process (tunnel->maintenance, &packet);
+			teredo_maintenance_process (tunnel->maintenance, packet);
 			return;
 		}
 		else
@@ -600,18 +595,18 @@ static void teredo_run_inner (teredo_tunnel *tunnel)
 			return;
 		}
 		else
-		if (packet.source_ipv4 != s.addr.teredo.server_ip)
+		if (packet->source_ipv4 != s.addr.teredo.server_ip)
 		{
 			/* Not from primary server IPv4 address
 			   -> force normal packet reception */
 // 			syslog (LOG_DEBUG, "packet from relay");
 		}
 		else
-		if (packet.orig_ipv4)
+		if (packet->orig_ipv4)
 		{
 // 			syslog (LOG_DEBUG, "bubble from server (+reply)");
 			/* TODO: record sending of bubble, create a peer, etc ? */
-			SendBubble (tunnel->fd, packet.orig_ipv4, packet.orig_port,
+			SendBubble (tunnel->fd, packet->orig_ipv4, packet->orig_port,
 			            &ip6.ip6_dst, &ip6.ip6_src);
 			if (IsBubble (&ip6))
 				return; // don't pass bubble to kernel
@@ -715,8 +710,8 @@ static void teredo_run_inner (teredo_tunnel *tunnel)
 
 		// Client case 1 (trusted node or (trusted) Teredo client):
 		if (p->trusted
-		 && (packet.source_ipv4 == p->mapped_addr)
-		 && (packet.source_port == p->mapped_port))
+		 && (packet->source_ipv4 == p->mapped_addr)
+		 && (packet->source_port == p->mapped_port))
 		{
 			TouchReceive (p, now);
 			p->bubbles = p->pings = 0;
@@ -725,7 +720,7 @@ static void teredo_run_inner (teredo_tunnel *tunnel)
 
 			if (q != NULL)
 				teredo_queue_emit (q, tunnel->fd,
-				                   packet.source_ipv4, packet.source_port,
+				                   packet->source_ipv4, packet->source_port,
 				                   tunnel->recv_cb, tunnel->opaque);
 			tunnel->recv_cb (tunnel->opaque, buf, length);
 			return;
@@ -733,11 +728,11 @@ static void teredo_run_inner (teredo_tunnel *tunnel)
 
 #ifdef MIREDO_TEREDO_CLIENT
 		// Client case 2 (untrusted non-Teredo node):
-		if (IsClient (tunnel) && (!p->trusted) && (CheckPing (&packet) == 0))
+		if (IsClient (tunnel) && (!p->trusted) && (CheckPing (packet) == 0))
 		{
 			// FIXME: lots of duplicated code here (see case 1)
 			p->trusted = 1;
-			SetMappingFromPacket (p, &packet);
+			SetMappingFromPacket (p, packet);
 
 			TouchReceive (p, now);
 			p->bubbles = p->pings = 0;
@@ -746,7 +741,7 @@ static void teredo_run_inner (teredo_tunnel *tunnel)
 
 			if (q != NULL)
 				teredo_queue_emit (q, tunnel->fd,
-				                   packet.source_ipv4, packet.source_port,
+				                   packet->source_ipv4, packet->source_port,
 				                   tunnel->recv_cb, tunnel->opaque);
 			return; /* don't pass ping to kernel */
 		}
@@ -762,8 +757,8 @@ static void teredo_run_inner (teredo_tunnel *tunnel)
 	if (IN6_TEREDO_PREFIX (&ip6.ip6_src) == s.addr.teredo.prefix)
 	{
 		// Client case 3 (unknown or untrusted matching Teredo client):
-		if (IN6_MATCHES_TEREDO_CLIENT (&ip6.ip6_src, packet.source_ipv4,
-		                               packet.source_port))
+		if (IN6_MATCHES_TEREDO_CLIENT (&ip6.ip6_src, packet->source_ipv4,
+		                               packet->source_port))
 		{
 			if (p == NULL)
 			{
@@ -1022,19 +1017,17 @@ void teredo_destroy (teredo_tunnel *t)
 
 static void *teredo_recv_thread (void *t)
 {
-	struct pollfd ufd;
-	memset (&ufd, 0, sizeof (ufd));
-	ufd.fd = ((teredo_tunnel *)t)->fd;
-	ufd.events = POLLIN;
+	teredo_tunnel *tunnel = (teredo_tunnel *)t;
 
 	for (;;)
 	{
-		if (poll (&ufd, 1, -1) > 0)
+		struct teredo_packet packet;
+
+		if (teredo_wait_recv (tunnel->fd, &packet) == 0)
 		{
-			pthread_setcancelstate (PTHREAD_CANCEL_DISABLE, NULL);
-			teredo_run_inner ((teredo_tunnel *)t);
 			pthread_setcancelstate (PTHREAD_CANCEL_ENABLE, NULL);
-			ufd.revents = 0;
+			teredo_run_inner (tunnel, &packet);
+			pthread_setcancelstate (PTHREAD_CANCEL_ENABLE, NULL);
 		}
 	}
 
@@ -1087,16 +1080,12 @@ void teredo_run (teredo_tunnel *tunnel)
 {
 	assert (tunnel != NULL);
 
-	struct pollfd ufd[1];
-	memset (ufd, 0, sizeof (ufd));
-	ufd[0].fd = tunnel->fd;
-	ufd[0].events = POLLIN;
+	struct teredo_packet packet;
 
-	while (poll (ufd, 1, 0) > 0)
-	{
-		teredo_run_inner (tunnel);
-		ufd[0].revents = 0;
-	}
+	if (teredo_recv (tunnel->fd, &packet))
+		return;
+
+	teredo_run_inner (tunnel, &packet);
 }
 
 
