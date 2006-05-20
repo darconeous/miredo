@@ -353,6 +353,8 @@ run_tunnel (miredo_tunnel *tunnel, miredo_addrwatch *w)
 		return -1;
 
 	int fd = miredo_addrwatch_getfd (w);
+	if (fd >= FD_SETSIZE)
+		return -1;
 
 	/* Main loop */
 	int retval = -2;
@@ -364,11 +366,10 @@ run_tunnel (miredo_tunnel *tunnel, miredo_addrwatch *w)
 		if (fd != -1)
 			FD_SET (fd, &readset);
 
-		sigset_t dummyset, set;
-		sigemptyset (&dummyset);
-		pthread_sigmask (SIG_BLOCK, &dummyset, &set);
-		int dummy = 0;
-		if (sigwait (&set, &dummy) == 0)
+		sigset_t set;
+		sigemptyset (&set);
+		if (pselect (fd + 1, &readset, NULL, NULL, NULL, &set) < 0)
+		//if (sigwait (&set, &dummy) == 0)
 		{
 			retval = 0;
 			break;

@@ -189,15 +189,16 @@ run_tunnel (int ipv6fd, tun6 *tunnel)
 	FD_ZERO (&refset);
 	int maxfd = tun6_registerReadSet (tunnel, &refset);
 
+	if ((maxfd == -1) || (ipv6fd >= FD_SETSIZE))
+		return -1;
+
 	FD_SET (ipv6fd, &refset);
 	if (ipv6fd > maxfd)
 		maxfd = ipv6fd;
 
 	maxfd++;
-	sigset_t dummyset, set;
-	sigemptyset (&dummyset);
-	/* changes nothing, only gets the current mask */
-	pthread_sigmask (SIG_BLOCK, &dummyset, &set);
+	sigset_t set;
+	sigemptyset (&set);
 
 	/* Main loop */
 	for (;;)
