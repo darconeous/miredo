@@ -33,7 +33,6 @@
 #endif
 #include <sys/types.h>
 #include <sys/uio.h>
-#include <poll.h>
 #include <netinet/in.h>
 #include <netinet/ip6.h>
 
