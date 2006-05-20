@@ -84,15 +84,6 @@ int teredo_socket (uint32_t bind_ip, uint16_t port)
 	int flags = 1;
 	setsockopt (fd, SOL_SOCKET, SO_REUSEADDR, &flags, sizeof (flags));
 
-	flags = fcntl (fd, F_GETFL, 0);
-	if (flags == -1)
-		flags = 0;
-	if (fcntl (fd, F_SETFL, O_NONBLOCK | flags))
-	{
-		close (fd);
-		return -1;
-	}
-
 	if (bind (fd, (struct sockaddr *)&myaddr, sizeof (myaddr)))
 	{
 		close (fd);
@@ -213,21 +204,7 @@ int teredo_send (int fd, const void *packet, size_t plen,
 }
 
 
-/**
- * Receives and parses a Teredo packet from a socket.
- * Blocks if the socket is blocking, don't block if not.
- * Thread-safe, cancellation-safe, cancellation point.
- *
- * @param fd socket file descriptor
- * @param p teredo_packet receive buffer
- *
- * @return 0 on success, -1 in error.
- * Errors might be caused by :
- *  - lower level network I/O,
- *  - malformatted packets,
- *  - no data pending while using a non-blocking socket.
- */
-int teredo_recv (int fd, struct teredo_packet *p)
+static int teredo_recv_inner (int fd, struct teredo_packet *p, int flags)
 {
 	uint8_t *ptr;
 	int length;
@@ -237,7 +214,7 @@ int teredo_recv (int fd, struct teredo_packet *p)
 		struct sockaddr_in ad;
 		socklen_t alen = sizeof (ad);
 
-		length = recvfrom (fd, p->buf, sizeof (p->buf), 0,
+		length = recvfrom (fd, p->buf, sizeof (p->buf), flags,
 		                   (struct sockaddr *)&ad, &alen);
 
 		if (length < 2) // too small or error
@@ -312,7 +289,28 @@ int teredo_recv (int fd, struct teredo_packet *p)
 
 
 /**
+ * Receives and parses a Teredo packet from a socket.
+ * Blocks if the socket is blocking, don't block if not.
+ * Thread-safe, cancellation-safe, cancellation point.
+ *
+ * @param fd socket file descriptor
+ * @param p teredo_packet receive buffer
+ *
+ * @return 0 on success, -1 in error.
+ * Errors might be caused by :
+ *  - lower level network I/O,
+ *  - malformatted packets,
+ *  - no data pending while using a non-blocking socket.
+ */
+int teredo_recv (int fd, struct teredo_packet *p)
+{
+	return teredo_recv_inner (fd, p, MSG_DONTWAIT);
+}
+
+
+/**
  * Waits for, receives and parses a Teredo packet from a socket.
+ * Thread-safe, cancellation-safe, cancellation point.
  *
  * @param fd socket file descriptor
  * @param p teredo_packet receive buffer
@@ -326,10 +324,5 @@ int teredo_recv (int fd, struct teredo_packet *p)
  */
 int teredo_wait_recv (int fd, struct teredo_packet *p)
 {
-	struct pollfd ufd;
-
-	memset (&ufd, 0, sizeof (ufd));
-	ufd.fd = fd;
-	ufd.events = POLLIN;
-	return (poll (&ufd, 1, -1) > 0) ? teredo_recv (fd, p) : -1;
+	return teredo_recv_inner (fd, p, 0);
 }
