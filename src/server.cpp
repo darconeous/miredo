@@ -148,11 +148,15 @@ miredo_run (MiredoConf& conf, const char *server_name)
 		 && (teredo_server_set_MTU (server, mtu) == 0)
 		 && (teredo_server_start (server) == 0))
 		{
-			sigset_t set;
+			sigset_t dummyset, set;
 			int dummy;
 
-			sigfillset (&set);
-			sigwait (&set, &dummy);
+			/* changes nothing, only gets the current mask */
+			sigemptyset (&dummyset);
+			pthread_sigmask (SIG_BLOCK, &dummyset, &set);
+
+			/* wait for fatal signal */
+			while (sigwait (&set, &dummy) != 0);
 
 			teredo_server_stop (server);
 			teredo_server_destroy (server);

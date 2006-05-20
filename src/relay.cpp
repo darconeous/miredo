@@ -358,33 +358,27 @@ run_tunnel (miredo_tunnel *tunnel, miredo_addrwatch *w)
 	 || pthread_create (&encap_th, NULL, miredo_encap_thread, tunnel))
 		return -1;
 
-	/*fd_set readset;
-	FD_ZERO (&readset);
-
-	int val, maxfd = -1;
-	if ((val = miredo_addrwatch_getfd (w)) != -1)
-	{
-		FD_SET (val, &readset);
-		if (val > maxfd)
-			maxfd = val;
-	}
-	maxfd++;*/
-
-	sigset_t sigset;
-	sigemptyset (&sigset);
+	int fd = miredo_addrwatch_getfd (w);
 
 	/* Main loop */
 	int retval = -2;
 
-	//while (!safe_miredo_addrwatch_avail (w))
-	(void)w;
+	while (!safe_miredo_addrwatch_avail (w))
 	{
-		sigset_t set;
-		sigfillset (&set);
+		fd_set readset;
+		FD_ZERO (&readset);
+		if (fd != -1)
+			FD_SET (fd, &readset);
 
-		int dummy;
-		sigwait (&set, &dummy);
-		retval = 0;
+		sigset_t dummyset, set;
+		sigemptyset (&dummyset);
+		pthread_sigmask (SIG_BLOCK, &dummyset, &set);
+		int dummy = 0;
+		if (sigwait (&set, &dummy) == 0)
+		{
+			retval = 0;
+			break;
+		}
 	}
 
 	pthread_cancel (encap_th);
