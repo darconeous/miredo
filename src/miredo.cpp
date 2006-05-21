@@ -215,7 +215,7 @@ miredo (const char *confpath, const char *server_name, int pidfd)
 		}
 
 		int newfac = LOG_DAEMON;
-		(void)ParseSyslogFacility (cnf, "SyslogFacility", &newfac);
+		miredo_conf_parse_syslog_facility (cnf, "SyslogFacility", &newfac);
 
 		// Apply syslog facility change if needed
 		if (newfac != facility)

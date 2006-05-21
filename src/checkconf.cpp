@@ -75,7 +75,7 @@ static const char conffile[] = SYSCONFDIR"/miredo.conf";
 static int miredo_checkconf (MiredoConf& conf)
 {
 	int i, res = 0;
-	if (!ParseSyslogFacility (conf, "SyslogFacility", &i))
+	if (!miredo_conf_parse_syslog_facility (conf, "SyslogFacility", &i))
 		res = -1;
 
 	bool client = true;

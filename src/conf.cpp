@@ -484,13 +484,14 @@ static const struct miredo_conf_syslog_facility
 #endif
 	{ NULL,		0 }
 };
-	
 
-bool
-ParseSyslogFacility (MiredoConf& conf, const char *name, int *facility)
+
+extern "C"
+bool miredo_conf_parse_syslog_facility (miredo_conf *conf, const char *name,
+                                        int *facility)
 {
 	unsigned line;
-	char *str = conf.GetRawValue (name, &line);
+	char *str = conf->GetRawValue (name, &line);
 
 	if (str == NULL)
 		return true;
@@ -506,8 +507,8 @@ ParseSyslogFacility (MiredoConf& conf, const char *name, int *facility)
 		}
 	}
 
-	conf.LogError (_("Unknown syslog facility \"%s\" at line %u"),
-	               str, line);
+	conf->LogError (_("Unknown syslog facility \"%s\" at line %u"),
+	                str, line);
 	free (str);
 	return false;
 }
