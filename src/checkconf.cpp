@@ -119,8 +119,8 @@ static int miredo_checkconf (MiredoConf& conf)
 	}
 	else
 	{
-		struct in6_addr ip6;
-		if (!miredo_conf_parse_IPv6 (conf, "Prefix", &ip6)
+		uint32_t pref;
+		if (!miredo_conf_parse_teredo_prefix (conf, "Prefix", &pref)
 		 || !conf.GetInt16 ("InterfaceMTU", &u16))
 			res = -1;
 	}

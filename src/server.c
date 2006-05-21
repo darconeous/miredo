@@ -129,7 +129,8 @@ miredo_run (miredo_conf *conf, const char *server_name)
 	if (server_ip2 == INADDR_ANY)
 		server_ip2 = htonl (ntohl (server_ip) + 1);
 
-	if (!miredo_conf_parse_IPv6 (conf, "Prefix", &prefix.ip6)
+	if (!miredo_conf_parse_teredo_prefix (conf, "Prefix",
+	                                      &prefix.teredo.prefix)
 	 || !miredo_conf_get_int16 (conf, "InterfaceMTU", &mtu, NULL))
 	{
 		syslog (LOG_ALERT, _("Fatal configuration error"));
@@ -146,7 +147,7 @@ miredo_run (miredo_conf *conf, const char *server_name)
 
 	if (server != NULL)
 	{
-		if ((teredo_server_set_prefix (server, *(uint32_t *)&prefix) == 0)
+		if ((teredo_server_set_prefix (server, prefix.teredo.prefix) == 0)
 		 && (teredo_server_set_MTU (server, mtu) == 0)
 		 && (teredo_server_start (server) == 0))
 		{

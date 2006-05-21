@@ -441,7 +441,8 @@ miredo_run (miredo_conf *conf, const char *server_name)
 		server_name = NULL;
 		mtu = 1280;
 
-		if (!miredo_conf_parse_IPv6 (conf, "Prefix", &prefix.ip6)
+		if (!miredo_conf_parse_teredo_prefix (conf, "Prefix",
+		                                      &prefix.teredo.prefix)
 		 || !miredo_conf_get_int16 (conf, "InterfaceMTU", &mtu, NULL))
 		{
 			syslog (LOG_ALERT, _("Fatal configuration error"));
