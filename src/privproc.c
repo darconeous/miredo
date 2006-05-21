@@ -41,6 +41,9 @@
 #if HAVE_SYS_CAPABILITY_H
 # include <sys/capability.h>
 #endif
+#ifndef AF_LOCAL
+# define AF_LOCAL AF_UNIX
+#endif
 
 #include <libtun6/tun6.h>
 #include <libteredo/teredo.h>
