@@ -81,7 +81,7 @@ static int miredo_checkconf (MiredoConf& conf)
 	bool client = true;
 
 	unsigned line;
-	char *val = conf.GetRawValue ("RelayType", &line);
+	char *val = miredo_conf_get (conf, "RelayType", &line);
 
 	if (val != NULL)
 	{
@@ -121,21 +121,21 @@ static int miredo_checkconf (MiredoConf& conf)
 	{
 		uint32_t pref;
 		if (!miredo_conf_parse_teredo_prefix (conf, "Prefix", &pref)
-		 || !conf.GetInt16 ("InterfaceMTU", &u16))
+		 || !miredo_conf_get_int16 (conf, "InterfaceMTU", &u16, NULL))
 			res = -1;
 	}
 
 	bool b;
 	if (!miredo_conf_parse_IPv4 (conf, "BindAddress", &u32)
-	 || !conf.GetInt16 ("BindPort", &u16)
-	 || !conf.GetBoolean ("IgnoreConeBit", &b))
+	 || !miredo_conf_get_int16 (conf, "BindPort", &u16, NULL)
+	 || !miredo_conf_get_bool (conf, "IgnoreConeBit", &b, NULL))
 		res = -1;
 
-	char *str = conf.GetRawValue ("InterfaceName");
+	char *str = miredo_conf_get (conf, "InterfaceName", NULL);
 	if (str != NULL)
 		free (str);
 
-	conf.Clear (5);
+	miredo_conf_clear (conf, 5);
 	return res;
 }
 
