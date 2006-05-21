@@ -45,34 +45,19 @@
 # include <getopt.h>
 #endif
 
-class MiredoCheckConf : public MiredoConf
+static void logger (void *fail, bool error, const char *fmt, va_list ap)
 {
-	private:
-		bool fail;
+	*((bool *)fail) = true;
+	(void)error;
 
-	protected:
-		virtual void Log (bool, const char *fmt, va_list ap)
-		{
-			fail = true;
-			vfprintf (stderr, fmt, ap);
-			fputc ('\n', stderr);
-		}
-
-	public:
-		MiredoCheckConf (void) : MiredoConf (), fail (false)
-		{
-		}
-
-		bool HasFailed (void) const
-		{
-			return fail;
-		}
-};
+	vfprintf (stderr, fmt, ap);
+	fputc ('\n', stderr);
+}
 
 /* FIXME: use same more clever code as in main.c */
 static const char conffile[] = SYSCONFDIR"/miredo.conf";
 
-static int miredo_checkconf (MiredoConf& conf)
+static int miredo_checkconf (miredo_conf *conf)
 {
 	int i, res = 0;
 	if (!miredo_conf_parse_syslog_facility (conf, "SyslogFacility", &i))
@@ -142,12 +127,20 @@ static int miredo_checkconf (MiredoConf& conf)
 
 static int miredo_checkconffile (const char *filename)
 {
-	MiredoCheckConf conf;
+	bool failed = false;
+	miredo_conf *conf = miredo_conf_create (logger, &failed);
 
-	if (!miredo_conf_read_file (conf, filename))
+	if (conf == NULL)
 		return -1;
 
-	return (miredo_checkconf (conf) || conf.HasFailed ()) ? -1 : 0;
+	if (!miredo_conf_read_file (conf, filename))
+		failed = true;
+	else
+	if (miredo_checkconf (conf))
+		failed = true;
+
+	miredo_conf_destroy (conf);
+	return failed ? -1 : 0;
 }
 
 
