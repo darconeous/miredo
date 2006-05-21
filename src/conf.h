@@ -20,12 +20,11 @@
  ***********************************************************************/
 
 #ifndef MIREDO_CONF_H
-# ifndef __cplusplus
-#  error C++ only header
-# endif
 
-# include <stdio.h>
-# include <stdarg.h>
+# ifdef __cplusplus
+
+#  include <stdio.h>
+#  include <stdarg.h>
 
 class MiredoConf
 {
@@ -85,5 +84,29 @@ bool ParseIPv6 (MiredoConf& conf, const char *name, struct in6_addr *value);
 bool ParseTeredoPrefix (MiredoConf& conf, const char *name, uint32_t *value);
 
 bool ParseSyslogFacility (MiredoConf& conf, const char *name, int *fac);
+
+typedef MiredoConf miredo_conf;
+
+extern "C" {
+# else
+typedef struct miredo_conf miredo_conf;
+# endif
+
+void miredo_conf_clear (miredo_conf *conf, int show);
+char *miredo_conf_get (miredo_conf *conf, const char *name, unsigned *line);
+
+bool miredo_conf_get_int16 (miredo_conf *conf, const char *name,
+                            uint16_t *value, unsigned *line);
+bool miredo_conf_get_bool (miredo_conf *conf, const char *name,
+                           bool *value, unsigned *line);
+
+bool miredo_conf_parse_IPv4 (miredo_conf *conf, const char *name,
+                             uint32_t *value);
+bool miredo_conf_parse_IPv6 (miredo_conf *conf, const char *name,
+                             struct in6_addr *value);
+
+# ifdef __cplusplus
+}
+# endif
 
 #endif

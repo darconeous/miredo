@@ -507,3 +507,41 @@ ParseSyslogFacility (MiredoConf& conf, const char *name, int *facility)
 	free (str);
 	return false;
 }
+
+/* C bindings */
+extern "C"
+void miredo_conf_clear (miredo_conf *conf, int show)
+{
+	conf->Clear (show);
+}
+
+char *miredo_conf_get (miredo_conf *conf, const char *name, unsigned *line)
+{
+	return conf->GetRawValue (name, line);
+}
+
+bool miredo_conf_get_int16 (miredo_conf *conf, const char *name,
+                            uint16_t *value, unsigned *line)
+{
+	return conf->GetInt16 (name, value, line);
+}
+
+bool miredo_conf_get_bool (miredo_conf *conf, const char *name,
+                           bool *value, unsigned *line)
+{
+	return conf->GetBoolean (name, value, line);
+}
+
+bool miredo_conf_parse_IPv4 (miredo_conf *conf, const char *name,
+                             uint32_t *value)
+{
+	return ParseIPv4 (*conf, name, value);
+}
+
+bool miredo_conf_parse_IPv6 (miredo_conf *conf, const char *name,
+                             struct in6_addr *value)
+{
+	return ParseIPv6 (*conf, name, value);
+}
+
+
