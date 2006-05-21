@@ -26,6 +26,9 @@
 #  include <stdio.h>
 #  include <stdarg.h>
 
+class MiredoConf;
+typedef MiredoConf miredo_conf;
+
 class MiredoConf
 {
 	private:
@@ -75,6 +78,8 @@ class MiredoConf
 
 		bool GetBoolean (const char *name, bool *value,
 						unsigned *line = NULL);
+
+		operator miredo_conf *(void) { return this; }
 };
 
 
@@ -84,8 +89,6 @@ bool ParseIPv6 (MiredoConf& conf, const char *name, struct in6_addr *value);
 bool ParseTeredoPrefix (MiredoConf& conf, const char *name, uint32_t *value);
 
 bool ParseSyslogFacility (MiredoConf& conf, const char *name, int *fac);
-
-typedef MiredoConf miredo_conf;
 
 extern "C" {
 # else
