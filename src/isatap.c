@@ -1,5 +1,5 @@
 /*
- * isatap.cpp - basic ISATAP implementation
+ * isatap.c - basic ISATAP implementation
  * $Id$
  */
 

@@ -1,5 +1,5 @@
 /*
- * privproc.cpp - Privileged process for Miredo
+ * privproc.c - Privileged process for Miredo
  * $Id$
  */
 
