@@ -5,9 +5,9 @@ libteredo/packets.c
 libteredo/maintain.c
 libtun6/tun6.c
 src/main.c
-src/miredo.cpp
-src/relay.cpp
-src/server.cpp
-src/isatap.cpp
-src/conf.cpp
-src/checkconf.cpp
+src/miredo.c
+src/relay.c
+src/server.c
+src/isatap.c
+src/conf.c
+src/checkconf.c
