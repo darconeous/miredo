@@ -58,24 +58,24 @@ MiredoConf::~MiredoConf (void)
 }
 
 
-void
-MiredoConf::LogError (const char *fmt, ...)
+static void
+LogError (miredo_conf *conf, const char *fmt, ...)
 {
 	va_list ap;
 
 	va_start (ap, fmt);
-	Log (true, fmt, ap);
+	conf->Log (true, fmt, ap);
 	va_end (ap);
 }
 
 
-void
-MiredoConf::LogWarning (const char *fmt, ...)
+static void
+LogWarning (miredo_conf *conf, const char *fmt, ...)
 {
 	va_list ap;
 
 	va_start (ap, fmt);
-	Log (false, fmt, ap);
+	conf->Log (false, fmt, ap);
 	va_end (ap);
 }
 
@@ -100,8 +100,8 @@ void miredo_conf_clear (miredo_conf *conf, int show)
 		struct setting *buf = ptr->next;
 		if (show > 0)
 		{
-			conf->LogWarning (_("Superfluous directive %s at line %u"),
-			                  ptr->name, ptr->line);
+			LogWarning (conf, _("Superfluous directive %s at line %u"),
+			            ptr->name, ptr->line);
 			show--;
 		}
 		free (ptr->name);
@@ -156,7 +156,7 @@ miredo_conf_set (miredo_conf *conf, const char *name, const char *value,
 		free (parm);
 	}
 
-	conf->LogError (_("Error (%s): %s"), "strdup", strerror (errno));
+	LogError (conf, _("Error (%s): %s"), "strdup", strerror (errno));
 	return false;
 }
 
@@ -210,7 +210,7 @@ static bool miredo_conf_read_FILE (miredo_conf *conf, FILE *stream)
 				if (feof (stream) || ferror (stream))
 					break;
 
-			conf->LogWarning (_("Skipped overly long line %u"), line);
+			LogWarning (conf, _("Skipped overly long line %u"), line);
 			continue;
 		}
 
@@ -227,16 +227,16 @@ static bool miredo_conf_read_FILE (miredo_conf *conf, FILE *stream)
 
 			case 1:
 				if (*nbuf != '#')
-					conf->LogWarning (_("Ignoring line %u: %s"),
-					                  line, nbuf);
+					LogWarning (conf, _("Ignoring line %u: %s"),
+					            line, nbuf);
 				break;
 		}
 	}
 
 	if (ferror (stream))
 	{
-		conf->LogError (_("Error reading configuration file: %s"),
-		                strerror (errno));
+		LogError (conf, _("Error reading configuration file: %s"),
+		          strerror (errno));
 		return false;
 	}
 	return true;
@@ -260,8 +260,8 @@ bool miredo_conf_read_file (miredo_conf *conf, const char *path)
 		return ret;
 	}
 
-	conf->LogError (_("Error opening configuration file %s: %s"), path,
-	                strerror (errno));
+	LogError (conf, _("Error opening configuration file %s: %s"), path,
+	          strerror (errno));
 	return false;
 }
 
@@ -289,8 +289,8 @@ bool miredo_conf_get_int16 (miredo_conf *conf, const char *name,
 	
 	if ((*end) || (l > 65535))
 	{
-		conf->LogError (_("Invalid integer value \"%s\" for %s: %s"),
-		                val, name, strerror (errno));
+		LogError (conf, _("Invalid integer value \"%s\" for %s: %s"),
+		          val, name, strerror (errno));
 		free (val);
 		return false;
 	}
@@ -345,7 +345,7 @@ bool miredo_conf_get_bool (miredo_conf *conf, const char *name,
 			return true;
 		}
 
-	conf->LogError (_("Invalid boolean value \"%s\" for %s"), val, name);
+	LogError (conf, _("Invalid boolean value \"%s\" for %s"), val, name);
 	free (val);
 	return false;
 }
@@ -390,8 +390,8 @@ bool miredo_conf_parse_IPv4 (miredo_conf *conf, const char *name,
 
 	if (check)
 	{
-		conf->LogError (_("Invalid hostname \"%s\" at line %u: %s"),
-		                val, line, gai_strerror (check));
+		LogError (conf, _("Invalid hostname \"%s\" at line %u: %s"),
+		          val, line, gai_strerror (check));
 		free (val);
 		return false;
 	}
@@ -422,8 +422,8 @@ bool miredo_conf_parse_IPv6 (miredo_conf *conf, const char *name,
 
 	if (check)
 	{
-		conf->LogError (_("Invalid hostname \"%s\" at line %u: %s"),
-		                val, line, gai_strerror (check));
+		LogError (conf, _("Invalid hostname \"%s\" at line %u: %s"),
+		          val, line, gai_strerror (check));
 		free (val);
 		return false;
 	}
@@ -447,8 +447,8 @@ bool miredo_conf_parse_teredo_prefix (miredo_conf *conf, const char *name,
 	{
 		if (!is_valid_teredo_prefix (addr.teredo.prefix))
 		{
-			conf->LogError (_("Invalid Teredo IPv6 prefix: %x::/32"),
-			                addr.teredo.prefix);
+			LogError (conf, _("Invalid Teredo IPv6 prefix: %x::/32"),
+			          addr.teredo.prefix);
 			return false;
 		}
 
@@ -532,8 +532,8 @@ bool miredo_conf_parse_syslog_facility (miredo_conf *conf, const char *name,
 		}
 	}
 
-	conf->LogError (_("Unknown syslog facility \"%s\" at line %u"),
-	                str, line);
+	LogError (conf, _("Unknown syslog facility \"%s\" at line %u"), str,
+	          line);
 	free (str);
 	return false;
 }

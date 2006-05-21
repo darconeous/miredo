@@ -43,17 +43,12 @@ class MiredoConf
 	public: /* gruik */
 		struct setting *head, *tail;
 
-	protected:
 		virtual void Log (bool error, const char *fmt, va_list ap);
 
-	public:
 		MiredoConf (void);
 		virtual ~MiredoConf (void);
 		MiredoConf (const MiredoConf& src); /* not implemented */
 		MiredoConf& operator= (const MiredoConf& src); /* not implemented */
-
-		void LogError (const char *fmt, ...);
-		void LogWarning (const char *fmt, ...);
 
 		operator miredo_conf *(void) { return this; }
 };
