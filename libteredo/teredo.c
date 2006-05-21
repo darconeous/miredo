@@ -123,7 +123,6 @@ int teredo_socket (uint32_t bind_ip, uint16_t port)
 int teredo_sendv (int fd, const struct iovec *iov, size_t count,
                   uint32_t dest_ip, uint16_t dest_port)
 {
-	struct msghdr msg;
 	struct sockaddr_in addr;
 
 	memset (&addr, 0, sizeof (addr));
@@ -134,13 +133,12 @@ int teredo_sendv (int fd, const struct iovec *iov, size_t count,
 	addr.sin_len = sizeof (addr);
 #endif
 
+	struct msghdr msg;
+	memset (&msg, 0, sizeof (msg));
 	msg.msg_name = &addr;
 	msg.msg_namelen = sizeof (addr);
 	msg.msg_iov = (struct iovec *)iov;
 	msg.msg_iovlen = count;
-	msg.msg_control = NULL;
-	msg.msg_controllen = 0;
-	msg.msg_flags = 0;
 
 	for (int tries = 0; tries < 10; tries++)
 	{
