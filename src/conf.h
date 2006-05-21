@@ -42,7 +42,7 @@ class MiredoConf
 
 	protected:
 		virtual void Log (bool error, const char *fmt, va_list ap);
-		
+
 	public:
 		MiredoConf (void);
 		virtual ~MiredoConf (void);
@@ -54,36 +54,18 @@ class MiredoConf
 		/* Adds a setting. Returns false if memory is missing. */
 		bool Set (const char *name, const char *value, unsigned line);
 
-		/* Parses a file. Returns false on I/O error. */
-		bool ReadFile (FILE *stream);
-		bool ReadFile (const char *path);
-
-		/*
-		 * Looks up a setting by name. Returns NULL if not found.
-		 * Otherwise, return value must be free()d by caller.
-		 */
 		char *GetRawValue (const char *name, unsigned *line = NULL);
 
 		void LogError (const char *fmt, ...);
 		void LogWarning (const char *fmt, ...);
-
-		/*
-		 * Looks up an unsigned 16-bits integer. Returns false if the
-		 * setting was found but incorrectly formatted.
-		 * If the setting was not found value, returns true and leave
-		 * *value unchanged.
-		 */
-		bool GetInt16 (const char *name, uint16_t *value,
-						unsigned *line = NULL);
-
-		bool GetBoolean (const char *name, bool *value,
-						unsigned *line = NULL);
 
 		operator miredo_conf *(void) { return this; }
 };
 
 extern "C" {
 # endif
+
+bool miredo_conf_read_file (miredo_conf *conf, const char *path);
 
 void miredo_conf_clear (miredo_conf *conf, int show);
 char *miredo_conf_get (miredo_conf *conf, const char *name, unsigned *line);

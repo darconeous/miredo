@@ -144,7 +144,7 @@ static int miredo_checkconffile (const char *filename)
 {
 	MiredoCheckConf conf;
 
-	if (!conf.ReadFile (filename))
+	if (!miredo_conf_read_file (conf, filename))
 		return -1;
 
 	return (miredo_checkconf (conf) || conf.HasFailed ()) ? -1 : 0;

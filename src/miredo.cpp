@@ -208,7 +208,7 @@ miredo (const char *confpath, const char *server_name, int pidfd)
 		InitSignals ();
 
 		MiredoSyslogConf cnf;
-		if (!cnf.ReadFile (confpath))
+		if (!miredo_conf_read_file (cnf, confpath))
 		{
 			syslog (LOG_WARNING, _("Loading configuration from %s failed"),
 			        confpath);

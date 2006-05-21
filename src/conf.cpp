@@ -153,8 +153,7 @@ MiredoConf::Set (const char *name, const char *value, unsigned line)
 }
 
 
-bool
-MiredoConf::ReadFile (FILE *stream)
+static bool miredo_conf_read_FILE (miredo_conf *conf, FILE *stream)
 {
 	char lbuf[1056];
 	unsigned line = 0;
@@ -170,7 +169,7 @@ MiredoConf::ReadFile (FILE *stream)
 				if (feof (stream) || ferror (stream))
 					break;
 
-			LogWarning (_("Skipped overly long line %u"), line);
+			conf->LogWarning (_("Skipped overly long line %u"), line);
 			continue;
 		}
 
@@ -181,43 +180,47 @@ MiredoConf::ReadFile (FILE *stream)
 		{
 			case 2:
 				if ((*nbuf != '#') // comment
-				 && !Set (nbuf, vbuf, line))
+				 && !conf->Set (nbuf, vbuf, line))
 					return false;
 				break;
 
 			case 1:
 				if (*nbuf != '#')
-					LogWarning (_("Ignoring line %u: %s"),
-					            line, nbuf);
+					conf->LogWarning (_("Ignoring line %u: %s"),
+					                  line, nbuf);
 				break;
 		}
 	}
 
 	if (ferror (stream))
 	{
-		LogError (_("Error reading configuration file: %s"),
-		          strerror (errno));
+		conf->LogError (_("Error reading configuration file: %s"),
+		                strerror (errno));
 		return false;
 	}
 	return true;
 }
 
 
-bool
-MiredoConf::ReadFile (const char *path)
+/* Parses a file.
+ *
+ * @return false on I/O error, true on success.
+ */
+extern "C"
+bool miredo_conf_read_file (miredo_conf *conf, const char *path)
 {
 	assert (path != NULL);
 
 	FILE *stream = fopen (path, "r");
 	if (stream != NULL)
 	{
-		bool ret = ReadFile (stream);
+		bool ret = miredo_conf_read_FILE (conf, stream);
 		fclose (stream);
 		return ret;
 	}
 
-	LogError (_("Error opening configuration file %s: %s"), path,
-	          strerror (errno));
+	conf->LogError (_("Error opening configuration file %s: %s"), path,
+	                strerror (errno));
 	return false;
 }
 
@@ -252,10 +255,18 @@ MiredoConf::GetRawValue (const char *name, unsigned *line)
 }
 
 
-bool
-MiredoConf::GetInt16 (const char *name, uint16_t *value, unsigned *line)
+/**
+ * Looks up an unsigned 16-bits integer. Returns false if the
+ * setting was found but incorrectly formatted.
+ *
+ * If the setting was not found value, returns true and leave
+ * *value unchanged.
+ */
+extern "C"
+bool miredo_conf_get_int16 (miredo_conf *conf, const char *name,
+                            uint16_t *value, unsigned *line)
 {
-	char *val = GetRawValue (name, line);
+	char *val = miredo_conf_get (conf, name, line);
 
 	if (val == NULL)
 		return true;
@@ -267,8 +278,8 @@ MiredoConf::GetInt16 (const char *name, uint16_t *value, unsigned *line)
 	
 	if ((*end) || (l > 65535))
 	{
-		LogError (_("Invalid integer value \"%s\" for %s: %s"),
-		          val, name, strerror (errno));
+		conf->LogError (_("Invalid integer value \"%s\" for %s: %s"),
+		                val, name, strerror (errno));
 		free (val);
 		return false;
 	}
@@ -283,10 +294,11 @@ static const char *true_strings[] = { "yes", "true", "on", "enabled", NULL };
 static const char *false_strings[] =
 	{ "no", "false", "off", "disabled", NULL };
 
-bool
-MiredoConf::GetBoolean (const char *name, bool *value, unsigned *line)
+extern "C"
+bool miredo_conf_get_bool (miredo_conf *conf, const char *name,
+                           bool *value, unsigned *line)
 {
-	char *val = GetRawValue (name, line);
+	char *val = miredo_conf_get (conf, name, line);
 
 	if (val == NULL)
 		return true;
@@ -322,13 +334,34 @@ MiredoConf::GetBoolean (const char *name, bool *value, unsigned *line)
 			return true;
 		}
 
-	LogError (_("Invalid boolean value \"%s\" for %s"), val, name);
+	conf->LogError (_("Invalid boolean value \"%s\" for %s"), val, name);
 	free (val);
 	return false;
 }
 
+/* C bindings */
+extern "C"
+void miredo_conf_clear (miredo_conf *conf, int show)
+{
+	conf->Clear (show);
+}
+
 
 /*
+ * Looks up a setting by name.
+ * @return NULL if not found.
+ * Otherwise, return value must be free()d by caller.
+ */
+extern "C"
+char *miredo_conf_get (miredo_conf *conf, const char *name, unsigned *line)
+{
+	return conf->GetRawValue (name, line);
+}
+
+
+/* Utilities function */
+
+/**
  * Looks up an IPv4 address (network byte order) associated with hostname.
  */
 extern "C"
@@ -356,7 +389,7 @@ bool miredo_conf_parse_IPv4 (miredo_conf *conf, const char *name,
                              uint32_t *ipv4)
 {
 	unsigned line;
-	char *val = conf->GetRawValue (name, &line);
+	char *val = miredo_conf_get (conf, name, &line);
 
 	if (val == NULL)
 		return true;
@@ -381,7 +414,7 @@ bool miredo_conf_parse_IPv6 (miredo_conf *conf, const char *name,
                              struct in6_addr *value)
 {
 	unsigned line;
-	char *val = conf->GetRawValue (name, &line);
+	char *val = miredo_conf_get (conf, name, &line);
 
 	if (val == NULL)
 		return true;
@@ -491,7 +524,7 @@ bool miredo_conf_parse_syslog_facility (miredo_conf *conf, const char *name,
                                         int *facility)
 {
 	unsigned line;
-	char *str = conf->GetRawValue (name, &line);
+	char *str = miredo_conf_get (conf, name, &line);
 
 	if (str == NULL)
 		return true;
@@ -512,29 +545,3 @@ bool miredo_conf_parse_syslog_facility (miredo_conf *conf, const char *name,
 	free (str);
 	return false;
 }
-
-/* C bindings */
-extern "C"
-void miredo_conf_clear (miredo_conf *conf, int show)
-{
-	conf->Clear (show);
-}
-
-char *miredo_conf_get (miredo_conf *conf, const char *name, unsigned *line)
-{
-	return conf->GetRawValue (name, line);
-}
-
-bool miredo_conf_get_int16 (miredo_conf *conf, const char *name,
-                            uint16_t *value, unsigned *line)
-{
-	return conf->GetInt16 (name, value, line);
-}
-
-bool miredo_conf_get_bool (miredo_conf *conf, const char *name,
-                           bool *value, unsigned *line)
-{
-	return conf->GetBoolean (name, value, line);
-}
-
-
