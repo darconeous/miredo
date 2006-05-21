@@ -38,10 +38,13 @@ RDC_BUILD_HOSTNAME
 
 # Checks for programs.
 AS_MESSAGE([checking required programs...])
-dnl AC_PROG_CC
+
 AC_PROG_CC_C99
+AC_USE_SYSTEM_EXTENSIONS
+
 AC_DISABLE_STATIC
 AC_PROG_LIBTOOL
+
 AM_INIT_AUTOMAKE([check-news dist-bzip2 no-dist-gzip no-exeext std-options])
 
 
@@ -97,6 +100,7 @@ AC_CHECK_FUNC([pthread_barrier_wait], [
 
 # Checks for optionnal features
 AS_MESSAGE([checking optional features...])
+AC_HEADER_ASSERT
 
 # POSIX capabilities
 LIBCAP=""
@@ -144,18 +148,6 @@ AS_IF([test "x${enable_teredo_client}" != "xno"],
 	[AC_DEFINE(MIREDO_TEREDO_CLIENT)
 	AC_MSG_RESULT(yes)],
 	[AC_MSG_RESULT(no)])
-
-# Debugging
-AC_MSG_CHECKING([whether to compile debug code])
-AC_ARG_ENABLE(debug,
-	      [AS_HELP_STRING(--enable-debug,
-			       [compile debug code (default disabled)])])
-AH_TEMPLATE(NDEBUG,
-	    [Define to 1 if debug code should NOT be compiled])
-AS_IF([test "x${enable_debug}" = "x"], [enable_debug=no])
-AS_IF([test "x${enable_debug}" = "xno"],
-	[AC_DEFINE(NDEBUG)], [enable_debug=yes])
-AC_MSG_RESULT(${enable_debug})
 
 # Config sample installation
 AC_MSG_CHECKING([whether to install sample config files])

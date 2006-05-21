@@ -27,7 +27,7 @@ LTLIBINTL = @LTLIBINTL@
 LIBCAP = @LIBCAP@
 
 AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir) -D_REENTRANT \
-	-D_GNU_SOURCE -D_APPLE_C_SOURCE \
+	-D_APPLE_C_SOURCE \
 	-DLOCALEDIR=\"$(localedir)\" -DSYSCONFDIR=\"$(sysconfdir)\" \
 	-DLOCALSTATEDIR=\"$(localstatedir)\"
 

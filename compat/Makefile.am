@@ -17,7 +17,7 @@
 # *  http://www.gnu.org/copyleft/gpl.html                               *
 # ***********************************************************************
 
-AM_CPPFLAGS = -D_REENTRANT -D_GNU_SOURCE
+AM_CPPFLAGS = -D_REENTRANT
 
 noinst_HEADERS = barrier.h pselect.h
 noinst_LTLIBRARIES = libcompat.la
