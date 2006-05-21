@@ -54,7 +54,7 @@ MiredoConf::MiredoConf (void) : head (NULL), tail (NULL)
 
 MiredoConf::~MiredoConf (void)
 {
-	Clear (0);
+	miredo_conf_clear (this, 0);
 }
 
 
@@ -86,20 +86,22 @@ MiredoConf::Log (bool, const char *, va_list)
 }
 
 
-void
-MiredoConf::Clear (unsigned show)
+extern "C"
+void miredo_conf_clear (miredo_conf *conf, int show)
 {
-	struct setting *ptr = head;
+	/* lock here */
+	struct setting *ptr = conf->head;
 
-	head = NULL;
+	conf->head = NULL;
+	/* unlock here */
 
 	while (ptr != NULL)
 	{
 		struct setting *buf = ptr->next;
 		if (show > 0)
 		{
-			LogWarning (_("Superfluous directive %s at line %u"),
-			            ptr->name, ptr->line);
+			conf->LogWarning (_("Superfluous directive %s at line %u"),
+			                  ptr->name, ptr->line);
 			show--;
 		}
 		free (ptr->name);
@@ -110,9 +112,15 @@ MiredoConf::Clear (unsigned show)
 }
 
 
-bool
-MiredoConf::Set (const char *name, const char *value, unsigned line)
+/**
+ * Adds a setting.
+ * @return false if memory is missing.
+ */
+static bool
+miredo_conf_set (miredo_conf *conf, const char *name, const char *value,
+                 unsigned line)
 {
+	assert (conf != NULL);
 	assert (name != NULL);
 	assert (value != NULL);
 
@@ -131,14 +139,14 @@ MiredoConf::Set (const char *name, const char *value, unsigned line)
 				parm->next = NULL;
 
 				/* lock here */
-				if (head == NULL)
-					head = parm;
+				if (conf->head == NULL)
+					conf->head = parm;
 				else
 				{
-					assert (tail != NULL);
-					tail->next = parm;
+					assert (conf->tail != NULL);
+					conf->tail->next = parm;
 				}
-				tail = parm;
+				conf->tail = parm;
 				/* unlock here */
 
 				return true;
@@ -148,8 +156,41 @@ MiredoConf::Set (const char *name, const char *value, unsigned line)
 		free (parm);
 	}
 
-	LogError (_("Error (%s): %s"), "strdup", strerror (errno));
+	conf->LogError (_("Error (%s): %s"), "strdup", strerror (errno));
 	return false;
+}
+
+
+/*
+ * Looks up a setting by name.
+ * @return NULL if not found.
+ * Otherwise, return value must be free()d by caller.
+ */
+extern "C"
+char *miredo_conf_get (miredo_conf *conf, const char *name, unsigned *line)
+{
+	for (struct setting *p = conf->head, *prev = NULL; p != NULL; p = p->next)
+	{
+		if (strcasecmp (p->name, name) == 0)
+		{
+			char *buf = p->value;
+
+			if (line != NULL)
+				*line = p->line;
+
+			if (prev != NULL)
+				prev->next = p->next;
+			else
+				conf->head = p->next;
+
+			free (p->name);
+			free (p);
+			return buf;
+		}
+		prev = p;
+	}
+
+	return NULL;
 }
 
 
@@ -180,7 +221,7 @@ static bool miredo_conf_read_FILE (miredo_conf *conf, FILE *stream)
 		{
 			case 2:
 				if ((*nbuf != '#') // comment
-				 && !conf->Set (nbuf, vbuf, line))
+				 && !miredo_conf_set (conf, nbuf, vbuf, line))
 					return false;
 				break;
 
@@ -222,36 +263,6 @@ bool miredo_conf_read_file (miredo_conf *conf, const char *path)
 	conf->LogError (_("Error opening configuration file %s: %s"), path,
 	                strerror (errno));
 	return false;
-}
-
-
-char *
-MiredoConf::GetRawValue (const char *name, unsigned *line)
-{
-	struct setting *prev = NULL;
-
-	for (struct setting *p = head; p != NULL; p = p->next)
-	{
-		if (strcasecmp (p->name, name) == 0)
-		{
-			char *buf = p->value;
-
-			if (line != NULL)
-				*line = p->line;
-
-			if (prev != NULL)
-				prev->next = p->next;
-			else
-				head = p->next;
-
-			free (p->name);
-			free (p);
-			return buf;
-		}
-		prev = p;
-	}
-
-	return NULL;
 }
 
 
@@ -337,25 +348,6 @@ bool miredo_conf_get_bool (miredo_conf *conf, const char *name,
 	conf->LogError (_("Invalid boolean value \"%s\" for %s"), val, name);
 	free (val);
 	return false;
-}
-
-/* C bindings */
-extern "C"
-void miredo_conf_clear (miredo_conf *conf, int show)
-{
-	conf->Clear (show);
-}
-
-
-/*
- * Looks up a setting by name.
- * @return NULL if not found.
- * Otherwise, return value must be free()d by caller.
- */
-extern "C"
-char *miredo_conf_get (miredo_conf *conf, const char *name, unsigned *line)
-{
-	return conf->GetRawValue (name, line);
 }
 
 

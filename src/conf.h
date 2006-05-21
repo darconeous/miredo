@@ -29,16 +29,19 @@
 class MiredoConf;
 typedef MiredoConf miredo_conf;
 
+/* gruik */
+struct setting
+{
+	char *name;
+	char *value;
+	unsigned line;
+	struct setting *next;
+};
+
 class MiredoConf
 {
-	private:
-		struct setting
-		{
-			char *name;
-			char *value;
-			unsigned line;
-			struct setting *next;
-		} *head, *tail;
+	public: /* gruik */
+		struct setting *head, *tail;
 
 	protected:
 		virtual void Log (bool error, const char *fmt, va_list ap);
@@ -48,13 +51,6 @@ class MiredoConf
 		virtual ~MiredoConf (void);
 		MiredoConf (const MiredoConf& src); /* not implemented */
 		MiredoConf& operator= (const MiredoConf& src); /* not implemented */
-
-		void Clear (unsigned show = 5);
-
-		/* Adds a setting. Returns false if memory is missing. */
-		bool Set (const char *name, const char *value, unsigned line);
-
-		char *GetRawValue (const char *name, unsigned *line = NULL);
 
 		void LogError (const char *fmt, ...);
 		void LogWarning (const char *fmt, ...);

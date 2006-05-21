@@ -241,7 +241,7 @@ miredo (const char *confpath, const char *server_name, int pidfd)
 				retval = miredo_run (cnf, server_name);
 		}
 
-		cnf.Clear (0);
+		miredo_conf_clear (cnf, 0);
 
 		switch (pid)
 		{
