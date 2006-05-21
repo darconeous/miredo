@@ -26,15 +26,14 @@
 # define MIREDO_MIREDO_H
 
 # ifdef __cplusplus
-extern int miredo_run (MiredoConf& conf, const char *server = NULL);
-
 extern "C"
 {
+# else
+typedef struct miredo_conf miredo_conf;
 # endif
 
-# include <sys/types.h> // uid_t
-
 int miredo (const char *conffile, const char *server_name, int pidfd);
+int miredo_run (miredo_conf *conf, const char *server);
 int drop_privileges (void);
 int miredo_diagnose (void);
 void miredo_setup_fd (int fd);
@@ -43,6 +42,8 @@ void miredo_setup_nonblock_fd (int fd);
 # ifdef __cplusplus
 }
 # endif
+
+# include <sys/types.h> // uid_t
 
 extern uid_t unpriv_uid;
 extern const char *miredo_chrootdir;

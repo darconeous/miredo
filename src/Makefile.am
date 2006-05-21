@@ -45,7 +45,7 @@ libmiredo_la_LIBADD = $(LTLIBINTL) $(LIBCAP) $(BINRELOC_LIBS) \
 libmiredo_la_LDFLAGS = -static -no-undefined
 
 # miredo
-miredo_SOURCES = relay.cpp
+miredo_SOURCES = relay.c dummy.cpp
 if TEREDO_CLIENT
 miredo_SOURCES += privproc.c privproc.h addrwatch.c addrwatch.h
 endif
@@ -53,7 +53,7 @@ miredo_LDADD = ../libtun6/libtun6.la ../libteredo/libteredo.la libmiredo.la \
 		$(LIBINTL)
 
 # miredo-server
-miredo_server_SOURCES = server.cpp
+miredo_server_SOURCES = server.c dummy.cpp
 miredo_server_LDADD = ../libteredo/libteredo-server.la libmiredo.la $(LIBINTL)
 
 # miredo-checkconf
@@ -61,7 +61,7 @@ miredo_checkconf_SOURCES = checkconf.cpp
 miredo_checkconf_LDADD = libmiredo.la $(LIBINTL)
 
 # isatapd
-isatapd_SOURCES = isatap.cpp
+isatapd_SOURCES = isatap.c dummy.cpp
 isatapd_LDADD = ../libtun6/libtun6.la libmiredo.la $(LIBINTL)
 
 install-exec-local:

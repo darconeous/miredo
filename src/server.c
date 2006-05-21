@@ -1,5 +1,5 @@
 /*
- * server.cpp - Unix Teredo server implementation daemon
+ * server.c - Unix Teredo server implementation daemon
  * $Id$
  */
 
@@ -31,6 +31,8 @@
 # include <inttypes.h>
 #endif
 #include <string.h> // memset()
+#include <stdbool.h>
+#include <stdio.h>
 
 #include <sys/types.h>
 #include <sys/select.h>
@@ -46,8 +48,8 @@
 #include <netinet/in.h>
 #include <libteredo/teredo.h>
 
-#include "conf.h"
 #include "miredo.h"
+#include "conf.h"
 
 #include <libteredo/server.h>
 
@@ -65,7 +67,7 @@ const cap_value_t *miredo_capv = capv;
 const int miredo_capc = sizeof (capv) / sizeof (capv[0]);
 #endif
 
-extern "C" int
+extern int
 miredo_diagnose (void)
 {
 	char buf[1024];
@@ -80,7 +82,7 @@ miredo_diagnose (void)
 
 
 extern int
-miredo_run (MiredoConf& conf, const char *server_name)
+miredo_run (miredo_conf *conf, const char *server_name)
 {
 	teredo_server *server;
 	union teredo_addr prefix;
@@ -102,8 +104,8 @@ miredo_run (MiredoConf& conf, const char *server_name)
 	}
 	else
 	{
-		if (!ParseIPv4 (conf, "ServerBindAddress", &server_ip)
-		 || !ParseIPv4 (conf, "ServerBindAddress2", &server_ip2))
+		if (!miredo_conf_parse_IPv4 (conf, "ServerBindAddress", &server_ip)
+		 || !miredo_conf_parse_IPv4 (conf, "ServerBindAddress2", &server_ip2))
 		{
 			syslog (LOG_ALERT, _("Fatal configuration error"));
 			return -2;
@@ -127,14 +129,14 @@ miredo_run (MiredoConf& conf, const char *server_name)
 	if (server_ip2 == INADDR_ANY)
 		server_ip2 = htonl (ntohl (server_ip) + 1);
 
-	if (!ParseIPv6 (conf, "Prefix", &prefix.ip6)
-	 || !conf.GetInt16 ("InterfaceMTU", &mtu))
+	if (!miredo_conf_parse_IPv6 (conf, "Prefix", &prefix.ip6)
+	 || !miredo_conf_get_int16 (conf, "InterfaceMTU", &mtu, NULL))
 	{
 		syslog (LOG_ALERT, _("Fatal configuration error"));
 		return -2;
 	}
 
-	conf.Clear (5);
+	miredo_conf_clear (conf, 5);
 
 	// Sets up server (needs privileges to create raw socket)
 	server = teredo_server_create (server_ip, server_ip2);

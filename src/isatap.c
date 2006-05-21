@@ -33,6 +33,7 @@
 #endif
 
 #include <stdlib.h> // free()
+#include <stdio.h>
 #include <sys/types.h>
 #include <string.h> // strerror()
 #include <errno.h>
@@ -56,8 +57,8 @@
 
 #include <libtun6/tun6.h>
 
-#include "conf.h"
 #include "miredo.h"
+#include "conf.h"
 
 const char *const miredo_name = "isatapd";
 const char *const miredo_pidfile = LOCALSTATEDIR"/run/isatap.pid";
@@ -74,7 +75,7 @@ const int miredo_capc = sizeof (capv) / sizeof (capv[0]);
 #endif
 
 
-extern "C" int
+extern int
 miredo_diagnose (void)
 {
 	char errbuf[LIBTUN6_ERRBUF_SIZE];
@@ -284,7 +285,7 @@ run_tunnel (int ipv6fd, tun6 *tunnel)
 
 
 extern int
-miredo_run (MiredoConf& conf, const char *server_name)
+miredo_run (miredo_conf *conf, const char *server_name)
 {
 	/*
 	 * CONFIGURATION
@@ -294,7 +295,7 @@ miredo_run (MiredoConf& conf, const char *server_name)
 
 	if (server_name == NULL)
 	{
-		char *name = conf.GetRawValue ("ServerAddress");
+		char *name = miredo_conf_get (conf, "ServerAddress", NULL);
 		if (name == NULL)
 		{
 			syslog (LOG_ALERT, _("Server address not specified"));
@@ -309,7 +310,7 @@ miredo_run (MiredoConf& conf, const char *server_name)
 
 	uint32_t bind_ip = INADDR_ANY;
 
-	if (!ParseIPv4 (conf, "BindAddress", &bind_ip))
+	if (!miredo_conf_parse_IPv4 (conf, "BindAddress", &bind_ip))
 	{
 		syslog (LOG_ALERT, _("Fatal configuration error"));
 		return -2;
@@ -321,9 +322,9 @@ miredo_run (MiredoConf& conf, const char *server_name)
 		return -2;
 	}
 
-	char *ifname = conf.GetRawValue ("InterfaceName");
+	char *ifname = miredo_conf_get (conf, "InterfaceName", NULL);
 
-	conf.Clear (5);
+	miredo_conf_clear (conf, 5);
 
 	/*
 	 * SETUP
@@ -381,14 +382,14 @@ miredo_run (MiredoConf& conf, const char *server_name)
 }
 
 
-extern "C"
+extern
 void miredo_setup_fd (int fd)
 {
 	(void) fcntl (fd, F_SETFD, FD_CLOEXEC);
 }
 
 
-extern "C"
+extern
 void miredo_setup_nonblock_fd (int fd)
 {
 	int flags = fcntl (fd, F_GETFL);

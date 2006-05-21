@@ -1,5 +1,5 @@
 /*
- * relay.cpp - Miredo: binding between libtun6 and libteredo
+ * relay.c - Miredo: binding between libtun6 and libteredo
  * $Id$
  */
 
@@ -33,6 +33,7 @@
 #endif
 
 #include <stdlib.h> // free()
+#include <stdio.h> // fputs()
 #include <sys/types.h>
 #include <string.h> // strerror()
 #include <errno.h>
@@ -68,8 +69,8 @@
 
 #include "privproc.h"
 #include "addrwatch.h"
-#include "conf.h"
 #include "miredo.h"
+#include "conf.h"
 
 const char *const miredo_name = "miredo";
 const char *const miredo_pidfile = LOCALSTATEDIR"/run/miredo.pid";
@@ -86,8 +87,7 @@ const int miredo_capc = sizeof (capv) / sizeof (capv[0]);
 #endif
 
 
-extern "C" int
-miredo_diagnose (void)
+extern int miredo_diagnose (void)
 {
 	char errbuf[LIBTUN6_ERRBUF_SIZE];
 	if (tun6_driver_diagnose (errbuf))
@@ -158,9 +158,10 @@ miredo_recv_callback (void *data, const void *packet, size_t length)
  * Callback to emit an ICMPv6 error message through a raw ICMPv6 socket.
  */
 static void
-miredo_icmp6_callback (void *, const void *packet, size_t length,
+miredo_icmp6_callback (void *data, const void *packet, size_t length,
                         const struct in6_addr *dst)
 {
+	(void)data;
 	assert (icmp6_fd != -1);
 
 	struct sockaddr_in6 addr;
@@ -182,10 +183,10 @@ miredo_icmp6_callback (void *, const void *packet, size_t length,
 #define TEREDO_EXCLIENT 3
 
 static bool
-ParseRelayType (MiredoConf& conf, const char *name, int *type)
+ParseRelayType (miredo_conf *conf, const char *name, int *type)
 {
 	unsigned line;
-	char *val = conf.GetRawValue (name, &line);
+	char *val = miredo_conf_get (conf, name, &line);
 
 	if (val == NULL)
 		return true;
@@ -383,7 +384,7 @@ run_tunnel (miredo_tunnel *tunnel, miredo_addrwatch *w)
 
 
 extern int
-miredo_run (MiredoConf& conf, const char *server_name)
+miredo_run (miredo_conf *conf, const char *server_name)
 {
 	/*
 	 * CONFIGURATION
@@ -410,7 +411,7 @@ miredo_run (MiredoConf& conf, const char *server_name)
 #ifdef MIREDO_TEREDO_CLIENT
 		if (server_name == NULL)
 		{
-			char *name = conf.GetRawValue ("ServerAddress");
+			char *name = miredo_conf_get (conf, "ServerAddress", NULL);
 			if (name == NULL)
 			{
 				syslog (LOG_ALERT, _("Server address not specified"));
@@ -421,7 +422,7 @@ miredo_run (MiredoConf& conf, const char *server_name)
 			free (name);
 			server_name = namebuf;
 
-			name = conf.GetRawValue ("ServerAddress2");
+			name = miredo_conf_get (conf, "ServerAddress2", NULL);
 			if (name != NULL)
 			{
 				strlcpy (namebuf2, name, sizeof (namebuf2));
@@ -440,8 +441,8 @@ miredo_run (MiredoConf& conf, const char *server_name)
 		server_name = NULL;
 		mtu = 1280;
 
-		if (!ParseIPv6 (conf, "Prefix", &prefix.ip6)
-		 || !conf.GetInt16 ("InterfaceMTU", &mtu))
+		if (!miredo_conf_parse_IPv6 (conf, "Prefix", &prefix.ip6)
+		 || !miredo_conf_get_int16 (conf, "InterfaceMTU", &mtu, NULL))
 		{
 			syslog (LOG_ALERT, _("Fatal configuration error"));
 			return -2;
@@ -465,9 +466,9 @@ miredo_run (MiredoConf& conf, const char *server_name)
 #endif
 	bool ignore_cone = true;
 
-	if (!ParseIPv4 (conf, "BindAddress", &bind_ip)
-	 || !conf.GetInt16 ("BindPort", &bind_port)
-	 || !conf.GetBoolean ("IgnoreConeBit", &ignore_cone))
+	if (!miredo_conf_parse_IPv4 (conf, "BindAddress", &bind_ip)
+	 || !miredo_conf_get_int16 (conf, "BindPort", &bind_port, NULL)
+	 || !miredo_conf_get_bool (conf, "IgnoreConeBit", &ignore_cone, NULL))
 	{
 		syslog (LOG_ALERT, _("Fatal configuration error"));
 		return -2;
@@ -475,9 +476,9 @@ miredo_run (MiredoConf& conf, const char *server_name)
 
 	bind_port = htons (bind_port);
 
-	char *ifname = conf.GetRawValue ("InterfaceName");
+	char *ifname = miredo_conf_get (conf, "InterfaceName", NULL);
 
-	conf.Clear (5);
+	miredo_conf_clear (conf, 5);
 
 	/*
 	 * SETUP
@@ -588,15 +589,13 @@ miredo_run (MiredoConf& conf, const char *server_name)
 }
 
 
-extern "C"
-void miredo_setup_fd (int fd)
+extern void miredo_setup_fd (int fd)
 {
 	(void) fcntl (fd, F_SETFD, FD_CLOEXEC);
 }
 
 
-extern "C"
-void miredo_setup_nonblock_fd (int fd)
+extern void miredo_setup_nonblock_fd (int fd)
 {
 	int flags = fcntl (fd, F_GETFL);
 	if (flags == -1)
