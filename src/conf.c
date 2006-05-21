@@ -470,6 +470,8 @@ bool miredo_conf_parse_teredo_prefix (miredo_conf *conf, const char *name,
                                       uint32_t *value)
 {
 	union teredo_addr addr;
+	memset (&addr, 0, sizeof (addr));
+	addr.teredo.prefix = *value;
 
 	if (miredo_conf_parse_IPv6 (conf, name, &addr.ip6))
 	{
