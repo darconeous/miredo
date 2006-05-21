@@ -47,7 +47,7 @@
 
 #include "conf.h"
 
-MiredoConf::MiredoConf (void) : head (NULL), tail (NULL)
+MiredoConf::MiredoConf (void) : head (NULL), tail (NULL), logger (NULL)
 {
 }
 
@@ -58,8 +58,30 @@ MiredoConf::~MiredoConf (void)
 }
 
 
+miredo_conf *miredo_conf_create (miredo_conf_logger logger, void *opaque)
+{
+	miredo_conf *conf = new MiredoConf;
+	if (conf == NULL)
+		return NULL;
+
+	conf->head = conf->tail = NULL;
+	conf->logger = logger;
+	conf->logger_data = opaque;
+	return conf;
+}
+
+
+void miredo_conf_destroy (miredo_conf *conf)
+{
+	assert (conf != NULL);
+	miredo_conf_clear (conf, 0);
+	delete conf;
+}
+
+
 static void
 LogError (miredo_conf *conf, const char *fmt, ...)
+//	__attribute__(((format (printf (2, 3)))
 {
 	va_list ap;
 
@@ -71,6 +93,7 @@ LogError (miredo_conf *conf, const char *fmt, ...)
 
 static void
 LogWarning (miredo_conf *conf, const char *fmt, ...)
+//	__attribute__((format (printf (2, 3)))
 {
 	va_list ap;
 
@@ -81,8 +104,10 @@ LogWarning (miredo_conf *conf, const char *fmt, ...)
 
 
 void
-MiredoConf::Log (bool, const char *, va_list)
+MiredoConf::Log (bool error, const char *fmt, va_list ap)
 {
+	if (logger != NULL)
+		logger (logger_data, error, fmt, ap);
 }
 
 

@@ -21,10 +21,13 @@
 
 #ifndef MIREDO_CONF_H
 
+# include <stdarg.h>
+
+typedef void (*miredo_conf_logger) (void *, bool, const char *, va_list);
+
 # ifdef __cplusplus
 
 #  include <stdio.h>
-#  include <stdarg.h>
 
 class MiredoConf;
 typedef MiredoConf miredo_conf;
@@ -42,6 +45,8 @@ class MiredoConf
 {
 	public: /* gruik */
 		struct setting *head, *tail;
+		miredo_conf_logger logger;
+		void *logger_data;
 
 		virtual void Log (bool error, const char *fmt, va_list ap);
 
@@ -55,6 +60,9 @@ class MiredoConf
 
 extern "C" {
 # endif
+
+miredo_conf *miredo_conf_create (miredo_conf_logger logger, void *opaque);
+void miredo_conf_destroy (miredo_conf *conf);
 
 bool miredo_conf_read_file (miredo_conf *conf, const char *path);
 
