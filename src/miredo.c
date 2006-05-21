@@ -1,5 +1,5 @@
 /*
- * miredo.cpp - Miredo common daemon functions
+ * miredo.c - Miredo common daemon functions
  * $Id$
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
@@ -35,10 +35,11 @@
 #elif HAVE_INTTYPES_H
 # include <inttypes.h>
 #endif
-#include <pthread.h> // pthread_sigmask()
-#include <signal.h> // sigaction()
+#include <stdbool.h>
 #include <stdarg.h>
 
+#include <pthread.h> // pthread_sigmask()
+#include <signal.h> // sigaction()
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -53,8 +54,8 @@
 # define LOG_PERROR 0
 #endif
 
-#include "conf.h"
 #include "miredo.h"
+#include "conf.h"
 
 /*
  * Signal handlers
@@ -92,7 +93,7 @@ reload_handler (int signum)
 uid_t unpriv_uid = 0;
 const char *miredo_chrootdir = NULL;
 
-extern "C" int
+extern int
 drop_privileges (void)
 {
 	/*
@@ -193,7 +194,7 @@ static void logger (void *dummy, bool error, const char *fmt, va_list ap)
 }
 
 
-extern "C" int
+extern int
 miredo (const char *confpath, const char *server_name, int pidfd)
 {
 	int facility = LOG_DAEMON, retval;

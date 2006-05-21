@@ -24,6 +24,7 @@
 # include <stdarg.h>
 
 typedef void (*miredo_conf_logger) (void *, bool, const char *, va_list);
+struct in6_addr;
 
 # ifdef __cplusplus
 

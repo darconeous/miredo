@@ -38,7 +38,7 @@ TESTS = miredo-checkconf
 
 #BUILT_SOURCES = $(srcdir)/svnversion.stamp
 
-libmiredo_la_SOURCES = main.c miredo.cpp miredo.h \
+libmiredo_la_SOURCES = main.c miredo.c miredo.h \
 			conf.cpp conf.h binreloc.c binreloc.h
 libmiredo_la_LIBADD = $(LTLIBINTL) $(LIBCAP) $(BINRELOC_LIBS) \
 			../compat/libcompat.la
