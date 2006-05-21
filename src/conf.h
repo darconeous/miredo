@@ -83,7 +83,6 @@ class MiredoConf
 };
 
 
-int GetIPv4ByName (const char *hostname, uint32_t *ipv4);
 bool ParseIPv4 (MiredoConf& conf, const char *name, uint32_t *value);
 bool ParseIPv6 (MiredoConf& conf, const char *name, struct in6_addr *value);
 bool ParseTeredoPrefix (MiredoConf& conf, const char *name, uint32_t *value);
@@ -91,8 +90,6 @@ bool ParseTeredoPrefix (MiredoConf& conf, const char *name, uint32_t *value);
 bool ParseSyslogFacility (MiredoConf& conf, const char *name, int *fac);
 
 extern "C" {
-# else
-typedef struct miredo_conf miredo_conf;
 # endif
 
 void miredo_conf_clear (miredo_conf *conf, int show);
@@ -102,6 +99,8 @@ bool miredo_conf_get_int16 (miredo_conf *conf, const char *name,
                             uint16_t *value, unsigned *line);
 bool miredo_conf_get_bool (miredo_conf *conf, const char *name,
                            bool *value, unsigned *line);
+
+int GetIPv4ByName (const char *hostname, uint32_t *ipv4);
 
 bool miredo_conf_parse_IPv4 (miredo_conf *conf, const char *name,
                              uint32_t *value);

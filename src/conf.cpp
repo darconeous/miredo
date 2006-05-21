@@ -331,6 +331,7 @@ MiredoConf::GetBoolean (const char *name, bool *value, unsigned *line)
 /*
  * Looks up an IPv4 address (network byte order) associated with hostname.
  */
+extern "C"
 int GetIPv4ByName (const char *hostname, uint32_t *ipv4)
 {
 	struct addrinfo help, *res;
