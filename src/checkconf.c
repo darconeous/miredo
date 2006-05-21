@@ -199,9 +199,8 @@ int main(int argc, char *argv[])
 
 			if (asprintf (&str, "%s/../misc/miredo.conf-dist",
 			              srcdir) == -1)
-				filename = str = NULL;
-			else
-				filename = str;
+				return 1;
+			filename = str;
 		}
 		else
 			filename = conffile;
