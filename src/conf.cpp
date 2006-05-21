@@ -35,6 +35,7 @@
 # include <inttypes.h>
 #endif
 #include <string.h>
+#include <stdbool.h>
 
 #include <errno.h>
 #include <syslog.h>
@@ -45,22 +46,29 @@
 #include <netdb.h>
 #include <libteredo/teredo.h>
 
+#include "miredo.h"
 #include "conf.h"
 
-MiredoConf::MiredoConf (void) : head (NULL), tail (NULL), logger (NULL)
+struct setting
 {
-}
+	char *name;
+	char *value;
+	unsigned line;
+	struct setting *next;
+};
 
 
-MiredoConf::~MiredoConf (void)
+struct miredo_conf
 {
-	miredo_conf_clear (this, 0);
-}
+	struct setting *head, *tail;
+	miredo_conf_logger logger;
+	void *logger_data;
+};
 
 
 miredo_conf *miredo_conf_create (miredo_conf_logger logger, void *opaque)
 {
-	miredo_conf *conf = new MiredoConf;
+	miredo_conf *conf = (miredo_conf *)malloc (sizeof (*conf));
 	if (conf == NULL)
 		return NULL;
 
@@ -75,7 +83,7 @@ void miredo_conf_destroy (miredo_conf *conf)
 {
 	assert (conf != NULL);
 	miredo_conf_clear (conf, 0);
-	delete conf;
+	free (conf);
 }
 
 
@@ -83,10 +91,16 @@ static void
 LogError (miredo_conf *conf, const char *fmt, ...)
 //	__attribute__(((format (printf (2, 3)))
 {
+	assert (conf != NULL);
+	assert (fmt != NULL);
+
+	if (conf->logger == NULL)
+		return;
+
 	va_list ap;
 
 	va_start (ap, fmt);
-	conf->Log (true, fmt, ap);
+	conf->logger (conf->logger_data, true, fmt, ap);
 	va_end (ap);
 }
 
@@ -95,19 +109,17 @@ static void
 LogWarning (miredo_conf *conf, const char *fmt, ...)
 //	__attribute__((format (printf (2, 3)))
 {
+	assert (conf != NULL);
+	assert (fmt != NULL);
+
+	if (conf->logger == NULL)
+		return;
+
 	va_list ap;
 
 	va_start (ap, fmt);
-	conf->Log (false, fmt, ap);
+	conf->logger (conf->logger_data, false, fmt, ap);
 	va_end (ap);
-}
-
-
-void
-MiredoConf::Log (bool error, const char *fmt, va_list ap)
-{
-	if (logger != NULL)
-		logger (logger_data, error, fmt, ap);
 }
 
 

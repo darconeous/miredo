@@ -25,11 +25,11 @@
 #ifndef MIREDO_MIREDO_H
 # define MIREDO_MIREDO_H
 
+typedef struct miredo_conf miredo_conf;
+
 # ifdef __cplusplus
 extern "C"
 {
-# else
-typedef struct miredo_conf miredo_conf;
 # endif
 
 int miredo (const char *conffile, const char *server_name, int pidfd);

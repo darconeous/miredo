@@ -27,38 +27,6 @@ typedef void (*miredo_conf_logger) (void *, bool, const char *, va_list);
 struct in6_addr;
 
 # ifdef __cplusplus
-
-#  include <stdio.h>
-
-class MiredoConf;
-typedef MiredoConf miredo_conf;
-
-/* gruik */
-struct setting
-{
-	char *name;
-	char *value;
-	unsigned line;
-	struct setting *next;
-};
-
-class MiredoConf
-{
-	public: /* gruik */
-		struct setting *head, *tail;
-		miredo_conf_logger logger;
-		void *logger_data;
-
-		virtual void Log (bool error, const char *fmt, va_list ap);
-
-		MiredoConf (void);
-		virtual ~MiredoConf (void);
-		MiredoConf (const MiredoConf& src); /* not implemented */
-		MiredoConf& operator= (const MiredoConf& src); /* not implemented */
-
-		operator miredo_conf *(void) { return this; }
-};
-
 extern "C" {
 # endif
 
