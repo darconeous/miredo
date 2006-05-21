@@ -336,6 +336,8 @@ static void *miredo_encap_thread (void *d)
 			teredo_transmit (relay, &pbuf.ip6, val);
 			pthread_setcancelstate (PTHREAD_CANCEL_ENABLE, NULL);
 		}
+		else
+			pthread_testcancel ();
 	}
 	return NULL;
 }
@@ -370,7 +372,6 @@ run_tunnel (miredo_tunnel *tunnel, miredo_addrwatch *w)
 		sigset_t set;
 		sigemptyset (&set);
 		if (pselect (fd + 1, &readset, NULL, NULL, NULL, &set) < 0)
-		//if (sigwait (&set, &dummy) == 0)
 		{
 			retval = 0;
 			break;
@@ -558,7 +559,10 @@ miredo_run (miredo_conf *conf, const char *server_name)
 						retval = run_tunnel (&data, watch);
 #ifdef MIREDO_TEREDO_CLIENT
 						if (retval == -2)
+						{
+							assert (mode == TEREDO_EXCLIENT);
 							miredo_down_callback (&data);
+						}
 #endif
 					}
 					teredo_destroy (relay);
