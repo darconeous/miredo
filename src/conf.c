@@ -1,5 +1,5 @@
 /*
- * conf.cpp - Configuration text file parsing definition
+ * conf.c - Configuration text file parsing definition
  * $Id$
  */
 
@@ -123,7 +123,6 @@ LogWarning (miredo_conf *conf, const char *fmt, ...)
 }
 
 
-extern "C"
 void miredo_conf_clear (miredo_conf *conf, int show)
 {
 	/* lock here */
@@ -203,7 +202,6 @@ miredo_conf_set (miredo_conf *conf, const char *name, const char *value,
  * @return NULL if not found.
  * Otherwise, return value must be free()d by caller.
  */
-extern "C"
 char *miredo_conf_get (miredo_conf *conf, const char *name, unsigned *line)
 {
 	for (struct setting *p = conf->head, *prev = NULL; p != NULL; p = p->next)
@@ -284,7 +282,6 @@ static bool miredo_conf_read_FILE (miredo_conf *conf, FILE *stream)
  *
  * @return false on I/O error, true on success.
  */
-extern "C"
 bool miredo_conf_read_file (miredo_conf *conf, const char *path)
 {
 	assert (path != NULL);
@@ -310,7 +307,6 @@ bool miredo_conf_read_file (miredo_conf *conf, const char *path)
  * If the setting was not found value, returns true and leave
  * *value unchanged.
  */
-extern "C"
 bool miredo_conf_get_int16 (miredo_conf *conf, const char *name,
                             uint16_t *value, unsigned *line)
 {
@@ -342,7 +338,6 @@ static const char *true_strings[] = { "yes", "true", "on", "enabled", NULL };
 static const char *false_strings[] =
 	{ "no", "false", "off", "disabled", NULL };
 
-extern "C"
 bool miredo_conf_get_bool (miredo_conf *conf, const char *name,
                            bool *value, unsigned *line)
 {
@@ -393,7 +388,6 @@ bool miredo_conf_get_bool (miredo_conf *conf, const char *name,
 /**
  * Looks up an IPv4 address (network byte order) associated with hostname.
  */
-extern "C"
 int GetIPv4ByName (const char *hostname, uint32_t *ipv4)
 {
 	struct addrinfo help, *res;
@@ -413,7 +407,6 @@ int GetIPv4ByName (const char *hostname, uint32_t *ipv4)
 }
 
 
-extern "C"
 bool miredo_conf_parse_IPv4 (miredo_conf *conf, const char *name,
                              uint32_t *ipv4)
 {
@@ -438,7 +431,6 @@ bool miredo_conf_parse_IPv4 (miredo_conf *conf, const char *name,
 }
 
 
-extern "C"
 bool miredo_conf_parse_IPv6 (miredo_conf *conf, const char *name,
                              struct in6_addr *value)
 {
@@ -474,7 +466,6 @@ bool miredo_conf_parse_IPv6 (miredo_conf *conf, const char *name,
 }
 
 
-extern "C"
 bool miredo_conf_parse_teredo_prefix (miredo_conf *conf, const char *name,
                                       uint32_t *value)
 {
@@ -548,7 +539,6 @@ static const struct miredo_conf_syslog_facility
 };
 
 
-extern "C"
 bool miredo_conf_parse_syslog_facility (miredo_conf *conf, const char *name,
                                         int *facility)
 {

@@ -39,13 +39,13 @@ TESTS = miredo-checkconf
 #BUILT_SOURCES = $(srcdir)/svnversion.stamp
 
 libmiredo_la_SOURCES = main.c miredo.c miredo.h \
-			conf.cpp conf.h binreloc.c binreloc.h
+			conf.c conf.h binreloc.c binreloc.h
 libmiredo_la_LIBADD = $(LTLIBINTL) $(LIBCAP) $(BINRELOC_LIBS) \
 			../compat/libcompat.la
 libmiredo_la_LDFLAGS = -static -no-undefined
 
 # miredo
-miredo_SOURCES = relay.c dummy.cpp
+miredo_SOURCES = relay.c
 if TEREDO_CLIENT
 miredo_SOURCES += privproc.c privproc.h addrwatch.c addrwatch.h
 endif
@@ -53,15 +53,15 @@ miredo_LDADD = ../libtun6/libtun6.la ../libteredo/libteredo.la libmiredo.la \
 		$(LIBINTL)
 
 # miredo-server
-miredo_server_SOURCES = server.c dummy.cpp
+miredo_server_SOURCES = server.c
 miredo_server_LDADD = ../libteredo/libteredo-server.la libmiredo.la $(LIBINTL)
 
 # miredo-checkconf
-miredo_checkconf_SOURCES = checkconf.c dummy.cpp
+miredo_checkconf_SOURCES = checkconf.c
 miredo_checkconf_LDADD = libmiredo.la $(LIBINTL)
 
 # isatapd
-isatapd_SOURCES = isatap.c dummy.cpp
+isatapd_SOURCES = isatap.c
 isatapd_LDADD = ../libtun6/libtun6.la libmiredo.la $(LIBINTL)
 
 install-exec-local:

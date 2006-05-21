@@ -1,5 +1,5 @@
 /*
- * miredo.h - header for miredo.cpp
+ * miredo.h - header for miredo.c
  * $Id$
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
