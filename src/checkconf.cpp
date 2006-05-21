@@ -108,8 +108,8 @@ static int miredo_checkconf (MiredoConf& conf)
 	if (client)
 	{
 #ifdef MIREDO_TEREDO_CLIENT
-		if (!ParseIPv4 (conf, "ServerAddress", &u32)
-		 || !ParseIPv4 (conf, "ServerAddress2", &u32))
+		if (!miredo_conf_parse_IPv4 (conf, "ServerAddress", &u32)
+		 || !miredo_conf_parse_IPv4 (conf, "ServerAddress2", &u32))
 			res = -1;
 #else
 		fputs (_("Unsupported Teredo client mode"), stderr);
@@ -120,13 +120,13 @@ static int miredo_checkconf (MiredoConf& conf)
 	else
 	{
 		struct in6_addr ip6;
-		if (!ParseIPv6 (conf, "Prefix", &ip6)
+		if (!miredo_conf_parse_IPv6 (conf, "Prefix", &ip6)
 		 || !conf.GetInt16 ("InterfaceMTU", &u16))
 			res = -1;
 	}
 
 	bool b;
-	if (!ParseIPv4 (conf, "BindAddress", &u32)
+	if (!miredo_conf_parse_IPv4 (conf, "BindAddress", &u32)
 	 || !conf.GetInt16 ("BindPort", &u16)
 	 || !conf.GetBoolean ("IgnoreConeBit", &b))
 		res = -1;

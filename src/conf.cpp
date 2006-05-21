@@ -351,11 +351,12 @@ int GetIPv4ByName (const char *hostname, uint32_t *ipv4)
 }
 
 
-bool
-ParseIPv4 (MiredoConf& conf, const char *name, uint32_t *ipv4)
+extern "C"
+bool miredo_conf_parse_IPv4 (miredo_conf *conf, const char *name,
+                             uint32_t *ipv4)
 {
 	unsigned line;
-	char *val = conf.GetRawValue (name, &line);
+	char *val = conf->GetRawValue (name, &line);
 
 	if (val == NULL)
 		return true;
@@ -364,8 +365,8 @@ ParseIPv4 (MiredoConf& conf, const char *name, uint32_t *ipv4)
 
 	if (check)
 	{
-		conf.LogError (_("Invalid hostname \"%s\" at line %u: %s"),
-		               val, line, gai_strerror (check));
+		conf->LogError (_("Invalid hostname \"%s\" at line %u: %s"),
+		                val, line, gai_strerror (check));
 		free (val);
 		return false;
 	}
@@ -375,11 +376,12 @@ ParseIPv4 (MiredoConf& conf, const char *name, uint32_t *ipv4)
 }
 
 
-bool
-ParseIPv6 (MiredoConf& conf, const char *name, struct in6_addr *value)
+extern "C"
+bool miredo_conf_parse_IPv6 (miredo_conf *conf, const char *name,
+                             struct in6_addr *value)
 {
 	unsigned line;
-	char *val = conf.GetRawValue (name, &line);
+	char *val = conf->GetRawValue (name, &line);
 
 	if (val == NULL)
 		return true;
@@ -395,8 +397,8 @@ ParseIPv6 (MiredoConf& conf, const char *name, struct in6_addr *value)
 
 	if (check)
 	{
-		conf.LogError (_("Invalid hostname \"%s\" at line %u: %s"),
-		               val, line, gai_strerror (check));
+		conf->LogError (_("Invalid hostname \"%s\" at line %u: %s"),
+		                val, line, gai_strerror (check));
 		free (val);
 		return false;
 	}
@@ -410,6 +412,7 @@ ParseIPv6 (MiredoConf& conf, const char *name, struct in6_addr *value)
 }
 
 
+#if 0
 bool
 ParseTeredoPrefix (MiredoConf& conf, const char *name, uint32_t *value)
 {
@@ -429,6 +432,7 @@ ParseTeredoPrefix (MiredoConf& conf, const char *name, uint32_t *value)
 	}
 	return false;
 }
+#endif
 
 
 static const struct miredo_conf_syslog_facility
@@ -531,18 +535,6 @@ bool miredo_conf_get_bool (miredo_conf *conf, const char *name,
                            bool *value, unsigned *line)
 {
 	return conf->GetBoolean (name, value, line);
-}
-
-bool miredo_conf_parse_IPv4 (miredo_conf *conf, const char *name,
-                             uint32_t *value)
-{
-	return ParseIPv4 (*conf, name, value);
-}
-
-bool miredo_conf_parse_IPv6 (miredo_conf *conf, const char *name,
-                             struct in6_addr *value)
-{
-	return ParseIPv6 (*conf, name, value);
 }
 
 
