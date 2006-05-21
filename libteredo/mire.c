@@ -23,7 +23,11 @@
 # include <config.h>
 #endif
 
-#include <stdint.h>
+#ifdef HAVE_STDINT_H
+# include <stdint.h>
+#else
+# include <inttypes.h>
+#endif
 #include <stdio.h>
 #include <string.h>
 
