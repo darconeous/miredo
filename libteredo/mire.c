@@ -40,14 +40,31 @@
 # include <getopt.h>
 #endif
 
+#ifdef MIRE_COUNTER
+#include <signal.h>
+static unsigned long count_pkt = 0;
+static unsigned long count_bytes = 0;
+static void handler (int signum)
+{
+	signal (signum, handler);
+	count_bytes /= 1000;
+	printf ("%lu packets/s, %lu.%03lu Mbits/s\n", count_pkt,
+		count_bytes / 125, count_bytes % 125 * 8);
+	count_pkt = count_bytes = 0;
+	if (signum == SIGALRM)
+		alarm (1);
+}
+#endif
+
+
 static void
-process_icmpv6 (int fd, const struct ip6_hdr *ip6, size_t plen,
+process_icmpv6 (int fd, struct ip6_hdr *ip6, size_t plen,
                 uint32_t ipv4, uint16_t port)
 {
 	if (plen < sizeof (struct icmp6_hdr))
 		return;
 
-	const struct icmp6_hdr *hdr = (const struct icmp6_hdr *)(ip6 + 1);
+	struct icmp6_hdr *hdr = (struct icmp6_hdr *)(ip6 + 1);
 	/*
 	 * - Errors must not raise any answer, unknown ones must be passed to the
 	 *   upper layer, but therer's no such upper layer in our case.
@@ -58,9 +75,8 @@ process_icmpv6 (int fd, const struct ip6_hdr *ip6, size_t plen,
 	 */
 	if (hdr->icmp6_type != ICMP6_ECHO_REQUEST)
 		return;
-	// FIXME: check checksum (difficult because of non alignment)
 
-	// TODO: use an iovec instead - needs to rewrite checksum though
+#ifndef MIRE_NOALIGN
 	struct
 	{
 		struct ip6_hdr   ip6;
@@ -83,6 +99,21 @@ process_icmpv6 (int fd, const struct ip6_hdr *ip6, size_t plen,
 	reply.icmp6.icmp6_cksum = icmp6_checksum (&reply.ip6, &reply.icmp6);
 
 	teredo_send (fd, &reply, sizeof (*ip6) + plen, ipv4, port);
+#else
+	ip6->ip6_hlim = 255;
+
+	struct in6_addr buf;
+	memcpy (&buf, &ip6->ip6_dst, sizeof (buf));
+	memcpy (&ip6->ip6_dst, &ip6->ip6_src, sizeof (ip6->ip6_dst));
+	memcpy (&ip6->ip6_src, &buf, sizeof (ip6->ip6_src));
+
+	hdr->icmp6_type = ICMP6_ECHO_REPLY;
+	hdr->icmp6_code = 0;
+	hdr->icmp6_cksum = 0;
+	hdr->icmp6_cksum = icmp6_checksum (ip6, hdr);
+
+	teredo_send (fd, ip6, sizeof (*ip6) + plen, ipv4, port);
+#endif
 }
 
 
@@ -197,6 +228,10 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
+#ifdef MIRE_COUNTER
+	signal (SIGALRM, handler);
+	alarm (1);
+#endif
 	for (;;)
 	{
 		struct teredo_packet p;
@@ -215,6 +250,10 @@ int main(int argc, char *argv[])
 		// Check packet validity
 		memcpy (&plen, &ip6->ip6_plen, sizeof (plen));
 		plen = ntohs (plen);
+#ifdef MIRE_COUNTER
+		count_pkt++;
+		count_bytes += plen + 40;
+#endif
 
 		if (((ip6->ip6_vfc >> 4) != 6)
 		 || ((plen + sizeof (*ip6)) != p.ip6_len))
