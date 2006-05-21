@@ -185,14 +185,12 @@ InitSignals (void)
 /*
  * Configuration and respawning stuff
  */
-class MiredoSyslogConf : public MiredoConf
+static void logger (void *dummy, bool error, const char *fmt, va_list ap)
 {
-	protected:
-		virtual void Log (bool error, const char *fmt, va_list ap)
-		{
-			vsyslog (error ? LOG_ERR : LOG_WARNING, fmt, ap);
-		}
-};
+	(void)dummy;
+
+	vsyslog (error ? LOG_ERR : LOG_WARNING, fmt, ap);
+}
 
 
 extern "C" int
@@ -201,13 +199,16 @@ miredo (const char *confpath, const char *server_name, int pidfd)
 	int facility = LOG_DAEMON, retval;
 	openlog (miredo_name, LOG_PID | LOG_PERROR, facility);
 
+	miredo_conf *cnf = miredo_conf_create (logger, NULL);
+	if (cnf == NULL)
+		return -1;
+
 	do
 	{
 		retval = 1;
 
 		InitSignals ();
 
-		MiredoSyslogConf cnf;
 		if (!miredo_conf_read_file (cnf, confpath))
 		{
 			syslog (LOG_WARNING, _("Loading configuration from %s failed"),
@@ -300,6 +301,7 @@ miredo (const char *confpath, const char *server_name, int pidfd)
 	else
 		syslog (LOG_INFO, _("Terminated with no error."));
 
+	miredo_conf_destroy (cnf);
 	closelog ();
 	return -retval;
 }
