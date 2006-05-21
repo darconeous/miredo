@@ -2,15 +2,11 @@
  * pthread_barrier replacement with pthread_mutex and pthread_cond.
  * $Id$
  *
- * FIXME:
- * - The replacement pthread_barrier_wait() is a cancellation point,
- *   while it must not.
- *
  * NOTE:
  * - No attributes are defined. In particular, process-shared barriers
  *   are not supported.
  *
- * The author would consider relicense under BSD(-like) terms if asked.
+ * The author would consider relicensing under BSD(-like) terms on demand.
  */
 
 /***********************************************************************
@@ -34,7 +30,7 @@
 /*
  * Apparently, on DragonFly, <pthread.h> defines prototypes for
  * pthread_barrier stuff, even though libc does not implement it.
- * This fix is an adapted from version 0.8.4nb1 in NetBSD pkgsrc.
+ * This fix is adapted from version 0.8.4nb1 in NetBSD pkgsrc.
  */
 #define pthread_barrier_init broken_pthread_barrier_init
 #define pthread_barrier_destroy broken_pthread_barrier_destroy
@@ -115,7 +111,15 @@ pthread_barrier_wait (pthread_barrier_t *barrier)
 		barrier->count--;
 		if (barrier->count > 0)
 		{
+			int status;
+
+			/*
+			 * pthread_barrier_wait() is NOT a cancellation point, and it is
+			 * of course not async-cancellation safe.
+			 */
+			(void)pthread_setcancelstate (PTHREAD_CANCEL_DISABLE, &status);
 			(void)pthread_cond_wait (&barrier->cond, &barrier->mutex);
+			(void)pthread_setcancelstate (status, NULL);
 			val = 0;
 		}
 		else

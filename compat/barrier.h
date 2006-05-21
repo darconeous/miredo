@@ -23,6 +23,12 @@
 #ifndef __MIREDO_COMPAT_BARRIER_H
 # define __MIREDO_COMPAT_BARRIER_H
 
+/*
+ * Of course, someone had to mess with barriers. uclibc does not support them,
+ * but still defines not only PTHREAD_BARRIER_SERIAL_THREAD, but also, the
+ * associated typedefs, and *even* _POSIX_BARRIERS (!!) which is supposed to
+ * mean that they are supported. No thanks.
+ */
 # ifndef PTHREAD_BARRIER_SERIAL_THREAD
 #  define PTHREAD_BARRIER_SERIAL_THREAD (-1)
 # endif
