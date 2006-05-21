@@ -412,18 +412,18 @@ bool miredo_conf_parse_IPv6 (miredo_conf *conf, const char *name,
 }
 
 
-#if 0
-bool
-ParseTeredoPrefix (MiredoConf& conf, const char *name, uint32_t *value)
+extern "C"
+bool miredo_conf_parse_teredo_prefix (miredo_conf *conf, const char *name,
+                                      uint32_t *value)
 {
 	union teredo_addr addr;
 
-	if (ParseIPv6 (conf, name, &addr.ip6))
+	if (miredo_conf_parse_IPv6 (conf, name, &addr.ip6))
 	{
 		if (!is_valid_teredo_prefix (addr.teredo.prefix))
 		{
-			conf.LogError (_("Invalid Teredo IPv6 prefix: %x::/32"),
-			               addr.teredo.prefix);
+			conf->LogError (_("Invalid Teredo IPv6 prefix: %x::/32"),
+			                addr.teredo.prefix);
 			return false;
 		}
 
@@ -432,7 +432,6 @@ ParseTeredoPrefix (MiredoConf& conf, const char *name, uint32_t *value)
 	}
 	return false;
 }
-#endif
 
 
 static const struct miredo_conf_syslog_facility

@@ -82,8 +82,6 @@ class MiredoConf
 		operator miredo_conf *(void) { return this; }
 };
 
-bool ParseTeredoPrefix (MiredoConf& conf, const char *name, uint32_t *value);
-
 bool ParseSyslogFacility (MiredoConf& conf, const char *name, int *fac);
 
 extern "C" {
@@ -103,6 +101,8 @@ bool miredo_conf_parse_IPv4 (miredo_conf *conf, const char *name,
                              uint32_t *value);
 bool miredo_conf_parse_IPv6 (miredo_conf *conf, const char *name,
                              struct in6_addr *value);
+bool miredo_conf_parse_teredo_prefix (miredo_conf *conf, const char *name,
+                                      uint32_t *value);
 
 # ifdef __cplusplus
 }
