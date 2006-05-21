@@ -1,5 +1,5 @@
 /*
- * checkconf.cpp - Miredo conf parser unit test
+ * checkconf.c - Miredo conf parser unit test
  * $Id$
  */
 
@@ -31,6 +31,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
+#include <stdbool.h>
 
 #include <unistd.h>
 #ifdef HAVE_STDINT_H
@@ -39,6 +40,7 @@
 # include <inttypes.h>
 #endif
 #include <netinet/in.h>
+#include "miredo.h"
 #include "conf.h"
 
 #ifdef HAVE_GETOPT_H

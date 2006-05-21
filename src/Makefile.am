@@ -57,7 +57,7 @@ miredo_server_SOURCES = server.c dummy.cpp
 miredo_server_LDADD = ../libteredo/libteredo-server.la libmiredo.la $(LIBINTL)
 
 # miredo-checkconf
-miredo_checkconf_SOURCES = checkconf.cpp
+miredo_checkconf_SOURCES = checkconf.c dummy.cpp
 miredo_checkconf_LDADD = libmiredo.la $(LIBINTL)
 
 # isatapd
