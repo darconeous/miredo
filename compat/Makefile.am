@@ -18,7 +18,6 @@
 # ***********************************************************************
 
 AM_CPPFLAGS = -D_REENTRANT -D_GNU_SOURCE
-AM_CFLAGS = -std=c89
 
 noinst_HEADERS = barrier.h pselect.h
 noinst_LTLIBRARIES = libcompat.la

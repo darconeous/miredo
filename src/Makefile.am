@@ -30,7 +30,6 @@ AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir) -D_REENTRANT \
 	-D_GNU_SOURCE -D_APPLE_C_SOURCE \
 	-DLOCALEDIR=\"$(localedir)\" -DSYSCONFDIR=\"$(sysconfdir)\" \
 	-DLOCALSTATEDIR=\"$(localstatedir)\"
-AM_CFLAGS = -std=c99
 
 sbin_PROGRAMS = miredo miredo-server miredo-checkconf isatapd
 noinst_LTLIBRARIES = libmiredo.la

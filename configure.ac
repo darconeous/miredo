@@ -21,7 +21,7 @@ dnl ***********************************************************************
 
 AC_COPYRIGHT([Copyright (C) 2004-2006 Remi Denis-Courmont])
 AC_INIT(miredo, 0.9.2-svn, miredo-devel_no_bulk_mail@remlab.net)
-AC_PREREQ(2.59)
+AC_PREREQ(2.59c)
 INVOCATION="$0 $*"
 
 AS_MESSAGE(checking system...)
@@ -38,8 +38,8 @@ RDC_BUILD_HOSTNAME
 
 # Checks for programs.
 AS_MESSAGE([checking required programs...])
-AC_PROG_CC
-dnl AC_PROG_CC_C99
+dnl AC_PROG_CC
+AC_PROG_CC_C99
 AC_DISABLE_STATIC
 AC_PROG_LIBTOOL
 AM_INIT_AUTOMAKE([check-news dist-bzip2 no-dist-gzip no-exeext std-options])

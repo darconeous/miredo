@@ -18,7 +18,6 @@
 # ***********************************************************************
 
 AM_CPPFLAGS = -I@top_srcdir@ -I@top_srcdir@/libteredo -D_REENTRANT
-AM_CFLAGS = -std=c99
 
 check_PROGRAMS = libteredo-addrcmp libteredo-list libteredo-stresslist
 TESTS = $(check_PROGRAMS)
