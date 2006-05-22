@@ -420,7 +420,7 @@ teredo_peer *teredo_list_lookup (teredo_peerlist *list, time_t atime,
 	
 		/* touch peer toward garbage collector */
 		p->atime = atime;
-		if (p->prev != NULL)
+		if (p->prev != &list->sentinel)
 		{
 			/* remove peer from list */
 			p->prev->next = p->next;
