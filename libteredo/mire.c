@@ -44,6 +44,10 @@
 # include <getopt.h>
 #endif
 
+
+//#define MIRE_COUNTER 1
+//#define MIRE_NOALIGN 1
+
 #ifdef MIRE_COUNTER
 #include <signal.h>
 static unsigned long count_pkt = 0;
