@@ -154,22 +154,27 @@ struct teredo_peerlist
 #if HAVE_LIBJUDY
 	Pvoid_t PJHSArray;
 #endif
-	bool running;
 };
 
+
+static void mutex_unlock (void *mutex)
+{
+	(void)pthread_mutex_unlock ((pthread_mutex_t *)mutex);
+}
 
 /**
  * Peer list garbage collector entry point.
  *
- * @return when signaled while running flag is false.
+ * @return never ever.
  */
 static void *garbage_collector (void *data)
 {
 	struct teredo_peerlist *l = (struct teredo_peerlist *)data;
 
 	pthread_mutex_lock (&l->lock);
+	pthread_cleanup_push (mutex_unlock, &l->lock);
 
-	while (l->running)
+	for (;;)
 	{
 		while (l->sentinel.prev != &l->sentinel)
 		{
@@ -180,12 +185,11 @@ static void *garbage_collector (void *data)
 
 			if (pthread_cond_timedwait (&l->cond, &l->lock,
 			                            &deadline) != ETIMEDOUT)
-			{
-				if (!l->running)
-					goto out;
 				continue;
-			}
 
+			int state;
+			pthread_setcancelstate (PTHREAD_CANCEL_DISABLE, &state);
+			/* cancel-unsafe section starts */
 			teredo_listitem *victim = NULL;
 
 			for (teredo_listitem *p = l->sentinel.prev;
@@ -223,14 +227,15 @@ static void *garbage_collector (void *data)
 			}
 
 			pthread_mutex_lock (&l->lock);
+			/* cancel-unsafe section ends */
+			pthread_setcancelstate (state, NULL);
 		}
 
 		/* wait until there the list is not empty */
 		pthread_cond_wait (&l->cond, &l->lock);
 	}
 
-out:
-	pthread_mutex_unlock (&l->lock);
+	pthread_cleanup_pop (1);
 	return NULL;
 }
 
@@ -257,7 +262,6 @@ teredo_peerlist *teredo_list_create (unsigned max, unsigned expiration)
 #if HAVE_LIBJUDY
 	l->PJHSArray = (Pvoid_t)NULL;
 #endif
-	l->running = true;
 
 	if (pthread_create (&l->gc, NULL, garbage_collector, l))
 	{
@@ -325,11 +329,7 @@ void teredo_list_destroy (teredo_peerlist *l)
 {
 	teredo_list_reset (l, 0);
 
-	pthread_mutex_lock (&l->lock);
-	l->running = false;
-	pthread_cond_signal (&l->cond);
-	pthread_mutex_unlock (&l->lock);
-
+	pthread_cancel (l->gc);
 	pthread_join (l->gc, NULL);
 	pthread_cond_destroy (&l->cond);
 	pthread_mutex_destroy (&l->lock);
