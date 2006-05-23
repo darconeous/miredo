@@ -352,7 +352,7 @@ teredo_process_packet (const teredo_server *s, bool sec)
 		if ((ip6.ip6_dst.s6_addr[0] & 0xe0) != 0x20)
 			return -2; // must be discarded
 
-		if (IN6_TEREDO_PREFIX(&ip6.ip6_dst) != myprefix)
+		if (IN6_TEREDO_PREFIX (&ip6.ip6_dst) != myprefix)
 			return teredo_send_ipv6 (packet.ip6, packet.ip6_len) ? 2 : -1;
 
 		/*
