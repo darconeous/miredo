@@ -118,20 +118,23 @@ SendBubbleFromDst (int fd, const struct in6_addr *dst,
 
 
 #ifdef MIREDO_TEREDO_CLIENT
+static const struct in6_addr in6addr_allrouters =
+{ { { 0xff, 0x02, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x2 } } };
+
 /**
  * Sends a router solication with an Authentication header.
  *
+ * @param fd socket through which the RS will be sent
  * @param server_ip server IPv4 address toward which the solicitation should
- * be encapsulated
+ * be encapsulated (network byte order)
+ * @param nonce pointer to the 8-bytes authentication nonce
+ * @param cone whether to send a Teredo “cone” solicitation
  *
  * @return 0 on success, -1 on error.
  */
-static const struct in6_addr in6addr_allrouters =
-        { { { 0xff, 0x02, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x2 } } };
-
 int
-SendRS (int fd, uint32_t server_ip,
-        const unsigned char *nonce, bool cone)
+teredo_send_rs (int fd, uint32_t server_ip,
+                const unsigned char *nonce, bool cone)
 {
 	struct teredo_simple_auth auth;
 	struct
@@ -193,15 +196,26 @@ SendRS (int fd, uint32_t server_ip,
  * modified.
  *
  * Assumptions:
- * - newaddr must be 4-bytes aligned.
+ * - newaddr must be 4-bytes aligned (NOT necessarily the packet).
  * - newaddr->teredo.server_ip must be set to the server's expected IP by the
  *   caller.
  * - IPv6 header is valid (ie. version 6, plen matches packet's length, and
  *   the full packet is at least 40 bytes long).
+ *
+ * @param packet Teredo packet to be checked
+ * @param newaddr upon entry, see assumptions, upon succesful return, the
+ * infered Teredo client address. In other words, the caller must set the
+ * server IPv4 part, this function will set the 32 bits Teredo prefix, the
+ * Teredo flags, mapped port and mapped IPv4 parts.
+ * @param cone whether the RA should be a reply to “cone” RS
+ * @param mtu [out] MTU parameter found in the RA, not modified if the RA
+ * had no MTU option. Undefined on error.
+ *
+ * @return 0 on success, -1 on error.
  */
 int
-ParseRA (const teredo_packet *packet, union teredo_addr *newaddr, bool cone,
-         uint16_t *mtu)
+teredo_parse_ra (const teredo_packet *packet, union teredo_addr *newaddr, bool cone,
+                 uint16_t *mtu)
 {
 	if (packet->orig_ipv4 == 0)
 		return -1;

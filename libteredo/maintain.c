@@ -169,7 +169,7 @@ maintenance_recv (const teredo_packet *packet, uint32_t server_ip,
 		return false;
 	}
 
-	if (ParseRA (packet, newaddr, cone, mtu)
+	if (teredo_parse_ra (packet, newaddr, cone, mtu)
 	/* TODO: try to work-around incorrect server IP */
 	 || (newaddr->teredo.server_ip != server_ip))
 		return false;
@@ -354,8 +354,9 @@ static inline void maintenance_thread (teredo_maintenance *m)
 			deadline.tv_sec += QualificationTimeOut;
 		while (!checkTimeDrift (&deadline));
 
-		SendRS (m->fd, (state == PROBE_RESTRICT) ? server_ip2 : server_ip,
-		        nonce.value, c_state->cone);
+		teredo_send_rs (m->fd,
+		                (state == PROBE_RESTRICT) ? server_ip2 : server_ip,
+		                nonce.value, c_state->cone);
 
 		int val = 0;
 		union teredo_addr newaddr;

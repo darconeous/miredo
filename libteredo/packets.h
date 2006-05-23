@@ -33,8 +33,8 @@ struct icmp6_hdr;
 extern "C" {
 #endif
 
-int ParseRA (const teredo_packet *packet, union teredo_addr *newaddr,
-             bool cone, uint16_t *mtu);
+int teredo_parse_ra (const teredo_packet *packet, union teredo_addr *newaddr,
+                     bool cone, uint16_t *mtu);
 
 int CheckPing (const teredo_packet *packet);
 
@@ -45,8 +45,8 @@ int SendBubbleFromDst (int fd, const struct in6_addr *dst, bool cone,
 int SendBubble (int fd, uint32_t ip, uint16_t port,
                 const struct in6_addr *src, const struct in6_addr *dst);
 
-int SendRS (int fd, uint32_t server_ip,
-            const unsigned char *nonce, bool cone);
+int teredo_send_rs (int fd, uint32_t server_ip,
+                    const unsigned char *nonce, bool cone);
 
 int SendPing (int fd, const union teredo_addr *src,
               const struct in6_addr *dst);
