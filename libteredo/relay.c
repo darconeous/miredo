@@ -656,12 +656,12 @@ teredo_run_inner (teredo_tunnel *tunnel, struct teredo_packet *packet)
 	 * IPv6 forwarding enabled, so that the kernel will actually make said
 	 * destination address check itself.
 	 *
-	 * In the relay case, it is sayd we should accept packet toward the range
+	 * In the relay case, it is said we should accept packet toward the range
 	 * of hosts for which we serve as a Teredo relay, and should otherwise
 	 * drop it. That should be done just before sending the packet. We leave
 	 * it up to the network administrator to configure or not configure
 	 * source address filtering on its Teredo relay/router, via standard
-	 * firewalling (i.e. NetFilter/iptables on Linux).
+	 * firewalling (e.g. NetFilter/iptables on Linux).
 	 *
 	 * It should also be noted that dropping packets with link-local
 	 * destination here, before further processing, breaks connectivity
@@ -691,7 +691,7 @@ teredo_run_inner (teredo_tunnel *tunnel, struct teredo_packet *packet)
 	 *
 	 * This check is not part of the Teredo specification.
 	 */
-	if ((((uint16_t *)ip6.ip6_src.s6_addr)[0] & 0xfec0) == 0xfe80)
+	if ((((uint16_t *)ip6.ip6_src.s6_addr)[0] & 0xffc0) == 0xfe80)
 		return;
 
 	/* Actual packet reception, either as a relay or a client */
