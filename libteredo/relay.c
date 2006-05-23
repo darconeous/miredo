@@ -671,7 +671,14 @@ teredo_run_inner (teredo_tunnel *tunnel, struct teredo_packet *packet)
 	 *
 	 * Therefore, we don't check that the destination in any case. However, we
 	 * DO check source address quite a lot...
+	 *
+	 * Well, ok, we do still check that the destination is not multicast since
+	 * this is not supposed to happen, even for hole punching, and there is no
+	 * way to handle multicast over Teredo at the moment. This is a
+	 * precautionary measure.
 	 */
+	if (ip6.ip6_dst.s6_addr[0] == 0xff)
+		return;
 
 	/*
 	 * Packets with a link-local source address are purposedly dropped to
@@ -687,7 +694,9 @@ teredo_run_inner (teredo_tunnel *tunnel, struct teredo_packet *packet)
 	 * clients/relays, which can safely be ignored (so long as the other
 	 * bubbles sent through the server are not ignored).
 	 *
-	 * This check is not part of the Teredo specification.
+	 * This check is not part of the Teredo specification, but I really don't
+	 * feel like letting link-local packets come in through the virtual
+	 * network interface.
 	 */
 	if ((((uint16_t *)ip6.ip6_src.s6_addr)[0] & 0xffc0) == 0xfe80)
 		return;
