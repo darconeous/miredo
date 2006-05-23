@@ -336,9 +336,7 @@ int teredo_transmit (teredo_tunnel *tunnel,
 				*src = (union teredo_addr *)&packet->ip6_src;
 
 	/* Drops multicast destination, we cannot handle these */
-	if ((dst->ip6.s6_addr[0] == 0xff)
-	/* Drops multicast source, these are invalid */
-	 || (src->ip6.s6_addr[0] == 0xff))
+	if (dst->ip6.s6_addr[0] == 0xff)
 		return 0;
 
 	teredo_state s;
