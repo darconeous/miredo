@@ -231,7 +231,7 @@ static void *garbage_collector (void *data)
 			pthread_setcancelstate (state, NULL);
 		}
 
-		/* wait until there the list is not empty */
+		/* wait until the list is not empty */
 		pthread_cond_wait (&l->cond, &l->lock);
 	}
 
