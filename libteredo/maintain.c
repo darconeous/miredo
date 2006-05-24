@@ -205,7 +205,7 @@ static void getsafetime (struct timespec *ts)
 }
 
 
-static bool
+static int
 pthread_cond_safewait (pthread_cond_t *cond, pthread_mutex_t *mutex,
                        const struct timespec *deadline)
 {
@@ -228,15 +228,13 @@ pthread_cond_safewait (pthread_cond_t *cond, pthread_mutex_t *mutex,
 		ts.tv_sec--;
 	}
 
-	/* Fix spurious wakeups */
 	int val;
+	/* Ignore EINTR */
 	do
-	{
 		val = pthread_cond_timedwait (cond, mutex, &ts);
-	}
 	while (val && (val != ETIMEDOUT));
 
-	return val != 0;
+	return val;
 }
 
 
@@ -321,9 +319,15 @@ static inline void maintenance_thread (teredo_maintenance *m)
 
 				/* wait some time before next resolution attempt */
 				deadline.tv_sec += RestartDelay;
-				while (!pthread_cond_safewait (&m->received, &m->lock,
-				                               &deadline));
+				while (pthread_cond_safewait (&m->received, &m->lock,
+				                              &deadline) == 0)
+				{
+					if (m->incoming == NULL)
+						continue; /* spurious wakeup */
+
+					m->incoming = NULL;
 					(void)pthread_barrier_wait (&m->processed);
+				}
 			}
 			else
 			{
@@ -371,11 +375,15 @@ static inline void maintenance_thread (teredo_maintenance *m)
 				break;
 			}
 
+			if (m->incoming == NULL)
+				continue; // spurious wakeup
+
 			/* check received packet */
 			bool accept;
 			accept = maintenance_recv (m->incoming, server_ip,
 			                           nonce.value, c_state->cone,
 			                           &mtu, &newaddr);
+			m->incoming = NULL;
 
 			(void)pthread_barrier_wait (&m->processed);
 			if (accept)
@@ -486,9 +494,14 @@ static inline void maintenance_thread (teredo_maintenance *m)
 			deadline.tv_sec -= QualificationTimeOut;
 			deadline.tv_sec += sleep;
 			while (!pthread_cond_safewait (&m->received, &m->lock, &deadline))
-				/* we should not be signaled any way */
-				/* ignore unexpected packet */
+			{
+				if (m->incoming == NULL)
+					continue; // spurious wakeup
+
+				/* ignore unsolicited router solicitation */
+				m->incoming = NULL;
 				(void)pthread_barrier_wait (&m->processed);
+			}
 		}
 	}
 	/* dead code */
