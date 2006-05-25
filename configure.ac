@@ -54,6 +54,22 @@ AM_BINRELOC
 AM_GNU_GETTEXT_VERSION([0.12.1])
 AM_GNU_GETTEXT([external])
 
+AC_CHECK_LIB(rt, clock_gettime)
+RDC_FUNC_SOCKET
+AC_SEARCH_LIBS(inet_ntop, [nsl])
+AC_CHECK_LIB(resolv, res_init)
+
+# POSIX threads
+AS_IF([test "${PTHREAD_LDFAGS}${PTHREAD_LIBS}"], [
+	# Neat! the packaging system tells us how to use pthread
+	LIBS="${PTHREAD_LDFLAGS} ${PTHREAD_LIBS} ${LIBS}"
+], [
+	AC_CHECK_LIB(pthread, pthread_create)
+])
+
+
+
+
 AC_DEFINE_UNQUOTED(PACKAGE_BUILD, "$build",
                    [Define to the canonical build-system name])
 AC_DEFINE_UNQUOTED(PACKAGE_HOST, "$host",
@@ -61,6 +77,7 @@ AC_DEFINE_UNQUOTED(PACKAGE_HOST, "$host",
 
 # Checks for header files.
 AS_MESSAGE([checking header files...])
+AC_HEADER_ASSERT
 AC_CHECK_HEADERS([libintl.h net/if_tun.h net/tun/if_tun.h])
 AC_CHECK_HEADERS([net/if_var.h],,,
 [#include <sys/types.h>
@@ -80,18 +97,6 @@ AS_MESSAGE([checking library functions...])
 RDC_REPLACE_FUNC_GETOPT_LONG
 AC_REPLACE_FUNCS([clearenv closefrom pselect strlcpy])
 
-# Network stuff
-RDC_FUNC_SOCKET
-AC_SEARCH_LIBS(inet_ntop, [nsl])
-AC_CHECK_LIB(resolv, res_init)
-
-# POSIX threads
-AS_IF([test "${PTHREAD_LDFAGS}${PTHREAD_LIBS}"], [
-	# Neat! the packaging system tells us how to use pthread
-	LIBS="${PTHREAD_LDFLAGS} ${PTHREAD_LIBS} ${LIBS}"
-], [
-	AC_CHECK_LIB(pthread, pthread_create)
-])
 AC_CHECK_FUNC([pthread_barrier_wait], [
   AC_DEFINE([HAVE_PTHREAD_BARRIER], 1, [Define to 1 if you have pthread_barrier_*.])
 ], [
@@ -100,7 +105,6 @@ AC_CHECK_FUNC([pthread_barrier_wait], [
 
 # Checks for optionnal features
 AS_MESSAGE([checking optional features...])
-AC_HEADER_ASSERT
 
 # POSIX capabilities
 LIBCAP=""

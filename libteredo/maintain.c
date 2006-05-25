@@ -37,12 +37,10 @@
 #elif HAVE_INTTYPES_H
 # include <inttypes.h>
 #endif
-#include <stdlib.h> /* ldiv() */
+#include <time.h> /* clock_gettime() */
 
 #include <sys/types.h>
 #include <unistd.h> /* sysconf() */
-#include <sys/time.h>
-#include <sys/times.h> /* times() */
 #include <netinet/in.h> /* struct in6_addr */
 #include <netdb.h> /* getaddrinfo(), gai_strerror() */
 #include <syslog.h>
@@ -179,59 +177,21 @@ maintenance_recv (const teredo_packet *packet, uint32_t server_ip,
 }
 
 
-static inline void
-tv2ts (struct timespec *ts, const struct timeval *tv)
-{
-	ts->tv_sec = tv->tv_sec;
-	ts->tv_nsec = tv->tv_usec * 1000;
-}
+#if (_POSIX_MONOTONIC_CLOCK - 0 >= 0)
+static clockid_t clock_id = CLOCK_REALTIME;
+#else
+# define clock_id CLOCK_REALTIME
+#endif
 
 
-static void getsafetime (struct timespec *ts)
-{
-	static long freq = 0, period_ns;
-	if (freq == 0) /* thread-safe */
-	{
-		freq = sysconf (_SC_CLK_TCK);
-		period_ns = 1000000000 / freq;
-	}
-
-	struct tms dummy;
-	long uptime = times (&dummy);
-
-	ldiv_t d = ldiv (uptime, freq);
-	ts->tv_sec = d.quot;
-	ts->tv_nsec = d.rem * period_ns;
-}
-
-
-static int
+static inline int
 pthread_cond_safewait (pthread_cond_t *cond, pthread_mutex_t *mutex,
                        const struct timespec *deadline)
 {
-	struct timeval tv;
-	gettimeofday (&tv, NULL);
-
-	struct timespec ts;
-	getsafetime (&ts);
-
-	ts.tv_sec = tv.tv_sec + (deadline->tv_sec - ts.tv_sec);
-	ts.tv_nsec = tv.tv_usec * 1000 + (deadline->tv_nsec - ts.tv_nsec);
-	while (ts.tv_nsec > 1000000000)
-	{
-		ts.tv_nsec -= 1000000000;
-		ts.tv_sec++;
-	}
-	while (ts.tv_nsec < 0)
-	{
-		ts.tv_nsec += 1000000000;
-		ts.tv_sec--;
-	}
-
 	int val;
 	/* Ignore EINTR */
 	do
-		val = pthread_cond_timedwait (cond, mutex, &ts);
+		val = pthread_cond_timedwait (cond, mutex, deadline);
 	while (val && (val != ETIMEDOUT));
 
 	return val;
@@ -246,7 +206,7 @@ static bool
 checkTimeDrift (struct timespec *ts)
 {
 	struct timespec now;
-	getsafetime (&now);
+	clock_gettime (clock_id, &now);
 
 	if ((now.tv_sec > ts->tv_sec)
 	 || ((now.tv_sec == ts->tv_sec) && (now.tv_nsec > ts->tv_nsec)))
@@ -308,7 +268,7 @@ static inline void maintenance_thread (teredo_maintenance *m)
 			int val = resolveServerIP (m->server, &server_ip,
 			                           m->server2, &server_ip2);
 
-			getsafetime (&deadline);
+			clock_gettime (clock_id, &deadline);
 
 			if (val)
 			{
@@ -451,7 +411,7 @@ static inline void maintenance_thread (teredo_maintenance *m)
 			case PROBE_RESTRICT:
 				state = PROBE_SYMMETRIC;
 				memcpy (&c_state->addr, &newaddr, sizeof (c_state->addr));
-				getsafetime (&deadline);
+				clock_gettime (clock_id, &deadline);
 				break;
 
 			case PROBE_SYMMETRIC:
@@ -558,7 +518,25 @@ teredo_maintenance_start (int fd, teredo_state_cb cb, void *opaque,
 	err = pthread_mutex_init (&m->lock, NULL);
 	if (err == 0)
 	{
-		err = pthread_cond_init (&m->received, NULL);
+		pthread_condattr_t *pattr;
+#if (_POSIX_CLOCK_SELECTION - 0 >= 0) && (_POSIX_MONOTONIC_CLOCK - 0 >= 0)
+		pthread_condattr_t attr;
+
+		if (pthread_condattr_init (&attr) == 0)
+		{
+			if ((clock_id == CLOCK_REALTIME)
+			 && (pthread_condattr_setclock (&attr, CLOCK_MONOTONIC) == 0))
+				clock_id = CLOCK_MONOTONIC;
+			pattr = &attr;
+		}
+		else
+#endif
+			pattr = NULL;
+
+		err = pthread_cond_init (&m->received, pattr);
+		if (pattr != NULL)
+			pthread_condattr_destroy (pattr);
+
 		if (err == 0)
 		{
 			err = pthread_barrier_init (&m->processed, NULL, 2);
