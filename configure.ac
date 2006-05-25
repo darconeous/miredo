@@ -41,6 +41,7 @@ AS_MESSAGE([checking required programs...])
 
 AC_PROG_CC_C99
 AC_USE_SYSTEM_EXTENSIONS
+AC_DEFINE(_APPLE_C_SOURCE, 1, [Define to fix pthread_cancel() on Mac OS X.])
 
 AC_DISABLE_STATIC
 AC_PROG_LIBTOOL
@@ -67,13 +68,11 @@ AS_IF([test "${PTHREAD_LDFAGS}${PTHREAD_LIBS}"], [
 	AC_CHECK_LIB(pthread, pthread_create)
 ])
 
-
-
-
 AC_DEFINE_UNQUOTED(PACKAGE_BUILD, "$build",
                    [Define to the canonical build-system name])
 AC_DEFINE_UNQUOTED(PACKAGE_HOST, "$host",
                    [Define to the canonical host-system name])
+
 
 # Checks for header files.
 AS_MESSAGE([checking header files...])
@@ -90,12 +89,16 @@ AC_CHECK_HEADERS([net/if_var.h],,,
 AS_MESSAGE([checking target characteristics...])
 AC_C_BIGENDIAN
 RDC_STRUCT_SOCKADDR_LEN
+AC_CHECK_TYPE([clockid_t],, [
+  AC_DEFINE([clockid_t], [int], [Define to int if clockid_t is not supported.])],
+[#include <time.h>
+])
 
 
 # Checks for library functions.
 AS_MESSAGE([checking library functions...])
 RDC_REPLACE_FUNC_GETOPT_LONG
-AC_REPLACE_FUNCS([clearenv closefrom pselect strlcpy])
+AC_REPLACE_FUNCS([clearenv closefrom pselect strlcpy clock_gettime clock_nanosleep])
 
 AC_CHECK_FUNC([pthread_barrier_wait], [
   AC_DEFINE([HAVE_PTHREAD_BARRIER], 1, [Define to 1 if you have pthread_barrier_*.])
@@ -196,6 +199,25 @@ int closefrom (int lowfd);
 #if !HAVE_STRLCPY
 # include <stddef.h>
 size_t strlcpy (char *tgt, const char *str, size_t len);
+#endif
+#if !HAVE_CLOCK_GETTIME
+# include <time.h>
+# ifndef CLOCK_REALTIME
+#  define CLOCK_REALTIME 0
+# endif
+int clock_gettime (clockid_t id, struct timespec *now);
+#endif
+#if !HAVE_CLOCK_NANOSLEEP
+# include <time.h>
+# ifndef TIMER_ABSTIME
+#  define TIMER_ABSTIME 1
+# endif
+# undef _POSIX_CLOCK_SELECT
+# define _POSIX_CLOCK_SELECT (-1)
+# undef _POSIX_MONOTONIC_CLOCK
+# define _POSIX_MONOTONIC_CLOCK (-1)
+int clock_nanosleep (clockid_t id, int flags, const struct timespec *ts,
+                     struct timespec *ots);
 #endif
 #ifdef __cplusplus
 }
