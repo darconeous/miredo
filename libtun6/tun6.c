@@ -316,9 +316,8 @@ tun6 *tun6_create (const char *req_name)
 				syslog (LOG_NOTICE,
 				        "*** Ignoring tun-tap-osx spurious error ***\n");
 			else
-#  else
-			goto error;
 #  endif
+			goto error;
 		}
 	}
 # elif defined (TUNSLMODE)
