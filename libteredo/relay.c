@@ -122,8 +122,8 @@ static unsigned IcmpRateLimitMs;      // here
  * @param len byte length of the IPv6 packet at <in>.
  */
 static void
-teredo_send_unreach (teredo_tunnel *tunnel, int code,
-                        const void *in, size_t len)
+teredo_send_unreach (teredo_tunnel *restrict tunnel, int code,
+                     const void *restrict in, size_t len)
 {
 	struct
 	{
@@ -327,13 +327,12 @@ static inline void SetMappingFromPacket (teredo_peer *peer,
  *
  * @return 0 on success, -1 on error.
  */
-int teredo_transmit (teredo_tunnel *tunnel,
-                     const struct ip6_hdr *packet, size_t length)
+int teredo_transmit (teredo_tunnel *restrict tunnel,
+                     const struct ip6_hdr *restrict packet, size_t length)
 {
 	assert (tunnel != NULL);
 
-	const union teredo_addr *dst = (union teredo_addr *)&packet->ip6_dst,
-				*src = (union teredo_addr *)&packet->ip6_src;
+	const union teredo_addr *dst = (union teredo_addr *)&packet->ip6_dst;
 
 	/* Drops multicast destination, we cannot handle these */
 	if (dst->ip6.s6_addr[0] == 0xff)
@@ -357,7 +356,8 @@ int teredo_transmit (teredo_tunnel *tunnel,
 			                        packet, length);
 			return 0;
 		}
-	
+
+		const union teredo_addr *src = (union teredo_addr *)&packet->ip6_src;
 		if ((dst->teredo.prefix != s.addr.teredo.prefix)
 		 && (src->teredo.prefix != s.addr.teredo.prefix))
 		{
@@ -365,9 +365,6 @@ int teredo_transmit (teredo_tunnel *tunnel,
 			 * Routing packets not from a Teredo client,
 			 * neither toward a Teredo client is NOT allowed through a
 			 * Teredo tunnel. The Teredo server will reject the packet.
-			 *
-			 * We also drop link-local unicast and multicast packets as
-			 * they can't be routed through Teredo properly.
 			 */
 			teredo_send_unreach (tunnel, ICMP6_DST_UNREACH_ADMIN,
 			                        packet, length);
@@ -548,7 +545,8 @@ int teredo_transmit (teredo_tunnel *tunnel,
  * Thread-safety: This function is thread-safe.
  */
 static void
-teredo_run_inner (teredo_tunnel *tunnel, struct teredo_packet *packet)
+teredo_run_inner (teredo_tunnel *restrict tunnel,
+                  const struct teredo_packet *restrict packet)
 {
 	assert (tunnel != NULL);
 	assert (packet != NULL);
@@ -1178,7 +1176,8 @@ int teredo_set_cone_flag (teredo_tunnel *t, bool cone)
  * @return 0 on success, -1 in case of error.
  * In case of error, the teredo_tunnel instance is not modifed.
  */
-int teredo_set_client_mode (teredo_tunnel *t, const char *s, const char *s2)
+int teredo_set_client_mode (teredo_tunnel *restrict t,
+                            const char *s, const char *s2)
 {
 #ifdef MIREDO_TEREDO_CLIENT
 	assert (t != NULL);
@@ -1248,7 +1247,7 @@ void *teredo_get_privdata (const teredo_tunnel *t)
 /**
  * Thread-safety: FIXME.
  */
-void teredo_set_recv_callback (teredo_tunnel *t, teredo_recv_cb cb)
+void teredo_set_recv_callback (teredo_tunnel *restrict t, teredo_recv_cb cb)
 {
 	assert (t != NULL);
 	t->recv_cb = (cb != NULL) ? cb : teredo_dummy_recv_cb;
@@ -1258,8 +1257,8 @@ void teredo_set_recv_callback (teredo_tunnel *t, teredo_recv_cb cb)
 /**
  * Thread-safety: FIXME.
  */
-void teredo_set_icmpv6_callback (teredo_tunnel *t,
-                                    teredo_icmpv6_cb cb)
+void teredo_set_icmpv6_callback (teredo_tunnel *restrict t,
+                                 teredo_icmpv6_cb cb)
 {
 	assert (t != NULL);
 	t->icmpv6_cb = (cb != NULL) ? cb : teredo_dummy_icmpv6_cb;
@@ -1279,8 +1278,8 @@ void teredo_set_icmpv6_callback (teredo_tunnel *t,
  *
  * If a callback is set to NULL, it is ignored.
  */
-void teredo_set_state_cb (teredo_tunnel *t, teredo_state_up_cb u,
-                             teredo_state_down_cb d)
+void teredo_set_state_cb (teredo_tunnel *restrict t, teredo_state_up_cb u,
+                          teredo_state_down_cb d)
 {
 #ifdef MIREDO_TEREDO_CLIENT
 	assert (t != NULL);

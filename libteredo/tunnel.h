@@ -44,8 +44,8 @@ int teredo_run_async (teredo_tunnel *t);
 int teredo_set_prefix (teredo_tunnel *t, uint32_t pref);
 int teredo_set_cone_flag (teredo_tunnel *t, bool flag);
 
-int teredo_set_client_mode (teredo_tunnel *t, const char *s1,
-                                      const char *s2);
+int teredo_set_client_mode (teredo_tunnel *restrict t, const char *s1,
+                            const char *s2);
 
 void teredo_set_cone_ignore (teredo_tunnel *t, bool ignore);
 
@@ -53,18 +53,20 @@ void *teredo_set_privdata (teredo_tunnel *, void *);
 void *teredo_get_privdata (const teredo_tunnel *);
 
 typedef void (*teredo_recv_cb) (void *, const void *, size_t);
-void teredo_set_recv_callback (teredo_tunnel *t, teredo_recv_cb cb);
-int teredo_transmit (teredo_tunnel *t, const struct ip6_hdr *buf, size_t n);
+void teredo_set_recv_callback (teredo_tunnel *restrict t, teredo_recv_cb cb);
+int teredo_transmit (teredo_tunnel *restrict t,
+                     const struct ip6_hdr *restrict buf, size_t n);
 
 typedef void (*teredo_icmpv6_cb) (void *, const void *, size_t,
                                      const struct in6_addr *dst);
-void teredo_set_icmpv6_callback (teredo_tunnel *t, teredo_icmpv6_cb cb);
+void teredo_set_icmpv6_callback (teredo_tunnel *restrict t,
+                                 teredo_icmpv6_cb cb);
 
 typedef void (*teredo_state_up_cb) (void *, const struct in6_addr *,
                                        uint16_t);
 typedef void (*teredo_state_down_cb) (void *);
-void teredo_set_state_cb (teredo_tunnel *t, teredo_state_up_cb u,
-                             teredo_state_down_cb d);
+void teredo_set_state_cb (teredo_tunnel *restrict t, teredo_state_up_cb u,
+                          teredo_state_down_cb d);
 
 # ifdef __cplusplus
 }
