@@ -76,7 +76,7 @@ struct teredo_server
  * Sends a Teredo-encapsulated Router Advertisement.
  */
 static bool
-SendRA (const teredo_server *s, const struct teredo_packet *p,
+SendRA (const teredo_server *restrict s, const struct teredo_packet *p,
         const struct in6_addr *dest_ip6, bool secondary)
 {
 	const uint8_t *nonce;

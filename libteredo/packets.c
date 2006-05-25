@@ -214,8 +214,9 @@ teredo_send_rs (int fd, uint32_t server_ip,
  * @return 0 on success, -1 on error.
  */
 int
-teredo_parse_ra (const teredo_packet *packet, union teredo_addr *newaddr, bool cone,
-                 uint16_t *mtu)
+teredo_parse_ra (const teredo_packet *restrict packet,
+                 union teredo_addr *restrict newaddr, bool cone,
+                 uint16_t *restrict mtu)
 {
 	if (packet->orig_ipv4 == 0)
 		return -1;
@@ -479,8 +480,8 @@ int CheckPing (const teredo_packet *packet)
  * ICMPv6 packet should be generated. Never fails.
  */
 int
-BuildICMPv6Error (struct icmp6_hdr *out, uint8_t type, uint8_t code,
-                  const void *in, uint16_t inlen)
+BuildICMPv6Error (struct icmp6_hdr *restrict out, uint8_t type, uint8_t code,
+                  const void *restrict in, uint16_t inlen)
 {
 	const struct in6_addr *p;
 

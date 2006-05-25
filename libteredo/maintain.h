@@ -41,8 +41,8 @@ teredo_maintenance *
 teredo_maintenance_start (int fd, teredo_state_cb cb, void *opaque,
                           const char *s1, const char *s2);
 void teredo_maintenance_stop (teredo_maintenance *m);
-void teredo_maintenance_process (teredo_maintenance *m,
-                                 const teredo_packet *packet);
+void teredo_maintenance_process (teredo_maintenance *restrict m,
+                                 const teredo_packet *restrict packet);
 
 # ifdef __cplusplus
 }

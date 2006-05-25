@@ -33,8 +33,9 @@ struct icmp6_hdr;
 extern "C" {
 #endif
 
-int teredo_parse_ra (const teredo_packet *packet, union teredo_addr *newaddr,
-                     bool cone, uint16_t *mtu);
+int teredo_parse_ra (const teredo_packet *restrict packet,
+                     union teredo_addr *restrict newaddr,
+                     bool cone, uint16_t *restrict mtu);
 
 int CheckPing (const teredo_packet *packet);
 
@@ -51,11 +52,13 @@ int teredo_send_rs (int fd, uint32_t server_ip,
 int SendPing (int fd, const union teredo_addr *src,
               const struct in6_addr *dst);
 
-int BuildICMPv6Error (struct icmp6_hdr *out, uint8_t type, uint8_t code,
-                      const void *in, uint16_t inlen);
+int BuildICMPv6Error (struct icmp6_hdr *restrict out, uint8_t type,
+                      uint8_t code, const void *restrict in, uint16_t inlen);
 
+# if 0
 int BuildIPv6Error (struct ip6_hdr *out, const struct in6_addr *src,
                     uint8_t type, uint8_t code, const void *in, uint16_t len);
+#endif
 
 # ifdef __cplusplus
 }

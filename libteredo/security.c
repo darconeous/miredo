@@ -215,7 +215,7 @@ static pid_t hmac_pid = -1;
 #include <stdio.h>
 bool
 GenerateHMAC (const struct in6_addr *src, const struct in6_addr *dst,
-              uint8_t *hash)
+              uint8_t *restrict hash)
 {
 	md5_state_t ctx;
 	uint16_t v16;

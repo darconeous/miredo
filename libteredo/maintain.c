@@ -88,7 +88,7 @@ struct teredo_maintenance
 };
 
 
-static int getipv4byname (const char *name, uint32_t *ipv4)
+static int getipv4byname (const char *restrict name, uint32_t *restrict ipv4)
 {
 	struct addrinfo hints, *res;
 	int val;
@@ -113,8 +113,8 @@ static int getipv4byname (const char *name, uint32_t *ipv4)
  *
  * @return 0 on success, or an error value as defined for getaddrinfo().
  */
-static int resolveServerIP (const char *server, uint32_t *server_ip,
-                            const char *server2, uint32_t *server_ip2)
+static int resolveServerIP (const char *server, uint32_t *restrict ip,
+                            const char *server2, uint32_t *restrict ip2)
 {
 	int val;
 
@@ -124,20 +124,18 @@ static int resolveServerIP (const char *server, uint32_t *server_ip,
 	 */
 	res_init ();
 
-	val = getipv4byname (server, server_ip);
+	val = getipv4byname (server, ip);
 	if (val)
 		return val;
 
-	if ((server2 == NULL)
-	 || getipv4byname (server2, server_ip2)
-	 || (server_ip2 == server_ip))
+	if ((server2 == NULL) || getipv4byname (server2, ip2) || (ip2 == ip))
 		/*
 		 * NOTE:
 		 * While not specified anywhere, Windows XP/2003 seems to always
 		 * use the "next" IPv4 address as the secondary address.
 		 * We use as default, or as a replacement in case of error.
 		 */
-		*server_ip2 = htonl (ntohl (*server_ip) + 1);
+		*ip2 = htonl (ntohl (*ip) + 1);
 
 	return 0;
 }
@@ -149,9 +147,9 @@ static int resolveServerIP (const char *server, uint32_t *server_ip,
  * @return true if successful.
  */
 static bool
-maintenance_recv (const teredo_packet *packet, uint32_t server_ip,
-                  uint8_t *nonce, bool cone, uint16_t *mtu,
-                  union teredo_addr *newaddr)
+maintenance_recv (const teredo_packet *restrict packet, uint32_t server_ip,
+                  uint8_t *restrict nonce, bool cone, uint16_t *restrict mtu,
+                  union teredo_addr *restrict newaddr)
 {
 	/*
 	 * We don't accept router advertisement without nonce.
@@ -181,8 +179,8 @@ maintenance_recv (const teredo_packet *packet, uint32_t server_ip,
  * Waits until the clock reaches deadline or a RS packet is received.
  * @return 0 if a packet was received, ETIMEDOUT if deadline was reached.
  */
-static int wait_reply (teredo_maintenance *m,
-                       const struct timespec *deadline)
+static int wait_reply (teredo_maintenance *restrict m,
+                       const struct timespec *restrict deadline)
 {
 	/* Ignore EINTR */
 	for (;;)
@@ -207,8 +205,8 @@ static int wait_reply (teredo_maintenance *m,
  * Waits until the clock reaches deadline and ignore any RS packet received
  * in the mean time.
  */
-static void wait_reply_ignore (teredo_maintenance *m,
-                               const struct timespec *deadline)
+static void wait_reply_ignore (teredo_maintenance *restrict m,
+                               const struct timespec *restrict deadline)
 {
 	while (wait_reply (m, deadline) == 0)
 	{
@@ -224,7 +222,7 @@ static clockid_t clock_id = CLOCK_REALTIME;
 # define clock_id CLOCK_REALTIME
 #endif
 
-/**
+/** FIXME: not needed anymore
  * Make sure ts is in the future. If not, set it to the current time.
  * @return false if (*ts) was changed, true otherwise.
  */
@@ -587,8 +585,8 @@ void teredo_maintenance_stop (teredo_maintenance *m)
 /**
  * Passes a Teredo packet to a maintenance thread for processing.
  */
-void teredo_maintenance_process (teredo_maintenance *m,
-                                    const teredo_packet *packet)
+void teredo_maintenance_process (teredo_maintenance *restrict m,
+                                 const teredo_packet *restrict packet)
 {
 	(void)pthread_mutex_lock (&m->lock);
 	m->incoming = packet;

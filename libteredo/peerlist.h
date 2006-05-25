@@ -48,8 +48,8 @@ typedef void (*teredo_dequeue_cb) (void *, const void *, size_t);
 extern "C" {
 #endif
 
-void teredo_peer_queue (teredo_peer *peer, const void *data, size_t len,
-                        bool incoming);
+void teredo_peer_queue (teredo_peer *restrict peer, const void *restrict data,
+                        size_t len, bool incoming);
 teredo_queue *teredo_peer_queue_yield (teredo_peer *peer);
 void teredo_queue_emit (teredo_queue *q, int fd, uint32_t ipv4, uint16_t port,
                         teredo_dequeue_cb cb, void *r);
@@ -106,8 +106,9 @@ teredo_peerlist *teredo_list_create (unsigned max, unsigned expiration);
 void teredo_list_destroy (teredo_peerlist *l);
 void teredo_list_reset (teredo_peerlist *l, unsigned max);
 
-teredo_peer *teredo_list_lookup (teredo_peerlist *list, time_t atime,
-                                 const struct in6_addr *addr, bool *create);
+teredo_peer *teredo_list_lookup (teredo_peerlist *restrict list, time_t atime,
+                                 const struct in6_addr *restrict addr,
+                                 bool *restrict create);
 void teredo_list_release (teredo_peerlist *l);
 
 # ifdef __cplusplus

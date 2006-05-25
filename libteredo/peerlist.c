@@ -88,8 +88,8 @@ static void teredo_peer_destroy (teredo_peer *peer)
 }
 
 
-void teredo_peer_queue (teredo_peer *peer, const void *data, size_t len,
-                        bool incoming)
+void teredo_peer_queue (teredo_peer *restrict peer,
+                        const void *restrict data, size_t len, bool incoming)
 {
 	teredo_queue *p;
 
@@ -358,8 +358,9 @@ void teredo_list_destroy (teredo_peerlist *l)
  * @return The peer if found or created. NULL on error (when create is not
  * NULL), or if the peer was not found (when create is NULL).
  */
-teredo_peer *teredo_list_lookup (teredo_peerlist *list, time_t atime,
-                                 const struct in6_addr *addr, bool *create)
+teredo_peer *teredo_list_lookup (teredo_peerlist *restrict list, time_t atime,
+                                 const struct in6_addr *restrict addr,
+                                 bool *restrict create)
 {
 	teredo_listitem *p;
 

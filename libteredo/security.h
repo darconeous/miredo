@@ -59,7 +59,7 @@ bool GenerateNonce (unsigned char *b, bool critical);
 bool InitHMAC (void);
 void DeinitHMAC (void);
 bool GenerateHMAC (const struct in6_addr *src, const struct in6_addr *dst,
-                   uint8_t *hash);
+                   uint8_t *restrict hash);
 bool CompareHMAC (const struct in6_addr *src, const struct in6_addr *dst,
                   const uint8_t *hash);
 

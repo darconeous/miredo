@@ -80,25 +80,26 @@ static inline int tun6_bringDown (tun6 *t)
 	return tun6_setState (t, false);
 }
 
-int tun6_addAddress (tun6 *t, const struct in6_addr *addr,
+int tun6_addAddress (tun6 *restrict t, const struct in6_addr *restrict addr,
                      unsigned prefix_len) LIBTUN6_NONNULL;
-int tun6_delAddress (tun6 *t, const struct in6_addr *addr,
+int tun6_delAddress (tun6 *restrict t, const struct in6_addr *restrict addr,
                      unsigned prefix_len) LIBTUN6_NONNULL;
 
 int tun6_setMTU (tun6 *t, unsigned mtu) LIBTUN6_NONNULL;
 
-int tun6_addRoute (tun6 *t, const struct in6_addr *addr, unsigned prefix_len,
-                   int relative_metric) LIBTUN6_NONNULL;
-int tun6_delRoute (tun6 *t, const struct in6_addr *addr, unsigned prefix_len,
-                   int relative_metric) LIBTUN6_NONNULL;
+int tun6_addRoute (tun6 *restrict t, const struct in6_addr *restrict addr,
+                   unsigned prefix_len, int relative_metric) LIBTUN6_NONNULL;
+int tun6_delRoute (tun6 *restrict t, const struct in6_addr *restrict addr,
+                   unsigned prefix_len, int relative_metric) LIBTUN6_NONNULL;
 
-int tun6_registerReadSet (const tun6 *t, fd_set *readset)
+int tun6_registerReadSet (const tun6 *restrict t, fd_set *restrict readset)
 	LIBTUN6_NONNULL LIBTUN6_PURE;
 
-int tun6_recv (tun6 *t, const fd_set *readset, void *buf, size_t len)
+int tun6_recv (tun6 *restrict t, const fd_set *restrict readset,
+               void *buf, size_t len) LIBTUN6_NONNULL;
+int tun6_wait_recv (tun6 *restrict t, void *buf, size_t len) LIBTUN6_NONNULL;
+int tun6_send (tun6 *restrict t, const void *packet, size_t len)
 	LIBTUN6_NONNULL;
-int tun6_wait_recv (tun6 *t, void *buf, size_t len) LIBTUN6_NONNULL;
-int tun6_send (tun6 *t, const void *packet, size_t len) LIBTUN6_NONNULL;
 
 # ifdef __cplusplus
 }
