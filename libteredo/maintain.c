@@ -177,26 +177,52 @@ maintenance_recv (const teredo_packet *packet, uint32_t server_ip,
 }
 
 
+/**
+ * Waits until the clock reaches deadline or a RS packet is received.
+ * @return 0 if a packet was received, ETIMEDOUT if deadline was reached.
+ */
+static int wait_reply (teredo_maintenance *m,
+                       const struct timespec *deadline)
+{
+	/* Ignore EINTR */
+	for (;;)
+	{
+		int val = pthread_cond_timedwait (&m->received, &m->lock, deadline);
+
+		switch (val)
+		{
+			case 0:
+				if (m->incoming == NULL) // spurious wakeup
+					continue;
+				/* fall through */
+			case ETIMEDOUT:
+				return val;
+		}
+	}
+	return 0; // dead code
+}
+
+
+/**
+ * Waits until the clock reaches deadline and ignore any RS packet received
+ * in the mean time.
+ */
+static void wait_reply_ignore (teredo_maintenance *m,
+                               const struct timespec *deadline)
+{
+	while (wait_reply (m, deadline) == 0)
+	{
+		m->incoming = NULL;
+		(void)pthread_barrier_wait (&m->processed);
+	}
+}
+
+
 #if (_POSIX_MONOTONIC_CLOCK - 0 >= 0)
 static clockid_t clock_id = CLOCK_REALTIME;
 #else
 # define clock_id CLOCK_REALTIME
 #endif
-
-
-static inline int
-pthread_cond_safewait (pthread_cond_t *cond, pthread_mutex_t *mutex,
-                       const struct timespec *deadline)
-{
-	int val;
-	/* Ignore EINTR */
-	do
-		val = pthread_cond_timedwait (cond, mutex, deadline);
-	while (val && (val != ETIMEDOUT));
-
-	return val;
-}
-
 
 /**
  * Make sure ts is in the future. If not, set it to the current time.
@@ -279,15 +305,7 @@ static inline void maintenance_thread (teredo_maintenance *m)
 
 				/* wait some time before next resolution attempt */
 				deadline.tv_sec += RestartDelay;
-				while (pthread_cond_safewait (&m->received, &m->lock,
-				                              &deadline) == 0)
-				{
-					if (m->incoming == NULL)
-						continue; /* spurious wakeup */
-
-					m->incoming = NULL;
-					(void)pthread_barrier_wait (&m->processed);
-				}
+				wait_reply_ignore (m, &deadline);
 			}
 			else
 			{
@@ -329,14 +347,9 @@ static inline void maintenance_thread (teredo_maintenance *m)
 		/* RECEIVE ROUTER ADVERTISEMENT */
 		for (;;)
 		{
-			if (pthread_cond_safewait (&m->received, &m->lock, &deadline))
-			{
-				val = ETIMEDOUT;
-				break;
-			}
-
-			if (m->incoming == NULL)
-				continue; // spurious wakeup
+			val = wait_reply (m, &deadline);
+			if (val)
+				break; // time out
 
 			/* check received packet */
 			bool accept;
@@ -453,15 +466,7 @@ static inline void maintenance_thread (teredo_maintenance *m)
 		{
 			deadline.tv_sec -= QualificationTimeOut;
 			deadline.tv_sec += sleep;
-			while (!pthread_cond_safewait (&m->received, &m->lock, &deadline))
-			{
-				if (m->incoming == NULL)
-					continue; // spurious wakeup
-
-				/* ignore unsolicited router solicitation */
-				m->incoming = NULL;
-				(void)pthread_barrier_wait (&m->processed);
-			}
+			wait_reply_ignore (m, &deadline);
 		}
 	}
 	/* dead code */
@@ -519,18 +524,18 @@ teredo_maintenance_start (int fd, teredo_state_cb cb, void *opaque,
 	if (err == 0)
 	{
 		pthread_condattr_t *pattr;
-#if (_POSIX_CLOCK_SELECTION - 0 >= 0) && (_POSIX_MONOTONIC_CLOCK - 0 >= 0)
 		pthread_condattr_t attr;
 
 		if (pthread_condattr_init (&attr) == 0)
 		{
+#if (_POSIX_CLOCK_SELECTION - 0 >= 0) && (_POSIX_MONOTONIC_CLOCK - 0 >= 0)
 			if ((clock_id == CLOCK_REALTIME)
 			 && (pthread_condattr_setclock (&attr, CLOCK_MONOTONIC) == 0))
 				clock_id = CLOCK_MONOTONIC;
+#endif
 			pattr = &attr;
 		}
 		else
-#endif
 			pattr = NULL;
 
 		err = pthread_cond_init (&m->received, pattr);
