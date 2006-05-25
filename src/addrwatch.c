@@ -29,10 +29,10 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <time.h> // clock_gettime()
 
 #include <sys/types.h>
 #include <unistd.h>
-#include <sys/time.h>
 #include <fcntl.h> // O_RDONLY
 #include <pthread.h>
 #include <errno.h>
@@ -43,8 +43,6 @@
 struct miredo_addrwatch
 {
 	pthread_t thread;
-	pthread_mutex_t mutex;
-	pthread_cond_t cond;
 
 	int self_scope;
 	int if_inet6_fd;
@@ -52,27 +50,33 @@ struct miredo_addrwatch
 	bool status;
 };
 
-/*
- * This thread is not supposed to be canceled.
- * It stops when cond is signaled.
+
+/**
+ * @return never ever. Thread must be cancelled.
  */
 static void *addrwatch (void *opaque)
 {
 	struct miredo_addrwatch *data = (struct miredo_addrwatch *)opaque;
-	struct timeval deadline;
+	struct timespec deadline;
 
-	gettimeofday (&deadline, NULL);
+	clockid_t clock_id = CLOCK_REALTIME;
+#if (_POSIX_MONOTONIC_CLOCK - 0 >= 0)
+	if (clock_gettime (CLOCK_MONOTONIC, &deadline) == 0)
+		clock_id = CLOCK_MONOTONIC;
+	else
+#endif
+		clock_gettime (CLOCK_REALTIME, &deadline);
 
-	(void)pthread_mutex_lock (&data->mutex);
-	int val;
-
-	do
+	for (;;)
 	{
+		int state;
+		pthread_setcancelstate (PTHREAD_CANCEL_DISABLE, &state);
+
 		if (lseek (data->if_inet6_fd, 0, SEEK_SET) == -1)
 			goto wait;
 
 		char buf[8192];
-		val = read (data->if_inet6_fd, buf, sizeof (buf));
+		int val = read (data->if_inet6_fd, buf, sizeof (buf));
 		if (val == -1)
 			goto wait;
 
@@ -100,26 +104,17 @@ static void *addrwatch (void *opaque)
 		/* Update status */
 		if (data->status != found)
 		{
-			(void)write (data->pipefd[1], &found, sizeof (found));
 			data->status = found;
+			(void)write (data->pipefd[1], &found, sizeof (found));
 		}
 
 	wait:
+		pthread_setcancelstate (state, NULL);
 		deadline.tv_sec += 5;
-
-		do
-		{
-			struct timespec ts;
-			ts.tv_sec = deadline.tv_sec;
-			ts.tv_nsec = deadline.tv_usec * 1000;
-			val = pthread_cond_timedwait (&data->cond, &data->mutex, &ts);
-		}
-		while (val && (val != ETIMEDOUT));
+		clock_nanosleep (clock_id, TIMER_ABSTIME, &deadline, NULL);
 	}
-	while (val);
 
-	(void)pthread_mutex_unlock (&data->mutex);
-	return NULL;
+	return NULL; // dead code
 }
 
 
@@ -141,8 +136,6 @@ miredo_addrwatch *miredo_addrwatch_start (int self_scope)
 		return NULL;
 
 	memset (data, 0, sizeof (data));
-	(void)pthread_mutex_init (&data->mutex, NULL);
-	(void)pthread_cond_init (&data->cond, NULL);
 
 	int fd = open ("/proc/net/if_inet6", O_RDONLY);
 	if (fd != -1)
@@ -175,19 +168,15 @@ void miredo_addrwatch_stop (miredo_addrwatch *data)
 {
 	assert (data != NULL);
 
-	(void)pthread_mutex_lock (&data->mutex);
-	(void)pthread_cond_signal (&data->cond);
-	(void)pthread_mutex_unlock (&data->mutex);
-
+	(void)pthread_cancel (data->thread);
 	(void)pthread_join (data->thread, NULL);
-	(void)pthread_cond_destroy (&data->cond);
-	(void)pthread_mutex_destroy (&data->mutex);
 
 	(void)close (data->pipefd[1]);
 	(void)close (data->pipefd[0]);
 	(void)close (data->if_inet6_fd);
 	free (data);
 }
+
 
 /**
  * @return file descriptor that gets readable whenever the state changes
@@ -197,6 +186,7 @@ int miredo_addrwatch_getfd (miredo_addrwatch *self)
 {
 	return (self != NULL) ? self->pipefd[0] : -1;
 }
+
 
 /**
  * @return the current addrwatch state (true or false).
