@@ -3,16 +3,46 @@ beta version 0.9.3
 =========================
 $Id$
 
-  This is an officially stable release of the program. The package is
+  This is a testing (unstable) release of the program. The package is
 functional, though it lacks some optional features. There are also no
-known outstanding issues. Users of previous releases are encouraged
-to upgrade, as this version includes some bug fixes.
-  Please report any problem by email to rdenis (at) simphalempin (dot) com
+known outstanding issues, but the code has undergone significant changes,
+some of which were not heavily tested.
+  Please report any problem by email to miredo-devel (at) remlab (dot) net
 
   You can find major changes since version 0.1.0 below. For more general
 informations on this program, see README. For syntax details and
 changes, run “miredo -h” to get help. For detailled internal changes, see
 ChangeLog.
+
+=============================================================================
+BETA RELEASE 0.9.3 : Major features enhancement
+
+# Use dedicated thread for packets transmission and reception. Miredo
+  should now leverage dual-process, dual-core and SMT systems.
+
+# Receive to-be-decapsulated and to-be-encapsulated packets in blocking
+  mode; this improves performance by about 10% on Linux.
+
+# Use the POSIX monotonic clock for maintenance procedure and “exclusive”
+  mode watch if POSIX monotonic clock and clock selection are available.
+
+# Minor optimizations to the most stressed code paths.
+# Suppress spurious 4-seconds delay when waiting for “symmetric” probes.
+# Ignore invalid Router Advertisements properly.
+# Drop incoming multicast traffic as a precautionary measure.
+# Fix deadlocks and spurious exits upon some signals (such as SIGCONT).
+# Fix deadlock when Teredo server DNS hostname resolution fails.
+# Handle would-be “spurious wakeups” properly.
+# Fix IPv4 global unicast access-list.
+# Fix SO_REUSEADDR socket option usage.
+# Use C99 restrict keyword at sensible places for compiler optimization.
+# Portability fixes for DragonFly BSD.
+# Work-around for some uClibc POSIX defines insanity.
+# Got rid of all C++ code.
+# Renamed libteredo-mire to teredo-mire for consistency.
+# Leverage newer autoconf macros.
+
+(Unstable version 0.9.3 includes all fixes from stable version 0.8.5)
 
 =============================================================================
 BETA RELEASE 0.9.1 : Major features enhancement
@@ -36,6 +66,8 @@ BETA RELEASE 0.9.1 : Major features enhancement
 # Fix initialization in libteredo sometimes causing a crash at startup.
 # Fix race condition in libteredo-list unit test.
 # Fix _impossible_ overflow of FD_SET().
+
+(Unstable version 0.9.1 includes all fixes from stable version 0.8.4)
 
 =============================================================================
 STABLE RELEASE 0.8.2 : Minor bugfixes
