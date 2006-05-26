@@ -73,6 +73,13 @@ random_open (bool critical)
 }
 
 
+/**
+ * Has to be called before any call to teredo_generate_nonce() can succeed.
+ * It should additionnaly be called before calling chroot().
+ * Thread-safe. Can be called multiple times with no side effect.
+ *
+ * @return 0 on success, -1 on fatal error.
+ */
 int
 teredo_init_nonce_generator (void)
 {
@@ -97,6 +104,15 @@ teredo_init_nonce_generator (void)
 }
 
 
+/**
+ * Should be called after use of GenerateNonce(), as many times as
+ * teredo_init_nonce_generator() was called.
+ * Thread-safe.
+ *
+ * Calling teredo_deinit_nonce_generator() more times than
+ * teredo_init_nonce_generator is undefined. If debugging is enabled,
+ * an assertion will fail, and the program will abort.
+ */
 void
 teredo_deinit_nonce_generator (void)
 {
@@ -115,12 +131,18 @@ teredo_deinit_nonce_generator (void)
 }
 
 
-/*
- * Generates a random nonce value (8 bytes).
- * Thread-safe. Returns true on success, false on error
+/**
+ * Generates a random nonce value (8 bytes). Thread-safe.
+ *
+ * @param b pointer to a 8-bytes buffer [OUT]
+ * @param critical true if the random value has to be unpredictible
+ * for security reasons. If false, the function will not block, otherwise
+ * it might have to wait until enough randomness entropy was gathered by the
+ * system.
+ * @return false on error, true on success
  */
 bool
-GenerateNonce (unsigned char *b, bool critical)
+teredo_generate_nonce (unsigned char *b, bool critical)
 {
 	int fd = devfd[critical ? 0 : 1];
 
@@ -171,7 +193,7 @@ static void init_hmac_once (void)
 
 	/* Generate HMAC key and precomputes padding */
 	memset (&inner_key, 0, sizeof (inner_key));
-	GenerateNonce (inner_key.key, true);
+	teredo_generate_nonce (inner_key.key, true);
 	memcpy (&outer_key, &inner_key, sizeof (outer_key));
 
 	for (i = 0; i < sizeof (inner_key); i++)
@@ -182,16 +204,16 @@ static void init_hmac_once (void)
 }
 
 
-bool InitHMAC (void)
+int teredo_init_HMAC (void)
 {
 	static pthread_once_t once = PTHREAD_ONCE_INIT;
 
 	pthread_once (&once, init_hmac_once);
-	return true;
+	return 0;
 }
 
 
-void DeinitHMAC (void)
+void teredo_deinit_HMAC (void)
 {
 }
 
@@ -212,10 +234,9 @@ typedef struct teredo_hmac
 
 static pid_t hmac_pid = -1;
 
-#include <stdio.h>
-bool
-GenerateHMAC (const struct in6_addr *src, const struct in6_addr *dst,
-              uint8_t *restrict hash)
+int
+teredo_generate_HMAC (const struct in6_addr *src, const struct in6_addr *dst,
+                      uint8_t *restrict hash)
 {
 	md5_state_t ctx;
 	uint16_t v16;
@@ -245,12 +266,13 @@ GenerateHMAC (const struct in6_addr *src, const struct in6_addr *dst,
 	md5_append (&ctx, hash, LIBTEREDO_HASH_LEN);
 	md5_finish (&ctx, hash);
 
-	return true;
+	return 0;
 }
 
-bool
-CompareHMAC (const struct in6_addr *src, const struct in6_addr *dst,
-             const uint8_t *hash)
+
+int
+teredo_compare_HMAC (const struct in6_addr *src, const struct in6_addr *dst,
+                     const uint8_t *hash)
 {
 	md5_state_t ctx;
 	uint16_t v16, t16;
@@ -266,7 +288,7 @@ CompareHMAC (const struct in6_addr *src, const struct in6_addr *dst,
 	memcpy (&t16, hash, 2);
 	v16 = (((uint32_t)time (NULL)) & 0xffff) - t16;
 	if (v16 >= 30)
-		return false; /* replay attack */
+		return -1; /* replay attack */
 	hash += 2;
 
 	/* compute HMAC hash */
@@ -284,5 +306,5 @@ CompareHMAC (const struct in6_addr *src, const struct in6_addr *dst,
 	md5_finish (&ctx, h1);
 
 	/* compare HMAC hash */
-	return !memcmp (h1, hash, LIBTEREDO_HASH_LEN);
+	return memcmp (h1, hash, LIBTEREDO_HASH_LEN) ? -1 : 0;
 }

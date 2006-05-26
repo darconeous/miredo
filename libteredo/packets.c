@@ -358,8 +358,8 @@ SendPing (int fd, const union teredo_addr *src, const struct in6_addr *dst)
 	ping.icmp6.icmp6_id = 0;
 	ping.icmp6.icmp6_seq = 0;
 	 */
-	if (!GenerateHMAC (&ping.ip6.ip6_src, &ping.ip6.ip6_dst,
-	                   (uint8_t *)&ping.icmp6.icmp6_id))
+	if (teredo_generate_HMAC (&ping.ip6.ip6_src, &ping.ip6.ip6_dst,
+	                          (uint8_t *)&ping.icmp6.icmp6_id))
 		return -1;
 
 	ping.icmp6.icmp6_cksum = icmp6_checksum (&ping.ip6, &ping.icmp6);
@@ -455,7 +455,7 @@ int CheckPing (const teredo_packet *packet)
 	if (icmp6->icmp6_code != 0)
 		return -1;
 
-	return CompareHMAC (me, it, (uint8_t *)&icmp6->icmp6_id) ? 0 : -1;
+	return teredo_compare_HMAC (me, it, (uint8_t *)&icmp6->icmp6_id);
 	/* TODO: check the sum(?) */
 }
 #endif

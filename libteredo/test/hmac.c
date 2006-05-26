@@ -55,37 +55,37 @@ int main (void)
 			"\x80\x00\xf2\x27\x75\x3c\x67\x74", 16);
 	memcpy (&dst, "\x20\x02\xc0\x00\x02\x42\x12\x42"
 			"\x13\x43\x14\x44\x15\x45\x16\x46", 16);
-	if (!GenerateHMAC (&src, &dst, hmac))
+	if (teredo_generate_HMAC (&src, &dst, hmac))
 		return 1;
-	if (!CompareHMAC (&src, &dst, hmac))
+	if (teredo_compare_HMAC (&src, &dst, hmac))
 		return 1;
 
 	/* retry after first run */
-	if (!GenerateHMAC (&dst, &src, hmac))
+	if (teredo_generate_HMAC (&dst, &src, hmac))
 		return 1;
-	if (!CompareHMAC (&dst, &src, hmac))
+	if (teredo_compare_HMAC (&dst, &src, hmac))
 		return 1;
-	if (CompareHMAC (&src, &dst, hmac))
+	if (teredo_compare_HMAC (&src, &dst, hmac) == 0)
 		/* mixed addresses : should fail */
 		return 1;
 
 	hmac[4] ^= 0x40;
-	if (CompareHMAC (&dst, &src, hmac))
+	if (teredo_compare_HMAC (&dst, &src, hmac) == 0)
 		/* altered hash : should fail */
 		return 1;
 
 	hmac[4] ^= 0x40;
-	if (!CompareHMAC (&dst, &src, hmac))
+	if (teredo_compare_HMAC (&dst, &src, hmac))
 		return 1;
 
 	sleep (3);
-	if (!CompareHMAC (&dst, &src, hmac))
+	if (teredo_compare_HMAC (&dst, &src, hmac))
 		return 1;
 	/* should still be valid after 3 seconds */
 
 	sleep (28);
 	/* should no longer be valid after 31 seconds */
-	if (CompareHMAC (&dst, &src, hmac))
+	if (teredo_compare_HMAC (&dst, &src, hmac) == 0)
 		return 1;
 
 	teredo_cleanup (true);

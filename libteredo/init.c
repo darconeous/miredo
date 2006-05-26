@@ -56,11 +56,11 @@ int teredo_startup (bool use_client)
 	if (use_client)
 	{
 #ifdef MIREDO_TEREDO_CLIENT
-		if (InitHMAC ())
+		if (teredo_init_HMAC () == 0)
 		{
 			if (teredo_init_nonce_generator () == 0)
 				return 0;
-			DeinitHMAC();
+			teredo_deinit_HMAC();
 		}
 #endif
 		return -1;
@@ -81,7 +81,7 @@ void teredo_cleanup (bool use_client)
 #ifdef MIREDO_TEREDO_CLIENT
 	if (use_client)
 	{
-		DeinitHMAC ();
+		teredo_deinit_HMAC ();
 		teredo_deinit_nonce_generator ();
 	}
 #else

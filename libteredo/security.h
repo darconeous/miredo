@@ -31,37 +31,16 @@ extern "C" {
 #define LIBTEREDO_NONCE_LEN 8
 #define LIBTEREDO_HMAC_LEN 20
 
-/**
- * Has to be called before any call to GenerateNonce() can succeed.
- * It should additionnaly be called before calling chroot().
- * Thread-safe. Can be called multiple times with no side effect.
- */
 int teredo_init_nonce_generator (void);
-
-/**
- * Should be called after use of GenerateNonce().
- * Thread-safe. Can be called as many times.
- */
 void teredo_deinit_nonce_generator (void);
+bool teredo_generate_nonce (unsigned char *b, bool critical);
 
-/**
- * Generates a random nonce value (8 bytes). Thread-safe.
- *
- * @param b pointer to a 8-bytes buffer [OUT]
- * @param critical true if the random value has to be unpredictible
- * for security reasons. If false, the function will not block, otherwise
- * it might have to wait until enough randomness entropy was gathered by the
- * system.
- * @return false on error, true on success
- */
-bool GenerateNonce (unsigned char *b, bool critical);
-
-bool InitHMAC (void);
-void DeinitHMAC (void);
-bool GenerateHMAC (const struct in6_addr *src, const struct in6_addr *dst,
-                   uint8_t *restrict hash);
-bool CompareHMAC (const struct in6_addr *src, const struct in6_addr *dst,
-                  const uint8_t *hash);
+int teredo_init_HMAC (void);
+void teredo_deinit_HMAC (void);
+int teredo_generate_HMAC (const struct in6_addr *src,
+                          const struct in6_addr *dst, uint8_t *restrict hash);
+int teredo_compare_HMAC (const struct in6_addr *src,
+                         const struct in6_addr *dst, const uint8_t *hash);
 
 # ifdef __cplusplus
 }
