@@ -55,7 +55,8 @@ AM_BINRELOC
 AM_GNU_GETTEXT_VERSION([0.12.1])
 AM_GNU_GETTEXT([external])
 
-AC_CHECK_LIB(rt, clock_gettime)
+AC_CHECK_LIB(rt, clock_gettime, [LIBRT="-lrt"])
+AC_SUBST(LIBRT)
 RDC_FUNC_SOCKET
 AC_SEARCH_LIBS(inet_ntop, [nsl])
 AC_CHECK_LIB(resolv, res_init)
@@ -98,7 +99,10 @@ AC_CHECK_TYPE([clockid_t],, [
 # Checks for library functions.
 AS_MESSAGE([checking library functions...])
 RDC_REPLACE_FUNC_GETOPT_LONG
+LIBS_save="$LIBS"
+LIBS="-lrt $LIBS"
 AC_REPLACE_FUNCS([clearenv closefrom pselect strlcpy clock_gettime clock_nanosleep])
+LIBS="$LIBS_save"
 
 AC_CHECK_FUNC([pthread_barrier_wait], [
   AC_DEFINE([HAVE_PTHREAD_BARRIER], 1, [Define to 1 if you have pthread_barrier_*.])
