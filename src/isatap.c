@@ -150,6 +150,45 @@ static bool is_ipv4_unique (uint32_t ipv4)
 }
 
 
+#ifdef MIREDO_TEREDO_CLIENT
+/**
+ * Perform a non-blocking (UDP) connect to a host to find out a suitable
+ * source address to use when communicating with it.
+ *
+ * @param conn_ipv4 IPv4 of the host to connect to (network byte order)
+ * @param bind_ipv4 [out] where to store the source address
+ *
+ * @return 0 on success, -1 on error.
+ */
+static int get_bind_ipv4 (uint32_t conn_ipv4, uint32_t *bind_ipv4)
+{
+	int fd = socket (AF_INET, SOCK_DGRAM, 0);
+	if (fd == -1)
+		return -1;
+
+	struct sockaddr_in addr;
+	memset (&addr, 0, sizeof (addr));
+	addr.sin_family = AF_INET;
+	addr.sin_addr.s_addr = conn_ipv4;
+	socklen_t addrlen = sizeof (addr);
+
+	if (connect (fd, (struct sockaddr *)&addr, sizeof (addr))
+		   || getsockname (fd, (struct sockaddr *)&addr, &addrlen)
+		   || addrlen < sizeof (addr))
+	{
+		close (fd);
+		return -1;
+	}
+	close (fd);
+
+	*bind_ipv4 = addr.sin_addr.s_addr;
+	return bind_ipv4 ? 0 : -1;
+}
+#else /* MIREDO_TEREDO_CLIENT */
+# define run_tunnel( a, b, c ) run_tunnel_ROUTERonly (a, b)
+#endif
+
+
 static tun6 *
 create_static_tunnel (const char *ifname, uint32_t ipv4)
 {
@@ -183,7 +222,7 @@ create_static_tunnel (const char *ifname, uint32_t ipv4)
  * receive loop.
  */
 static int
-run_tunnel (int ipv6fd, tun6 *tunnel)
+run_tunnel (int ipv6fd, tun6 *tunnel, uint32_t router_ipv4)
 {
 	fd_set refset;
 
@@ -200,6 +239,10 @@ run_tunnel (int ipv6fd, tun6 *tunnel)
 	maxfd++;
 	sigset_t set;
 	sigemptyset (&set);
+
+	struct sockaddr_in dst;
+	memset (&dst, 0, sizeof (dst));
+	dst.sin_family = AF_INET;
 
 	/* Main loop */
 	for (;;)
@@ -228,20 +271,40 @@ run_tunnel (int ipv6fd, tun6 *tunnel)
 			if (val < 40)
 				break;
 
-			uint32_t v;
-			memcpy (&v, buf.ip6.ip6_dst.s6_addr + 8, sizeof (v));
-			if ((ntohl (v) & 0xfcffffff) != 0x00005efe)
-				break; // TODO: send to default router instead
+#ifdef MIREDO_TEREDO_CLIENT
+			/*
+			 * FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME
+			 *
+			 * This is not just an ugly piece of code, this is also severely
+			 * _broken_. It will (sometime) fail miserably if any upper layer
+			 * application binds manually to an address that does not obey the
+			 * “logical” longest-prefix match rule.
+			 *
+			 * A more proper solution would consists of reading the local
+			 * addresses assigned to the tunnel interface, though this is a
+			 * little “racy”. Ultimately, the correct solutions are:
+			 *  - handle Router Solicitation in userland,
+			 *  - better yet, use a fully in-kernel ISATAP client tunnel.
+			 */
+			if ((router_ipv4 != INADDR_ANY)
+			 && memcmp (buf.ip6.ip6_src.s6_addr, buf.ip6.ip6_dst.s6_addr, 8))
+				dst.sin_addr.s_addr = router_ipv4;
+			else
+#endif
+			{
+				uint32_t v;
+				memcpy (&v, buf.ip6.ip6_dst.s6_addr + 8, sizeof (v));
+				if ((ntohl (v) & 0xfcffffff) != 0x00005efe)
+					break; // TODO: send ICMPv6 unreachable?
+	
+				memcpy (&v, buf.ip6.ip6_dst.s6_addr + 12, sizeof (v));
+				// Make sure the destination is not multicast
+				if (IN_MULTICAST (ntohl (v)))
+					break;
+	
+				dst.sin_addr.s_addr = v;
+			}
 
-			memcpy (&v, buf.ip6.ip6_dst.s6_addr + 8, sizeof (v));
-			// Make sure the destination is not multicast
-			if ((ntohl (v) >> 28) == 14)
-				break;
-
-			struct sockaddr_in dst;
-			memset (&dst, 0, sizeof (dst));
-			dst.sin_family = AF_INET;
-			dst.sin_addr.s_addr = v;
 			sendto (ipv6fd, &buf, val, 0,
 			        (struct sockaddr *)&dst, sizeof (dst));
 		}
@@ -269,6 +332,7 @@ run_tunnel (int ipv6fd, tun6 *tunnel)
 			 || (ntohs (ip6->ip6_plen) != val))
 				break; // invalid IPv6 header
 
+#if 0
 			uint32_t v;
 			memcpy (&v, ip6->ip6_src.s6_addr + 8, sizeof (v));
 			if ((ntohl (v) & 0xfcffffff) != 0x00005efe)
@@ -276,6 +340,7 @@ run_tunnel (int ipv6fd, tun6 *tunnel)
 
 			if (memcmp (ip6->ip6_src.s6_addr + 12, &buf.ip4.ip_src, 4))
 				break;
+#endif
 
 			tun6_send (tunnel, ip6, val);
 		}
@@ -291,20 +356,14 @@ miredo_run (miredo_conf *conf, const char *server_name)
 	 * CONFIGURATION
 	 */
 #ifdef MIREDO_TEREDO_CLIENT
-	char namebuf[NI_MAXHOST];
+	uint32_t router_ip;
 
-	if (server_name == NULL)
+	if ((server_name == NULL)
+		? !miredo_conf_parse_IPv4 (conf, "ServerAddress", &router_ip)
+		: GetIPv4ByName (server_name, &router_ip))
 	{
-		char *name = miredo_conf_get (conf, "ServerAddress", NULL);
-		if (name == NULL)
-		{
-			syslog (LOG_ALERT, _("Server address not specified"));
-			syslog (LOG_ALERT, _("Fatal configuration error"));
-			return -2;
-		}
-		strlcpy (namebuf, name, sizeof (namebuf));
-		free (name);
-		server_name = namebuf;
+		syslog (LOG_ALERT, _("Fatal configuration error"));
+		return -2;
 	}
 #endif
 
@@ -318,8 +377,23 @@ miredo_run (miredo_conf *conf, const char *server_name)
 
 	if (bind_ip == INADDR_ANY)
 	{
-		syslog (LOG_ALERT, "IPv4 bind address must be set explicitly!");
-		return -2;
+#ifdef MIREDO_TEREDO_CLIENT
+		if (router_ip != INADDR_ANY)
+		{
+			if (get_bind_ipv4 (router_ip, &bind_ip)
+			 || IN_MULTICAST (ntohl (router_ip)))
+			{
+				syslog (LOG_ALERT, _("Fatal configuration error"));
+				return -2;
+			}
+		}
+		else
+#endif
+		{
+			syslog (LOG_ALERT,
+			        "ISATAP router requires an explicit IPv4 bind address!");
+			return -2;
+		}
 	}
 
 	char *ifname = miredo_conf_get (conf, "InterfaceName", NULL);
@@ -371,7 +445,7 @@ miredo_run (miredo_conf *conf, const char *server_name)
 			/*
 			 * RUN
 			 */
-			retval = run_tunnel (ipv6_fd, tunnel);
+			retval = run_tunnel (ipv6_fd, tunnel, router_ip);
 		}
 
 		close (ipv6_fd);
