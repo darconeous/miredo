@@ -39,14 +39,24 @@ create. On some systems, this might not work.
 
 .TP
 .BI "BindAddress " "bind_address"
-Bind the ISATAP router to a specific IPv4 address. This option is
-currently required.
+Bind the ISATAP pseudo-tunnel to a specific IPv4 address. This option
+is required if ISATAPd is used as an ISATAP router.
 
 .TP
 .BI "SyslogFacility " "facility"
 Specify which syslog's facility is to be used by ISATAPd for logging.
 .RB "Possible values are: " "daemon" " (the default), " "local0" ","
 .RB "... " "local7" ", " "kern" " and " "user" " (see syslog(2))."
+
+.SH CLIENT OPTIONS
+.TP
+.BI "ServerAddress" "server_address"
+Enable ISATAP client mode, and specify the IPv4 address (or host name)
+of the ISATAP router. ISATAPd only supports a single router at the
+moment.
+In most case, the local ISATAP router has host name
+.B isatap
+within the local DNS domain.
 
 .SH "SEE ALSO"
 isatapd(8)

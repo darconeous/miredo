@@ -15,22 +15,22 @@
 .\" ***********************************************************************
 .TH "ISATAPD" "8" "$Date$" "isatapd" "System Manager's Manual"
 .SH NAME
-isatapd \- userland ISATAP router daemon
+isatapd \- userland ISATAP pseudo-tunnel daemon
 .SH SYNOPSIS
 .BR "isatapd" " [" "-c config_file" "] [" "-f" "] [" "-u user" "] ["
-.BR "-t chrootdir" "]"
+.BR "-t chrootdir" "] [" "router IPv4 address" "]"
 
 .SH DESCRIPTON
 .B ISATAPd
-is a daemon program providing an ISATAP router interface in userland,
-compatible with the "Intra-Site Automatic Tunnel Addressing Protocol"
-Internet experimental protocol (RFC 4214).
+is a daemon program providing an ISATAP pseudo-tunnel interface in
+userland, compatible with the "Intra-Site Automatic Tunnel Addressing
+Protocol" Internet experimental protocol (RFC 4214).
 
 This is mostly useful to provide IPv6 connectivity to dual-stack nodes
 on a IPv4 network.
 
-You will also most likely want to run radvd on the tunnel interface, to
-provide autoconf services to other nodes.
+If used as a ISATAP router, you will also most likely want to run radvd
+on the tunnel interface, to provide autoconf services to other nodes.
 
 .SH OPTIONS
 
@@ -74,8 +74,9 @@ holder has defined its policy as
 .IR "No License Required for Implementers" ", "
 so we will hopefully see in-kernel implementations back soon.
 
-ISATAPd does not support operating as an ISATAP client at the moment.
-It can only server as an ISATAP router.
+ISATAPd only provide limited support for ISATAP client at the moment:
+autoconfiguration is not implemented; only one router can be used
+(Potential Routers List is not properly implemented).
 
 .SH SECURITY
 .B ISATAPd
