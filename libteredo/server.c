@@ -289,7 +289,6 @@ teredo_process_packet (const teredo_server *s, bool sec)
 	size_t ip6len;
 	struct ip6_hdr ip6;
 	uint32_t myprefix;
-	uint8_t proto;
 
 	if (teredo_wait_recv (sec ? s->fd_secondary : s->fd_primary, &packet))
 		return -1;
@@ -316,15 +315,14 @@ teredo_process_packet (const teredo_server *s, bool sec)
 	// NOTE: ptr is not aligned => read single bytes only
 
 	// Teredo server case number 2
-	proto = ip6.ip6_nxt;
-	if (((proto != IPPROTO_NONE) || (ip6len > 0)) // neither a bubble...
-	 && (proto != IPPROTO_ICMPV6)) // nor an ICMPv6 message
+	if (((ip6.ip6_nxt != IPPROTO_NONE) || (ip6len > 0)) // neither a bubble...
+	 && (ip6.ip6_nxt != IPPROTO_ICMPV6)) // nor an ICMPv6 message
 		return -2; // packet not allowed through server
 
 	// Teredo server case number 4
 	if (IN6_IS_ADDR_LINKLOCAL (&ip6.ip6_src)
 	 && IN6_ARE_ADDR_EQUAL (&in6addr_allrouters, &ip6.ip6_dst)
-	 && (proto == IPPROTO_ICMPV6)
+	 && (ip6.ip6_nxt == IPPROTO_ICMPV6)
 	 && (ip6len > sizeof (struct nd_router_solicit))
 	 && (((struct icmp6_hdr *)ptr)->icmp6_type == ND_ROUTER_SOLICIT))
 		// sends a Router Advertisement
