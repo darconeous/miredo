@@ -293,11 +293,16 @@ teredo_process_packet (const teredo_server *s, bool sec)
 	if (teredo_wait_recv (sec ? s->fd_secondary : s->fd_primary, &packet))
 		return -1;
 
+	/*
+	 * Cases 1 to 3 are all about discarding packets,
+	 * so their actual order do not matter.
+	 * Similarly, cases 4 to 6 are all about processing the packet.
+	 */
 	// Teredo server case number 3
 	if (!is_ipv4_global_unicast (packet.source_ipv4))
 		return -2;
 
-	// Check IPv6 packet (Teredo server check number 1)
+	// Check IPv6 packet (Teredo server case number 1)
 	ptr = packet.ip6;
 	ip6len = packet.ip6_len;
 
@@ -319,6 +324,8 @@ teredo_process_packet (const teredo_server *s, bool sec)
 	 && (ip6.ip6_nxt != IPPROTO_ICMPV6)) // nor an ICMPv6 message
 		return -2; // packet not allowed through server
 
+	// Teredo server case number 3 was done above...
+
 	// Teredo server case number 4
 	if (IN6_IS_ADDR_LINKLOCAL (&ip6.ip6_src)
 	 && IN6_ARE_ADDR_EQUAL (&in6addr_allrouters, &ip6.ip6_dst)
@@ -332,44 +339,38 @@ teredo_process_packet (const teredo_server *s, bool sec)
 
 	if (IN6_TEREDO_PREFIX (&ip6.ip6_src) == myprefix)
 	{
-		// Source address is Teredo
-
+		/** Source address is Teredo **/
+		// Teredo server case number 5 (accept), otherwise 7 (discard)
 		if (!IN6_MATCHES_TEREDO_CLIENT (&ip6.ip6_src, packet.source_ipv4,
 		                                packet.source_port))
-			return -2; // case 7
+			return -2;
 
-		// Teredo server case number 5
+		/** Packet accepted for processing **/
 		/*
 		 * NOTE: Theoretically, we "should" accept ICMPv6 toward the
 		 * server's own local-link address or the ip6-allrouters
 		 * multicast address. In practice, it never happens.
 		 */
 
-		// Ensures that the packet destination has a global scope
-		// (ie 2000::/3) - as specified.
+		// Ensures destination is of global scope (ie 2000::/3)
 		if ((ip6.ip6_dst.s6_addr[0] & 0xe0) != 0x20)
-			return -2; // must be discarded
+			return -2; // must not be forwarded over IPv6
 
 		if (IN6_TEREDO_PREFIX (&ip6.ip6_dst) != myprefix)
 			return teredo_send_ipv6 (packet.ip6, packet.ip6_len) ? 2 : -1;
-
-		/*
-		 * If the IPv6 destination is a Teredo address, the packet
-		 * should be forwarded over UDP
-		 */
 	}
 	else
 	{
-		// Source address is not Teredo
+		/** Source address is NOT Teredo **/
+		// Teredo server case number 6 (accept), otherwise 7 (discard)
 		if ((IN6_TEREDO_PREFIX (&ip6.ip6_dst) != myprefix)
 		 || (IN6_TEREDO_SERVER (&ip6.ip6_dst) != s->server_ip))
-			return -2; // case 7
+			return -2;
 
-		// Teredo server case number 6
+		/** Packet accepted for processing **/
 	}
 
-	// forwards packet over Teredo:
-	// (destination is a Teredo IPv6 address)
+	// Forwards packet over Teredo (destination is a Teredo IPv6 address)
 	return teredo_forward_udp (s->fd_primary, &packet,
 		IN6_TEREDO_SERVER (&ip6.ip6_dst) == s->server_ip) ? 3 : -1;
 }
