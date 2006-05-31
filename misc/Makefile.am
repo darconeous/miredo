@@ -19,7 +19,8 @@
 
 EXTRA_DIST = miredo.in miredo-server.in
 if SAMPLE_CONF
-dist_sysconf_DATA = miredo.conf-dist miredo-server.conf-dist
+dist_sysconf_DATA = miredo.conf-dist miredo-server.conf-dist \
+	isatapd.conf-dist
 endif
 noinst_SCRIPTS = miredo miredo-server
 CLEANFILES = $(noinst_SCRIPTS)
