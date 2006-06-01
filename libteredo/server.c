@@ -370,6 +370,16 @@ teredo_process_packet (const teredo_server *s, bool sec)
 		/** Packet accepted for processing **/
 	}
 
+	/*
+	 * While an explicit breakage of RFC 4380, we purposedly drop ICMPv6
+	 * packets here, as these can have a large payload, and we don't want
+	 * to be an open UDP relay. A conformant Teredo client/relay will never
+	 * try to relay such a packet through a Teredo server anyway. Also,
+	 * Microsoft Teredo servers also drop these packets.
+	 */
+	if (ip6.ip6_nxt != IPPROTO_NONE)
+		return -2;
+
 	// Forwards packet over Teredo (destination is a Teredo IPv6 address)
 	return teredo_forward_udp (s->fd_primary, &packet,
 		IN6_TEREDO_SERVER (&ip6.ip6_dst) == s->server_ip) ? 3 : -1;
