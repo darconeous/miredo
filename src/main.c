@@ -182,6 +182,8 @@ write_pid (int fd)
 	(void)snprintf (buf, sizeof (buf), "%d", (int)getpid ());
 	buf[sizeof (buf) - 1] = '\0';
 	size_t len = strlen (buf);
+
+	ftruncate (fd, 0);
 	return write (fd, buf, len) == (int)len ? 0 : -1;
 }
 
