@@ -47,7 +47,6 @@ void miredo_setup_nonblock_fd (int fd);
 
 extern uid_t unpriv_uid;
 extern const char *miredo_chrootdir;
-extern const char *const miredo_pidfile;
 extern const char *const miredo_name;
 
 # ifdef HAVE_LIBCAP

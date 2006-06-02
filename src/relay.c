@@ -73,7 +73,6 @@
 #include "conf.h"
 
 const char *const miredo_name = "miredo";
-const char *const miredo_pidfile = LOCALSTATEDIR"/run/miredo.pid";
 
 #ifdef HAVE_LIBCAP
 static const cap_value_t capv[] =

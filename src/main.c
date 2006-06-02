@@ -453,20 +453,19 @@ main (int argc, char *argv[])
 	if (username == NULL)
 		username = MIREDO_DEFAULT_USERNAME;
 
-	size_t conffile_len;
+	size_t str_len;
 	if (conffile == NULL)
 	{
 		path = br_find_etc_dir (SYSCONFDIR);
-		conffile_len = strlen (path) + strlen (miredo_name) + 7;
+		str_len = strlen (path) + strlen (miredo_name) + 7;
 	}
 	else
-		conffile_len = -1;
+		str_len = 0;
 
-	char conffile_buf[conffile_len];
+	char conffile_buf[str_len];
 	if (conffile == NULL)
 	{
-		snprintf (conffile_buf, sizeof (conffile_buf), "%s/%s.conf", path,
-		          miredo_name);
+		snprintf (conffile_buf, str_len, "%s/%s.conf", path, miredo_name);
 		free (path);
 		conffile = conffile_buf;
 	}
@@ -498,7 +497,17 @@ main (int argc, char *argv[])
 	miredo_chrootdir = chrootdir;
 
 	if (pidfile == NULL)
-		pidfile = miredo_pidfile;
+		str_len = sizeof (LOCALSTATEDIR"/run/" ".pid") + strlen (miredo_name);
+	else
+		str_len = 0;
+
+	char pidfile_buf[str_len];
+	if (pidfile == NULL)
+	{
+		snprintf (pidfile_buf, str_len, LOCALSTATEDIR"/run/%s.pid",
+		          miredo_name);
+		pidfile = pidfile_buf;
+	}
 
 	if (miredo_diagnose ())
 		return 1;
