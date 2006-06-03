@@ -54,6 +54,7 @@ Portability:
 (H) byte alignement tests on problematic platforms (not i386)
 (H) Solaris: libtun6 support
 (H) Solaris: tests & fixes
+(*) BSD: setsockopt SO_REUSEPORT if/where appropriate
 
 Documentation & support:
 -------------------------

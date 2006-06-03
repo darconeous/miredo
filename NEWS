@@ -1,5 +1,5 @@
 RELEASE NOTES for Miredo
-beta version 0.9.3
+beta version 0.9.2-svn
 =========================
 $Id$
 
@@ -28,8 +28,10 @@ BETA RELEASE 0.9.3 : Major features enhancement
 
 # Minor optimizations to the most stressed code paths.
 # Suppress spurious 4-seconds delay when waiting for “symmetric” probes.
+# Minimalistic support for ISATAP client in ISATAPd.
 # Ignore invalid Router Advertisements properly.
 # Drop incoming multicast traffic as a precautionary measure.
+# Truncate PID file properly when updating it.
 # Fix deadlocks and spurious exits upon some signals (such as SIGCONT).
 # Fix deadlock when Teredo server DNS hostname resolution fails.
 # Handle would-be “spurious wakeups” properly.
@@ -41,6 +43,7 @@ BETA RELEASE 0.9.3 : Major features enhancement
 # Got rid of all C++ code.
 # Renamed libteredo-mire to teredo-mire for consistency.
 # Leverage newer autoconf macros.
+# Fix encoding of non-ASCII characters in manual pages.
 
 (Unstable version 0.9.3 includes all fixes from stable version 0.8.5)
 

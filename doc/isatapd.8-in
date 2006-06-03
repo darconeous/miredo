@@ -1,5 +1,5 @@
 .\" ***********************************************************************
-.\" *  Copyright © 2004-2006 Rémi Denis-Courmont.                         *
+.\" *  Copyright Â© 2004-2006 RÃ©mi Denis-Courmont.                         *
 .\" *  This program is free software; you can redistribute and/or modify  *
 .\" *  it under the terms of the GNU General Public License as published  *
 .\" *  by the Free Software Foundation; version 2 of the license.         *
@@ -24,7 +24,7 @@ isatapd \- userland ISATAP pseudo-tunnel daemon
 .B ISATAPd
 is a daemon program providing an ISATAP pseudo-tunnel interface in
 userland, compatible with the "Intra-Site Automatic Tunnel Addressing
-Protocol" Internet experimental protocol (RFC 4214).
+Protocol" Internet experimental protocol (RFC\ 4214).
 
 This is mostly useful to provide IPv6 connectivity to dual-stack nodes
 on a IPv4 network.
@@ -117,7 +117,7 @@ The process-id file.
 isatapd.conf(5), radvd(8), ipv6(7)
 
 .SH AUTHOR
-Rémi Denis-Courmont <rdenis at simphalempin.com>
+R\[char233]mi Denis-Courmont <rdenis at simphalempin.com>
 
 $Id$
 
