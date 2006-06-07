@@ -47,7 +47,8 @@ libteredo_la_SOURCES += security.c security.h maintain.c maintain.h \
 			md5.c md5.h
 endif
 libteredo_la_LIBADD = @LIBJUDY@ @LIBRT@ $(LIBADD)
-libteredo_la_LDFLAGS = -no-undefined -version-info 1:0:1
+libteredo_la_LDFLAGS = -no-undefined -export-symbols-regex teredo_.* \
+	-version-info 1:0:1
 
 # libteredo versions:
 # 0) First stable shared release (0.8.2)

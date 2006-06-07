@@ -27,12 +27,14 @@ lib_LTLIBRARIES = libtun6.la
 check_PROGRAMS = libtun6-diagnose
 TESTS = $(check_PROGRAMS)
 
+include_libtun6dir = $(includedir)/libtun6
+include_libtun6_HEADERS = tun6.h
+
 # libtun6.a
 libtun6_la_SOURCES = tun6.c
 libtun6_la_LIBADD = @LTLIBINTL@ ../compat/libcompat.la
-libtun6_la_LDFLAGS = -no-undefined -version-info 1:0:1
-include_libtun6dir = $(includedir)/libtun6
-include_libtun6_HEADERS = tun6.h
+libtun6_la_LDFLAGS = -no-undefined -export-symbols-regex tun6_.* \
+	-version-info 1:0:1
 
 # libtun6 versions:
 # 0) First stable shared release (0.8.2)
