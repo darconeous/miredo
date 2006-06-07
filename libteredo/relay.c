@@ -1068,6 +1068,31 @@ int teredo_run_async (teredo_tunnel *t)
 	return 0;
 }
 
+/**
+ * Registers file descriptors in an fd_set for use with select().
+ *
+ * Thread-safety: This function is thread-safe.
+ *
+ * @return the "biggest" file descriptor registered (useful as the
+ * first parameter to select()). -1 if any of the descriptors exceeded
+ * FD_SETSIZE - 1.
+ */
+int teredo_register_readset (teredo_tunnel *t, fd_set *rdset)
+{
+	assert (t != NULL);
+	assert (t->fd != -1);
+
+	// FIXME: May be problematic once multicast local discovery gets
+	// implemented.
+
+	if (t->fd >= FD_SETSIZE)
+		return -1;
+
+	FD_SET (t->fd, rdset);
+	return t->fd;
+
+}
+
 
 /**
  * Receives all pending packets coming from the Teredo tunnel. If you

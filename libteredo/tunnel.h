@@ -28,6 +28,12 @@
 extern "C" {
 # endif
 
+# ifdef __GNUC__
+#  define LIBTEREDO_DEPRECATED __attribute__ ((deprecated))
+# else
+#  define LIBTEREDO_DEPRECATED
+# endif
+
 int teredo_startup (bool use_client);
 void teredo_cleanup (bool use_client);
 
@@ -38,6 +44,8 @@ typedef struct teredo_tunnel teredo_tunnel;
 
 teredo_tunnel *teredo_create (uint32_t ipv4, uint16_t port);
 void teredo_destroy (teredo_tunnel *t);
+int teredo_register_readset (teredo_tunnel *t, fd_set *rdset)
+	LIBTEREDO_DEPRECATED;
 void teredo_run (teredo_tunnel *t);
 int teredo_run_async (teredo_tunnel *t);
 

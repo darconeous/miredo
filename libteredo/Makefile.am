@@ -47,7 +47,12 @@ libteredo_la_SOURCES += security.c security.h maintain.c maintain.h \
 			md5.c md5.h
 endif
 libteredo_la_LIBADD = @LIBJUDY@ @LIBRT@ $(LIBADD)
-libteredo_la_LDFLAGS = -no-undefined
+libteredo_la_LDFLAGS = -no-undefined -version-info 1:0:1
+
+# libteredo versions:
+# 0) First stable shared release (0.8.2)
+# 1) teredo_run_async() added, teredo_register_readset() deprecated (0.9.x)
+
 
 # libteredo-server.la
 libteredo_server_la_SOURCES = server.c server.h
