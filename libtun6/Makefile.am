@@ -30,9 +30,13 @@ TESTS = $(check_PROGRAMS)
 # libtun6.a
 libtun6_la_SOURCES = tun6.c
 libtun6_la_LIBADD = @LTLIBINTL@ ../compat/libcompat.la
-libtun6_la_LDFLAGS = -no-undefined
+libtun6_la_LDFLAGS = -no-undefined -version-info 1:0:1
 include_libtun6dir = $(includedir)/libtun6
 include_libtun6_HEADERS = tun6.h
+
+# libtun6 versions:
+# 0) First stable shared release (0.8.2)
+# 1) tun_wait_recv() (0.9.x)
 
 # libtun6-diagnose
 libtun6_diagnose_SOURCES = diagnose.c
