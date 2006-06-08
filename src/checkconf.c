@@ -152,11 +152,6 @@ static int usage (const char *path)
 	return 0;
 }
 
-static int version (void)
-{
-	puts (PACKAGE_NAME" v"PACKAGE_VERSION);
-	return 0;
-}
 
 int main(int argc, char *argv[])
 {
@@ -181,7 +176,7 @@ int main(int argc, char *argv[])
 				return usage(argv[0]);
 
 			case 'V':
-				return version();
+				return miredo_version();
 		}
 
 	const char *filename = NULL;

@@ -86,8 +86,8 @@ usage (const char *path)
 }
 
 
-static int
-version (void)
+extern int
+miredo_version (void)
 {
 #ifndef VERSION
 # define VERSION "unknown version"
@@ -435,7 +435,7 @@ int miredo_main (int argc, char *argv[])
 				break;
 
 			case 'V':
-				return version ();
+				return miredo_version ();
 
 			case '?':
 			default:
