@@ -32,10 +32,9 @@ extern "C"
 {
 # endif
 
+int miredo_main (int argc, char *argv[]);
 int miredo (const char *conffile, const char *server_name, int pidfd);
-int miredo_run (miredo_conf *conf, const char *server);
 int drop_privileges (void);
-int miredo_diagnose (void);
 void miredo_setup_fd (int fd);
 void miredo_setup_nonblock_fd (int fd);
 
@@ -43,11 +42,14 @@ void miredo_setup_nonblock_fd (int fd);
 }
 # endif
 
+extern int (*miredo_diagnose) (void);
+extern int (*miredo_run) (miredo_conf *conf, const char *server);
+
 # include <sys/types.h> // uid_t
 
 extern uid_t unpriv_uid;
 extern const char *miredo_chrootdir;
-extern const char *const miredo_name;
+extern const char *miredo_name;
 
 # ifdef HAVE_LIBCAP
 #  include <sys/capability.h>

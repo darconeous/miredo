@@ -367,8 +367,7 @@ init_daemon (const char *username, const char *pidfile, int nodetach)
 }
 
 
-int
-main (int argc, char *argv[])
+int miredo_main (int argc, char *argv[])
 {
 	const char *username = NULL, *conffile = NULL, *servername = NULL,
 	           *pidfile = NULL, *chrootdir = NULL;
@@ -408,8 +407,7 @@ main (int argc, char *argv[])
 	memset (&flags, 0, sizeof (flags));
 
 	int c;
-	while ((c = getopt_long (argc, argv, "c:fhp:t:u:V", opts,
-					NULL)) != -1)
+	while ((c = getopt_long (argc, argv, "c:fhp:t:u:V", opts, NULL)) != -1)
 		switch (c)
 		{
 

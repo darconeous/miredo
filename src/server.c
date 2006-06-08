@@ -53,20 +53,9 @@
 
 #include <libteredo/server.h>
 
-const char *const miredo_name = "miredo-server";
 
-#ifdef HAVE_LIBCAP
-static const cap_value_t capv[] =
-{
-	CAP_NET_RAW /* required by teredo_server */
-};
-
-const cap_value_t *miredo_capv = capv;
-const int miredo_capc = sizeof (capv) / sizeof (capv[0]);
-#endif
-
-extern int
-miredo_diagnose (void)
+static int
+server_diagnose (void)
 {
 	char buf[1024];
 	int check = teredo_server_check (buf, sizeof (buf));
@@ -79,8 +68,8 @@ miredo_diagnose (void)
 }
 
 
-extern int
-miredo_run (miredo_conf *conf, const char *server_name)
+static int
+server_run (miredo_conf *conf, const char *server_name)
 {
 	teredo_server *server;
 	union teredo_addr prefix;
@@ -173,3 +162,24 @@ miredo_run (miredo_conf *conf, const char *server_name)
 	        "of the program is not already running."));
 	return -1;
 }
+
+
+int main (int argc, char *argv[])
+{
+#ifdef HAVE_LIBCAP
+	static const cap_value_t capv[] =
+	{
+		CAP_NET_RAW /* required by teredo_server */
+	};
+
+	miredo_capv = capv;
+	miredo_capc = sizeof (capv) / sizeof (capv[0]);
+#endif
+
+	miredo_name = "miredo-server";
+	miredo_diagnose = server_diagnose;
+	miredo_run = server_run;
+
+	return miredo_main (argc, argv);
+}
+

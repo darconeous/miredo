@@ -306,3 +306,16 @@ miredo (const char *confpath, const char *server_name, int pidfd)
 	closelog ();
 	return -retval;
 }
+
+
+int (*miredo_diagnose) (void);
+int (*miredo_run) (miredo_conf *conf, const char *server);
+
+const char *miredo_chrootdir;
+const char *miredo_name;
+
+# ifdef HAVE_LIBCAP
+const cap_value_t *miredo_capv;
+const int miredo_capc;
+# endif
+

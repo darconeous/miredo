@@ -60,22 +60,9 @@
 #include "miredo.h"
 #include "conf.h"
 
-const char *const miredo_name = "isatapd";
 
-#ifdef HAVE_LIBCAP
-static const cap_value_t capv[] =
-{
-	CAP_NET_ADMIN, /* required by libtun6 */
-	CAP_NET_RAW /* required for raw ICMPv6 socket */
-};
-
-const cap_value_t *miredo_capv = capv;
-const int miredo_capc = sizeof (capv) / sizeof (capv[0]);
-#endif
-
-
-extern int
-miredo_diagnose (void)
+static int
+isatap_diagnose (void)
 {
 	char errbuf[LIBTUN6_ERRBUF_SIZE];
 	if (tun6_driver_diagnose (errbuf))
@@ -348,8 +335,8 @@ run_tunnel (int ipv6fd, tun6 *tunnel, uint32_t router_ipv4)
 }
 
 
-extern int
-miredo_run (miredo_conf *conf, const char *server_name)
+static int
+isatap_run (miredo_conf *conf, const char *server_name)
 {
 	/*
 	 * CONFIGURATION
@@ -471,3 +458,25 @@ void miredo_setup_nonblock_fd (int fd)
 	(void) fcntl (fd, F_SETFL, O_NONBLOCK | flags);
 	miredo_setup_fd (fd);
 }
+
+
+int main (int argc, char *argv[])
+{
+#ifdef HAVE_LIBCAP
+	static const cap_value_t capv[] =
+	{
+		CAP_NET_ADMIN, /* required by libtun6 */
+		CAP_NET_RAW /* required for raw ICMPv6 socket */
+	};
+
+	miredo_capv = capv;
+	miredo_capc = sizeof (capv) / sizeof (capv[0]);
+#endif
+
+	miredo_name = "isatapd";
+	miredo_diagnose = isatap_diagnose;
+	miredo_run = isatap_run;
+
+	return miredo_main (argc, argv);
+}
+
