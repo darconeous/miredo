@@ -55,7 +55,7 @@ extern const char *miredo_name;
 # ifdef HAVE_LIBCAP
 #  include <sys/capability.h>
 extern const cap_value_t *miredo_capv;
-extern const int miredo_capc;
+extern int miredo_capc;
 # endif
 
 #endif /* ifndef MIREDO_CONF_H */
