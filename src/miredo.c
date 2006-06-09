@@ -316,6 +316,6 @@ const char *miredo_name;
 
 # ifdef HAVE_LIBCAP
 const cap_value_t *miredo_capv;
-const int miredo_capc;
+int miredo_capc;
 # endif
 
