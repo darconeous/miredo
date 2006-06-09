@@ -35,9 +35,6 @@ exit 1
 
 unlink po/Makevars.template
 
-# Official <gettext.h> currently has a bug whereby it includes <libintl.h>
-# even if it doesn't exists (when compiling C++ against uClibc++), so we
-# use a custom version at the moment.
 gettext_h=""
 for d in /usr /usr/local /opt/gettext /usr/pkg $HOME ; do
 	if test -f $d/share/gettext/gettext.h ; then
