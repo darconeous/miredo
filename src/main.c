@@ -262,8 +262,7 @@ init_daemon (const char *username, const char *pidfile, int nodetach)
 	{
 		fputs (_("Error: This program is not supposed to keep root\n"
 			"privileges. That is potentially very dangerous\n"
-			"(all the more as it is beta quality code that has\n"
-			"never been audited for security vulnerabilities).\n"),
+			"(all the more as it has never been externally audited).\n"),
 			stderr);
 		return -1;
 	}
