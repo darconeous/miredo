@@ -28,6 +28,7 @@
 #include "tun6.h"
 #include <sys/socket.h> /* OpenBSD wants that for <net/if.h> */
 #include <net/if.h>
+#include <errno.h>
 
 static const char *invalid_name =
 	"Overly-long-interface-name-that-will-not-work";
@@ -62,7 +63,14 @@ int main (void)
 	/* TODO: further testing */
 	t = tun6_create ("diagnose");
 	if (t == NULL)
+	{
+		if (errno == ENOSYS)
+		{
+			puts ("Warning: cannot rename tunnel interface.");
+			return 0;
+		}
 		return 1;
+	}
 	unsigned id = tun6_getId (t);
 	if ((id == 0) || (if_nametoindex ("diagnose") != id))
 		res = -1;
