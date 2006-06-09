@@ -180,6 +180,8 @@ create_static_tunnel (const char *ifname, uint32_t ipv4)
 {
 	tun6 *tunnel = tun6_create (ifname);
 
+	if ((tunnel == NULL) && (ifname != NULL) && (errno == ENOSYS))
+		tunnel = tun6_create (NULL);
 	if (tunnel == NULL)
 		return NULL;
 

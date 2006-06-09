@@ -203,6 +203,8 @@ create_dynamic_tunnel (const char *ifname, int *fd)
 {
 	tun6 *tunnel = tun6_create (ifname);
 
+	if ((tunnel == NULL) && (ifname != NULL) && (errno == ENOSYS))
+		tunnel = tun6_create (NULL);
 	if (tunnel == NULL)
 		return NULL;
 
@@ -272,6 +274,8 @@ create_static_tunnel (const char *ifname, const struct in6_addr *prefix,
 {
 	tun6 *tunnel = tun6_create (ifname);
 
+	if ((tunnel == NULL) && (ifname != NULL) && (errno == ENOSYS))
+		tunnel = tun6_create (NULL);
 	if (tunnel == NULL)
 		return NULL;
 
