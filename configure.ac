@@ -55,6 +55,7 @@ AM_BINRELOC
 AM_GNU_GETTEXT_VERSION([0.12.1])
 AM_GNU_GETTEXT([external])
 
+LIBRT=""
 AC_CHECK_LIB(rt, clock_gettime, [LIBRT="-lrt"])
 AC_SUBST(LIBRT)
 RDC_FUNC_SOCKET
@@ -100,7 +101,7 @@ AC_CHECK_TYPE([clockid_t],, [
 AS_MESSAGE([checking library functions...])
 RDC_REPLACE_FUNC_GETOPT_LONG
 LIBS_save="$LIBS"
-LIBS="-lrt $LIBS"
+LIBS="$LIBRT $LIBS"
 AC_REPLACE_FUNCS([clearenv closefrom pselect strlcpy clock_gettime clock_nanosleep])
 LIBS="$LIBS_save"
 
@@ -127,64 +128,76 @@ AC_SUBST(LIBCAP)
 
 # Judy
 AC_ARG_WITH(Judy,
-	    [AS_HELP_STRING(--without-Judy,
-	    		    [do not use Judy dynamic arrays (default automatic)])])
-have_Judy=no
+	    [AS_HELP_STRING(--with-Judy,
+	    		    [use Judy dynamic arrays (default automatic)])])
+use_Judy=no
 LIBJUDY=""
 AS_IF([test "${with_Judy}" != "no"], [
 	AC_CHECK_HEADERS([Judy.h], [
 		AC_CHECK_LIB(Judy, JudyHSIns, [
-			have_Judy=yes
+			use_Judy=yes
 			LIBJUDY="-lJudy"
 			AC_DEFINE(HAVE_LIBJUDY, 1,
 				  [Define to 1 if you the `Judy' library (-lJudy).])
+		], [
+			AS_IF([test "${with_judy}"], [
+				AC_MSG_ERROR([Judy requested while not available])
+			])
 		])
 	])
 ])
 AC_SUBST(LIBJUDY)
 AC_MSG_CHECKING([whether to use Judy dynamic arrays])
-AC_MSG_RESULT([${have_Judy}])
-AS_IF([test "x${have_Judy}" = "xno" && test "x${with_Judy}" = "xyes"],
-	[AC_MSG_ERROR([Judy requested while not available])])
+AC_MSG_RESULT([${use_Judy}])
+AS_IF([test "${use_Judy}" = "no"], [
+	AC_MSG_WARN([Miredo is considerably less scalable without libJudy!])
+])
+
 
 # Teredo client
 AC_MSG_CHECKING([whether to include Teredo client support])
 AC_ARG_ENABLE(teredo-client,
-	      [AS_HELP_STRING(--disable-teredo-client,
-			      [do not compile Teredo client (default enabled)])])
-AH_TEMPLATE(MIREDO_TEREDO_CLIENT,
-	    [Define to 1 if the Teredo client support is enabled])
-AM_CONDITIONAL(TEREDO_CLIENT, [test "x${enable_teredo_client}" != "xno"])
-AS_IF([test "x${enable_teredo_client}" != "xno"],
-	[AC_DEFINE(MIREDO_TEREDO_CLIENT)
-	AC_MSG_RESULT(yes)],
-	[AC_MSG_RESULT(no)])
+	[AS_HELP_STRING(--disable-teredo-client,
+		[do not compile Teredo client (default enabled)])],,
+	[enable_teredo_client="yes"])
+AM_CONDITIONAL(TEREDO_CLIENT, [test "${enable_teredo_client}" != "no"])
+AS_IF([test "${enable_teredo_client}" != "no"], [
+	AC_DEFINE(MIREDO_TEREDO_CLIENT, 1,
+		[Define to 1 if the Teredo client support must be compiled.])
+])
+AC_MSG_RESULT([${enable_teredo_client}])
+
 
 # Config sample installation
 AC_MSG_CHECKING([whether to install sample config files])
 AC_ARG_ENABLE(sample-conf,
-	      [AS_HELP_STRING(--disable-sample-conf,
-			      [do not install sample config files (default enabled)])])
-AM_CONDITIONAL(SAMPLE_CONF, [test "x{enable_sample_conf}" != "xno"])
-AS_IF([test "x{enable_teredo_client}" != "xno"],
-	[AC_MSG_RESULT(yes)], [AC_MSG_RESULT(no)])
+	[AS_HELP_STRING(--disable-sample-conf,
+		[do not install sample config files (default enabled)])],,
+	[enable_sample_conf="yes"])
+AM_CONDITIONAL(INSTALL_CONF, [test "${enable_sample_conf}" != "no"])
+AC_MSG_RESULT([${enable_sample_conf}])
+
 
 # Unprivileged user
 AC_MSG_CHECKING([user to run as])
 AC_ARG_ENABLE(miredo-user,
-	      [AS_HELP_STRING(--enable-miredo-user,
-			      [run as a user (default nobody)])])
-AS_IF([test "${enable_miredo_user}" = "yes"],
-	[enable_miredo_user="miredo"])
-AS_IF([test "x${enable_miredo_user}" = "x" || test "${enable_miredo_user}" = "no"],
-	[enable_miredo_user="nobody"])
-AH_TEMPLATE(MIREDO_DEFAULT_USERNAME,
-            [Define to the system user name to be used by miredo.])
-AS_IF([test "${enable_miredo_user}" != "root"],
-	[AC_DEFINE_UNQUOTED(MIREDO_DEFAULT_USERNAME, "${enable_miredo_user}")
-	AC_MSG_RESULT(${enable_miredo_user})],
-	[AC_MSG_RESULT(root)
-	AC_MSG_WARN([Running as root is DANGEROUS!])])
+	[AS_HELP_STRING(--enable-miredo-user,
+		[run as a specific user (default nobody)])], [
+	AS_IF([test "${enable_miredo_user}" = "yes"],
+		[enable_miredo_user="miredo"])
+	AS_IF([test "${enable_miredo_user}" = "no"],
+		[enable_miredo_user="nobody"])
+], [
+	enable_mired_user="nobody"
+])
+AC_MSG_RESULT([${enable_miredo_user}])
+AS_IF([test "${enable_miredo_user}" != "root"], [
+	AC_DEFINE_UNQUOTED(MIREDO_DEFAULT_USERNAME, "${enable_miredo_user}",
+		[Define to the default system username to be used.])
+], [
+	AC_MSG_WARN([Running as root is DANGEROUS!])
+])
+
 
 # Defines for <config.h>
 AH_BOTTOM([

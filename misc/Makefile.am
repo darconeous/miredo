@@ -18,7 +18,7 @@
 # ***********************************************************************
 
 EXTRA_DIST = miredo.in miredo-server.in
-if SAMPLE_CONF
+if INSTALL_CONF
 dist_sysconf_DATA = miredo.conf-dist miredo-server.conf-dist \
 	isatapd.conf-dist
 endif
