@@ -6,7 +6,9 @@ $Id$
   This is a testing (unstable) release of the program. The package is
 functional, though it lacks some optional features. There are also no
 known outstanding issues, but the code has undergone significant changes,
-some of which were not heavily tested.
+some of which were not heavily tested. Nevertheless, it is believed that
+this release is better than any of the earlier ones, including stable
+release 0.8.5.
   Please report any problem by email to miredo-devel (at) remlab (dot) net
 
   You can find major changes since version 0.1.0 below. For more general
@@ -15,7 +17,7 @@ changes, run “miredo -h” to get help. For detailled internal changes, see
 ChangeLog.
 
 =============================================================================
-BETA RELEASE 0.9.3 : Major features enhancement
+CANDIDATE RELEASE 0.9.3 : Major features enhancement, major bug fixes
 
 # Use dedicated thread for packets transmission and reception. Miredo
   should now leverage dual-process, dual-core and SMT systems.
@@ -44,6 +46,8 @@ BETA RELEASE 0.9.3 : Major features enhancement
 # Renamed libteredo-mire to teredo-mire for consistency.
 # Leverage newer autoconf macros.
 # Fix encoding of non-ASCII characters in manual pages.
+# Work-around for platforms that can't rename tunnel network interface.
+# Build libmiredo dynamically to reduce global code size.
 
 (Unstable version 0.9.3 includes all fixes from stable version 0.8.5)
 

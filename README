@@ -18,7 +18,7 @@ For quick usage instructions, see below.
   See INSTALL for general instructions on how to build the package and
 install the program from sources. Additionnal informations may be found
 below. If you are building from the Subversion repository, run the
-“./bootstrap” script first.
+“./autogen.sh” script first.
 
   This package is distributed under the terms of the General Public
 License (GPL) version 2 written by the Free Software Foundation, Inc.
@@ -163,8 +163,8 @@ rtt min/avg/max/mdev = 552.830/564.865/585.031/12.218 ms
 Monitoring:
 ------------
   If you wish to monitor the Teredo tunnel, I suggest you use famous
-network analyzer Ethereal which has had a built-in Teredo dissector for
-some time.
+network analyzer Wireshark (formerly Ethereal®) which includes a Teredo
+“dissector”.
 
 Teredo relay and/or server:
 ----------------------------
