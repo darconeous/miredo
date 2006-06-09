@@ -38,18 +38,19 @@ unlink po/Makevars.template
 # Official <gettext.h> currently has a bug whereby it includes <libintl.h>
 # even if it doesn't exists (when compiling C++ against uClibc++), so we
 # use a custom version at the moment.
-#for d in /usr /usr/local /opt/gettext /usr/pkg $HOME ; do
-#	if test -f $d/share/gettext/gettext.h ; then
-#		test -z "$gettext_h" && ln -sf $d/share/gettext/gettext.h \
-#					include/gettext.h
-#		gettext_h=ok
-#	fi
-#done
+gettext_h=""
+for d in /usr /usr/local /opt/gettext /usr/pkg $HOME ; do
+	if test -f $d/share/gettext/gettext.h ; then
+		test -z "$gettext_h" && ln -sf $d/share/gettext/gettext.h \
+					include/gettext.h
+		gettext_h=ok
+	fi
+done
 
 echo "Generating \`aclocal.m4' with aclocal ..."
 aclocal -I m4 || {
 echo "Error: autoconf is probably not on your system, or it does not work."
-echo "You need GNU autoconf 2.54 or higher, as well as GNU gettext 0.12.1."
+echo "You need GNU autoconf 2.59c or higher, as well as GNU gettext 0.12.1."
 exit 1
 }
 echo "Generating \`config.h.in' with autoheader ..."
@@ -70,10 +71,10 @@ echo "Generating \`configure' script with autoconf ..."
 autoconf || exit 1
 echo "Done."
 
-#test -z $gettext_h && {
-#echo "Error: can't find <gettext.h> convenience C header."
-#echo "Please put a link to it by hand in src/gettext.h"
-#}
+test -z $gettext_h && {
+echo "Error: can't find <gettext.h> convenience C header."
+echo "Please put a link to it by hand as include/gettext.h"
+}
 
 echo ""
 echo "Type \`./configure' to configure the package for your system"
