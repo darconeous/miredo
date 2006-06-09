@@ -31,7 +31,7 @@ AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir) -D_REENTRANT \
 	-DLOCALSTATEDIR=\"$(localstatedir)\"
 
 sbin_PROGRAMS = miredo miredo-server miredo-checkconf isatapd
-noinst_LTLIBRARIES = libmiredo.la
+lib_LTLIBRARIES = libmiredo.la
 TESTS = miredo-checkconf
 
 #BUILT_SOURCES = $(srcdir)/svnversion.stamp
@@ -40,7 +40,11 @@ libmiredo_la_SOURCES = main.c miredo.c miredo.h \
 			conf.c conf.h binreloc.c binreloc.h
 libmiredo_la_LIBADD = $(LTLIBINTL) $(LIBCAP) $(BINRELOC_LIBS) \
 			../compat/libcompat.la
-libmiredo_la_LDFLAGS = -static
+libmiredo_la_LDFLAGS = -no-undefined -release @VERSION@
+# libmiredo is dynamic only to reduce executables size (all the code is
+# reused at least three times); stable API is not quite an objective
+# right now (<miredo.h> and <conf.h> are not installed by the way).
+# That is why we use -release at the moment.
 
 # miredo
 miredo_SOURCES = relay.c
