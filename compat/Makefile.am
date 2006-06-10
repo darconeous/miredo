@@ -23,7 +23,7 @@ noinst_HEADERS = barrier.h pselect.h
 noinst_LTLIBRARIES = libcompat.la
 libcompat_la_SOURCES = dummy.c
 libcompat_la_LIBADD = $(LTLIBOBJS)
-libcompat_la_LDFLAGS = -static -no-undefined
+libcompat_la_LDFLAGS = -no-undefined
 
 check_PROGRAMS = test-strlcpy
 TESTS = $(check_PROGRAMS)
