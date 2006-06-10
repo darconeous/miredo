@@ -48,6 +48,7 @@ CANDIDATE RELEASE 0.9.3 : Major features enhancement, major bug fixes
 # Fix encoding of non-ASCII characters in manual pages.
 # Work-around for platforms that can't rename tunnel network interface.
 # Build libmiredo dynamically to reduce global code size.
+# Fix inclusion of non-PIC code into shared libraries.
 
 (Unstable version 0.9.3 includes all fixes from stable version 0.8.5)
 
