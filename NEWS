@@ -1,6 +1,6 @@
 RELEASE NOTES for Miredo
-beta version 0.9.2-svn
-=========================
+release canditate version 0.9.3
+================================
 $Id$
 
   This is a testing (unstable) release of the program. The package is
@@ -17,7 +17,7 @@ changes, run “miredo -h” to get help. For detailled internal changes, see
 ChangeLog.
 
 =============================================================================
-CANDIDATE RELEASE 0.9.3 : Major features enhancement, major bug fixes
+RELEASE CANDIDATE 0.9.3 : Major features enhancement, major bug fixes
 
 # Use dedicated thread for packets transmission and reception. Miredo
   should now leverage dual-process, dual-core and SMT systems.
