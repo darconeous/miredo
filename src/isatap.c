@@ -152,15 +152,19 @@ static int get_bind_ipv4 (uint32_t conn_ipv4, uint32_t *bind_ipv4)
 	if (fd == -1)
 		return -1;
 
-	struct sockaddr_in addr;
-	memset (&addr, 0, sizeof (addr));
-	addr.sin_family = AF_INET;
-	addr.sin_addr.s_addr = conn_ipv4;
+	struct sockaddr_in addr =
+	{
+		.sin_family = AF_INET,
+#if HAVE_SA_LEN
+		.sin_len = sizeof (struct sockaddr_in),
+#endif
+		.sin_addr.s_addr = conn_ipv4
+	};
 	socklen_t addrlen = sizeof (addr);
 
 	if (connect (fd, (struct sockaddr *)&addr, sizeof (addr))
-		   || getsockname (fd, (struct sockaddr *)&addr, &addrlen)
-		   || addrlen < sizeof (addr))
+	 || getsockname (fd, (struct sockaddr *)&addr, &addrlen)
+	 || addrlen < sizeof (addr))
 	{
 		close (fd);
 		return -1;
@@ -228,9 +232,13 @@ run_tunnel (int ipv6fd, tun6 *tunnel, uint32_t router_ipv4)
 	sigset_t set;
 	sigemptyset (&set);
 
-	struct sockaddr_in dst;
-	memset (&dst, 0, sizeof (dst));
-	dst.sin_family = AF_INET;
+	struct sockaddr_in dst =
+	{
+		.sin_family = AF_INET,
+#ifdef HAVE_SA_LEN
+		.sin_len = sizeof (struct sockaddr_in),
+#endif
+	};
 
 	/* Main loop */
 	for (;;)
@@ -412,10 +420,14 @@ isatap_run (miredo_conf *conf, const char *server_name)
 	{
 		miredo_setup_nonblock_fd (ipv6_fd);
 
-		struct sockaddr_in a;
-		memset (&a, 0, sizeof (a));
-		a.sin_family = AF_INET;
-		a.sin_addr.s_addr = bind_ip;
+		struct sockaddr_in a =
+		{
+			.sin_family = AF_INET,
+#ifdef HAVE_SA_LEN
+			.sin_len = sizeof (struct sockaddr_in),
+#endif
+			.sin_addr.s_addr = bind_ip
+		};
 		if (bind (ipv6_fd, (struct sockaddr *)&a, sizeof (a)))
 		{
 			close (ipv6_fd);

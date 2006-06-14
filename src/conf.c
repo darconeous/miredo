@@ -390,12 +390,12 @@ bool miredo_conf_get_bool (miredo_conf *conf, const char *name,
  */
 int GetIPv4ByName (const char *hostname, uint32_t *ipv4)
 {
-	struct addrinfo help, *res;
-
-	memset (&help, 0, sizeof (help));
-	help.ai_family = AF_INET;
-	help.ai_socktype = SOCK_DGRAM;
-	help.ai_protocol = IPPROTO_UDP;
+	struct addrinfo help =
+	{
+		.ai_family = AF_INET,
+		.ai_socktype = SOCK_DGRAM,
+		.ai_protocol = IPPROTO_UDP
+	}, *res;
 
 	int check = getaddrinfo (hostname, NULL, &help, &res);
 	if (check)
@@ -440,12 +440,12 @@ bool miredo_conf_parse_IPv6 (miredo_conf *conf, const char *name,
 	if (val == NULL)
 		return true;
 
-	struct addrinfo help, *res;
-
-	memset (&help, 0, sizeof (help));
-	help.ai_family = AF_INET6;
-	help.ai_socktype = SOCK_DGRAM;
-	help.ai_protocol = IPPROTO_UDP;
+	struct addrinfo help =
+	{
+		.ai_family = AF_INET6,
+		.ai_socktype = SOCK_DGRAM,
+		.ai_protocol = IPPROTO_UDP
+	}, *res;
 
 	int check = getaddrinfo (val, NULL, &help, &res);
 

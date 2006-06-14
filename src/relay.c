@@ -150,14 +150,17 @@ miredo_icmp6_callback (void *data, const void *packet, size_t length,
 	(void)data;
 	assert (icmp6_fd != -1);
 
-	struct sockaddr_in6 addr;
-	memset (&addr, 0, sizeof (addr));
-	/* TODO: use sendmsg and don't memcpy in BuildICMPv6Error */
-	addr.sin6_family = AF_INET6;
+	struct sockaddr_in6 addr =
+	{
+		.sin6_family = AF_INET6,
 #ifdef HAVE_SA_LEN
-	addr.sin6_len = sizeof (addr);
+		.sin6_len = sizeof (struct sockaddr_in6),
 #endif
+		//.sin6_addr = *dst TODO: make sure dst is aligned
+	};
 	memcpy (&addr.sin6_addr, dst, sizeof (addr.sin6_addr));
+
+	/* TODO: use sendmsg and don't memcpy in BuildICMPv6Error */
 	(void)sendto (icmp6_fd, packet, length, 0,
 	              (struct sockaddr *)&addr, sizeof (addr));
 }
