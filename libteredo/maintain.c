@@ -67,6 +67,24 @@
 #define PROBE_SYMMETRIC	3
 #define NOT_RUNNING	(-1)
 
+#if (_POSIX_CLOCK_SELECTION - 0 >= 0) && (_POSIX_MONOTONIC_CLOCK - 0 >= 0)
+static inline void gettime (struct timespec *now)
+{
+	if (clock_gettime (CLOCK_MONOTONIC, now))
+		clock_gettime (CLOCK_REALTIME, now);
+}
+#else
+static inline void gettime (struct timespec *now)
+{
+	clock_gettime (CLOCK_REALTIME, now);
+}
+
+# warning Using real-time rather than monotonic clock:
+# warning Teredo client maintenance might not work properly!
+# undef CLOCK_MONOTONIC
+# define CLOCK_MONOTONIC CLOCK_REALTIME
+# define pthread_condattr_setclock( a, c ) (0)
+#endif
 
 struct teredo_maintenance
 {
@@ -216,12 +234,6 @@ static void wait_reply_ignore (teredo_maintenance *restrict m,
 }
 
 
-#if (_POSIX_MONOTONIC_CLOCK - 0 >= 0)
-static clockid_t clock_id = CLOCK_REALTIME;
-#else
-# define clock_id CLOCK_REALTIME
-#endif
-
 /** FIXME: not needed anymore
  * Make sure ts is in the future. If not, set it to the current time.
  * @return false if (*ts) was changed, true otherwise.
@@ -230,7 +242,7 @@ static bool
 checkTimeDrift (struct timespec *ts)
 {
 	struct timespec now;
-	clock_gettime (clock_id, &now);
+	gettime (&now);
 
 	if ((now.tv_sec > ts->tv_sec)
 	 || ((now.tv_sec == ts->tv_sec) && (now.tv_nsec > ts->tv_nsec)))
@@ -292,7 +304,7 @@ static inline void maintenance_thread (teredo_maintenance *m)
 			int val = resolveServerIP (m->server, &server_ip,
 			                           m->server2, &server_ip2);
 
-			clock_gettime (clock_id, &deadline);
+			gettime (&deadline);
 
 			if (val)
 			{
@@ -422,7 +434,7 @@ static inline void maintenance_thread (teredo_maintenance *m)
 			case PROBE_RESTRICT:
 				state = PROBE_SYMMETRIC;
 				memcpy (&c_state->addr, &newaddr, sizeof (c_state->addr));
-				clock_gettime (clock_id, &deadline);
+				gettime (&deadline);
 				break;
 
 			case PROBE_SYMMETRIC:
@@ -521,37 +533,29 @@ teredo_maintenance_start (int fd, teredo_state_cb cb, void *opaque,
 	err = pthread_mutex_init (&m->lock, NULL);
 	if (err == 0)
 	{
-		pthread_condattr_t *pattr;
 		pthread_condattr_t attr;
 
-		if (pthread_condattr_init (&attr) == 0)
-		{
-#if (_POSIX_CLOCK_SELECTION - 0 >= 0) && (_POSIX_MONOTONIC_CLOCK - 0 >= 0)
-			if ((clock_id == CLOCK_REALTIME)
-			 && (pthread_condattr_setclock (&attr, CLOCK_MONOTONIC) == 0))
-				clock_id = CLOCK_MONOTONIC;
-#endif
-			pattr = &attr;
-		}
-		else
-			pattr = NULL;
-
-		err = pthread_cond_init (&m->received, pattr);
-		if (pattr != NULL)
-			pthread_condattr_destroy (pattr);
-
+		err = pthread_condattr_init (&attr);
 		if (err == 0)
 		{
-			err = pthread_barrier_init (&m->processed, NULL, 2);
+			pthread_condattr_setclock (&attr, CLOCK_MONOTONIC);
+
+			err = pthread_cond_init (&m->received, &attr);
+			pthread_condattr_destroy (&attr);
+
 			if (err == 0)
 			{
-				err = pthread_create (&m->thread, NULL, do_maintenance, m);
+				err = pthread_barrier_init (&m->processed, NULL, 2);
 				if (err == 0)
-					return m;
-
-				pthread_barrier_destroy (&m->processed);
+				{
+					err = pthread_create (&m->thread, NULL, do_maintenance, m);
+					if (err == 0)
+						return m;
+	
+					pthread_barrier_destroy (&m->processed);
+				}
+				pthread_cond_destroy (&m->received);
 			}
-			pthread_cond_destroy (&m->received);
 		}
 		pthread_mutex_destroy (&m->lock);
 	}
