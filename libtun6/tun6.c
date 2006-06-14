@@ -168,12 +168,16 @@ tun6 *tun6_create (const char *req_name)
 	 * TUNTAP (Linux) tunnel driver initialization
 	 */
 	static const char tundev[] = "/dev/net/tun";
-	struct ifreq req;
+	struct ifreq req =
+	{
+		.ifr_flags = IFF_TUN
+	};
 
-	memset (&req, 0, sizeof (req));
-	req.ifr_flags = IFF_TUN;
 	if ((req_name != NULL) && safe_strcpy (req.ifr_name, req_name))
+	{
+		free (t);
 		return NULL;
+	}
 
 	int fd = open (tundev, O_RDWR);
 	if (fd == -1)
@@ -507,17 +511,21 @@ tun6_setState (tun6 *t, bool up)
 static void
 plen_to_mask (unsigned plen, struct in6_addr *mask)
 {
-	memset (&mask->s6_addr, 0x00, 16);
+	assert (plen <= 128);
 
 	div_t d = div (plen, 8);
-	int i;
+	int i = 0;
 
-	for (i = 0; i < d.quot; i ++)
-		mask->s6_addr[i] = 0xff;
+	while (i < d.quot)
+		mask->s6_addr[i++] = 0xff;
 
 	if (d.rem)
-		mask->s6_addr[i] = 0xff << (8 - d.rem);
+		mask->s6_addr[i++] = 0xff << (8 - d.rem);
+
+	while (i < 16)
+		mask->s6_addr[i++] = 0;
 }
+
 
 static void
 plen_to_sin6 (unsigned plen, struct sockaddr_in6 *sin6)
@@ -629,17 +637,18 @@ _iface_route (int reqfd, int id, bool add, const struct in6_addr *addr,
 	/*
 	 * Linux ioctl interface
 	 */
-	struct in6_rtmsg req6;
+	struct in6_rtmsg req6 =
+	{
+		.rtmsg_flags = RTF_UP,
+		.rtmsg_ifindex = id,
+		.rtmsg_dst_len = (unsigned short)prefix_len,
+		/* By default, the Linux kernel's metric is 256 for subnets,
+		 * and 1024 for gatewayed route. */
+		.rtmsg_metric = 1024 + rel_metric
+	};
 
 	/* Adds/deletes route */
-	memset (&req6, 0, sizeof (req6));
-	req6.rtmsg_flags = RTF_UP;
-	req6.rtmsg_ifindex = id;
 	memcpy (&req6.rtmsg_dst, addr, sizeof (req6.rtmsg_dst));
-	req6.rtmsg_dst_len = (unsigned short)prefix_len;
-	/* By default, the Linux kernel's metric is 256 for subnets,
-	 * and 1024 for gatewayed route. */
-	req6.rtmsg_metric = 1024 + rel_metric;
 	if (prefix_len == 128)
 		req6.rtmsg_flags |= RTF_HOST;
 	/* no gateway */
@@ -814,9 +823,10 @@ tun6_setMTU (tun6 *t, unsigned mtu)
 	if ((mtu < 1280) || (mtu > 65535))
 		return -1;
 
-	struct ifreq req;
-	memset (&req, 0, sizeof (req));
-	req.ifr_mtu = mtu;
+	struct ifreq req =
+	{
+		.ifr_mtu = mtu
+	};
 	if (if_indextoname (t->id, req.ifr_name) == NULL)
 		return -1;
 
