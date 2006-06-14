@@ -234,7 +234,7 @@ static void wait_reply_ignore (teredo_maintenance *restrict m,
 }
 
 
-/** FIXME: not needed anymore
+/**
  * Make sure ts is in the future. If not, set it to the current time.
  * @return false if (*ts) was changed, true otherwise.
  */
