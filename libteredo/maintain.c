@@ -90,12 +90,12 @@ struct teredo_maintenance
 
 static int getipv4byname (const char *restrict name, uint32_t *restrict ipv4)
 {
-	struct addrinfo hints, *res;
+	struct addrinfo hints =
+	{
+		.ai_family = AF_INET,
+		.ai_socktype = SOCK_DGRAM
+	}, *res;
 	int val;
-
-	memset (&hints, 0, sizeof (hints));
-	hints.ai_family = AF_INET;
-	hints.ai_socktype = SOCK_DGRAM;
 
 	val = getaddrinfo (name, NULL, &hints, &res);
 	if (val)

@@ -65,15 +65,15 @@ const struct in6_addr teredo_cone =
  */
 int teredo_socket (uint32_t bind_ip, uint16_t port)
 {
-	struct sockaddr_in myaddr;
-
-	memset (&myaddr, 0, sizeof (myaddr));
-	myaddr.sin_family = AF_INET;
-	myaddr.sin_port = port;
-	myaddr.sin_addr.s_addr = bind_ip;
+	struct sockaddr_in myaddr =
+	{
+		.sin_family = AF_INET,
 #ifdef HAVE_SA_LEN
-	myaddr.sin_len = sizeof (myaddr);
+		.sin_len = sizeof (struct sockaddr_in),
 #endif
+		.sin_port = port,
+		.sin_addr.s_addr = bind_ip
+	};
 
 	int fd = socket (AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	if (fd == -1)
@@ -123,22 +123,23 @@ int teredo_socket (uint32_t bind_ip, uint16_t port)
 int teredo_sendv (int fd, const struct iovec *iov, size_t count,
                   uint32_t dest_ip, uint16_t dest_port)
 {
-	struct sockaddr_in addr;
-
-	memset (&addr, 0, sizeof (addr));
-	addr.sin_family = AF_INET;
-	addr.sin_port = dest_port;
-	addr.sin_addr.s_addr = dest_ip;
+	struct sockaddr_in addr =
+	{
+		.sin_family = AF_INET,
 #ifdef HAVE_SA_LEN
-	addr.sin_len = sizeof (addr);
+		.sin_len = sizeof (struct sockaddr_in),
 #endif
+		.sin_port = dest_port,
+		.sin_addr.s_addr = dest_ip
+	};
 
-	struct msghdr msg;
-	memset (&msg, 0, sizeof (msg));
-	msg.msg_name = &addr;
-	msg.msg_namelen = sizeof (addr);
-	msg.msg_iov = (struct iovec *)iov;
-	msg.msg_iovlen = count;
+	struct msghdr msg =
+	{
+		.msg_name = &addr,
+		.msg_namelen = sizeof (addr),
+		.msg_iov = (struct iovec *)iov,
+		.msg_iovlen = count
+	};
 
 	for (int tries = 0; tries < 10; tries++)
 	{
