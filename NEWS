@@ -1,5 +1,5 @@
 RELEASE NOTES for Miredo
-release canditate version 0.9.3
+release canditate version 0.9.4
 ================================
 $Id$
 
@@ -17,7 +17,12 @@ changes, run “miredo -h” to get help. For detailled internal changes, see
 ChangeLog.
 
 =============================================================================
-RELEASE CANDIDATE 0.9.3 : Major features enhancement, major bug fixes
+BETA RELEASE 0.9.4 : Major features enhancement
+
+# More refined system clock usage brings about 30% performance boost.
+
+=============================================================================
+BETA RELEASE 0.9.3 : Major features enhancement, major bug fixes
 
 # Use dedicated thread for packets transmission and reception. Miredo
   should now leverage dual-process, dual-core and SMT systems.

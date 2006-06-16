@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: miredo 0.8.1\n"
 "Report-Msgid-Bugs-To: miredo-devel_no_bulk_mail@remlab.net\n"
-"POT-Creation-Date: 2006-06-09 18:26+0300\n"
+"POT-Creation-Date: 2006-06-16 20:45+0300\n"
 "PO-Revision-Date: 2005-03-10 14:32+0100\n"
 "Last-Translator: Rémi Denis-Courmont <rdenis (at) simphalempin (dot) com>\n"
 "Language-Team: N/A\n"
@@ -21,7 +21,7 @@ msgid "Ignoring invalid bubble: your Teredo server is probably buggy."
 msgstr ""
 
 #: libteredo/security.c:68 libteredo/security.c:158 libteredo/server.c:505
-#: libteredo/server.c:516 libteredo/maintain.c:558 libtun6/tun6.c:703
+#: libteredo/server.c:516 libteredo/maintain.c:562 libtun6/tun6.c:712
 #: src/main.c:289 src/main.c:317 src/main.c:355 src/main.c:489
 #: src/miredo.c:107 src/miredo.c:115 src/miredo.c:237
 #, c-format
@@ -46,64 +46,64 @@ msgstr ""
 msgid "Invalid Teredo prefix received"
 msgstr ""
 
-#: libteredo/maintain.c:164
+#: libteredo/maintain.c:182
 msgid "Authentication with server failed."
 msgstr ""
 
-#: libteredo/maintain.c:239
+#: libteredo/maintain.c:251
 msgid "Too much time drift. Resynchronizing."
 msgstr ""
 
-#: libteredo/maintain.c:301
+#: libteredo/maintain.c:313
 #, c-format
 msgid "Cannot resolve Teredo server address \"%s\": %s"
 msgstr "Cannot resolve Teredo server address “%s”: %s"
 
-#: libteredo/maintain.c:313
+#: libteredo/maintain.c:325
 msgid "Server has a non global IPv4 address. It will most likely not work."
 msgstr ""
 
-#: libteredo/maintain.c:379
+#: libteredo/maintain.c:391
 msgid "Lost Teredo connectivity"
 msgstr ""
 
-#: libteredo/maintain.c:394
+#: libteredo/maintain.c:406
 msgid "No reply from Teredo server"
 msgstr ""
 
-#: libteredo/maintain.c:417
+#: libteredo/maintain.c:429
 msgid "Teredo address/MTU changed"
 msgstr ""
 
-#: libteredo/maintain.c:435
+#: libteredo/maintain.c:447
 msgid "Unsupported symmetric NAT detected."
 msgstr ""
 
-#: libteredo/maintain.c:444
+#: libteredo/maintain.c:456
 #, c-format
 msgid "Qualified (NAT type: %s)"
 msgstr ""
 
-#: libteredo/maintain.c:446
+#: libteredo/maintain.c:458
 msgid "cone"
 msgstr ""
 
-#: libteredo/maintain.c:446
+#: libteredo/maintain.c:458
 msgid "restricted"
 msgstr ""
 
-#: libtun6/tun6.c:181 libtun6/tun6.c:191 libtun6/tun6.c:249 libtun6/tun6.c:312
-#: libtun6/tun6.c:329 libtun6/tun6.c:344 libtun6/tun6.c:362
+#: libtun6/tun6.c:185 libtun6/tun6.c:195 libtun6/tun6.c:253 libtun6/tun6.c:316
+#: libtun6/tun6.c:333 libtun6/tun6.c:348 libtun6/tun6.c:366
 #, c-format
 msgid "Tunneling driver error (%s): %s"
 msgstr ""
 
-#: libtun6/tun6.c:384
+#: libtun6/tun6.c:388
 #, c-format
 msgid "%s tunneling interface creation failure"
 msgstr ""
 
-#: libtun6/tun6.c:1001
+#: libtun6/tun6.c:1011
 msgid ""
 "You should run these commands to create it:\n"
 "# mkdir -p /dev/net\n"
@@ -111,20 +111,20 @@ msgid ""
 "(you must be root to do that).\n"
 msgstr ""
 
-#: libtun6/tun6.c:1006 libtun6/tun6.c:1031
+#: libtun6/tun6.c:1016 libtun6/tun6.c:1041
 msgid ""
 "You can obtain a tunnel driver for the Darwin kernel (Mac OS X) from:\n"
 "http://www-user.rhrk.uni-kl.de/~nissler/tuntap/\n"
 msgstr ""
 
-#: libtun6/tun6.c:1014
+#: libtun6/tun6.c:1024
 #, c-format
 msgid ""
 "Error: %s character device not found or unavailable.\n"
 "%s"
 msgstr ""
 
-#: libtun6/tun6.c:1027
+#: libtun6/tun6.c:1037
 msgid ""
 "Make sure your Linux kernel includes the \"Universal TUNTAP driver\"\n"
 "(CONFIG_TUN option), possibly as a module.\n"
@@ -132,7 +132,7 @@ msgstr ""
 "Make sure your Linux kernel includes the “Universal TUNTAP driver”\n"
 "(CONFIG_TUN option), possibly as a module.\n"
 
-#: libtun6/tun6.c:1039
+#: libtun6/tun6.c:1049
 #, c-format
 msgid ""
 "Error: your operating system does not seem to provide a network tunneling\n"
@@ -140,7 +140,7 @@ msgid ""
 "%s"
 msgstr ""
 
-#: libtun6/tun6.c:1048
+#: libtun6/tun6.c:1058
 #, c-format
 msgid ""
 "Error: cannot open device file %s (%s)\n"
@@ -286,77 +286,77 @@ msgstr ""
 msgid "Starting..."
 msgstr ""
 
-#: src/miredo.c:269
+#: src/miredo.c:272
 #, c-format
 msgid "Exiting on signal %d (%s)"
 msgstr ""
 
-#: src/miredo.c:277
+#: src/miredo.c:280
 #, c-format
 msgid "Reloading configuration on signal %d (%s)"
 msgstr ""
 
-#: src/miredo.c:285
+#: src/miredo.c:288
 #, c-format
 msgid "Terminated (exit code: %d)"
 msgstr ""
 
-#: src/miredo.c:293
+#: src/miredo.c:296
 #, c-format
 msgid "Child %d killed by signal %d (%s)"
 msgstr ""
 
-#: src/miredo.c:301
+#: src/miredo.c:304
 msgid "Terminated with error(s)."
 msgstr ""
 
-#: src/miredo.c:303
+#: src/miredo.c:306
 msgid "Terminated with no error."
 msgstr ""
 
-#: src/relay.c:190 src/checkconf.c:84
+#: src/relay.c:193 src/checkconf.c:84
 #, c-format
 msgid "Invalid relay type \"%s\" at line %u"
 msgstr "Invalid relay type “%s” at line %u"
 
-#: src/relay.c:231
+#: src/relay.c:234
 msgid "Teredo pseudo-tunnel started"
 msgstr ""
 
-#: src/relay.c:233
+#: src/relay.c:236
 #, c-format
 msgid " (address: %s, MTU: %u)"
 msgstr ""
 
-#: src/relay.c:252
+#: src/relay.c:255
 msgid "Teredo pseudo-tunnel stopped"
 msgstr ""
 
-#: src/relay.c:390 src/relay.c:409 src/relay.c:426 src/relay.c:439
-#: src/relay.c:465 src/server.c:97 src/server.c:105 src/server.c:123
-#: src/isatap.c:353 src/isatap.c:362 src/isatap.c:374
+#: src/relay.c:393 src/relay.c:412 src/relay.c:429 src/relay.c:442
+#: src/relay.c:468 src/server.c:97 src/server.c:105 src/server.c:123
+#: src/isatap.c:361 src/isatap.c:370 src/isatap.c:382
 msgid "Fatal configuration error"
 msgstr ""
 
-#: src/relay.c:408 src/server.c:104
+#: src/relay.c:411 src/server.c:104
 msgid "Server address not specified"
 msgstr ""
 
-#: src/relay.c:425 src/checkconf.c:102
+#: src/relay.c:428 src/checkconf.c:102
 msgid "Unsupported Teredo client mode"
 msgstr ""
 
-#: src/relay.c:492 src/relay.c:498 src/relay.c:564 src/isatap.c:405
-#: src/isatap.c:427
+#: src/relay.c:495 src/relay.c:501 src/relay.c:567 src/isatap.c:413
+#: src/isatap.c:439
 #, c-format
 msgid "Miredo setup failure: %s"
 msgstr ""
 
-#: src/relay.c:493 src/isatap.c:406
+#: src/relay.c:496 src/isatap.c:414
 msgid "Cannot create IPv6 tunnel"
 msgstr ""
 
-#: src/relay.c:499 src/relay.c:565
+#: src/relay.c:502 src/relay.c:568
 msgid "libteredo cannot be initialized"
 msgstr ""
 
