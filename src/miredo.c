@@ -241,9 +241,12 @@ miredo (const char *confpath, const char *server_name, int pidfd)
 			case 0:
 				close (pidfd);
 				retval = miredo_run (cnf, server_name);
-		}
+				miredo_conf_destroy (cnf);
+				break;
 
-		miredo_conf_clear (cnf, 0);
+			default:
+				miredo_conf_clear (cnf, 0);
+		}
 
 		switch (pid)
 		{
