@@ -6,7 +6,7 @@ This task list is only indicative. It is not fully comprehensive.
 If you have an idea, please submit it to the miredo-devel mailing list.
 
 (!) must be done before next release
-(*) must be before stable release
+(*) must be done before stable release
 ( ) should probably be done someday if one finds time and interest
 (?) should be evaluated for usefulness and/or feasibility first
 (F) should be done, but probably not at the moment
@@ -23,8 +23,6 @@ Important features & fixes:
 
 Not so important features:
 ---------------------------
-( ) relay IPv6 access control lists:
-    can be done with the OS firewall
 (*) some statistics
 (H) other localizations
 ( ) support for UPnP IGD to open an UDP port on supporting NATs
@@ -32,25 +30,23 @@ Not so important features:
 
 Conformance:
 -------------
-(*) limit sending of bubbles (not completed yet)
-(*) send unreachable in response when dropping previously queued packets
+(!) limit sending of bubbles (not completed yet)
+(!) send unreachable in response when dropping previously queued packets
 
 Security:
 ----------
 (?) full secure qualification support with user ID
-( ) relay/server IPv4 _modifiable_ access control lists
-    (currently hard-coded to reject private IPv4 space)
-( ) automatic/dynamic relay access control list
-    (stateful firewall-like)
 
 Extension:
 -----------
 ( ) support symmetric to non-symmetric NAT traversal
-(?) support symmetric NAT traversal
+(?) support full symmetric NAT traversal
+(?) customizable IPv4 ACLs, e.g. allow custom internal Teredo
+    with private IPv4 addresses
 
 Portability:
 -------------
-(H) big-endianess compatibility tests
+(H) big-endianess compatibility and regression tests
 (H) byte alignement tests on problematic platforms (not i386)
 (H) Solaris: libtun6 support
 (H) Solaris: tests & fixes
