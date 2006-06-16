@@ -94,6 +94,8 @@ struct teredo_tunnel
 
 	bool allow_cone;
 	int fd;
+	time_t now;
+	pthread_t clock;
 };
 
 #ifdef HAVE_LIBJUDY
@@ -130,14 +132,12 @@ teredo_send_unreach (teredo_tunnel *restrict tunnel, int code,
 		struct icmp6_hdr hdr;
 		char fill[1280 - sizeof (struct ip6_hdr) - sizeof (struct icmp6_hdr)];
 	} buf;
-	time_t now;
 
 	/* ICMPv6 rate limit */
-	time (&now);
 	pthread_mutex_lock (&tunnel->ratelimit.lock);
-	if (memcmp (&now, &tunnel->ratelimit.last, sizeof (now)))
+	if (tunnel->now != tunnel->ratelimit.last)
 	{
-		memcpy (&tunnel->ratelimit.last, &now, sizeof (now));
+		tunnel->ratelimit.last = tunnel->now;
 		tunnel->ratelimit.count =
 			ICMP_RATE_LIMIT_MS ? (int)(1000 / ICMP_RATE_LIMIT_MS) : -1;
 	}
@@ -416,7 +416,7 @@ int teredo_transmit (teredo_tunnel *restrict tunnel,
 	}
 
 	bool created;
-	time_t now = time (NULL);
+	time_t now = tunnel->now;
 	struct teredo_peerlist *list = tunnel->list;
 
 //	syslog (LOG_DEBUG, "packet to be sent");
@@ -701,7 +701,7 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 
 	/* Actual packet reception, either as a relay or a client */
 
-	time_t now = time (NULL);
+	time_t now = tunnel->now;
 
 	// Checks source IPv6 address / looks up peer in the list:
 	struct teredo_peerlist *list = tunnel->list;
@@ -919,6 +919,40 @@ static void teredo_dummy_state_down_cb (void *o)
 
 
 /**
+ * Userland low-precision (1 Hz) clock
+ *
+ * This is way faster than calling time() for every packet transmitted or
+ * received. The first implementation was using POSIX timers, but it might
+ * be a bit overkill to spawn a thread every second to simply increment an
+ * integer. Also, POSIX timers with thread event delivery has a terrible
+ * portable at the time of writing (June 2006). Basically, recent
+ * GNU/Linux have it, and that's about it... no uClibc support, only in
+ * -current for FreeBSD...
+ *
+ * TODO:
+ * - use monotonic clock if available (GC will need fixing)
+ */
+static void *teredo_clock (void *val)
+{
+	time_t *clock = (time_t *)val;
+
+	for (;;)
+	{
+		struct timespec now;
+		clock_gettime (CLOCK_REALTIME, &now);
+
+		*clock = now.tv_sec;
+		now.tv_sec++;
+		now.tv_nsec = 0;
+
+		clock_nanosleep (CLOCK_REALTIME, TIMER_ABSTIME, &now, NULL);
+	}
+
+	return NULL;
+}
+
+
+/**
  * Creates a teredo_tunnel instance. teredo_preinit() must have been
  * called first.
  *
@@ -963,15 +997,22 @@ teredo_tunnel *teredo_create (uint32_t ipv4, uint16_t port)
 	tunnel->down_cb = teredo_dummy_state_down_cb;
 #endif
 
-	if ((tunnel->fd = teredo_socket (ipv4, port)) != -1)
+	time (&tunnel->now);
+
+	if (pthread_create (&tunnel->clock, NULL, teredo_clock, &tunnel->now) == 0)
 	{
-		if ((tunnel->list = teredo_list_create (MAX_PEERS, 30)) != NULL)
+		if ((tunnel->fd = teredo_socket (ipv4, port)) != -1)
 		{
-			(void)pthread_rwlock_init (&tunnel->state_lock, NULL);
-			(void)pthread_mutex_init (&tunnel->ratelimit.lock, NULL);
-			return tunnel;
+			if ((tunnel->list = teredo_list_create (MAX_PEERS, 30)) != NULL)
+			{
+				(void)pthread_rwlock_init (&tunnel->state_lock, NULL);
+				(void)pthread_mutex_init (&tunnel->ratelimit.lock, NULL);
+				return tunnel;
+			}
+			teredo_close (tunnel->fd);
 		}
-		teredo_close (tunnel->fd);
+		pthread_cancel (tunnel->clock);
+		pthread_join (tunnel->clock, NULL);
 	}
 
 	free (tunnel);
@@ -1016,6 +1057,8 @@ void teredo_destroy (teredo_tunnel *t)
 	pthread_rwlock_destroy (&t->state_lock);
 	pthread_mutex_destroy (&t->ratelimit.lock);
 	teredo_close (t->fd);
+	pthread_cancel (t->clock);
+	pthread_join (t->clock, NULL);
 	free (t);
 }
 
