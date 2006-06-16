@@ -538,7 +538,7 @@ teredo_maintenance_start (int fd, teredo_state_cb cb, void *opaque,
 		err = pthread_condattr_init (&attr);
 		if (err == 0)
 		{
-			pthread_condattr_setclock (&attr, CLOCK_MONOTONIC);
+			(void)pthread_condattr_setclock (&attr, CLOCK_MONOTONIC);
 
 			err = pthread_cond_init (&m->received, &attr);
 			pthread_condattr_destroy (&attr);
