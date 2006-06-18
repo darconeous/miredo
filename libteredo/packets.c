@@ -162,7 +162,7 @@ teredo_send_rs (int fd, uint32_t server_ip,
 	memcpy (&rs.ip6.ip6_src, cone ? &teredo_cone : &teredo_restrict,
 	        sizeof (rs.ip6.ip6_src));
 	memcpy (&rs.ip6.ip6_dst, &in6addr_allrouters, sizeof (rs.ip6.ip6_dst));
-	
+
 	rs.rs.nd_rs_type = ND_ROUTER_SOLICIT;
 	rs.rs.nd_rs_code = 0;
 	// Checksums are pre-computed
