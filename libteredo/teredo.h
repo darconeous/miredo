@@ -70,16 +70,15 @@ union teredo_addr
 #define IN6_TEREDO_SERVER( ip6 ) \
 	(((const union teredo_addr *)ip6)->teredo.server_ip)
 #define IN6_TEREDO_IPV4( ip6 ) \
-	(~((const union teredo_addr *)ip6)->teredo.client_ip)
+	(((const union teredo_addr *)ip6)->teredo.client_ip ^ 0xffffffff)
 #define IN6_TEREDO_PORT( ip6 ) \
-	((uint16_t)(~((const union teredo_addr *)ip6)->teredo.client_port))
-
+	(((const union teredo_addr *)ip6)->teredo.client_port ^ 0xffff)
+	
 static inline int
 in6_matches_teredo_client (const union teredo_addr *ip6, uint32_t ip,
 				uint16_t port)
 {
-	return (((ip ^ ip6->teredo.client_ip) == 0xffffffff)
-		&& ((port ^ ip6->teredo.client_port) == 0xffff));
+	return (ip == IN6_TEREDO_IPV4 (ip6)) && (port == IN6_TEREDO_PORT (ip6));
 }
 
 /*
