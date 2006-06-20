@@ -55,12 +55,17 @@ union teredo_addr
 
 #define TEREDO_FLAG_CONE	0x8000
 
+/* The following two flags should never be set */
+#define TEREDO_FLAG_MULTICAST	0x0200
+#define TEREDO_FLAG_GLOBAL	0x0100
+
+/* Non-standard flags (taken from draft-ietf-ngtrans-shipworm-07) */
+#define TEREDO_FLAG_RANDOM	0x4000
+#define TEREDO_RANDOM_MASK	0xc3ff
+
 #define ip6_teredo( ip6 ) (((union teredo_addr *)ip6)->teredo)
 
 /* NOTE: these macros expect 4-byte aligned addresses structs */
-#define IN6_MATCHES_TEREDO_CLIENT( ip6, ip4, port ) \
-	in6_matches_teredo_client ((const union teredo_addr *)ip6, ip4, port)
-
 #define IN6_IS_TEREDO_ADDR_CONE( ip6 ) \
 	(((const union teredo_addr *)(ip6))->teredo.flags \
 	& htons (TEREDO_FLAG_CONE))
@@ -73,12 +78,27 @@ union teredo_addr
 	(((const union teredo_addr *)ip6)->teredo.client_ip ^ 0xffffffff)
 #define IN6_TEREDO_PORT( ip6 ) \
 	(((const union teredo_addr *)ip6)->teredo.client_port ^ 0xffff)
-	
+
+#define IN6_MATCHES_TEREDO_CLIENT( ip6, ip4, port ) \
+	in6_matches_teredo_client ((const union teredo_addr *)ip6, ip4, port)
+
+#define IN6_MATCHES_TEREDO_SYMMETRIC( ip6, ip4, port ) \
+	in6_matches_teredo_symmetric ((const union teredo_addr *)ip6, ip4, port)
+
 static inline int
-in6_matches_teredo_client (const union teredo_addr *ip6, uint32_t ip,
-				uint16_t port)
+in6_matches_teredo_client (const union teredo_addr *ip6,
+                           uint32_t ip, uint16_t port)
 {
 	return (ip == IN6_TEREDO_IPV4 (ip6)) && (port == IN6_TEREDO_PORT (ip6));
+}
+
+static inline int
+in6_matches_teredo_symmetric (const union teredo_addr *ip6,
+                              uint32_t ip, uint16_t port)
+{
+	return (ip == IN6_TEREDO_IPV4 (ip6))
+	    && ((port == IN6_TEREDO_PORT (ip6)
+	     || (ip6->teredo.flags & TEREDO_RANDOM_MASK)));
 }
 
 /*
