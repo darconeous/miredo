@@ -29,6 +29,7 @@ LIBADD = $(LTLIBINTL) ../compat/libcompat.la libteredo-common.la
 noinst_LTLIBRARIES = libteredo-common.la libteredo-server.la
 lib_LTLIBRARIES = libteredo.la
 EXTRA_PROGRAMS = teredo-mire
+EXTRA_DIST = libteredo.sym
 CLEANFILES = $(EXTRA_PROGRAMS)
 
 include_libteredodir = $(includedir)/libteredo
@@ -47,7 +48,7 @@ libteredo_la_SOURCES += security.c security.h maintain.c maintain.h \
 			md5.c md5.h
 endif
 libteredo_la_LIBADD = @LIBJUDY@ @LIBRT@ $(LIBADD)
-libteredo_la_LDFLAGS = -no-undefined -export-symbols-regex teredo_.* \
+libteredo_la_LDFLAGS = -no-undefined -export-symbols $(srcdir)/libteredo.sym \
 	-version-info 1:0:1
 
 # libteredo versions:
