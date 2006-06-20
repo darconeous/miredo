@@ -59,6 +59,8 @@ struct teredo_queue
 {
 	teredo_queue *next;
 	size_t length;
+	uint32_t ipv4;
+	uint16_t port;
 	bool incoming;
 	uint8_t data[];
 };
@@ -88,8 +90,9 @@ static void teredo_peer_destroy (teredo_peer *peer)
 }
 
 
-void teredo_peer_queue (teredo_peer *restrict peer,
-                        const void *restrict data, size_t len, bool incoming)
+static void teredo_peer_queue (teredo_peer *restrict peer,
+                               const void *restrict data, size_t len,
+                               uint32_t ip, uint16_t port, bool incoming)
 {
 	teredo_queue *p;
 
@@ -100,10 +103,26 @@ void teredo_peer_queue (teredo_peer *restrict peer,
 	p = (teredo_queue *)malloc (sizeof (*p) + len);
 	p->length = len;
 	memcpy (p->data, data, len);
+	p->ipv4 = ip;
+	p->port = port;
 	p->incoming = incoming;
 
 	p->next = peer->queue;
 	peer->queue = p;
+}
+
+
+void teredo_enqueue_in (teredo_peer *restrict peer, const void *restrict data,
+                        size_t len, uint32_t ip, uint16_t port)
+{
+	teredo_peer_queue (peer, data, len, ip, port, true);
+}
+
+
+void teredo_enqueue_out (teredo_peer *restrict peer,
+                         const void *restrict data, size_t len)
+{
+	teredo_peer_queue (peer, data, len, 0, 0, false);
 }
 
 
@@ -125,7 +144,10 @@ void teredo_queue_emit (teredo_queue *q, int fd, uint32_t ipv4, uint16_t port,
 
 		buf = q->next;
 		if (q->incoming)
-			cb (opaque, q->data, q->length);
+		{
+			if ((ipv4 == q->ipv4) && (port == q->port))
+				cb (opaque, q->data, q->length);
+		}
 		else
 			teredo_send (fd, q->data, q->length, ipv4, port);
 		free (q);

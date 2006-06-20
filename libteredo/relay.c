@@ -861,7 +861,8 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 		}
 
 //		syslog (LOG_DEBUG, " packet queued pending Echo Reply");
-		teredo_enqueue_in (p, buf, length);
+		teredo_enqueue_in (p, buf, length,
+		                   packet->source_ipv4, packet->source_port);
 		TouchReceive (p, now);
 
 		int res = CountPing (p, now);

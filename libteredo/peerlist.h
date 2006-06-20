@@ -48,8 +48,11 @@ typedef void (*teredo_dequeue_cb) (void *, const void *, size_t);
 extern "C" {
 #endif
 
-void teredo_peer_queue (teredo_peer *restrict peer, const void *restrict data,
-                        size_t len, bool incoming);
+void teredo_enqueue_in (teredo_peer *restrict peer, const void *restrict data,
+                        size_t len, uint32_t ip, uint16_t port);
+
+void teredo_enqueue_out (teredo_peer *restrict peer,
+                         const void *restrict data, size_t len);
 teredo_queue *teredo_peer_queue_yield (teredo_peer *peer);
 void teredo_queue_emit (teredo_queue *q, int fd, uint32_t ipv4, uint16_t port,
                         teredo_dequeue_cb cb, void *r);
@@ -72,18 +75,6 @@ static inline void TouchReceive (teredo_peer *peer, time_t now)
 static inline void TouchTransmit (teredo_peer *peer, time_t now)
 {
 	peer->last_tx = now;
-}
-
-static inline
-void teredo_enqueue_in (teredo_peer *peer, const void *data, size_t len)
-{
-	teredo_peer_queue (peer, data, len, true);
-}
-
-static inline
-void teredo_enqueue_out (teredo_peer *peer, const void *data, size_t len)
-{
-	teredo_peer_queue (peer, data, len, false);
 }
 
 
