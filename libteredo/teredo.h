@@ -72,7 +72,7 @@ union teredo_addr
 #define IN6_TEREDO_IPV4( ip6 ) \
 	(~((const union teredo_addr *)ip6)->teredo.client_ip)
 #define IN6_TEREDO_PORT( ip6 ) \
-	(~((const union teredo_addr *)ip6)->teredo.client_port)
+	((uint16_t)(~((const union teredo_addr *)ip6)->teredo.client_port))
 
 static inline int
 in6_matches_teredo_client (const union teredo_addr *ip6, uint32_t ip,
