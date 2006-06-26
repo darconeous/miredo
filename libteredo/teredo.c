@@ -51,8 +51,14 @@
  * Teredo addresses
  */
 const struct in6_addr teredo_restrict =
-	{ { { 0xfe, 0x80, 0, 0, 0, 0, 0, 0,
-		    0, 0, 'T', 'E', 'R', 'E', 'D', 'O' } } };
+	/* Vista variant */
+{ { { 0xfe, 0x80, 0, 0, 0, 0, 0, 0,
+	0, 0, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff } } };
+
+	/* XP variant */
+//	{ { { 0xfe, 0x80, 0, 0, 0, 0, 0, 0,
+//		    0, 0, 'T', 'E', 'R', 'E', 'D', 'O' } } };
+
 const struct in6_addr teredo_cone =
 	{ { { 0xfe, 0x80, 0, 0, 0, 0, 0, 0,
 		    0x80, 0, 'T', 'E', 'R', 'E', 'D', 'O' } } };

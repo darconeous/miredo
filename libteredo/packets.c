@@ -141,8 +141,6 @@ teredo_send_rs (int fd, uint32_t server_ip,
 	{
 		struct ip6_hdr ip6;
 		struct nd_router_solicit rs;
-		struct nd_opt_hdr opt;
-		uint8_t lladdr[14];
 	} rs;
 	struct iovec iov[2] = { { &auth, 13 }, { &rs, sizeof (rs) } };
 
@@ -166,21 +164,8 @@ teredo_send_rs (int fd, uint32_t server_ip,
 	rs.rs.nd_rs_type = ND_ROUTER_SOLICIT;
 	rs.rs.nd_rs_code = 0;
 	// Checksums are pre-computed
-	rs.rs.nd_rs_cksum = cone ? htons (0x114b) : htons (0x914b);
+	rs.rs.nd_rs_cksum = cone ? htons (0x125d) : htons (0x7d37);
 	rs.rs.nd_rs_reserved = 0;
-
-	/*
-	 * Microsoft Windows XP sends a 14 byte nul
-	 * source link-layer address (this is useless) when qualifying.
-	 * Once qualified, it still sends a source link-layer address,
-	 * but it includes sort of an origin indication.
-	 * We keep it nul every time. It avoids having to compute the
-	 * checksum and it is not specified.
-	 */
-	rs.opt.nd_opt_type = ND_OPT_SOURCE_LINKADDR;
-	rs.opt.nd_opt_len = 2; // 16 bytes
-
-	memset (rs.lladdr, 0, sizeof (rs.lladdr));
 
 	return teredo_sendv (fd, iov, 2, server_ip, htons (IPPORT_TEREDO)) > 0
 			? 0 : -1;
