@@ -333,7 +333,7 @@ bool miredo_conf_get_int16 (miredo_conf *conf, const char *name,
 }
 
 
-
+#if 0
 static const char *true_strings[] = { "yes", "true", "on", "enabled", NULL };
 static const char *false_strings[] =
 	{ "no", "false", "off", "disabled", NULL };
@@ -381,7 +381,7 @@ bool miredo_conf_get_bool (miredo_conf *conf, const char *name,
 	free (val);
 	return false;
 }
-
+#endif
 
 /* Utilities function */
 
