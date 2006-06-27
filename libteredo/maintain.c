@@ -262,6 +262,12 @@ cleanup_unlock (void *o)
 }
 
 
+/*
+ * NOTE:
+ * We purposedly don't implement Teredo interval determination because
+ * it makes NAT binding maintenance more brittle than it already is.
+ * Interval determination is not required for compliance by the way.
+ */
 #define SERVER_PING_DELAY 30
 
 /* TODO: allow modification of these values ? */
@@ -455,7 +461,6 @@ static inline void maintenance_thread (teredo_maintenance *m)
 		}
 
 		/* WAIT UNTIL NEXT SOLICITATION */
-		/* TODO refresh interval optimization */
 		/* TODO: watch for new interface events
 		 * (netlink on Linux, PF_ROUTE on BSD) */
 		if (sleep)
