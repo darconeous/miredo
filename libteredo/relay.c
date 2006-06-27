@@ -786,8 +786,7 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 					else
 						race condition: peer created by another thread
 					 */
-					SetMapping (p, IN6_TEREDO_IPV4 (&ip6.ip6_src),
-					            IN6_TEREDO_PORT (&ip6.ip6_src));
+					SetMappingFromPacket (p, packet);
 				}
 				else
 #endif
