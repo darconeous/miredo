@@ -1,5 +1,5 @@
 RELEASE NOTES for Miredo
-release canditate version 0.9.4
+release canditate version 0.9.5
 ================================
 $Id$
 
@@ -8,13 +8,21 @@ functional, though it lacks some optional features. There are also no
 known outstanding issues, but the code has undergone significant changes,
 some of which were not heavily tested. Nevertheless, it is believed that
 this release is better than any of the earlier ones, including stable
-release 0.8.5.
+release 0.8.5. Also, this release include an important bug fix to
+miredo-server, so you should definitely upgrade if you use that component.
   Please report any problem by email to miredo-devel (at) remlab (dot) net
 
   You can find major changes since version 0.1.0 below. For more general
 informations on this program, see README. For syntax details and
 changes, run “miredo -h” to get help. For detailled internal changes, see
 ChangeLog.
+
+=============================================================================
+BETA RELEASE 0.9.5 : Major features enhancement, major bug fixes
+
+# Fix server-side handling of Windows Vista client solicitations.
+# Removed the IgnoreConeBit configure option. The cone bit is now always
+  ignored (this was the default ever since the introduction of that option).
 
 =============================================================================
 BETA RELEASE 0.9.4 : Major features enhancement
