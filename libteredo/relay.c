@@ -518,11 +518,11 @@ int teredo_transmit (teredo_tunnel *restrict tunnel,
 			 * Open the return path if we are behind a
 			 * restricted NAT.
 			 */
-			if ((!s.cone)
-			 && SendBubbleFromDst (tunnel->fd, &dst->ip6, false, false))
+			if (/* (!s.cone) && */
+			    SendBubbleFromDst (tunnel->fd, &dst->ip6, false, false))
 				return -1;
 
-			return SendBubbleFromDst (tunnel->fd, &dst->ip6, s.cone, true);
+			return SendBubbleFromDst (tunnel->fd, &dst->ip6, false, true);
 
 		case -1: // Too many bubbles already sent
 			teredo_send_unreach (tunnel, ICMP6_DST_UNREACH_ADDR,
@@ -1214,10 +1214,7 @@ int teredo_set_cone_flag (teredo_tunnel *t, bool cone)
 
 	pthread_rwlock_wrlock (&t->state_lock);
 	if (cone)
-	{
 		t->state.addr.teredo.flags = htons (TEREDO_FLAG_CONE);
-		t->state.cone = true;
-	}
 	t->state.up = true;
 	pthread_rwlock_unlock (&t->state_lock);
 
