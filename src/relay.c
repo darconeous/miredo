@@ -459,11 +459,9 @@ relay_run (miredo_conf *conf, const char *server_name)
 #else
 		0;
 #endif
-	bool ignore_cone = true;
 
 	if (!miredo_conf_parse_IPv4 (conf, "BindAddress", &bind_ip)
-	 || !miredo_conf_get_int16 (conf, "BindPort", &bind_port, NULL)
-	 || !miredo_conf_get_bool (conf, "IgnoreConeBit", &ignore_cone, NULL))
+	 || !miredo_conf_get_int16 (conf, "BindPort", &bind_port, NULL))
 	{
 		syslog (LOG_ALERT, _("Fatal configuration error"));
 		return -2;
@@ -535,7 +533,6 @@ relay_run (miredo_conf *conf, const char *server_name)
 				{
 					miredo_tunnel data = { tunnel, fd, relay };
 					teredo_set_privdata (relay, &data);
-					teredo_set_cone_ignore (relay, ignore_cone);
 					teredo_set_recv_callback (relay, miredo_recv_callback);
 					teredo_set_icmpv6_callback (relay, miredo_icmp6_callback);
 

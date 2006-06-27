@@ -112,10 +112,8 @@ static int miredo_checkconf (miredo_conf *conf)
 			res = -1;
 	}
 
-	bool b;
 	if (!miredo_conf_parse_IPv4 (conf, "BindAddress", &u32)
-	 || !miredo_conf_get_int16 (conf, "BindPort", &u16, NULL)
-	 || !miredo_conf_get_bool (conf, "IgnoreConeBit", &b, NULL))
+	 || !miredo_conf_get_int16 (conf, "BindPort", &u16, NULL))
 		res = -1;
 
 	char *str = miredo_conf_get (conf, "InterfaceName", NULL);
