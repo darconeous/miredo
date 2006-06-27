@@ -27,7 +27,6 @@ typedef struct teredo_state
     union teredo_addr addr;
     uint16_t mtu;
     bool up;
-    bool cone;
 } teredo_state;
 
 # ifdef __cplusplus

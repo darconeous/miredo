@@ -62,7 +62,6 @@
 #include <compat/barrier.h>
 
 #define QUALIFIED	0
-#define PROBE_CONE	1
 #define PROBE_RESTRICT	2
 #define PROBE_SYMMETRIC	3
 #define NOT_RUNNING	(-1)
@@ -286,10 +285,9 @@ static inline void maintenance_thread (teredo_maintenance *m)
 	teredo_state *c_state = &m->state.state;
 	uint32_t server_ip = 0, server_ip2 = 0;
 	unsigned count = 0;
-	int state = PROBE_CONE;
+	int state = PROBE_RESTRICT;
 
 	pthread_mutex_lock (&m->lock);
-	c_state->cone = true;
 
 	/*
 	 * Qualification/maintenance procedure
@@ -348,7 +346,7 @@ static inline void maintenance_thread (teredo_maintenance *m)
 
 		teredo_send_rs (m->fd,
 		                (state == PROBE_RESTRICT) ? server_ip2 : server_ip,
-		                nonce.value, c_state->cone);
+		                nonce.value, false);
 
 		int val = 0;
 		union teredo_addr newaddr;
@@ -364,7 +362,7 @@ static inline void maintenance_thread (teredo_maintenance *m)
 			/* check received packet */
 			bool accept;
 			accept = maintenance_recv (m->incoming, server_ip,
-			                           nonce.value, c_state->cone,
+			                           nonce.value, false,
 			                           &mtu, &newaddr);
 			m->incoming = NULL;
 
@@ -395,20 +393,11 @@ static inline void maintenance_thread (teredo_maintenance *m)
 				}
 
 				count = 0;
-				if (state == PROBE_CONE)
-				{
-					state = PROBE_RESTRICT;
-					c_state->cone = false;
-				}
-				else /* PROBE_(RESTRICT|SYMMETRIC) or QUALIFIED */
-				{
-					/* No response from server */
-					syslog (LOG_INFO, _("No reply from Teredo server"));
-					/* Wait some time before retrying */
-					state = PROBE_CONE;
-					c_state->cone = true;
-					sleep = RestartDelay;
-				}
+				/* No response from server */
+				syslog (LOG_INFO, _("No reply from Teredo server"));
+				/* Wait some time before retrying */
+				state = PROBE_RESTRICT;
+				sleep = RestartDelay;
 			}
 		}
 		else
@@ -446,16 +435,13 @@ static inline void maintenance_thread (teredo_maintenance *m)
 					syslog (LOG_ERR,
 					        _("Unsupported symmetric NAT detected."));
 					count = 0;
-					state = PROBE_CONE;
-					c_state->cone = true;
+					state = PROBE_RESTRICT;
 					sleep = RestartDelay;
 					break;
 				}
-				/* DO NOT break; fallback */
-			case PROBE_CONE:
+
 				syslog (LOG_INFO, _("Qualified (NAT type: %s)"),
-				        dgettext (PACKAGE_NAME, c_state->cone
-			                      ? N_("cone") : N_("restricted")));
+				        _("restricted"));
 				count = 0;
 				state = QUALIFIED;
 				memcpy (&c_state->addr, &newaddr, sizeof (c_state->addr));
