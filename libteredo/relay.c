@@ -519,10 +519,10 @@ int teredo_transmit (teredo_tunnel *restrict tunnel,
 			 * restricted NAT.
 			 */
 			if (/* (!s.cone) && */
-			    SendBubbleFromDst (tunnel->fd, &dst->ip6, false, false))
+			    SendBubbleFromDst (tunnel->fd, &dst->ip6, false))
 				return -1;
 
-			return SendBubbleFromDst (tunnel->fd, &dst->ip6, false, true);
+			return SendBubbleFromDst (tunnel->fd, &dst->ip6, true);
 
 		case -1: // Too many bubbles already sent
 			teredo_send_unreach (tunnel, ICMP6_DST_UNREACH_ADDR,

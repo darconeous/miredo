@@ -95,8 +95,7 @@ SendBubble (int fd, uint32_t ip, uint16_t port,
  * @return 0 on success, -1 on error.
  */
 int
-SendBubbleFromDst (int fd, const struct in6_addr *dst,
-                   bool cone, bool indirect)
+SendBubbleFromDst (int fd, const struct in6_addr *dst, bool indirect)
 {
 	uint32_t ip;
 	uint16_t port;
@@ -112,8 +111,7 @@ SendBubbleFromDst (int fd, const struct in6_addr *dst,
 		port = IN6_TEREDO_PORT (dst);
 	}
 
-	return SendBubble (fd, ip, port, cone ? &teredo_cone : &teredo_restrict,
-	                   dst);
+	return SendBubble (fd, ip, port, &teredo_restrict, dst);
 }
 
 
