@@ -92,7 +92,6 @@ struct teredo_tunnel
 		bool running;
 	} recv;
 
-	bool allow_cone;
 	int fd;
 	time_t now;
 	pthread_t clock;
@@ -492,8 +491,9 @@ int teredo_transmit (teredo_tunnel *restrict tunnel,
 		/* Unknown Teredo clients */
 		SetMapping (p, IN6_TEREDO_IPV4 (dst), IN6_TEREDO_PORT (dst));
 
+#ifdef LIBTEREDO_ALLOW_CONE
 	/* Client case 4 & relay case 2: new cone peer */
-	if (tunnel->allow_cone && IN6_IS_TEREDO_ADDR_CONE (dst))
+	if (IN6_IS_TEREDO_ADDR_CONE (dst))
 	{
 		p->trusted = 1;
 		p->bubbles = /*p->pings -USELESS- =*/ 0;
@@ -504,6 +504,7 @@ int teredo_transmit (teredo_tunnel *restrict tunnel,
 		return teredo_send (tunnel->fd, packet, length, ipv4, port)
 				== (int)length ? 0 : -1;
 	}
+#endif
 
 	/* Client case 5 & relay case 3: untrusted non-cone peer */
 	teredo_enqueue_out (p, packet, length);
@@ -1193,14 +1194,11 @@ int teredo_set_prefix (teredo_tunnel *t, uint32_t prefix)
 
 /**
  * Enables Teredo relay mode for a teredo_tunnel,
- * defines whether it will operate as a “cone” or “restricted” relay,
  * and starts processing of encapsulated IPv6 packets.
  * This is undefined if Teredo client mode was previously enabled.
  *
- * @param cone true if the cone flag should be enabled. This only works if the
- * relay runs from behind a cone NAT and has no stateful firewall for incoming
- * UDP packets. If there is a stateful firewall or a restricted-port NAT,
- * flag must be false.
+ * @param cone This parameter is ignored and is only present for
+ * backward compatiblity.
  *
  * @return 0 if the initialization was succesful, -1 in case of error.
  * In case of error, the teredo_tunnel instance is not modifed.
@@ -1212,9 +1210,9 @@ int teredo_set_cone_flag (teredo_tunnel *t, bool cone)
 	assert (t->maintenance == NULL);
 #endif
 
+	(void)cone;
+
 	pthread_rwlock_wrlock (&t->state_lock);
-	if (cone)
-		t->state.addr.teredo.flags = htons (TEREDO_FLAG_CONE);
 	t->state.up = true;
 	pthread_rwlock_unlock (&t->state_lock);
 
@@ -1272,16 +1270,12 @@ int teredo_set_client_mode (teredo_tunnel *restrict t,
 
 
 /**
- * Enables/disables the processing of the cone flag found in other Teredo
- * client's IPv6 addresses. By default, the cone flag is ignored, because this
- * supposedly increase reliability of the Teredo tunneling mechanism.
- *
- * @param ignore true to enable processing, false to disable.
+ * Does nothing (backward compatibility stub).
  */
 void teredo_set_cone_ignore (teredo_tunnel *t, bool ignore)
 {
 	assert (t != NULL);
-	t->allow_cone = !ignore;
+	(void)ignore;
 }
 
 
