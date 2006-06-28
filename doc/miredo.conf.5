@@ -32,9 +32,9 @@ directives follows:
 .SH MODES
 
 .TP
-.BR "RelayType" " (" "client" "|" "cone" "|" "restricted" "|" "autoclient" ")"
+.BR "RelayType" " (" "client" "|" "relay" "|" "autoclient" ")"
 Specifies what type of Teredo relay/client Miredo will serve as.
-There are four possible choices:
+There are three possible choices:
 
 .TP
 .BR "client" " mode (the default)"
@@ -67,10 +67,10 @@ interfaces. Whenever it detects the availability of global IPv6
 connectivity through another interface, it stops its Teredo tunnel.
 
 .TP
-.BR "cone" " mode"
-.RB "In " "cone" " mode, " "Miredo" " acts as a "
+.BR "relay" " mode"
+.RB "In " "relay" " mode, " "Miredo" " acts as a "
 .IR "Teredo relay" ". It will assume that it has public global " "IPv4"
-.RI "connectivity or is localted behind a " "cone" " NAT device. "
+.RI "connectivity or is located behind a " "cone" " NAT device. "
 Miredo will create a virtual networking interface with a route toward
 Teredo clients.
 
@@ -79,22 +79,16 @@ Teredo clients.
 have a working IPv6 connectivity through a way distinct from Teredo
 tunneling (native, 6to4, ISATAP, etc).
 
-This mode can only be used if the node has a public IPv4 address or if
-.RI "it is behind a NAT router of " "cone" " type. If the type of NAT "
-.RI "is not known, " "restricted" " mode should be used instead."
+Warning: This mode should only be used if the node has a public IPv4
+address or if it is behind a full cone NAT-router, otherwise it the
+tunnel will not work properly.
 
-.TP
-.BR "restricted" " mode"
-.RB "In " "restricted" " mode, " "Miredo" " acts as a "
-.IR "Teredo relay" ", as in " "cone" " mode. However, optimizations "
-for Teredo relaying from behind a cone NAT are disabled.
-
-.BR "Warning:" " Miredo " "must not" " be used as a Teredo relay from"
-.RI "behind " "symmetric" " NAT routers. These NAT devices are not"
-supported by the Teredo protocol.
+.RI "Miredo also accepts " "restricted" " and " "cone" " as aliases"
+for the relay mode, for backward compatibility with older versions.
 
 .SH CLIENT OPTIONS
-.RI "The following directives are only available in " "client" " mode."
+.RI "The following directives are only available in " "(auto)client"
+mode.
 
 .TP
 .BI "ServerAddress " "hostname"
@@ -115,9 +109,8 @@ primary server address plus one. If that is not the case, this
 directive must be used.
 
 .SH RELAY OPTIONS
-.RI "The following directive is only available in " "cone" " and "
-.IR "restricted" " modes. They are not available in"
-.IR "client" " mode."
+.RI "The following directive is only available in " "relay" " mode."
+.RI "They are not available in " "(auto)client" " mode."
 
 .TP
 .BI "Prefix " "teredo_prefix"
