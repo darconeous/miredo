@@ -1166,7 +1166,7 @@ void teredo_run (teredo_tunnel *tunnel)
 /**
  * Overrides the Teredo prefix of a Teredo relay. It is undefined if the
  * tunnel is configured as a Teredo client. teredo_set_prefix() is
- * undefined if teredo_set_cone_flag() was already invoked.
+ * undefined if teredo_set_relay_mode() was already invoked.
  *
  * Thread-safety: This function is thread-safe.
  *
@@ -1197,26 +1197,35 @@ int teredo_set_prefix (teredo_tunnel *t, uint32_t prefix)
  * and starts processing of encapsulated IPv6 packets.
  * This is undefined if Teredo client mode was previously enabled.
  *
- * @param cone This parameter is ignored and is only present for
- * backward compatiblity.
- *
  * @return 0 if the initialization was succesful, -1 in case of error.
  * In case of error, the teredo_tunnel instance is not modifed.
  */
-int teredo_set_cone_flag (teredo_tunnel *t, bool cone)
+int teredo_set_relay_mode (teredo_tunnel *t)
 {
 	assert (t != NULL);
 #ifdef MIREDO_TEREDO_CLIENT
 	assert (t->maintenance == NULL);
 #endif
 
-	(void)cone;
-
 	pthread_rwlock_wrlock (&t->state_lock);
 	t->state.up = true;
 	pthread_rwlock_unlock (&t->state_lock);
 
 	return 0;
+}
+
+
+/**
+ * teredo_set_cone_flag is an obsoleted alias for
+ * teredo_set_relay_mode(). Do not use it new program.
+ *
+ * @param cone This parameter is ignored and is only present for
+ * backward compatiblity.
+ */
+int teredo_set_cone_flag (teredo_tunnel *t, bool cone)
+{
+	(void)cone;
+	return teredo_set_relay_mode (t);
 }
 
 

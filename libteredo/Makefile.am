@@ -24,7 +24,7 @@ LTLIBINTL = @LTLIBINTL@
 AM_CPPFLAGS = -I@top_srcdir@/include -I@top_srcdir@ \
 	-D_REENTRANT -DLOCALEDIR=\"$(localedir)\"
 
-LIBADD = $(LTLIBINTL) ../compat/libcompat.la libteredo-common.la
+LIBADD = ../compat/libcompat.la libteredo-common.la
 
 noinst_LTLIBRARIES = libteredo-common.la libteredo-server.la
 lib_LTLIBRARIES = libteredo.la
@@ -47,18 +47,19 @@ if TEREDO_CLIENT
 libteredo_la_SOURCES += security.c security.h maintain.c maintain.h \
 			md5.c md5.h
 endif
-libteredo_la_LIBADD = @LIBJUDY@ @LIBRT@ $(LIBADD)
+libteredo_la_DEPENDENCIES = libteredo.sym $(LIBADD)
+libteredo_la_LIBADD = @LIBJUDY@ @LIBRT@ $(LTLIBINTL) $(LIBADD)
 libteredo_la_LDFLAGS = -no-undefined -export-symbols $(srcdir)/libteredo.sym \
-	-version-info 1:0:1
+	-version-info 2:0:2
 
 # libteredo versions:
 # 0) First stable shared release (0.8.2)
-# 1) teredo_run_async() added, teredo_register_readset() deprecated (0.9.x)
-
+# 1) teredo_run_async() added, teredo_register_readset() deprecated (0.9.2)
+# 2) teredo_set_relay_mode() added, teredo_set_cone_*() deprecated (0.9.5)
 
 # libteredo-server.la
 libteredo_server_la_SOURCES = server.c server.h
-libteredo_server_la_LIBADD = $(LIBADD)
+libteredo_server_la_LIBADD = $(LTLIBINTL) $(LIBADD)
 libteredo_server_la_LDFLAGS = -no-undefined -static
 # libteredo-server is static given it hardly make sense to reuse it
 # outside miredo-server (which is itself way less commonly used
