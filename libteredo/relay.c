@@ -309,6 +309,26 @@ static inline void SetMappingFromPacket (teredo_peer *peer,
 
 
 /**
+ * Encapsulates an IPv6 packet, forward it to a Teredo peer and release the
+ * Teredo peers list. It is (obviously) assumed that the peers list lock is
+ * held upon entry.
+ *
+ * @return 0 on success, -1 in case of UDP/IPv4 network error.
+ */
+static
+int teredo_encap (teredo_tunnel *restrict tunnel, teredo_peer *restrict peer,
+                  const void *restrict data, size_t len)
+{
+	uint32_t ipv4 = peer->mapped_addr;
+	uint16_t port = peer->mapped_port;
+	TouchTransmit (peer, tunnel->now);
+	teredo_list_release (tunnel->list);
+
+	return (teredo_send (tunnel->fd,
+	                     data, len, ipv4, port) == (int)len) ? 0 : -1;
+}
+
+/**
  * Transmits a packet coming from the IPv6 Internet, toward a Teredo node
  * (as specified per paragraph 5.4.1). That's what the specification calls
  * “Packet transmission”.
@@ -431,16 +451,8 @@ int teredo_transmit (teredo_tunnel *restrict tunnel,
 
 		/* Case 1 (paragraphs 5.2.4 & 5.4.1): trusted peer */
 		if (p->trusted && IsValid (p, now))
-		{
 			/* Already known -valid- peer */
-			TouchTransmit (p, now);
-			uint32_t ipv4 = p->mapped_addr;
-			uint16_t port = p->mapped_port;
-			teredo_list_release (list);
-
-			return (teredo_send (tunnel->fd, packet, length, ipv4, port)
-					== (int)length) ? 0 : -1;
-		}
+			return teredo_encap (tunnel, p, packet, length);
 	}
  	else
 	{
@@ -497,12 +509,7 @@ int teredo_transmit (teredo_tunnel *restrict tunnel,
 	{
 		p->trusted = 1;
 		p->bubbles = /*p->pings -USELESS- =*/ 0;
-		TouchTransmit (p, now);
-		uint32_t ipv4 = p->mapped_addr;
-		uint16_t port = p->mapped_port;
-		teredo_list_release (list);
-		return teredo_send (tunnel->fd, packet, length, ipv4, port)
-				== (int)length ? 0 : -1;
+		return teredo_encap (tunnel, p, packet, length);
 	}
 #endif
 
@@ -527,7 +534,7 @@ int teredo_transmit (teredo_tunnel *restrict tunnel,
 
 		case -1: // Too many bubbles already sent
 			teredo_send_unreach (tunnel, ICMP6_DST_UNREACH_ADDR,
-			                        packet, length);
+			                     packet, length);
 
 		//case 1: -- between two bubbles -- nothing to do
 	}
