@@ -55,7 +55,8 @@ int teredo_set_cone_flag (teredo_tunnel *t, bool flag);
 int teredo_set_client_mode (teredo_tunnel *restrict t, const char *s1,
                             const char *s2);
 
-void teredo_set_cone_ignore (teredo_tunnel *t, bool ignore);
+void teredo_set_cone_ignore (teredo_tunnel *t, bool ignore)
+	LIBTEREDO_DEPRECATED;
 
 void *teredo_set_privdata (teredo_tunnel *, void *);
 void *teredo_get_privdata (const teredo_tunnel *);
