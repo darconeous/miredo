@@ -76,7 +76,8 @@ static int miredo_checkconf (miredo_conf *conf)
 		 || (strcasecmp (val, "autoclient") == 0))
 			client = true;
 		else
-		if ((strcasecmp (val, "cone") == 0)
+		if ((strcasecmp (val, "relay") == 0)
+		 || (strcasecmp (val, "cone") == 0)
 		 || (strcasecmp (val, "restricted") == 0))
 			client = false;
 		else

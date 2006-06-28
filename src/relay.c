@@ -166,7 +166,7 @@ miredo_icmp6_callback (void *data, const void *packet, size_t length,
 }
 
 
-#define TEREDO_CONE     0
+//#define TEREDO_CONE     0
 #define TEREDO_RESTRICT 1
 #define TEREDO_CLIENT   2
 #define TEREDO_EXCLIENT 3
@@ -182,11 +182,13 @@ ParseRelayType (miredo_conf *conf, const char *name, int *type)
 
 	if (strcasecmp (val, "client") == 0)
 		*type = TEREDO_CLIENT;
-	else if (strcasecmp (val, "autoclient") == 0)
+	else
+	if (strcasecmp (val, "autoclient") == 0)
 		*type = TEREDO_EXCLIENT;
-	else if (strcasecmp (val, "cone") == 0)
-		*type = TEREDO_CONE;
-	else if (strcasecmp (val, "restricted") == 0)
+	else
+	if ((strcasecmp (val, "relay") == 0)
+	 || (strcasecmp (val, "cone") == 0)
+	 || (strcasecmp (val, "restricted") == 0))
 		*type = TEREDO_RESTRICT;
 	else
 	{
@@ -272,8 +274,9 @@ setup_client (teredo_tunnel *client, const char *server, const char *server2)
 
 
 static tun6 *
-create_static_tunnel (const char *ifname, const struct in6_addr *prefix,
-                      uint16_t mtu, bool cone)
+create_static_tunnel (const char *restrict ifname,
+                      const struct in6_addr *restrict prefix,
+                      uint16_t mtu)
 {
 	tun6 *tunnel = tun6_create (ifname);
 
@@ -283,7 +286,7 @@ create_static_tunnel (const char *ifname, const struct in6_addr *prefix,
 		return NULL;
 
 	if (tun6_setMTU (tunnel, mtu) || tun6_bringUp (tunnel)
-	 || tun6_addAddress (tunnel, cone ? &teredo_cone : &teredo_restrict, 64)
+	 || tun6_addAddress (tunnel, &teredo_restrict, 64)
 	 || tun6_addRoute (tunnel, prefix, 32, 0))
 	{
 		tun6_destroy (tunnel);
@@ -295,10 +298,10 @@ create_static_tunnel (const char *ifname, const struct in6_addr *prefix,
 
 
 static int
-setup_relay (teredo_tunnel *relay, uint32_t prefix, bool cone)
+setup_relay (teredo_tunnel *relay, uint32_t prefix)
 {
 	teredo_set_prefix (relay, prefix);
-	return teredo_set_cone_flag (relay, cone);
+	return teredo_set_cone_flag (relay, false);
 }
 
 
@@ -481,7 +484,7 @@ relay_run (miredo_conf *conf, const char *server_name)
 	int fd = -1;
 	tun6 *tunnel = (mode & TEREDO_CLIENT)
 		? create_dynamic_tunnel (ifname, &fd)
-		: create_static_tunnel (ifname, &prefix.ip6, mtu, mode == TEREDO_CONE);
+		: create_static_tunnel (ifname, &prefix.ip6, mtu);
 
 	if (ifname != NULL)
 		free (ifname);
@@ -538,8 +541,7 @@ relay_run (miredo_conf *conf, const char *server_name)
 
 					retval = (mode & TEREDO_CLIENT)
 						? setup_client (relay, server_name, server_name2)
-						: setup_relay (relay, prefix.teredo.prefix,
-						               mode == TEREDO_CONE);
+						: setup_relay (relay, prefix.teredo.prefix);
 	
 					/*
 					 * RUN
