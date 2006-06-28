@@ -1272,6 +1272,7 @@ int teredo_set_client_mode (teredo_tunnel *restrict t,
 void teredo_set_cone_ignore (teredo_tunnel *t, bool ignore)
 {
 	assert (t != NULL);
+	(void)t;
 	(void)ignore;
 }
 
