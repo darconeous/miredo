@@ -780,7 +780,7 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 
 					/*
 					 * This is useless:
-					 * trusted and bubbles are set above, pings is never used
+					 * trusted and bubbles are set below, pings is never used
 					 * for other Teredo clients.
 					if (create)
 						p->trusted = p->bubbles = p->pings = 0;
