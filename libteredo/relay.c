@@ -808,9 +808,9 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 			teredo_list_release (list);
 
 			if (q != NULL)
-				teredo_queue_emit (q, tunnel->fd, IN6_TEREDO_IPV4 (&ip6.ip6_src),
-				                   IN6_TEREDO_PORT (&ip6.ip6_src),
-				                   tunnel->recv_cb, tunnel->opaque);
+				teredo_queue_emit (q, tunnel->fd, packet->source_ipv4,
+				                   packet->source_port, tunnel->recv_cb,
+				                   tunnel->opaque);
 
 			if (!IsBubble (&ip6)) // discard Teredo bubble
 				tunnel->recv_cb (tunnel->opaque, buf, length);
