@@ -543,6 +543,22 @@ int teredo_transmit (teredo_tunnel *restrict tunnel,
 }
 
 
+static
+void teredo_predecap (teredo_tunnel *restrict tunnel,
+                      teredo_peer *restrict peer)
+{
+	TouchReceive (peer, tunnel->now);
+	peer->bubbles = peer->pings = 0;
+	teredo_queue *q = teredo_peer_queue_yield (peer);
+	teredo_list_release (tunnel->list);
+
+	if (q != NULL)
+		teredo_queue_emit (q, tunnel->fd,
+		                   peer->mapped_addr, peer->mapped_port,
+		                   tunnel->recv_cb, tunnel->opaque);
+}
+
+
 /**
  * Receives a packet coming from the Teredo tunnel (as specified per
  * paragraph 5.4.2). That's called “Packet reception”.
@@ -726,15 +742,7 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 		 && (packet->source_ipv4 == p->mapped_addr)
 		 && (packet->source_port == p->mapped_port))
 		{
-			TouchReceive (p, now);
-			p->bubbles = p->pings = 0;
-			teredo_queue *q = teredo_peer_queue_yield (p);
-			teredo_list_release (list);
-
-			if (q != NULL)
-				teredo_queue_emit (q, tunnel->fd,
-				                   packet->source_ipv4, packet->source_port,
-				                   tunnel->recv_cb, tunnel->opaque);
+			teredo_predecap (tunnel, p);
 			tunnel->recv_cb (tunnel->opaque, buf, length);
 			return;
 		}
@@ -743,19 +751,10 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 		// Client case 2 (untrusted non-Teredo node):
 		if (IsClient (tunnel) && (!p->trusted) && (CheckPing (packet) == 0))
 		{
-			// FIXME: lots of duplicated code here (see case 1)
 			p->trusted = 1;
 			SetMappingFromPacket (p, packet);
 
-			TouchReceive (p, now);
-			p->bubbles = p->pings = 0;
-			teredo_queue *q = teredo_peer_queue_yield (p);
-			teredo_list_release (list);
-
-			if (q != NULL)
-				teredo_queue_emit (q, tunnel->fd,
-				                   packet->source_ipv4, packet->source_port,
-				                   tunnel->recv_cb, tunnel->opaque);
+			teredo_predecap (tunnel, p);
 			return; /* don't pass ping to kernel */
 		}
 #endif /* ifdef MIREDO_TEREDO_CLIENT */
@@ -784,17 +783,6 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 					p = teredo_list_lookup (list, now, &ip6.ip6_src, &create);
 					if (p == NULL)
 						return; // insufficient memory
-
-					/*
-					 * This is useless:
-					 * trusted and bubbles are set below, pings is never used
-					 * for other Teredo clients.
-					if (create)
-						p->trusted = p->bubbles = p->pings = 0;
-					else
-						race condition: peer created by another thread
-					 */
-					SetMappingFromPacket (p, packet);
 				}
 				else
 #endif
@@ -808,16 +796,9 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 					return; // list not locked (p = NULL)
 			}
 
+			SetMappingFromPacket (p, packet);
 			p->trusted = 1;
-			p->bubbles = /*p->pings -USELESS- =*/ 0;
-			TouchReceive (p, now);
-			teredo_queue *q = teredo_peer_queue_yield (p);
-			teredo_list_release (list);
-
-			if (q != NULL)
-				teredo_queue_emit (q, tunnel->fd, packet->source_ipv4,
-				                   packet->source_port, tunnel->recv_cb,
-				                   tunnel->opaque);
+			teredo_predecap (tunnel, p);
 
 			if (!IsBubble (&ip6)) // discard Teredo bubble
 				tunnel->recv_cb (tunnel->opaque, buf, length);
