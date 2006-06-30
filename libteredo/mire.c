@@ -140,25 +140,25 @@ process_none (int fd, const struct ip6_hdr *ip6, size_t plen,
 	 * one of our own packet. Otherwise, it would be trivial to trigger an
 	 * infinite packet exchange loop between two instances of this program.
 	 * On the other hand, we have to reply to bubble so that we can be reached
-	 * from clients and relays that ignores the cone flag; this behavior is
-	 * explicitly allowed by the specification, and is actually enabled by
-	 * default in miredo.
+	 * from clients and relays as if we were behind a restricted NAT.
 	 *
-	 * To avoid the infinite packet loop, we use a very nasty kludge: we set
-	 * the hop limit to a value that's unlikely to ever be used by any other
-	 * implementation, and we ignore packets that arrives with that hop limit.
+	 * To avoid the infinite packet loop, we use a very nasty kludge: we put a
+	 * dummy *non-empty* payload into our pseudo-bubbles instead of genuine
+	 * Teredo bubbles. This should still interoperate against a conformant
+	 * Teredo peer (it wants to receive a packet from us, not specifically a
+	 * Teredo bubble).
 	 */
-	if (ip6->ip6_hlim == 0)
-		return;
 
-	struct iovec reply[3];
-	reply[0].iov_base = "\x60\x00\x00\x00" "\x00\x00" "\x3b" "\x00";
+	struct iovec reply[4];
+	reply[0].iov_base = "\x60\x00\x00\x00" "\x00\x04" "\x3b" "\x00";
 	reply[0].iov_len = 8;
 	reply[1].iov_base = (uint8_t *)&ip6->ip6_dst;
 	reply[1].iov_len = 16;
 	reply[2].iov_base = (uint8_t *)&ip6->ip6_src;
 	reply[2].iov_len = 16;
-	teredo_sendv (fd, reply, 3, ipv4, port);
+	reply[3].iov_base = "MIRE";
+	reply[3].iov_len = 4;
+	teredo_sendv (fd, reply, sizeof (reply) / sizeof (reply[0]), ipv4, port);
 }
 
 
