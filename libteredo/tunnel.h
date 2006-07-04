@@ -35,7 +35,9 @@ extern "C" {
 # endif
 
 # if __STDC_VERSION__ < 199901L
-#  define restrict
+#  ifndef restrict
+#   define restrict
+#  endif
 # endif
 
 int teredo_startup (bool use_client);

@@ -25,6 +25,12 @@
 #ifndef MIREDO_INCLUDE_TEREDO_H
 # define MIREDO_INCLUDE_TEREDO_H
 
+# if __STDC_VERSION__ < 199901L
+#  ifndef inline
+#   define inline
+#  endif
+# endif
+
 /* UDP Teredo port number */
 #define IPPORT_TEREDO 3544
 

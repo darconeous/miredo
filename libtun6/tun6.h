@@ -29,6 +29,15 @@
 
 # define LIBTUN6_ERRBUF_SIZE 4096
 
+# if __STDC_VERSION__ < 199901L
+#  ifndef inline
+#   define inline
+#  endif
+#  ifndef restrict
+#   define restrict
+#  endif
+# endif
+
 # ifdef __GNUC__
 #  define LIBTUN6_NONNULL __attribute__ ((nonnull))
 #  if __GNUC__ >= 3
