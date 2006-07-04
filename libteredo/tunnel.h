@@ -34,6 +34,10 @@ extern "C" {
 #  define LIBTEREDO_DEPRECATED
 # endif
 
+# if __STDC_VERSION__ < 199901L
+#  define restrict
+# endif
+
 int teredo_startup (bool use_client);
 void teredo_cleanup (bool use_client);
 
