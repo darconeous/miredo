@@ -15,7 +15,6 @@ InterfaceName	teredo
 #BindAddress	192.0.2.100
 
 #SyslogFacility	user
-#IgnoreConeBit	false
 
 ## CLIENT-SPECIFIC OPTIONS
 # The hostname or primary IPv4 address of the Teredo server.
