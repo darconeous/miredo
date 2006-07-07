@@ -103,8 +103,7 @@ static int miredo_checkconf (miredo_conf *conf)
 
 		if (ip == 0)
 		{
-			fprintf (stderr, "%s\n",
-			         _("Server address not specified"));
+			fprintf (stderr, "%s\n", _("Server address not specified"));
 			res = -1;
 		}
 #else
