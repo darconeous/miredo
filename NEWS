@@ -20,6 +20,8 @@ ChangeLog.
 =============================================================================
 BETA RELEASE 0.9.5 : Major features enhancement, major bug fixes
 
+# Removed too brittle cone NAT support. As a side effect, miredo is much
+  faster to startup in client mode in most cases.
 # Fix server-side handling of Windows Vista client solicitations.
 # Removed the IgnoreConeBit configure option. The cone bit is now always
   ignored (this was the default ever since the introduction of that option).

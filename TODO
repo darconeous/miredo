@@ -19,7 +19,6 @@ Important features & fixes:
 ( ) fixed TODOs and FIXMEs in source code
 (*) local Teredo discovery
 (!) document libteredo-mire (manpage? --help, --version)
-(!) Vista client compatibility
 (!) Vista-like symmetric NAT partial traversal...
 
 Not so important features:
