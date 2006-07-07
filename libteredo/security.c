@@ -53,25 +53,11 @@ static const char *randfile = "/dev/srandom";
 #else
 static const char *randfile = "/dev/random";
 #endif
-static const char *urandfile = "/dev/urandom";
 
 
-static int devfd[2] = { -1, -1 };
+static int devfd = -1;
 static pthread_mutex_t nonce_mutex = PTHREAD_MUTEX_INITIALIZER;
 static unsigned refs = 0;
-
-static int
-random_open (bool critical)
-{
-	int fd = open (critical ? randfile : urandfile, 0);
-	if (fd == -1)
-		syslog (LOG_ERR, _("Error (%s): %s\n"),
-			critical ? randfile : urandfile,
-		        strerror (errno));
-
-	return fd;
-}
-
 
 /**
  * Has to be called before any call to teredo_generate_nonce() can succeed.
@@ -83,21 +69,21 @@ random_open (bool critical)
 int
 teredo_init_nonce_generator (void)
 {
-	bool ok;
-
+	bool ok = false;
 	pthread_mutex_lock (&nonce_mutex);
-	if (refs < UINT_MAX)
-	{
-		refs++;
-		if (devfd[0] == -1)
-			devfd[0] = random_open (true);
-		if (devfd[1] == -1)
-			devfd[1] = random_open (false);
 
-		ok = (devfd[0] != -1) && (devfd[1] != -1);
+	if (refs == 0)
+	{
+		devfd = open (randfile, 0);
+		ok = (devfd != -1);
 	}
 	else
-		ok = false;
+	if (refs < UINT_MAX)
+		ok = true;
+
+	if (ok)
+		refs++;
+
 	pthread_mutex_unlock (&nonce_mutex);
 
 	return ok ? 0 : -1;
@@ -121,10 +107,8 @@ teredo_deinit_nonce_generator (void)
 
 	if (--refs == 0)
 	{
-		if (devfd[0] != -1)
-			(void)close (devfd[0]);
-		if (devfd[1] != -1)
-			(void)close (devfd[1]);
+		(void)close (devfd);
+		devfd = -1;
 	}
 
 	pthread_mutex_unlock (&nonce_mutex);
@@ -132,41 +116,24 @@ teredo_deinit_nonce_generator (void)
 
 
 /**
- * Generates a random nonce value (8 bytes). Thread-safe.
+ * Generates an unpredictible random nonce value (8 bytes). Thread-safe.
+ *
  *
  * @param b pointer to a 8-bytes buffer [OUT]
- * @param critical true if the random value has to be unpredictible
- * for security reasons. If false, the function will not block, otherwise
- * it might have to wait until enough randomness entropy was gathered by the
- * system.
- * @return false on error, true on success
+ *
+ * @return -1 on error, 0 on success.
  */
-bool
-teredo_generate_nonce (unsigned char *b, bool critical)
+int
+teredo_generate_nonce (unsigned char *b)
 {
-	int fd = devfd[critical ? 0 : 1];
-
-	memset (b, 0, LIBTEREDO_NONCE_LEN);
-	if (fd != -1)
+	for (int tot = 0, val; tot < LIBTEREDO_NONCE_LEN; tot += val)
 	{
-		ssize_t tot = 0, val;
-
-		do
-		{
-			val = read (fd, b + tot, LIBTEREDO_NONCE_LEN - tot);
-			if (val <= 0)
-				syslog (LOG_ERR, _("Error (%s): %s\n"),
-				        critical ? randfile : urandfile,
-			                strerror (errno));
-			else
-				tot += val;
-		}
-		while ((tot < LIBTEREDO_NONCE_LEN) && (val > 0));
-
-		return tot == LIBTEREDO_NONCE_LEN;
+		val = read (devfd, b + tot, LIBTEREDO_NONCE_LEN - tot);
+		if (val <= 0)
+			return -1;
 	}
 
-	return false;
+	return 0;
 }
 
 
@@ -193,7 +160,7 @@ static void init_hmac_once (void)
 
 	/* Generate HMAC key and precomputes padding */
 	memset (&inner_key, 0, sizeof (inner_key));
-	teredo_generate_nonce (inner_key.key, true);
+	teredo_generate_nonce (inner_key.key);
 	memcpy (&outer_key, &inner_key, sizeof (outer_key));
 
 	for (i = 0; i < sizeof (inner_key); i++)

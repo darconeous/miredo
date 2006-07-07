@@ -340,7 +340,7 @@ static inline void maintenance_thread (teredo_maintenance *m)
 		{
 			/* The lifetime of the nonce is not second-critical
 			 => we don't check/set tv_usec */
-			teredo_generate_nonce (nonce.value, true);
+			teredo_generate_nonce (nonce.value);
 			nonce.expiry.tv_sec += ServerNonceLifetime;
 			/* If nonce generation is too long, checkTimeDrift() will fix */
 		}
