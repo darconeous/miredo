@@ -147,7 +147,12 @@ static int miredo_checkconffile (const char *filename)
 		failed = true;
 
 	miredo_conf_destroy (conf);
-	return failed ? -1 : 0;
+	if (failed)
+	{
+		fprintf (stderr, "%s\n", _("Fatal configuration error"));
+		return -1;
+	}
+	return 0;
 }
 
 
