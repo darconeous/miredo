@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: miredo 0.8.1\n"
 "Report-Msgid-Bugs-To: miredo-devel_no_bulk_mail@remlab.net\n"
-"POT-Creation-Date: 2006-06-16 20:45+0300\n"
+"POT-Creation-Date: 2006-07-07 20:23+0300\n"
 "PO-Revision-Date: 2005-03-10 14:32+0100\n"
 "Last-Translator: Rémi Denis-Courmont <rdenis (at) simphalempin (dot) com>\n"
 "Language-Team: N/A\n"
@@ -16,79 +16,75 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: libteredo/relay.c:625
+#: libteredo/relay.c:649
 msgid "Ignoring invalid bubble: your Teredo server is probably buggy."
 msgstr ""
 
-#: libteredo/security.c:68 libteredo/security.c:158 libteredo/server.c:505
-#: libteredo/server.c:516 libteredo/maintain.c:562 libtun6/tun6.c:712
+#: libteredo/security.c:68 libteredo/security.c:158 libteredo/server.c:509
+#: libteredo/server.c:520 libteredo/maintain.c:553 libtun6/tun6.c:712
 #: src/main.c:289 src/main.c:317 src/main.c:355 src/main.c:489
 #: src/miredo.c:107 src/miredo.c:115 src/miredo.c:237
 #, c-format
 msgid "Error (%s): %s\n"
 msgstr ""
 
-#: libteredo/server.c:399 libteredo/server.c:470 src/isatap.c:77
+#: libteredo/server.c:403 libteredo/server.c:474 src/isatap.c:77
 #, c-format
 msgid "Raw IPv6 socket not working: %s"
 msgstr ""
 
-#: libteredo/server.c:478
+#: libteredo/server.c:482
 msgid ""
 "Teredo server UDP socket error: Server IPv4 addresses must be global unicast."
 msgstr ""
 
-#: libteredo/packets.c:281
+#: libteredo/packets.c:264
 msgid "Multiple Teredo prefixes received"
 msgstr ""
 
-#: libteredo/packets.c:317
+#: libteredo/packets.c:300
 msgid "Invalid Teredo prefix received"
 msgstr ""
 
-#: libteredo/maintain.c:182
+#: libteredo/maintain.c:181
 msgid "Authentication with server failed."
 msgstr ""
 
-#: libteredo/maintain.c:251
+#: libteredo/maintain.c:250
 msgid "Too much time drift. Resynchronizing."
 msgstr ""
 
-#: libteredo/maintain.c:313
+#: libteredo/maintain.c:317
 #, c-format
 msgid "Cannot resolve Teredo server address \"%s\": %s"
 msgstr "Cannot resolve Teredo server address “%s”: %s"
 
-#: libteredo/maintain.c:325
+#: libteredo/maintain.c:329
 msgid "Server has a non global IPv4 address. It will most likely not work."
 msgstr ""
 
-#: libteredo/maintain.c:391
+#: libteredo/maintain.c:395
 msgid "Lost Teredo connectivity"
 msgstr ""
 
-#: libteredo/maintain.c:406
+#: libteredo/maintain.c:403
 msgid "No reply from Teredo server"
 msgstr ""
 
-#: libteredo/maintain.c:429
+#: libteredo/maintain.c:424
 msgid "Teredo address/MTU changed"
 msgstr ""
 
-#: libteredo/maintain.c:447
+#: libteredo/maintain.c:442
 msgid "Unsupported symmetric NAT detected."
 msgstr ""
 
-#: libteredo/maintain.c:456
+#: libteredo/maintain.c:449
 #, c-format
 msgid "Qualified (NAT type: %s)"
 msgstr ""
 
-#: libteredo/maintain.c:458
-msgid "cone"
-msgstr ""
-
-#: libteredo/maintain.c:458
+#: libteredo/maintain.c:450
 msgid "restricted"
 msgstr ""
 
@@ -314,49 +310,49 @@ msgstr ""
 msgid "Terminated with no error."
 msgstr ""
 
-#: src/relay.c:193 src/checkconf.c:84
+#: src/relay.c:195 src/checkconf.c:85
 #, c-format
 msgid "Invalid relay type \"%s\" at line %u"
 msgstr "Invalid relay type “%s” at line %u"
 
-#: src/relay.c:234
+#: src/relay.c:236
 msgid "Teredo pseudo-tunnel started"
 msgstr ""
 
-#: src/relay.c:236
+#: src/relay.c:238
 #, c-format
 msgid " (address: %s, MTU: %u)"
 msgstr ""
 
-#: src/relay.c:255
+#: src/relay.c:257
 msgid "Teredo pseudo-tunnel stopped"
 msgstr ""
 
-#: src/relay.c:393 src/relay.c:412 src/relay.c:429 src/relay.c:442
-#: src/relay.c:468 src/server.c:97 src/server.c:105 src/server.c:123
-#: src/isatap.c:361 src/isatap.c:370 src/isatap.c:382
+#: src/relay.c:396 src/relay.c:415 src/relay.c:432 src/relay.c:445
+#: src/relay.c:469 src/server.c:97 src/server.c:105 src/server.c:123
+#: src/isatap.c:361 src/isatap.c:370 src/isatap.c:382 src/checkconf.c:152
 msgid "Fatal configuration error"
 msgstr ""
 
-#: src/relay.c:411 src/server.c:104
+#: src/relay.c:414 src/server.c:104 src/checkconf.c:106
 msgid "Server address not specified"
 msgstr ""
 
-#: src/relay.c:428 src/checkconf.c:102
+#: src/relay.c:431 src/checkconf.c:110
 msgid "Unsupported Teredo client mode"
 msgstr ""
 
-#: src/relay.c:495 src/relay.c:501 src/relay.c:567 src/isatap.c:413
+#: src/relay.c:496 src/relay.c:502 src/relay.c:566 src/isatap.c:413
 #: src/isatap.c:439
 #, c-format
 msgid "Miredo setup failure: %s"
 msgstr ""
 
-#: src/relay.c:496 src/isatap.c:414
+#: src/relay.c:497 src/isatap.c:414
 msgid "Cannot create IPv6 tunnel"
 msgstr ""
 
-#: src/relay.c:502 src/relay.c:568
+#: src/relay.c:503 src/relay.c:567
 msgid "libteredo cannot be initialized"
 msgstr ""
 

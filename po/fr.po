@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: miredo 0.8.1\n"
 "Report-Msgid-Bugs-To: miredo-devel_no_bulk_mail@remlab.net\n"
-"POT-Creation-Date: 2006-06-16 20:45+0300\n"
+"POT-Creation-Date: 2006-07-07 20:23+0300\n"
 "PO-Revision-Date: 2006-03-20 15:36+0100\n"
 "Last-Translator: Rémi Denis-Courmont <rdenis (at) simphalempin (dot) com>\n"
 "Language-Team: N/A\n"
@@ -16,83 +16,79 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: libteredo/relay.c:625
+#: libteredo/relay.c:649
 msgid "Ignoring invalid bubble: your Teredo server is probably buggy."
 msgstr "Bulle invalide ignorée : votre serveur Teredo est probablement bogué."
 
-#: libteredo/security.c:68 libteredo/security.c:158 libteredo/server.c:505
-#: libteredo/server.c:516 libteredo/maintain.c:562 libtun6/tun6.c:712
+#: libteredo/security.c:68 libteredo/security.c:158 libteredo/server.c:509
+#: libteredo/server.c:520 libteredo/maintain.c:553 libtun6/tun6.c:712
 #: src/main.c:289 src/main.c:317 src/main.c:355 src/main.c:489
 #: src/miredo.c:107 src/miredo.c:115 src/miredo.c:237
 #, c-format
 msgid "Error (%s): %s\n"
 msgstr "Erreur (%s) : %s\n"
 
-#: libteredo/server.c:399 libteredo/server.c:470 src/isatap.c:77
+#: libteredo/server.c:403 libteredo/server.c:474 src/isatap.c:77
 #, c-format
 msgid "Raw IPv6 socket not working: %s"
 msgstr "Socket IPv6 brute (« raw ») non disponible : %s"
 
-#: libteredo/server.c:478
+#: libteredo/server.c:482
 msgid ""
 "Teredo server UDP socket error: Server IPv4 addresses must be global unicast."
 msgstr ""
 "Erreur de socket UDP de serveur Teredo : l’adresse IPv4 de serveur doit être "
 "globale unicast."
 
-#: libteredo/packets.c:281
+#: libteredo/packets.c:264
 msgid "Multiple Teredo prefixes received"
 msgstr "Plusieurs préfixes Teredo reçus"
 
-#: libteredo/packets.c:317
+#: libteredo/packets.c:300
 msgid "Invalid Teredo prefix received"
 msgstr "Préfixe Teredo reçu invalide"
 
-#: libteredo/maintain.c:182
+#: libteredo/maintain.c:181
 msgid "Authentication with server failed."
 msgstr "Authentification refusée par le serveur."
 
-#: libteredo/maintain.c:251
+#: libteredo/maintain.c:250
 msgid "Too much time drift. Resynchronizing."
 msgstr "Décalage temporel trop important. Re-synchronisation."
 
-#: libteredo/maintain.c:313
+#: libteredo/maintain.c:317
 #, c-format
 msgid "Cannot resolve Teredo server address \"%s\": %s"
 msgstr "Impossible de déterminer l’adresse du serveur Teredo « %s » : %s"
 
-#: libteredo/maintain.c:325
+#: libteredo/maintain.c:329
 msgid "Server has a non global IPv4 address. It will most likely not work."
 msgstr ""
 "Le serveur a une adresse IPv4 non globale. Ça ne fonctionnera "
 "vraisemblablement pas."
 
-#: libteredo/maintain.c:391
+#: libteredo/maintain.c:395
 msgid "Lost Teredo connectivity"
 msgstr "Connectivité Teredo perdue"
 
-#: libteredo/maintain.c:406
+#: libteredo/maintain.c:403
 msgid "No reply from Teredo server"
 msgstr "Pas de réponse du serveur Teredo"
 
-#: libteredo/maintain.c:429
+#: libteredo/maintain.c:424
 msgid "Teredo address/MTU changed"
 msgstr "Adresse/MTU Teredo changée"
 
-#: libteredo/maintain.c:447
+#: libteredo/maintain.c:442
 msgid "Unsupported symmetric NAT detected."
 msgstr "NAT symmétrique non supporté détecté."
 
-#: libteredo/maintain.c:456
+#: libteredo/maintain.c:449
 #, c-format
 msgid "Qualified (NAT type: %s)"
 msgstr "Qualifié (type de NAT : %s)"
 
-#: libteredo/maintain.c:458
-msgid "cone"
-msgstr "cône"
-
-#: libteredo/maintain.c:458
+#: libteredo/maintain.c:450
 msgid "restricted"
 msgstr "restreint"
 
@@ -351,49 +347,49 @@ msgstr "Terminé avec une/des erreur(s)."
 msgid "Terminated with no error."
 msgstr "Terminé sans erreur."
 
-#: src/relay.c:193 src/checkconf.c:84
+#: src/relay.c:195 src/checkconf.c:85
 #, c-format
 msgid "Invalid relay type \"%s\" at line %u"
 msgstr "Type de relais invalide « %s » à la ligne %u"
 
-#: src/relay.c:234
+#: src/relay.c:236
 msgid "Teredo pseudo-tunnel started"
 msgstr "Pseudo-tunnel Teredo démarré"
 
-#: src/relay.c:236
+#: src/relay.c:238
 #, c-format
 msgid " (address: %s, MTU: %u)"
 msgstr " (adresse : %s, MTU : %u)"
 
-#: src/relay.c:255
+#: src/relay.c:257
 msgid "Teredo pseudo-tunnel stopped"
 msgstr "Pseudo-tunnel Teredo arrêté"
 
-#: src/relay.c:393 src/relay.c:412 src/relay.c:429 src/relay.c:442
-#: src/relay.c:468 src/server.c:97 src/server.c:105 src/server.c:123
-#: src/isatap.c:361 src/isatap.c:370 src/isatap.c:382
+#: src/relay.c:396 src/relay.c:415 src/relay.c:432 src/relay.c:445
+#: src/relay.c:469 src/server.c:97 src/server.c:105 src/server.c:123
+#: src/isatap.c:361 src/isatap.c:370 src/isatap.c:382 src/checkconf.c:152
 msgid "Fatal configuration error"
 msgstr "Erreur fatale de configuration"
 
-#: src/relay.c:411 src/server.c:104
+#: src/relay.c:414 src/server.c:104 src/checkconf.c:106
 msgid "Server address not specified"
 msgstr "Adresse du serveur non indiquée"
 
-#: src/relay.c:428 src/checkconf.c:102
+#: src/relay.c:431 src/checkconf.c:110
 msgid "Unsupported Teredo client mode"
 msgstr "Mode client Teredo non supporté"
 
-#: src/relay.c:495 src/relay.c:501 src/relay.c:567 src/isatap.c:413
+#: src/relay.c:496 src/relay.c:502 src/relay.c:566 src/isatap.c:413
 #: src/isatap.c:439
 #, c-format
 msgid "Miredo setup failure: %s"
 msgstr "Échec du démarrage de Miredo : %s"
 
-#: src/relay.c:496 src/isatap.c:414
+#: src/relay.c:497 src/isatap.c:414
 msgid "Cannot create IPv6 tunnel"
 msgstr "Impossible de créer le tunnel IPv6"
 
-#: src/relay.c:502 src/relay.c:568
+#: src/relay.c:503 src/relay.c:567
 msgid "libteredo cannot be initialized"
 msgstr "Impossible d’initialiser libteredo"
 
@@ -460,3 +456,6 @@ msgstr "Préfixe Teredo IPv6 invalide : %x::/32"
 #, c-format
 msgid "Unknown syslog facility \"%s\" at line %u"
 msgstr "Catégorie syslog « %s » inconnue à la ligne %u"
+
+#~ msgid "cone"
+#~ msgstr "cône"
