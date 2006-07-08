@@ -17,6 +17,7 @@
 # *  http://www.gnu.org/copyleft/gpl.html                               *
 # ***********************************************************************
 
+man1_MANS = teredo-mire.1
 man5_MANS = miredo.conf.5 miredo-server.conf.5 isatapd.conf.5
 man8_MANS = miredo.8 miredo-server.8 miredo-checkconf.8 isatapd.8
 

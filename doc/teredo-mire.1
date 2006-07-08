@@ -1,0 +1,70 @@
+.\" ***********************************************************************
+.\" *  Copyright © 2004-2006 Rémi Denis-Courmont.                         *
+.\" *  This program is free software; you can redistribute and/or modify  *
+.\" *  it under the terms of the GNU General Public License as published  *
+.\" *  by the Free Software Foundation; version 2 of the license.         *
+.\" *                                                                     *
+.\" *  This program is distributed in the hope that it will be useful,    *
+.\" *  but WITHOUT ANY WARRANTY; without even the implied warranty of     *
+.\" *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.               *
+.\" *  See the GNU General Public License for more details.               *
+.\" *                                                                     *
+.\" *  You should have received a copy of the GNU General Public License  *
+.\" *  along with this program; if not, you can get it from:              *
+.\" *  http://www.gnu.org/copyleft/gpl.html                               *
+.\" ***********************************************************************
+.TH "TEREDO-MIRE" "1" "$Date$" "miredo" "User Commands"
+.SH NAME
+teredo-mire \- Stateless Teredo IPv6 responder
+.SH SYNOPSIS
+.B teredo-mire
+
+.SH DESCRIPTON
+.B Teredo-Mire
+is a test back-end for the Teredo IPv6 tunneling protocol. It listens for
+requests from other Teredo clients or IPv6 nodes (through Teredo relays)
+and answers to them statelessly. Currently only ICMPv6 Echo Requests
+("pings") are handled.
+
+.SH OPTIONS
+
+.TP
+.BR "\-h" " or " "\-\-help"
+Display some help and exit.
+
+.TP
+.BR "\-V" " or " "\-\-version"
+Display program version and exit.
+
+.SH DIAGNOSTICS
+
+To contact a teredo-mire responder, a valid Teredo IPv6 address must be
+determined for it. The server IPv4 address and mapped client IPv4 address
+parts should both represent the IPv4 address of the host running teredo-mire.
+The mapped UDP port number must be 3544. The Teredo prefix and Teredo flags
+are ignored.
+
+.SH BUGS
+
+.IR "teredo-mire" " uses UDP port 3544, and assumes it has a public IPv4"
+address.
+
+Neither RFC 2460 nor RFC 4380 are properly implemented.
+
+.SH SECURITY
+
+.IR "teredo-mire" " does not require any priviledge to run."
+
+.\".SH SIGNALS
+.\".SH FILES
+
+.SH "SEE ALSO"
+ping6(8), miredo(8), ipv6(7)
+
+.SH AUTHOR
+R\[char233]mi Denis-Courmont <rdenis at simphalempin.com>
+
+$Id$
+
+http://www.simphalempin.com/dev/miredo/
+

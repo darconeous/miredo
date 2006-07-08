@@ -28,9 +28,8 @@ LIBADD = ../compat/libcompat.la libteredo-common.la
 
 noinst_LTLIBRARIES = libteredo-common.la libteredo-server.la
 lib_LTLIBRARIES = libteredo.la
-EXTRA_PROGRAMS = teredo-mire
+bin_PROGRAMS = teredo-mire
 EXTRA_DIST = libteredo.sym
-CLEANFILES = $(EXTRA_PROGRAMS)
 
 include_libteredodir = $(includedir)/libteredo
 include_libteredo_HEADERS = teredo.h teredo-udp.h tunnel.h
