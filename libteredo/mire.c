@@ -227,6 +227,9 @@ int main(int argc, char *argv[])
 
 			case 'V':
 				return version();
+
+			default:
+				return 1;
 		}
 
 	int fd = teredo_socket (0, htons (3544));
