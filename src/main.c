@@ -196,6 +196,7 @@ close_pidfile (int fd)
 }
 
 
+#ifdef MIREDO_DEFAULT_USERNAME
 static void
 setuid_notice (void)
 {
@@ -204,6 +205,7 @@ setuid_notice (void)
 "the program as an user with insufficient system privileges.\n"
 "This program should normally be started by root.\n"), stderr);
 }
+#endif
 
 
 /**
@@ -237,6 +239,7 @@ init_daemon (const char *username, const char *pidfile, int nodetach)
 		return -1;
 	close (fd);
 
+#ifdef MIREDO_DEFAULT_USERNAME
 	/* Determines unpriviledged user */
 	errno = 0;
 	struct passwd *pw = getpwnam (username);
@@ -257,7 +260,6 @@ init_daemon (const char *username, const char *pidfile, int nodetach)
 		return -1;
 	}
 
-#ifdef MIREDO_DEFAULT_USERNAME
 	if (pw->pw_uid == 0)
 	{
 		fputs (_("Error: This program is not supposed to keep root\n"
@@ -266,10 +268,6 @@ init_daemon (const char *username, const char *pidfile, int nodetach)
 			stderr);
 		return -1;
 	}
-#else
-# define MIREDO_DEFAULT_USERNAME "root"
-#endif
-
 	unpriv_uid = pw->pw_uid;
 
 	/* Ensure we have root privilege before initialization */
@@ -280,8 +278,8 @@ init_daemon (const char *username, const char *pidfile, int nodetach)
 		return -1;
 	}
 
+# ifdef HAVE_LIBCAP
 	/* POSIX.1e capabilities support */
-#ifdef HAVE_LIBCAP
 	cap_t s = cap_init ();
 	if (s == NULL)
 	{
@@ -320,19 +318,22 @@ init_daemon (const char *username, const char *pidfile, int nodetach)
 		setuid_notice ();
 		return -1;
 	}
-#endif
+# endif
 
 	/* Unpriviledged group */
 	(void)setgid (pw->pw_gid);
 	(void)initgroups (username, pw->pw_gid);
 
-#ifdef HAVE_LIBCAP
+# ifdef HAVE_LIBCAP
 	static cap_value_t setgid_cap[] = { CAP_SETGID };
 	cap_set_flag (s, CAP_EFFECTIVE, 1, setgid_cap, CAP_CLEAR);
 	cap_set_flag (s, CAP_PERMITTED, 1, setgid_cap, CAP_CLEAR);
 	cap_set_proc (s);
 	cap_free (s);
-#endif
+# endif
+#else
+	(void)username;
+#endif /* MIREDO_DEFAULT_USERNAME */
 
 	/* Opens pidfile */
 	fd = open_pidfile (pidfile);
@@ -447,8 +448,13 @@ int miredo_main (int argc, char *argv[])
 	if (optind < argc)
 		return error_extra (argv[optind]);
 
+#ifdef MIREDO_DEFAULT_USERNAME
 	if (username == NULL)
 		username = MIREDO_DEFAULT_USERNAME;
+#else
+	if (username != NULL)
+		return error_extra (username);
+#endif
 
 	size_t str_len;
 	if (conffile == NULL)
