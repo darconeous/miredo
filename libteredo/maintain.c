@@ -168,14 +168,12 @@ maintenance_recv (const teredo_packet *restrict packet, uint32_t server_ip,
                   uint8_t *restrict nonce, bool cone, uint16_t *restrict mtu,
                   union teredo_addr *restrict newaddr)
 {
-	/*
-	 * We don't accept router advertisement without nonce.
-	 * It is far too easy to spoof such packets.
-	 */
-	if ((packet->auth_nonce == NULL)
-	 || memcmp (packet->auth_nonce, nonce, 8))
+	assert (packet->auth_nonce != NULL);
+
+	if (memcmp (packet->auth_nonce, nonce, 8))
 		return false;
 
+	/* TODO: fail instead of ignoring the packet? */
 	if (packet->auth_conf_byte)
 	{
 		syslog (LOG_ERR, _("Authentication with server failed."));
@@ -579,13 +577,24 @@ void teredo_maintenance_stop (teredo_maintenance *m)
 
 /**
  * Passes a Teredo packet to a maintenance thread for processing.
+ *
+ * @return 0 if processed, -1 if not a valid router solicitation.
  */
-void teredo_maintenance_process (teredo_maintenance *restrict m,
-                                 const teredo_packet *restrict packet)
+int teredo_maintenance_process (teredo_maintenance *restrict m,
+                                const teredo_packet *restrict packet)
 {
+	/*
+	 * We don't accept router advertisement without nonce.
+	 * It is far too easy to spoof such packets.
+	 */
+	if ((packet->auth_nonce == NULL)
+	 || memcmp (packet->ip6 + 24, &teredo_restrict, 16))
+		return -1;
+
 	(void)pthread_mutex_lock (&m->lock);
 	m->incoming = packet;
 	(void)pthread_cond_signal (&m->received);
 	(void)pthread_mutex_unlock (&m->lock);
 	(void)pthread_barrier_wait (&m->processed);
+	return 0;
 }

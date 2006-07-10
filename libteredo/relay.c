@@ -603,11 +603,8 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 	/* Maintenance */
 	if (IsClient (tunnel) && (packet->source_port == htons (IPPORT_TEREDO)))
 	{
-		if (packet->auth_nonce != NULL)
-		{
-			teredo_maintenance_process (tunnel->maintenance, packet);
+		if (teredo_maintenance_process (tunnel->maintenance, packet) == 0)
 			return;
-		}
 		else
 		if (!s.up)
 		{
