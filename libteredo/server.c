@@ -48,6 +48,7 @@
 #include <netinet/icmp6.h>
 #include <fcntl.h>
 #include <pthread.h>
+#include <signal.h>
 #include <syslog.h>
 
 #include "server.h"
