@@ -41,13 +41,21 @@ int clock_nanosleep (clockid_t id, int flags, const struct timespec *ts,
 		if (clock_gettime (id, &mine))
 			return -1;
 
-		if (mine.tv_nsec < ts->tv_nsec)
+		if (mine.tv_sec > ts->tv_sec)
+			return 0; // behind schedule
+
+		if (mine.tv_nsec > ts->tv_nsec)
 		{
-			mine.tv_nsec += 1000000000;
-			mine.tv_sec--;
+			if (mine.tv_sec == ts->tv_sec)
+				return 0; // behind schedule too
+
+			mine.tv_nsec = 1000000000 + ts->tv_nsec - mine.tv_nsec;
+			mine.tv_sec++;
 		}
-		mine.tv_sec -= ts->tv_sec;
-		mine.tv_nsec -= ts->tv_nsec;
+		else
+			mine.tv_nsec = ts->tv_nsec - mine.tv_nsec;
+
+		mine.tv_sec = ts->tv_sec - mine.tv_sec;
 
 		/* With TIMER_ABSTIME, clock_nanosleep ignores <ots> */
 		return nanosleep (&mine, NULL);
