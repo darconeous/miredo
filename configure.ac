@@ -186,7 +186,7 @@ AC_ARG_ENABLE(miredo-user,
 	AS_IF([test "${enable_miredo_user}" = "yes"],
 		[enable_miredo_user="miredo"])
 	AS_IF([test "${enable_miredo_user}" = "no"],
-		[enable_miredo_user="nobody"])
+		[enable_miredo_user="root"])
 ], [
 	enable_miredo_user="nobody"
 ])
