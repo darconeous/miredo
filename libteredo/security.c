@@ -38,7 +38,6 @@
 #include <sys/types.h>
 #include <fcntl.h> /* open() */
 #include <unistd.h> /* read(), close() */
-#include <syslog.h>
 #include <pthread.h>
 #include <netinet/in.h> /* struct in6_addr */
 #include <time.h> /* time_t */
