@@ -205,16 +205,8 @@ tun6 *tun6_create (const char *req_name)
 	 * BSD tunnel driver initialization
 	 * (see BSD src/sys/net/if_tun.{c,h})
 	 */
-	int id = 0;
 	struct if_nameindex *before = if_nameindex ();
 
-	/*
-	 * NOTE: Recent FreeBSD releases have a more Linux-like /dev/tun device
-	 * file that creates tunnel automatically... but it is fairly
-	 * disappointing that there is no way to obtain the created interface name
-	 * any way. To obtain the device id, we try to compare if_nameindex()
-	 * before and after open().
-	 */
 	int fd = open ("/dev/tun", O_RDWR);
 	if ((fd == -1) && (errno == ENOENT))
 	{
@@ -229,20 +221,11 @@ tun6 *tun6_create (const char *req_name)
 			snprintf (tundev, sizeof (tundev), "/dev/tun%u", i);
 
 			fd = open (tundev, O_RDWR);
-			if (fd != -1)
-			{
-				/*
-				 * FIXME: Needs a way to obtain the actual name of the tunnel
-				 * interface. If the user or another program changed it in the
-				 * past, it might no longer be the device file name.
-				 */
-				id = if_nametoindex (tundev + 5);
-				safe_strcpy (t->orig_name, tundev + 5);
-			}
-
-			// If /dev/tun<i> does not exist, /dev/tun<i+1> won't exist either
-			if (errno == ENOENT)
+			if ((fd == -1) && (errno == ENOENT))
+				// If /dev/tun<i> does not exist,
+				// /dev/tun<i+1> won't exist either
 				break;
+
 			saved_errno = errno;
 		}
 		errno = saved_errno;
@@ -252,50 +235,20 @@ tun6 *tun6_create (const char *req_name)
 	{
 		syslog (LOG_ERR, _("Tunneling driver error (%s): %s"), "/dev/tun*",
 		        strerror (errno));
-		if_freenameindex (before);
 		goto error;
 	}
 	else
-	if (id == 0)
 	{
-		/*
-		 * This is an not very clean fallback method to find out the tunnel
-		 * interface index. Besides, it only works if the interface was
-		 * actually created rather than re-opened.
-		 */
-		struct if_nameindex *after = if_nameindex ();
-
-		for (struct if_nameindex *p = after; (id == 0) && p->if_index; p++)
-		{
-			struct if_nameindex *x = before;
-
-			while ((x->if_index != 0 ) && (x->if_index != p->if_index))
-				x++;
-
-			if (x->if_index == 0)
-			{
-				id = p->if_index;
-				safe_strcpy (t->orig_name, p->if_name);
-			}
-		}
-		if_freenameindex (after);
+		struct stat st;
+		fstat (fd, &st);
+		devname_r (st.st_rdev, S_IFCHR, t->orig_name, sizeof (t->orig_name));
 	}
-	if_freenameindex (before);
 
+	int id = if_nametoindex (t->orig_name);
 	if (id == 0)
 	{
-		syslog (LOG_ERR,
-"libtun6 could create a tunnel interface, but it could not find its name or\n"
-"index. This piece of information is absolutely required for libtun6 (as\n"
-"most other userland tunneling software) to operate properly.\n"
-"Please fix your kernel. libtun6 will now abort.\n\n"
-#if defined (__FreeBSD__) || defined (__FreeBSD_kernel__)
-"See also FreeBSD PR/73673 regarding this issue.\n\n"
-#endif
-"To work-around this problem, please do not customize the name of tunnel\n"
-"interfaces (for Miredo: do NOT use the InterfaceName directive in\n"
-"miredo.conf), so that you don't have to reboot every time you restart the\n"
-"program.\n");
+		syslog (LOG_ERR, _("Tunneling driver error (%s): %s"),
+		        t->orig_name, strerror (errno));
 		goto error;
 	}
 
