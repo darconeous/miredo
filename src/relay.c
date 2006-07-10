@@ -225,6 +225,18 @@ create_dynamic_tunnel (const char *ifname, int *fd)
 }
 
 
+static void
+destroy_dynamic_tunnel (tun6 *tunnel, int fd)
+{
+	assert (fd != -1);
+	close (fd);
+
+	wait (NULL); // wait for privsep process
+
+	tun6_destroy (tunnel);
+}
+
+
 /**
  * Callback to configure a Teredo tunneling interface.
  */
@@ -266,6 +278,7 @@ setup_client (teredo_tunnel *client, const char *server, const char *server2)
 }
 #else
 # define create_dynamic_tunnel( a, b )   NULL
+# define destroy_static_tunnel( a, b )   (void)0
 # define setup_client( a, b, c )         (-1)
 # define miredo_addrwatch_available( a ) 0
 # define miredo_addrwatch_getfd( a )     (-1)
@@ -295,6 +308,28 @@ create_static_tunnel (const char *restrict ifname,
 	return tunnel;
 }
 
+
+#if 0 && !defined (MIREDO_DEFAULT_USERNAME)
+static void
+destroy_static_tunnel (tun6 *restrict tunnel,
+                       const struct in6_addr *restrict prefix)
+{
+	/*
+	 * Manual clean up of the tunnel device is only possible if we retain root
+	 * privileges. Unfortunately, if we don't do this, it becomes impossible
+	 * to restart Miredo on FreeBSD. The proper fix belongs in the FreeBSD
+	 * kernel - that's the only way to handle kills (or would-be crashes) of
+	 * Miredo; that's part of the standard job of a solid kernel process
+	 * killer.
+	 */
+	tun6_delRoute (tunnel, prefix, 32, 0);
+	tun6_delAddress (tunnel, &teredo_restrict, 64);
+	tun6_bringDown (tunnel);
+	tun6_destroy (tunnel);
+}
+#else
+# define destroy_static_tunnel( t, p ) tun6_destroy( t )
+#endif
 
 
 static int
@@ -574,14 +609,11 @@ relay_run (miredo_conf *conf, const char *server_name)
 		miredo_deinit ((mode & TEREDO_CLIENT) != 0);
 	}
 
-#ifdef MIREDO_TEREDO_CLIENT
-	if (fd != -1)
-	{
-		close (fd);
-		wait (NULL); // wait for privsep process
-	}
-#endif
-	tun6_destroy (tunnel);
+	if (mode & TEREDO_CLIENT)
+		destroy_dynamic_tunnel (tunnel, fd);
+	else
+		destroy_static_tunnel (tunnel, &prefix.ip6);
+
 	return retval;
 }
 
