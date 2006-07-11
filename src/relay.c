@@ -278,7 +278,7 @@ setup_client (teredo_tunnel *client, const char *server, const char *server2)
 }
 #else
 # define create_dynamic_tunnel( a, b )   NULL
-# define destroy_static_tunnel( a, b )   (void)0
+# define destroy_dynamic_tunnel( a, b )   (void)0
 # define setup_client( a, b, c )         (-1)
 # define miredo_addrwatch_available( a ) 0
 # define miredo_addrwatch_getfd( a )     (-1)
