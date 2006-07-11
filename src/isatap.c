@@ -221,7 +221,7 @@ run_tunnel (int ipv6fd, tun6 *tunnel, uint32_t router_ipv4)
 	FD_ZERO (&refset);
 	int maxfd = tun6_registerReadSet (tunnel, &refset);
 
-	if ((maxfd == -1) || (ipv6fd >= FD_SETSIZE))
+	if ((maxfd == -1) || (ipv6fd >= (int)FD_SETSIZE))
 		return -1;
 
 	FD_SET (ipv6fd, &refset);
@@ -361,6 +361,8 @@ isatap_run (miredo_conf *conf, const char *server_name)
 		syslog (LOG_ALERT, _("Fatal configuration error"));
 		return -2;
 	}
+#else
+	(void)server_name;
 #endif
 
 	uint32_t bind_ip = INADDR_ANY;
