@@ -1114,7 +1114,7 @@ int teredo_register_readset (teredo_tunnel *t, fd_set *rdset)
 	// FIXME: May be problematic once multicast local discovery gets
 	// implemented.
 
-	if (t->fd >= FD_SETSIZE)
+	if (t->fd >= (int)FD_SETSIZE)
 		return -1;
 
 	FD_SET (t->fd, rdset);
