@@ -205,8 +205,6 @@ tun6 *tun6_create (const char *req_name)
 	 * BSD tunnel driver initialization
 	 * (see BSD src/sys/net/if_tun.{c,h})
 	 */
-	struct if_nameindex *before = if_nameindex ();
-
 	int fd = open ("/dev/tun", O_RDWR);
 	if ((fd == -1) && (errno == ENOENT))
 	{
@@ -613,6 +611,8 @@ _iface_route (int reqfd, int id, bool add, const struct in6_addr *addr,
 	 * BSD routing socket interface
 	 * FIXME: metric unimplemented
 	 */
+	(void)rel_metric;
+
 	int s = socket (AF_ROUTE, SOCK_RAW, AF_INET6);
 	if (s != -1)
 	{
@@ -804,7 +804,7 @@ tun6_registerReadSet (const tun6 *t, fd_set *readset)
 {
 	assert (t != NULL);
 
-	if (t->fd >= FD_SETSIZE)
+	if (t->fd >= (int)FD_SETSIZE)
 		return -1;
 
 	FD_SET (t->fd, readset);
@@ -857,7 +857,7 @@ tun6_recv (tun6 *t, const fd_set *readset, void *buffer, size_t maxlen)
 	assert (t != NULL);
 
 	int fd = t->fd;
-	if ((fd < FD_SETSIZE) && !FD_ISSET (fd, readset))
+	if ((fd < (int)FD_SETSIZE) && !FD_ISSET (fd, readset))
 	{
 		errno = EAGAIN;
 		return -1;
