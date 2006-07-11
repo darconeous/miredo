@@ -381,13 +381,13 @@ static void *miredo_encap_thread (void *d)
 static int
 run_tunnel (miredo_tunnel *tunnel, miredo_addrwatch *w)
 {
+	int fd = miredo_addrwatch_getfd (w);
+	if (fd >= (int)FD_SETSIZE)
+		return -1;
+
 	pthread_t encap_th;
 	if (teredo_run_async (tunnel->relay)
 	 || pthread_create (&encap_th, NULL, miredo_encap_thread, tunnel))
-		return -1;
-
-	int fd = miredo_addrwatch_getfd (w);
-	if (fd >= (int)FD_SETSIZE)
 		return -1;
 
 	/* Main loop */
