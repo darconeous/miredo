@@ -95,8 +95,9 @@ static int miredo_checkconf (miredo_conf *conf)
 
 	if (client)
 	{
-		uint32_t ip = 0;
 #ifdef MIREDO_TEREDO_CLIENT
+		uint32_t ip = 0;
+
 		if (!miredo_conf_parse_IPv4 (conf, "ServerAddress", &ip)
 		 || !miredo_conf_parse_IPv4 (conf, "ServerAddress2", &u32))
 			res = -1;
