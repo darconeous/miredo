@@ -312,6 +312,9 @@ int teredo_recv (int fd, struct teredo_packet *p)
 }
 
 
+#ifdef __FreeBSD__
+# include <sys/poll.h>
+#endif
 /**
  * Waits for, receives and parses a Teredo packet from a socket.
  * Thread-safe, cancellation-safe, cancellation point.
@@ -328,5 +331,12 @@ int teredo_recv (int fd, struct teredo_packet *p)
  */
 int teredo_wait_recv (int fd, struct teredo_packet *p)
 {
+#ifdef __FreeBSD__
+	// recvfrom() is not a cancellation point on FreeBSD 6.1...
+	struct pollfd ufd = { .fd = fd, .events = POLLIN };
+	if (poll (&ufd, 1, -1))
+		return -1;
+#endif
+
 	return teredo_recv_inner (fd, p, 0);
 }
