@@ -32,7 +32,7 @@ AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir) -D_REENTRANT \
 
 sbin_PROGRAMS = miredo miredo-server miredo-checkconf isatapd
 noinst_LTLIBRARIES = libmiredo.la
-TESTS = miredo-checkconf
+TESTS =
 
 #BUILT_SOURCES = $(srcdir)/svnversion.stamp
 
@@ -51,6 +51,7 @@ libmiredo_la_LDFLAGS = -no-undefined -static
 miredo_SOURCES = relay.c
 if TEREDO_CLIENT
 miredo_SOURCES += privproc.c privproc.h addrwatch.c addrwatch.h
+TESTS += miredo-checkconf
 endif
 miredo_LDADD = ../libtun6/libtun6.la ../libteredo/libteredo.la libmiredo.la \
 		@LIBRT@ $(LIBINTL)
