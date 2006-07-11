@@ -23,6 +23,7 @@
 # include <config.h>
 #endif
 #include <time.h>
+#include <sys/time.h>
 #include <errno.h>
 
 int clock_nanosleep (clockid_t id, int flags, const struct timespec *ts,
