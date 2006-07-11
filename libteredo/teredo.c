@@ -334,7 +334,7 @@ int teredo_wait_recv (int fd, struct teredo_packet *p)
 #ifdef __FreeBSD__
 	// recvfrom() is not a cancellation point on FreeBSD 6.1...
 	struct pollfd ufd = { .fd = fd, .events = POLLIN };
-	if (poll (&ufd, 1, -1))
+	if (poll (&ufd, 1, -1) == -1)
 		return -1;
 #endif
 
