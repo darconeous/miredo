@@ -387,7 +387,7 @@ run_tunnel (miredo_tunnel *tunnel, miredo_addrwatch *w)
 		return -1;
 
 	int fd = miredo_addrwatch_getfd (w);
-	if (fd >= FD_SETSIZE)
+	if (fd >= (int)FD_SETSIZE)
 		return -1;
 
 	/* Main loop */
