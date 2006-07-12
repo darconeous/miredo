@@ -311,6 +311,10 @@ tun6 *tun6_create (const char *req_name)
 			if (safe_strcpy (ifname, req_name)
 			 || ioctl (reqfd, SIOCSIFNAME, &req))
 #else
+			syslog (LOG_DEBUG,
+"Tunnel interface renaming is not supported on your operating system.\n"
+"To run miredo or isatapd properly, you need to remove the\n"
+"InterfaceName directive from their respective configuration file.\n");
 			errno = ENOSYS;
 #endif
 			{
@@ -614,56 +618,66 @@ _iface_route (int reqfd, int id, bool add, const struct in6_addr *addr,
 	(void)rel_metric;
 
 	int s = socket (AF_ROUTE, SOCK_RAW, AF_INET6);
-	if (s != -1)
+	if (s == -1)
 	{
-		static int rtm_seq = 0;
-		static pthread_mutex_t rtm_seq_mutex = PTHREAD_MUTEX_INITIALIZER;
-		struct
-		{
-			struct rt_msghdr hdr;
-			struct sockaddr_in6 dst;
-			struct sockaddr_dl gw;
-			struct sockaddr_in6 mask;
-		} msg;
-
-		shutdown (s, 0);
-
-		memset (&msg, 0, sizeof (msg));
-		msg.hdr.rtm_msglen = sizeof (msg);
-		msg.hdr.rtm_version = RTM_VERSION;
-		msg.hdr.rtm_type = add ? RTM_ADD : RTM_DELETE;
-		msg.hdr.rtm_index = id;
-		msg.hdr.rtm_flags = RTF_UP | RTF_STATIC;
-		msg.hdr.rtm_addrs = RTA_DST | RTA_GATEWAY | RTA_NETMASK;
-		if (prefix_len == 128)
-			msg.hdr.rtm_flags |= RTF_HOST;
-		msg.hdr.rtm_pid = getpid ();
-
-		pthread_mutex_lock (&rtm_seq_mutex);
-		msg.hdr.rtm_seq = ++rtm_seq;
-		pthread_mutex_unlock (&rtm_seq_mutex);
-
-		msg.dst.sin6_family = AF_INET6;
-		msg.dst.sin6_len = sizeof (msg.dst);
-		memcpy (&msg.dst.sin6_addr, addr, sizeof (msg.dst.sin6_addr));
-
-		msg.gw.sdl_family = AF_LINK;
-		msg.gw.sdl_len = sizeof (msg.gw);
-		msg.gw.sdl_index = id;
-
-		plen_to_sin6 (prefix_len, &msg.mask);
-
-		errno = 0;
-
-		if ((write (s, &msg, sizeof (msg)) == sizeof (msg))
-		 && (errno == 0))
-			retval = 0;
-
-		(void)close (s);
-	}
-	else
 		syslog (LOG_ERR, _("Error (%s): %s\n"), "socket (AF_ROUTE)",
 		        strerror (errno));
+		return -1;
+	}
+
+	static int rtm_seq = 0;
+	static pthread_mutex_t rtm_seq_mutex = PTHREAD_MUTEX_INITIALIZER;
+	struct
+	{
+		struct rt_msghdr hdr;
+		struct sockaddr_in6 dst;
+		struct sockaddr_dl gw;
+		struct sockaddr_in6 mask;
+	} msg;
+
+	shutdown (s, 0);
+
+	memset (&msg, 0, sizeof (msg));
+	msg.hdr.rtm_msglen = sizeof (msg);
+	msg.hdr.rtm_version = RTM_VERSION;
+	msg.hdr.rtm_type = add ? RTM_ADD : RTM_DELETE;
+	msg.hdr.rtm_index = id;
+	msg.hdr.rtm_flags = RTF_UP | RTF_STATIC;
+	msg.hdr.rtm_addrs = RTA_DST | RTA_GATEWAY | RTA_NETMASK;
+	if (prefix_len == 128)
+		msg.hdr.rtm_flags |= RTF_HOST;
+	msg.hdr.rtm_pid = getpid ();
+
+	pthread_mutex_lock (&rtm_seq_mutex);
+	msg.hdr.rtm_seq = ++rtm_seq;
+	pthread_mutex_unlock (&rtm_seq_mutex);
+
+	msg.dst.sin6_family = AF_INET6;
+	msg.dst.sin6_len = sizeof (msg.dst);
+	memcpy (&msg.dst.sin6_addr, addr, sizeof (msg.dst.sin6_addr));
+
+	msg.gw.sdl_family = AF_LINK;
+	msg.gw.sdl_len = sizeof (msg.gw);
+	msg.gw.sdl_index = id;
+
+	plen_to_sin6 (prefix_len, &msg.mask);
+
+	errno = 0;
+
+	if ((write (s, &msg, sizeof (msg)) == sizeof (msg))
+	 && (errno == 0))
+		retval = 0;
+    	else if (errno == EEXIST)
+		syslog (LOG_NOTICE,
+"Miredo could not configure its network tunnel device properly.\n"
+"There is probably another tunnel with a conflicting route present,\n"
+"most likely left from a previous instance of Miredo (see also FreeBSD\n"
+"Problem Report kern/100080); that is a common bug on BSD kernels.\n"
+"Please cleanup your closed tunnel devices manually or reboot to fix\n"
+"this issue. You might also want to check if this issue has been dealt\n"
+"with in newer version of your BSD of choice.\n");
+
+	(void)close (s);
 #else
 # error FIXME route setup not implemented
 #endif
