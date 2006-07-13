@@ -1,5 +1,5 @@
 RELEASE NOTES for Miredo
-release canditate version 0.9.5
+release canditate version 0.9.6
 ================================
 $Id$
 
@@ -16,6 +16,14 @@ miredo-server, so you should definitely upgrade if you use that component.
 informations on this program, see README. For syntax details and
 changes, run “miredo -h” to get help. For detailled internal changes, see
 ChangeLog.
+
+=============================================================================
+BETA RELEASE 0.9.6 : Major compatibility fixes
+
+# Lots of portability fixes, mostfly for FreeBSD and the likes.
+# Removed some dead code.
+# Provide teredo-mire by default.
+# Print more helpful error message for some common BSD tunneling issues.
 
 =============================================================================
 BETA RELEASE 0.9.5 : Major features enhancement, major bug fixes

@@ -2,24 +2,21 @@ ToDo list:
 ===========
 $Id$
 
-This task list is only indicative. It is not fully comprehensive.
+This task list is only indicative; in particular priorities are typically
+not quite respected and often modified. It might not be fully comprehensive.
 If you have an idea, please submit it to the miredo-devel mailing list.
 
 (!) must be done before next release
 (*) must be done before stable release
 ( ) should probably be done someday if one finds time and interest
 (?) should be evaluated for usefulness and/or feasibility first
-(F) should be done, but probably not at the moment
 (H) should be done, but a capable volunteer is required
-(X) being taken care of (outside of miredo SVN)
 
 Important features & fixes:
 ----------------------------
 (*) do something in case of DoS against the peers list
 ( ) fixed TODOs and FIXMEs in source code
 (*) local Teredo discovery
-(!) document libteredo-mire (manpage? --help, --version)
-(!) Vista-like symmetric NAT partial traversal...
 
 Not so important features:
 ---------------------------
@@ -50,16 +47,18 @@ Portability:
 (H) byte alignement tests on problematic platforms (not i386)
 (H) Solaris: libtun6 support
 (H) Solaris: tests & fixes
+(H) FreeBSD kernel support fix
+(H) OpenBSD kernel support correctness check
+(H) NetBSD 4 kernel support correctness check
+(H) DragonFly kernel support fix
 (*) BSD: setsockopt SO_REUSEPORT if/where appropriate
 
 Documentation & support:
 -------------------------
 ( ) custom INSTALL file
 ( ) RPM packaging
-(X) Debian packaging : see ITP http://bugs.debian.org/338128
 
 Re-usability:
 --------------
-(F) libteredo API stabilization
 ( ) avoid syslog() in libtun6
 ( ) avoid syslog() in libteredo
