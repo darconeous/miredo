@@ -24,7 +24,7 @@ BETA RELEASE 0.9.7 : Major security fixes
 =============================================================================
 BETA RELEASE 0.9.6 : Major compatibility fixes
 
-# Lots of portability fixes, mostfly for FreeBSD and the likes.
+# Lots of portability fixes, mostly for FreeBSD and the likes.
 # Removed some dead code.
 # Provide teredo-mire by default.
 # Print more helpful error message for some common BSD tunneling issues.
