@@ -408,27 +408,21 @@ int teredo_server_check (char *errmsg, size_t len)
 
 static void *thread_primary (void *data)
 {
-	teredo_server *s = (teredo_server *)data;
-
 	for (;;)
 	{
 		pthread_testcancel ();
-		teredo_process_packet (s, false);
+		teredo_process_packet ((teredo_server *)data, false);
 	}
-	return NULL;
 }
 
 
 static void *thread_secondary (void *data)
 {
-	teredo_server *s = (teredo_server *)data;
-
 	for (;;)
 	{
 		pthread_testcancel ();
-		teredo_process_packet (s, true);
+		teredo_process_packet ((teredo_server *)data, true);
 	}
-	return NULL;
 }
 
 
@@ -484,7 +478,7 @@ teredo_server *teredo_server_create (uint32_t ip1, uint32_t ip2)
 		return NULL;
 	}
 
-	teredo_server *s = (teredo_server *)malloc (sizeof (*s));
+	teredo_server *s = malloc (sizeof (*s));
 
 	if (s != NULL)
 	{
@@ -518,7 +512,7 @@ teredo_server *teredo_server_create (uint32_t ip1, uint32_t ip2)
 
 			inet_ntop (AF_INET, &ip1, str, sizeof (str));
 			syslog (LOG_ERR, _("Error (%s): %s\n"), str,
-					strerror (errno));
+			        strerror (errno));
 		}
 
 		free (s);
