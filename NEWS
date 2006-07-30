@@ -1,21 +1,25 @@
 RELEASE NOTES for Miredo
-release canditate version 0.9.6
+release canditate version 0.9.7
 ================================
 $Id$
 
-  This is a testing (unstable) release of the program. The package is
-functional, though it lacks some optional features. There are also no
+  This is a testing (unstable) release of the program. There are also no
 known outstanding issues, but the code has undergone significant changes,
 some of which were not heavily tested. Nevertheless, it is believed that
-this release is better than any of the earlier ones, including stable
-release 0.8.5. Also, this release include an important bug fix to
-miredo-server, so you should definitely upgrade if you use that component.
+this release is better than any of the earlier ones, including releases
+from stable branch 0.8.x. Also, this release include an important bug fix
+to miredo-server, so you should definitely upgrade if you use that component.
   Please report any problem by email to miredo-devel (at) remlab (dot) net
 
   You can find major changes since version 0.1.0 below. For more general
 informations on this program, see README. For syntax details and
 changes, run “miredo -h” to get help. For detailled internal changes, see
 ChangeLog.
+
+=============================================================================
+BETA RELEASE 0.9.7 : Major security fixes
+
+# Fix infinite UDP packet forwarding loop in Teredo server (MTFL-SA 0603).
 
 =============================================================================
 BETA RELEASE 0.9.6 : Major compatibility fixes
