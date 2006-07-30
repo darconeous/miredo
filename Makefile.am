@@ -28,7 +28,7 @@ if CONF_ERASE
 dist_sysconf_DATA = \
 	misc/miredo.conf \
 	misc/miredo-server.conf \
-	misc/isatapd.conf-dist
+	misc/isatapd.conf
 else
 if CONF_SAMPLE
 dist_sysconf_DATA = \
