@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: miredo-devel_no_bulk_mail@remlab.net\n"
-"POT-Creation-Date: 2006-07-13 17:40+0300\n"
+"POT-Creation-Date: 2006-07-30 21:46+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -20,17 +20,17 @@ msgstr ""
 msgid "Ignoring invalid bubble: your Teredo server is probably buggy."
 msgstr ""
 
-#: libteredo/server.c:403 libteredo/server.c:474 src/isatap.c:77
+#: libteredo/server.c:411 libteredo/server.c:476 src/isatap.c:77
 #, c-format
 msgid "Raw IPv6 socket not working: %s"
 msgstr ""
 
-#: libteredo/server.c:482
+#: libteredo/server.c:484
 msgid ""
 "Teredo server UDP socket error: Server IPv4 addresses must be global unicast."
 msgstr ""
 
-#: libteredo/server.c:509 libteredo/server.c:520 libteredo/maintain.c:551
+#: libteredo/server.c:511 libteredo/server.c:522 libteredo/maintain.c:551
 #: libtun6/tun6.c:623 src/main.c:287 src/main.c:315 src/main.c:356
 #: src/main.c:495 src/miredo.c:107 src/miredo.c:115 src/miredo.c:237
 #, c-format
