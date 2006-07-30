@@ -370,18 +370,19 @@ teredo_process_packet (const teredo_server *s, bool sec)
 		/** Packet accepted for processing **/
 	}
 
+	/* Security fix: Prevent infinite UDP packet loop */
+	if ((packet.source_ipv4 == s->server_ip)
+	 && (packet.source_port == htons (3544)))
+		return -2;
+
 	/*
 	 * While an explicit breakage of RFC 4380, we purposedly drop ICMPv6
 	 * packets here, as these can have a large payload, and we don't want
 	 * to be an open UDP relay. A conformant Teredo client/relay will never
 	 * try to relay such a packet through a Teredo server anyway. Also,
 	 * Microsoft Teredo servers also drop these packets.
-	 *
-	 * We also drop packet we would send back to our own primary IPv4
-	 * address on the Teredo server port, to avoid loops.
 	 */
-	if ((ip6.ip6_nxt != IPPROTO_NONE)
-	 || IN6_MATCHES_TEREDO_CLIENT (&ip6.ip6_dst, s->server_ip, htons (3544)))
+	if (ip6.ip6_nxt != IPPROTO_NONE)
 		return -2;
 
 	// Forwards packet over Teredo (destination is a Teredo IPv6 address)
