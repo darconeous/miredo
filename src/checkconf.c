@@ -203,7 +203,7 @@ int main(int argc, char *argv[])
 		if (srcdir != NULL)
 		{
 
-			if (asprintf (&str, "%s/../misc/miredo.conf-dist",
+			if (asprintf (&str, "%s/../misc/miredo.conf",
 			              srcdir) == -1)
 				return 1;
 			filename = str;
