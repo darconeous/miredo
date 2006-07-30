@@ -464,7 +464,7 @@ int CheckPing (const teredo_packet *packet)
  */
 int
 BuildICMPv6Error (struct icmp6_hdr *restrict out, uint8_t type, uint8_t code,
-                  const void *restrict in, uint16_t inlen)
+                  const void *restrict in, size_t inlen)
 {
 	const struct in6_addr *p;
 

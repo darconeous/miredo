@@ -123,7 +123,7 @@ static unsigned IcmpRateLimitMs;      // here
  * @param len byte length of the IPv6 packet at <in>.
  */
 static void
-teredo_send_unreach (teredo_tunnel *restrict tunnel, int code,
+teredo_send_unreach (teredo_tunnel *restrict tunnel, uint8_t code,
                      const void *restrict in, size_t len)
 {
 	struct

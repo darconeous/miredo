@@ -51,7 +51,7 @@ int SendPing (int fd, const union teredo_addr *src,
               const struct in6_addr *dst);
 
 int BuildICMPv6Error (struct icmp6_hdr *restrict out, uint8_t type,
-                      uint8_t code, const void *restrict in, uint16_t inlen);
+                      uint8_t code, const void *restrict in, size_t inlen);
 
 # if 0
 int BuildIPv6Error (struct ip6_hdr *out, const struct in6_addr *src,

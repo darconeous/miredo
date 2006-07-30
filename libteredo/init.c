@@ -37,6 +37,9 @@
 # include "security.h"
 #endif
 
+#include <sys/select.h>
+#include "tunnel.h"
+
 /**
  * Initializes libteredo. That function must be called before any other
  * libteredo functions. It can safely be called multiple times and is
