@@ -379,10 +379,17 @@ teredo_process_packet (const teredo_server *s, bool sec)
 	 * While an explicit breakage of RFC 4380, we purposedly drop ICMPv6
 	 * packets here, as these can have a large payload, and we don't want
 	 * to be an open UDP relay. A conformant Teredo client/relay will never
-	 * try to relay such a packet through a Teredo server anyway. Also,
+	 * try to relay such a packet through a Teredo server anyway. Moreover,
 	 * Microsoft Teredo servers also drop these packets.
+	 *
+	 * We still allow small ICMPv6 packets, as these could be used within
+	 * a custom planned extension of the protocol. On the one hand, 128 bytes
+	 * is big enough to transmit the IPv6 header, a 512-bits(!) hash, and 24
+	 * of data. Currently, Miredo only uses a 128-bits hash. On the other
+	 * hand, this is too small to hold application-layer packets such as
+	 * G711 VoIPv6 packets (220 bytes, if I remember correctly).
 	 */
-	if (ip6.ip6_nxt != IPPROTO_NONE)
+	if ((ip6.ip6_nxt != IPPROTO_NONE) && (ntohs (ip6.ip6_plen) > 88))
 		return -2;
 
 	// Forwards packet over Teredo (destination is a Teredo IPv6 address)
