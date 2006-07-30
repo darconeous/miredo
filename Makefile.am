@@ -31,14 +31,16 @@ dist_sysconf_DATA = \
 	misc/isatapd.conf
 else
 if CONF_SAMPLE
-dist_sysconf_DATA = \
+nodist_sysconf_DATA = \
 	misc/miredo.conf-dist \
 	misc/miredo-server.conf-dist \
 	misc/isatapd.conf-dist
+
 .conf.conf-dist:
+	mkdir -p -- "$$(dirname -- "$@")"
 	cat $< > $@
 
-MOSTLYCLEANFILES = $(dist_sysconf_DATA)
+MOSTLYCLEANFILES = $(nodist_sysconf_DATA)
 
 # For user's convenience, we install miredo.conf
 # iif it does not already exist.
