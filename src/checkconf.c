@@ -171,18 +171,33 @@ int main(int argc, char *argv[])
 	char *path = br_find_locale_dir (LOCALEDIR);
 	(void)bindtextdomain (PACKAGE_NAME, path);
 	free (path);
+	path = NULL;
 
 	static const struct option opts[] =
 	{
+		{ "conf",       required_argument, NULL, 'c' },
+		{ "config",     required_argument, NULL, 'c' },
+		{ "foreground", no_argument,       NULL, 'f' },
 		{ "help",       no_argument,       NULL, 'h' },
+		{ "pidfile",    required_argument, NULL, 'p' },
+		{ "chroot",     required_argument, NULL, 't' },
+		{ "chrootdir",  required_argument, NULL, 't' },
+		{ "user",       required_argument, NULL, 'u' },
+		{ "username",   required_argument, NULL, 'u' },
 		{ "version",    no_argument,       NULL, 'V' },
 		{ NULL,         no_argument,       NULL, '\0'}
 	};
 
+	const char *filename = NULL;
+
 	int c;
-	while ((c = getopt_long (argc, argv, "hV", opts, NULL)) != -1)
+	while ((c = getopt_long (argc, argv, "c:fhp:t:u:V", opts, NULL)) != -1)
 		switch (c)
 		{
+			case 'c':
+				filename = optarg;
+				break;
+
 			case 'h':
 				return usage(argv[0]);
 
@@ -190,12 +205,10 @@ int main(int argc, char *argv[])
 				return miredo_version();
 		}
 
-	const char *filename = NULL;
-	char *str = NULL;
-
 	if (optind < argc)
 		filename = argv[optind++];
 	else
+	if (filename != NULL)
 	{
 		/* No parameters provided - attempt in source tree test */
 		const char *srcdir = getenv ("srcdir");
@@ -203,10 +216,10 @@ int main(int argc, char *argv[])
 		if (srcdir != NULL)
 		{
 
-			if (asprintf (&str, "%s/../misc/miredo.conf",
+			if (asprintf (&path, "%s/../misc/miredo.conf",
 			              srcdir) == -1)
 				return 1;
-			filename = str;
+			filename = path;
 		}
 		else
 			filename = conffile;
@@ -214,8 +227,8 @@ int main(int argc, char *argv[])
 
 	int res = miredo_checkconffile (filename);
 
-	if (str != NULL)
-		free (str);
+	if (path != NULL)
+		free (path);
 
 	return res;
 }
