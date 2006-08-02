@@ -208,7 +208,7 @@ int main(int argc, char *argv[])
 	if (optind < argc)
 		filename = argv[optind++];
 	else
-	if (filename != NULL)
+	if (filename == NULL)
 	{
 		/* No parameters provided - attempt in source tree test */
 		const char *srcdir = getenv ("srcdir");
