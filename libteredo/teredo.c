@@ -86,8 +86,7 @@ int teredo_socket (uint32_t bind_ip, uint16_t port)
 		return -1; // failure
 
 	fcntl (fd, F_SETFD, FD_CLOEXEC);
-	int flags = 1;
-	setsockopt (fd, SOL_SOCKET, SO_REUSEADDR, &flags, sizeof (flags));
+	setsockopt (fd, SOL_SOCKET, SO_REUSEADDR, &(int){ 1 }, sizeof (int));
 
 	if (bind (fd, (struct sockaddr *)&myaddr, sizeof (myaddr)))
 	{
@@ -95,20 +94,19 @@ int teredo_socket (uint32_t bind_ip, uint16_t port)
 		return -1;
 	}
 
-	flags = 1;
 #ifdef IP_PMTUDISC_DONT
 	/* 
 	 * This tells the (Linux) kernel not to set the Don't Fragment flags
 	 * on UDP packets we send. This is recommended by the Teredo
 	 * specifiation.
 	 */
-	flags = IP_PMTUDISC_DONT;
-	setsockopt (fd, SOL_IP, IP_MTU_DISCOVER, &flags, sizeof (flags));
+	setsockopt (fd, SOL_IP, IP_MTU_DISCOVER, &(int){ IP_PMTUDISC_DONT },
+	            sizeof (int));
 #endif
 	/*
 	 * Teredo multicast packets always have a TTL of 1.
 	 */
-	setsockopt (fd, SOL_IP, IP_MULTICAST_TTL, &flags, sizeof (flags));
+	setsockopt (fd, SOL_IP, IP_MULTICAST_TTL, &(int){ 1 }, sizeof (int));
 	return fd;
 }
 

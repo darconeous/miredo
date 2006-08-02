@@ -102,18 +102,16 @@ static int miredo_init (bool client)
 
 	assert (icmp6_fd == -1);
 
-	struct icmp6_filter filt;
-
 	icmp6_fd = socket (AF_INET6, SOCK_RAW, IPPROTO_ICMPV6);
 	if (icmp6_fd == -1)
 		return -1;
 
 	miredo_setup_nonblock_fd (icmp6_fd);
 
-	int val = 2;
-	setsockopt (icmp6_fd, SOL_IPV6, IPV6_CHECKSUM, &val, sizeof (val));
+	setsockopt (icmp6_fd, SOL_IPV6, IPV6_CHECKSUM, &(int){2}, sizeof (int));
 
 	/* We don't use the socket for receive -> block all */
+	struct icmp6_filter filt;
 	ICMP6_FILTER_SETBLOCKALL (&filt);
 	setsockopt (icmp6_fd, SOL_ICMPV6, ICMP6_FILTER, &filt, sizeof (filt));
 	return 0;
