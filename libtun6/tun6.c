@@ -252,39 +252,30 @@ tun6 *tun6_create (const char *req_name)
 
 # ifdef TUNSIFMODE
 	/* Sets sensible tunnel type (broadcast rather than point-to-point) */
-	{
-		int value = IFF_BROADCAST;
-		(void)ioctl (fd, TUNSIFMODE, &value);
-	}
+	(void)ioctl (fd, TUNSIFMODE, &(int){ IFF_BROADCAST });
 # endif
 
 # if defined (TUNSIFHEAD)
 	/* Enables TUNSIFHEAD */
+	if (ioctl (fd, TUNSIFHEAD, &(int){ 1 }))
 	{
-		int value = 1;
-		if (ioctl (fd, TUNSIFHEAD, &value))
-		{
-			syslog (LOG_ERR, _("Tunneling driver error (%s): %s"),
-			        "TUNSIFHEAD", strerror (errno));
+		syslog (LOG_ERR, _("Tunneling driver error (%s): %s"),
+		        "TUNSIFHEAD", strerror (errno));
 #  if defined (__APPLE__)
-			if (errno == EINVAL)
-				syslog (LOG_NOTICE,
-				        "*** Ignoring tun-tap-osx spurious error ***\n");
-			else
+		if (errno == EINVAL)
+			syslog (LOG_NOTICE,
+			        "*** Ignoring tun-tap-osx spurious error ***\n");
+		else
 #  endif
-			goto error;
-		}
+		goto error;
 	}
 # elif defined (TUNSLMODE)
 	/* Disables TUNSLMODE (deprecated opposite of TUNSIFHEAD) */
+	if (ioctl (fd, TUNSLMODE, &(int){ 0 }))
 	{
-		int value = 0;
-		if (ioctl (fd, TUNSLMODE, &value))
-		{
-			syslog (LOG_ERR, _("Tunneling driver error (%s): %s"),
-			        "TUNSLMODE", strerror (errno));
-			goto error;
-		}
+		syslog (LOG_ERR, _("Tunneling driver error (%s): %s"),
+		        "TUNSLMODE", strerror (errno));
+		goto error;
 	}
 #endif
 
