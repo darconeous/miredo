@@ -48,9 +48,9 @@
 #include "md5.h"
 
 #if defined (__OpenBSD__) || defined (__OpenBSD_kernel__)
-static const char *randfile = "/dev/srandom";
+static const char randfile[] = "/dev/srandom";
 #else
-static const char *randfile = "/dev/random";
+static const char randfile[] = "/dev/random";
 #endif
 
 
