@@ -212,19 +212,15 @@ static int teredo_recv_inner (int fd, struct teredo_packet *p, int flags)
 	int length;
 
 	// Receive a UDP packet
-	{
-		struct sockaddr_in ad;
-		socklen_t alen = sizeof (ad);
+	struct sockaddr_in ad;
+	length = recvfrom (fd, p->buf, sizeof (p->buf), flags,
+	                   (struct sockaddr *)&ad, &(socklen_t){ sizeof (ad) });
 
-		length = recvfrom (fd, p->buf, sizeof (p->buf), flags,
-		                   (struct sockaddr *)&ad, &alen);
+	if (length < 2) // too small or error
+		return -1;
 
-		if (length < 2) // too small or error
-			return -1;
-
-		p->source_ipv4 = ad.sin_addr.s_addr;
-		p->source_port = ad.sin_port;
-	}
+	p->source_ipv4 = ad.sin_addr.s_addr;
+	p->source_port = ad.sin_port;
 
 	ptr = p->buf;
 
