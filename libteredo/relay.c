@@ -93,7 +93,7 @@ struct teredo_tunnel
 	} recv;
 
 	int fd;
-	time_t now;
+	volatile time_t now;
 	pthread_t clock;
 };
 
@@ -920,7 +920,7 @@ static void teredo_dummy_state_down_cb (void *o)
  */
 static void *teredo_clock (void *val)
 {
-	time_t *clock = (time_t *)val;
+	volatile time_t *clock = (time_t *)val;
 
 	for (;;)
 	{
@@ -983,9 +983,10 @@ teredo_tunnel *teredo_create (uint32_t ipv4, uint16_t port)
 	tunnel->down_cb = teredo_dummy_state_down_cb;
 #endif
 
-	time (&tunnel->now);
+	tunnel->now = time (NULL);
 
-	if (pthread_create (&tunnel->clock, NULL, teredo_clock, &tunnel->now) == 0)
+	if (pthread_create (&tunnel->clock, NULL, teredo_clock,
+	                    (void *)&tunnel->now) == 0)
 	{
 		if ((tunnel->fd = teredo_socket (ipv4, port)) != -1)
 		{
