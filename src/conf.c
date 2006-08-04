@@ -334,6 +334,7 @@ bool miredo_conf_get_int16 (miredo_conf *conf, const char *name,
 
 
 #if 0
+/* This is supposedly bad for DSO (but we are not a DSO atm) */
 static const char *true_strings[] = { "yes", "true", "on", "enabled", NULL };
 static const char *false_strings[] =
 	{ "no", "false", "off", "disabled", NULL };
