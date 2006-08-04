@@ -55,7 +55,7 @@
 /*
  * Linux tunneling driver
  */
-const char *os_driver = "Linux";
+const char os_driver[] = "Linux";
 # define USE_LINUX 1
 
 # include <linux/if_tun.h> // TUNSETIFF - Linux tunnel driver
@@ -90,7 +90,7 @@ typedef struct
  * BSD tunneling driver
  * NOTE: the driver is NOT tested on Darwin (Mac OS X).
  */
-const char *os_driver = "BSD";
+const char os_driver[] = "BSD";
 # define USE_BSD 1
 
 // TUNSIFHEAD or TUNSLMODE
@@ -119,7 +119,7 @@ typedef uint32_t tun_head_t;
 # define tun_head_is_ipv6( h ) (h == htonl (AF_INET6))
 
 #else
-const char *os_driver = "Generic";
+const char os_driver[] = "Generic";
 
 # warn Unknown host OS. The driver will probably not work.
 #endif

@@ -39,7 +39,7 @@
 #include <sys/socket.h> // socket(AF_INET6, SOCK_DGRAM, 0)
 #include <libtun6/tun6.h>
 
-extern const char *os_driver;
+extern const char os_driver[];
 
 /**
  * Checks if libtun6 should be able to tun on system.
@@ -65,9 +65,9 @@ int tun6_driver_diagnose (char *errbuf)
 	(void)close (fd);
 
 #if defined (__linux__)
-	const char *const tundev = "/dev/net/tun";
+	const char tundev[] = "/dev/net/tun";
 #else
-	const char *const tundev = "/dev/tun0";
+	const char tundev[] = "/dev/tun0";
 #endif
 
 	fd = open (tundev, O_RDWR);
