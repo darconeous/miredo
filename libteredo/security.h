@@ -29,7 +29,7 @@ extern "C" {
 # endif
 
 #define LIBTEREDO_NONCE_LEN 8
-#define LIBTEREDO_HMAC_LEN 20
+#define LIBTEREDO_HMAC_LEN 22
 
 int teredo_init_nonce_generator (void);
 void teredo_deinit_nonce_generator (void);

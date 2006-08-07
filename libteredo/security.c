@@ -192,17 +192,18 @@ typedef struct teredo_hmac
 	uint16_t pid;  /* ICMPv6 Echo id */
 	uint16_t time; /* ICMPv6 Echo sequence */
 	unint8_t hash[LIBTEREDO_HASH_LEN]; /* ICMPv6 Echo payload */
+	uint16_t epoch;
 } teredo_hmac;
 #endif
 
-#if (LIBTEREDO_HASH_LEN + 4) != LIBTEREDO_HMAC_LEN
+#if (LIBTEREDO_HASH_LEN + 6) != LIBTEREDO_HMAC_LEN
 # error Inconsistent hash and HMAC length
 #endif
 
 
 static void
 teredo_hash (const struct in6_addr *src, const struct in6_addr *dst,
-             uint8_t *restrict hash, uint16_t timestamp)
+             uint8_t *restrict hash, uint32_t timestamp)
 {
 	/* compute hash */
 	md5_state_t ctx;
@@ -229,11 +230,12 @@ teredo_generate_HMAC (const struct in6_addr *src, const struct in6_addr *dst,
 	memcpy (hash, &hmac_pid, sizeof (hmac_pid));
 	hash += sizeof (hmac_pid);
 
-	uint16_t v16 = time (NULL);
-	memcpy (hash, &v16, sizeof (v16));
-	hash += sizeof (v16);
+	uint32_t timestamp = htonl (time (NULL));
+	memcpy (hash, ((uint8_t *)&timestamp) + 2, 2);
+	hash += 2;
+	memcpy (hash + LIBTEREDO_HASH_LEN, &timestamp, 2);
 
-	teredo_hash (src, dst, hash, v16);
+	teredo_hash (src, dst, hash, timestamp);
 
 	return 0;
 }
@@ -243,22 +245,22 @@ int
 teredo_compare_HMAC (const struct in6_addr *src, const struct in6_addr *dst,
                      const uint8_t *hash)
 {
-	uint16_t v16;
-
 	/* Check ICMPv6 ID */
-	memcpy (&v16, hash, 2);
-	if (v16 != hmac_pid)
+	if (memcmp (hash, &hmac_pid, sizeof (hmac_pid)))
 		return -1;
-	hash += 2;
+	hash += sizeof (hmac_pid);
 
 	/* Check ICMPv6 sequence */
-	memcpy (&v16, hash, 2);
-	if (((((unsigned)time (NULL)) & 0xffff) - v16) >= 30)
-		return -1; /* replay attack */
+	uint32_t timestamp;
+	memcpy (((uint8_t *)&timestamp) + 2, hash, 2);
 	hash += 2;
+	memcpy (&timestamp, hash + LIBTEREDO_HASH_LEN, 2);
+
+	if ((((unsigned)time (NULL) - htonl (timestamp)) & 0xffffffff) >= 30)
+		return -1; /* replay attack */
 
 	unsigned char h1[LIBTEREDO_HASH_LEN];
-	teredo_hash (src, dst, h1, v16);
+	teredo_hash (src, dst, h1, timestamp);
 
 	/* compare HMAC hash */
 	return memcmp (h1, hash, LIBTEREDO_HASH_LEN) ? -1 : 0;
