@@ -36,7 +36,8 @@ Security:
 
 Extension:
 -----------
-( ) support symmetric to non-symmetric NAT traversal
+( ) support symmetric to non-symmetric NAT traversal:
+    see libteredo/packets.c for ideas.
 (?) support full symmetric NAT traversal
 (?) customizable IPv4 ACLs, e.g. allow custom internal Teredo
     with private IPv4 addresses
@@ -47,7 +48,7 @@ Portability:
 (H) byte alignement tests on problematic platforms (not i386)
 (H) Solaris: libtun6 support
 (H) Solaris: tests & fixes
-(H) FreeBSD kernel support fix
+(H) FreeBSD kernel support fix (PR: kern/100080)
 (H) OpenBSD kernel support correctness check
 (H) NetBSD 4 kernel support correctness check
 (H) DragonFly kernel support fix
