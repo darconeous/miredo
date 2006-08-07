@@ -156,7 +156,7 @@ static uint16_t hmac_pid;
 
 static void init_hmac_once (void)
 {
-	hmac_pid = (uint16_t)getpid ();
+	hmac_pid = htons (getpid ());
 
 	/* Generate HMAC key and precomputes padding */
 	memset (&inner_key, 0, sizeof (inner_key));
