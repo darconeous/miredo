@@ -200,11 +200,32 @@ typedef struct teredo_hmac
 
 static pid_t hmac_pid = -1;
 
+
+static void
+teredo_hash (const struct in6_addr *src, const struct in6_addr *dst,
+             uint8_t *restrict hash, uint16_t timestamp)
+{
+	/* compute hash */
+	md5_state_t ctx;
+	md5_init (&ctx);
+	md5_append (&ctx, inner_key.ipad, sizeof (inner_key.ipad));
+	md5_append (&ctx, (unsigned char *)src, sizeof (*src));
+	md5_append (&ctx, (unsigned char *)dst, sizeof (*dst));
+	md5_append (&ctx, (unsigned char *)&hmac_pid, sizeof (hmac_pid));
+	md5_append (&ctx, (unsigned char *)&timestamp, sizeof (timestamp));
+	md5_finish (&ctx, hash);
+
+	md5_init (&ctx);
+	md5_append (&ctx, outer_key.opad, sizeof (outer_key.opad));
+	md5_append (&ctx, hash, LIBTEREDO_HASH_LEN);
+	md5_finish (&ctx, hash);
+}
+
+
 int
 teredo_generate_HMAC (const struct in6_addr *src, const struct in6_addr *dst,
                       uint8_t *restrict hash)
 {
-	md5_state_t ctx;
 	uint16_t v16;
 
 	/* save hash-protected data */
@@ -218,19 +239,7 @@ teredo_generate_HMAC (const struct in6_addr *src, const struct in6_addr *dst,
 	memcpy (hash, &v16, 2);
 	hash += 2;
 
-	/* compute hash */
-	md5_init (&ctx);
-	md5_append (&ctx, inner_key.ipad, sizeof (inner_key.ipad));
-	md5_append (&ctx, (unsigned char *)src, sizeof (*src));
-	md5_append (&ctx, (unsigned char *)dst, sizeof (*dst));
-	md5_append (&ctx, (unsigned char *)&hmac_pid, sizeof (hmac_pid));
-	md5_append (&ctx, (unsigned char *)&v16, sizeof (v16));
-	md5_finish (&ctx, hash);
-
-	md5_init (&ctx);
-	md5_append (&ctx, outer_key.opad, sizeof (outer_key.opad));
-	md5_append (&ctx, hash, LIBTEREDO_HASH_LEN);
-	md5_finish (&ctx, hash);
+	teredo_hash (src, dst, hash, v16);
 
 	return 0;
 }
@@ -240,7 +249,6 @@ int
 teredo_compare_HMAC (const struct in6_addr *src, const struct in6_addr *dst,
                      const uint8_t *hash)
 {
-	md5_state_t ctx;
 	uint16_t v16, t16;
 	unsigned char h1[LIBTEREDO_HASH_LEN];
 
@@ -257,19 +265,7 @@ teredo_compare_HMAC (const struct in6_addr *src, const struct in6_addr *dst,
 		return -1; /* replay attack */
 	hash += 2;
 
-	/* compute HMAC hash */
-	md5_init (&ctx);
-	md5_append (&ctx, inner_key.ipad, sizeof (inner_key.ipad));
-	md5_append (&ctx, (unsigned char *)src, sizeof (*src));
-	md5_append (&ctx, (unsigned char *)dst, sizeof (*dst));
-	md5_append (&ctx, (unsigned char *)&hmac_pid, sizeof (hmac_pid));
-	md5_append (&ctx, (unsigned char *)&t16, sizeof (t16));
-	md5_finish (&ctx, h1);
-
-	md5_init (&ctx);
-	md5_append (&ctx, outer_key.opad, sizeof (outer_key.opad));
-	md5_append (&ctx, h1, sizeof (h1));
-	md5_finish (&ctx, h1);
+	teredo_hash (src, dst, h1, t16);
 
 	/* compare HMAC hash */
 	return memcmp (h1, hash, LIBTEREDO_HASH_LEN) ? -1 : 0;
