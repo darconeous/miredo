@@ -243,8 +243,7 @@ int
 teredo_compare_HMAC (const struct in6_addr *src, const struct in6_addr *dst,
                      const uint8_t *hash)
 {
-	uint16_t v16, t16;
-	unsigned char h1[LIBTEREDO_HASH_LEN];
+	uint16_t v16;
 
 	/* Check ICMPv6 ID */
 	memcpy (&v16, hash, 2);
@@ -253,13 +252,13 @@ teredo_compare_HMAC (const struct in6_addr *src, const struct in6_addr *dst,
 	hash += 2;
 
 	/* Check ICMPv6 sequence */
-	memcpy (&t16, hash, 2);
-	v16 = (((uint32_t)time (NULL)) & 0xffff) - t16;
-	if (v16 >= 30)
+	memcpy (&v16, hash, 2);
+	if (((((unsigned)time (NULL)) & 0xffff) - v16) >= 30)
 		return -1; /* replay attack */
 	hash += 2;
 
-	teredo_hash (src, dst, h1, t16);
+	unsigned char h1[LIBTEREDO_HASH_LEN];
+	teredo_hash (src, dst, h1, v16);
 
 	/* compare HMAC hash */
 	return memcmp (h1, hash, LIBTEREDO_HASH_LEN) ? -1 : 0;
