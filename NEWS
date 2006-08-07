@@ -20,7 +20,8 @@ ChangeLog.
 BETA RELEASE 0.9.8 : Major security fixes
 
 # Fix possible non-Teredo IPv6 node impersonation toward Teredo client
-  due to an input validation error.
+  due to an input validation error
+  (only affects development releases 0.9.3 through 0.9.7).
 # Increase timestamp wrap time from 18 hours to 70 years to avoid replay
   attacks against authentication tokens.
 # Allow Router Advertisement through the ISATAP tunnel (untested).
