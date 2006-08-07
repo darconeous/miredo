@@ -1,5 +1,5 @@
 RELEASE NOTES for Miredo
-release canditate version 0.9.7
+release canditate version 0.9.8
 ================================
 $Id$
 
@@ -7,14 +7,25 @@ $Id$
 known outstanding issues, but the code has undergone significant changes,
 some of which were not heavily tested. Nevertheless, it is believed that
 this release is better than any of the earlier ones, including releases
-from stable branch 0.8.x. Also, this release include an important bug fix
-to miredo-server, so you should definitely upgrade if you use that component.
+from stable branch 0.8.x. Also, this release include an important security
+fix, so you should definitely upgrade anyway.
   Please report any problem by email to miredo-devel (at) remlab (dot) net
 
   You can find major changes since version 0.1.0 below. For more general
 informations on this program, see README. For syntax details and
 changes, run “miredo -h” to get help. For detailled internal changes, see
 ChangeLog.
+
+============================================================================
+BETA RELEASE 0.9.8 : Major security fixes
+
+# Fix possible non-Teredo IPv6 node impersonation toward Teredo client
+  due to an input validation error.
+# Increase timestamp wrap time from 18 hours to 70 years to avoid replay
+  attacks against authentication tokens.
+# Allow Router Advertisement through the ISATAP tunnel (untested).
+  isatapd remain very experimental, particular client-side.
+  Someone ought to make a clean kernel implementation instead.
 
 =============================================================================
 BETA RELEASE 0.9.7 : Major security fixes
