@@ -276,7 +276,9 @@ run_tunnel (int ipv6fd, tun6 *tunnel, uint32_t router_ipv4)
 			 * A more proper solution would consists of reading the local
 			 * addresses assigned to the tunnel interface, though this is a
 			 * little “racy”. Ultimately, the correct solutions are:
-			 *  - handle Router Solicitation in userland,
+			 *  - handle Router Solicitation in userland (still sucks),
+			 *  - a next-hop hint from the tunnel driver
+			 *    (not supported on Linux, might be IPv4-only on BSD),
 			 *  - better yet, use a fully in-kernel ISATAP client tunnel.
 			 */
 			if ((router_ipv4 != INADDR_ANY)
