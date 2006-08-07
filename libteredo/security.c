@@ -152,17 +152,18 @@ static union
 	unsigned char opad[HMAC_BLOCK_LEN];
 } outer_key;
 
+static uint16_t hmac_pid;
 
 static void init_hmac_once (void)
 {
-	unsigned i;
+	hmac_pid = (uint16_t)getpid ();
 
 	/* Generate HMAC key and precomputes padding */
 	memset (&inner_key, 0, sizeof (inner_key));
 	teredo_generate_nonce (inner_key.key);
 	memcpy (&outer_key, &inner_key, sizeof (outer_key));
 
-	for (i = 0; i < sizeof (inner_key); i++)
+	for (unsigned i = 0; i < sizeof (inner_key); i++)
 	{
 		inner_key.ipad[i] ^= 0x36;
 		outer_key.opad[i] ^= 0x5c;
@@ -198,8 +199,6 @@ typedef struct teredo_hmac
 # error Inconsistent hash and HMAC length
 #endif
 
-static pid_t hmac_pid = -1;
-
 
 static void
 teredo_hash (const struct in6_addr *src, const struct in6_addr *dst,
@@ -226,18 +225,13 @@ int
 teredo_generate_HMAC (const struct in6_addr *src, const struct in6_addr *dst,
                       uint8_t *restrict hash)
 {
-	uint16_t v16;
-
 	/* save hash-protected data */
-	if (hmac_pid == -1)
-		hmac_pid = getpid ();
-	v16 = hmac_pid;
-	memcpy (hash, &v16, 2);
-	hash += 2;
+	memcpy (hash, &hmac_pid, sizeof (hmac_pid));
+	hash += sizeof (hmac_pid);
 
-	v16 = time (NULL);
-	memcpy (hash, &v16, 2);
-	hash += 2;
+	uint16_t v16 = time (NULL);
+	memcpy (hash, &v16, sizeof (v16));
+	hash += sizeof (v16);
 
 	teredo_hash (src, dst, hash, v16);
 
@@ -254,8 +248,8 @@ teredo_compare_HMAC (const struct in6_addr *src, const struct in6_addr *dst,
 
 	/* Check ICMPv6 ID */
 	memcpy (&v16, hash, 2);
-	if (v16 != (uint16_t)hmac_pid)
-		return false;
+	if (v16 != hmac_pid)
+		return -1;
 	hash += 2;
 
 	/* Check ICMPv6 sequence */
