@@ -125,6 +125,12 @@ teredo_deinit_nonce_generator (void)
 int
 teredo_generate_nonce (unsigned char *b)
 {
+	/*
+	 * We purposedly allow failures here so that the libteredo-hmac check
+	 * do not use valuable system entropy.
+	 */
+	/*assert (devfd != -1);*/
+
 	for (int tot = 0, val; tot < LIBTEREDO_NONCE_LEN; tot += val)
 	{
 		val = read (devfd, b + tot, LIBTEREDO_NONCE_LEN - tot);
