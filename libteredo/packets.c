@@ -51,6 +51,44 @@
 #include "packets.h"
 #include "checksum.h"
 
+/*
+ * TODO FIXME XXX
+ * Important note:
+ *
+ * In future versions, we might customize the source address of bubbles:
+ * it has at least 64 bits of entropy (the EUI part) if we use otherwise
+ * meaningless link-local address space. Actually, the entropy is potentially
+ * as big as 118 bits if we take the whole link-local address space, but it is
+ * not clear whether the extra 54 bits are safe to use.
+ *
+ * The reason why we want to do this is to allow _secure_ authentication of
+ * Teredo peers that are behind symmetric NATs. The only backward compatible
+ * way to insert entropy in Teredo bubbles and get it back in the response is
+ * to use the source address which becomes the destination address in the
+ * reply. By comparing what we sent and what we receive, we can authenticate
+ * the peer. The beauty of this is that the peer needs not even be aware of
+ * this.
+ *
+ * - We cannot put entropy in the upper layer payload because bubbles must be
+ *   empty, and the payload length must be zero.
+ * - We cannot use the other address because it must match the actual Teredo
+ *   peer destination (note however that some unused Teredo flags bits could
+ *   be used for entropy as well, though not in the same manner), which we
+ *   cannot control.
+ * - Finally, we cannot assume use the 28 classes at the beginning of the
+ *   IPv6 header because peers will typically zero them on return.
+ *
+ * Note however that without change to the qualification procedure, most nodes
+ * behind a symmetric NAT will refuse to start the Teredo tunnel. This
+ * extension would serve two cases:
+ * - Teredo clients with modifications to accept qualification even when
+ *   behind a symmetric NAT.
+ * - Old (well... ok current too) symmetric-incompatible clients that believe
+ *   they are behind a non-symmetric NAT, while the NAT is actually
+ *   non-deterministic and ends up beinh symmetric after the qualification.
+ */
+
+
 /**
  * Sends a Teredo Bubble.
  *
