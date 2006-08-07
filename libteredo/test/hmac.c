@@ -69,12 +69,15 @@ int main (void)
 		/* mixed addresses : should fail */
 		return 1;
 
-	hmac[4] ^= 0x40;
-	if (teredo_compare_HMAC (&dst, &src, hmac) == 0)
-		/* altered hash : should fail */
-		return 1;
+	for (unsigned i = 0; i < sizeof (hmac); i++)
+	{
+		hmac[i] ^= 0x40;
+		if (teredo_compare_HMAC (&dst, &src, hmac) == 0)
+			/* altered hash : should fail */
+			return 1;
+		hmac[i] ^= 0x40;
+	}
 
-	hmac[4] ^= 0x40;
 	if (teredo_compare_HMAC (&dst, &src, hmac))
 		return 1;
 
