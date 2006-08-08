@@ -33,7 +33,7 @@ extern "C" {
 
 int teredo_init_nonce_generator (void);
 void teredo_deinit_nonce_generator (void);
-int teredo_generate_nonce (unsigned char *b);
+void teredo_generate_nonce (unsigned char *b);
 
 int teredo_init_HMAC (void);
 void teredo_deinit_HMAC (void);

@@ -52,9 +52,12 @@ static const char randfile[] = "/dev/random";
 #endif
 
 
-static int devfd = -1;
-static pthread_mutex_t nonce_mutex = PTHREAD_MUTEX_INITIALIZER;
-static unsigned refs = 0;
+static struct
+{
+	int devfd;
+	pthread_mutex_t mutex;
+	unsigned refs;
+} nonce = { -1, PTHREAD_MUTEX_INITIALIZER, 0 };
 
 /**
  * Has to be called before any call to teredo_generate_nonce() can succeed.
@@ -66,24 +69,20 @@ static unsigned refs = 0;
 int
 teredo_init_nonce_generator (void)
 {
-	bool ok = false;
-	pthread_mutex_lock (&nonce_mutex);
+	int retval = 0;
+	pthread_mutex_lock (&nonce.mutex);
 
-	if (refs == 0)
-	{
-		devfd = open (randfile, 0);
-		ok = (devfd != -1);
-	}
+	if (nonce.refs == 0)
+		nonce.devfd = open (randfile, 0);
+
+	if ((nonce.devfd != -1) && (nonce.refs < UINT_MAX))
+		nonce.refs++;
 	else
-	if (refs < UINT_MAX)
-		ok = true;
+		retval = -1;
 
-	if (ok)
-		refs++;
+	pthread_mutex_unlock (&nonce.mutex);
 
-	pthread_mutex_unlock (&nonce_mutex);
-
-	return ok ? 0 : -1;
+	return retval;
 }
 
 
@@ -99,40 +98,35 @@ teredo_init_nonce_generator (void)
 void
 teredo_deinit_nonce_generator (void)
 {
-	pthread_mutex_lock (&nonce_mutex);
-	assert (refs > 0);
+	pthread_mutex_lock (&nonce.mutex);
+	assert ((nonce.refs > 0) && (nonce.devfd != -1));
 
-	if (--refs == 0)
+	if (--nonce.refs == 0)
 	{
-		(void)close (devfd);
-		devfd = -1;
+		(void)close (nonce.devfd);
+		nonce.devfd = -1;
 	}
 
-	pthread_mutex_unlock (&nonce_mutex);
+	pthread_mutex_unlock (&nonce.mutex);
 }
 
 
 /**
  * Generates an unpredictible random nonce value (8 bytes). Thread-safe.
  *
- *
  * @param b pointer to a 8-bytes buffer [OUT]
- *
- * @return -1 on error, 0 on success.
  */
-int
+void
 teredo_generate_nonce (unsigned char *b)
 {
-	assert (devfd != -1);
+	assert (nonce.devfd != -1);
 
 	for (int tot = 0, val; tot < LIBTEREDO_NONCE_LEN; tot += val)
 	{
-		val = read (devfd, b + tot, LIBTEREDO_NONCE_LEN - tot);
-		if (val <= 0)
-			return -1;
+		val = read (nonce.devfd, b + tot, LIBTEREDO_NONCE_LEN - tot);
+		if (val == -1)
+			val = 0;
 	}
-
-	return 0;
 }
 
 
