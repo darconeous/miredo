@@ -4,7 +4,7 @@
  */
 
 /***********************************************************************
- *  Copyright © 2004-2005 Rémi Denis-Courmont.                         *
+ *  Copyright © 2004-2006 Rémi Denis-Courmont.                         *
  *  This program is free software; you can redistribute and/or modify  *
  *  it under the terms of the GNU General Public License as published  *
  *  by the Free Software Foundation; version 2 of the license.         *
@@ -197,8 +197,8 @@ typedef struct teredo_hmac
 {
 	uint16_t pid;  /* ICMPv6 Echo id */
 	uint16_t time; /* ICMPv6 Echo sequence */
-	unint8_t hash[LIBTEREDO_HASH_LEN]; /* ICMPv6 Echo payload */
 	uint16_t epoch;
+	unint8_t hash[LIBTEREDO_HASH_LEN]; /* ICMPv6 Echo payload */
 } teredo_hmac;
 #endif
 
@@ -239,7 +239,8 @@ teredo_generate_HMAC (const struct in6_addr *src, const struct in6_addr *dst,
 	uint32_t timestamp = htonl (time (NULL));
 	memcpy (hash, ((uint8_t *)&timestamp) + 2, 2);
 	hash += 2;
-	memcpy (hash + LIBTEREDO_HASH_LEN, &timestamp, 2);
+	memcpy (hash, &timestamp, 2);
+	hash += 2;
 
 	teredo_hash (src, dst, hash, timestamp);
 
@@ -260,7 +261,8 @@ teredo_compare_HMAC (const struct in6_addr *src, const struct in6_addr *dst,
 	uint32_t timestamp;
 	memcpy (((uint8_t *)&timestamp) + 2, hash, 2);
 	hash += 2;
-	memcpy (&timestamp, hash + LIBTEREDO_HASH_LEN, 2);
+	memcpy (&timestamp, hash, 2);
+	hash += 2;
 
 	if ((((unsigned)time (NULL) - htonl (timestamp)) & 0xffffffff) >= 30)
 		return -1; /* replay attack */
