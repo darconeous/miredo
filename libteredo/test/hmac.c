@@ -4,7 +4,7 @@
  */
 
 /***********************************************************************
- *  Copyright © 2005 Rémi Denis-Courmont.                              *
+ *  Copyright © 2005-2006 Rémi Denis-Courmont.                         *
  *  This program is free software; you can redistribute and/or modify  *
  *  it under the terms of the GNU General Public License as published  *
  *  by the Free Software Foundation; version 2 of the license.         *
@@ -51,7 +51,7 @@ int main (void)
 	if (teredo_startup (true))
 		return 1;
 
-	memcpy (&src, "\x3f\xfe\x83\x1f\x8a\xc3\x9d\xdd"
+	memcpy (&src, "\x20\x01\x00\x00\x8a\xc3\x9d\xdd"
 			"\x80\x00\xf2\x27\x75\x3c\x67\x74", 16);
 	memcpy (&dst, "\x20\x02\xc0\x00\x02\x42\x12\x42"
 			"\x13\x43\x14\x44\x15\x45\x16\x46", 16);
