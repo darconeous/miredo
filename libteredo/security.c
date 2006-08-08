@@ -203,7 +203,8 @@ teredo_hash (const struct in6_addr *src, const struct in6_addr *dst,
 	md5_state_t ctx;
 	md5_init (&ctx);
 	md5_append (&ctx, inner_key.ipad, sizeof (inner_key.ipad));
-	md5_append (&ctx, (unsigned char *)src, sizeof (*src));
+	if (src != NULL)
+		md5_append (&ctx, (unsigned char *)src, sizeof (*src));
 	md5_append (&ctx, (unsigned char *)dst, sizeof (*dst));
 	md5_append (&ctx, (unsigned char *)&hmac_pid, sizeof (hmac_pid));
 	md5_append (&ctx, (unsigned char *)&timestamp, sizeof (timestamp));
