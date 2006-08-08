@@ -36,6 +36,7 @@
 #include <netinet/in.h>
 #include <unistd.h> /* sleep () */
 #include <sys/select.h> /* fd_set */
+#include <time.h>
 
 #include "teredo.h"
 #include "tunnel.h"
@@ -45,9 +46,8 @@ int main (void)
 {
 	struct in6_addr src, dst;
 	uint8_t hmac[LIBTEREDO_HMAC_LEN];
+	time_t now = time (NULL);
 
-	puts ("Checking libteredo HMAC...");
-	puts ("That should take about 30 seconds...");
 	if (teredo_startup (true))
 		return 1;
 
@@ -55,43 +55,40 @@ int main (void)
 			"\x80\x00\xf2\x27\x75\x3c\x67\x74", 16);
 	memcpy (&dst, "\x20\x02\xc0\x00\x02\x42\x12\x42"
 			"\x13\x43\x14\x44\x15\x45\x16\x46", 16);
-	if (teredo_generate_HMAC (&src, &dst, hmac))
+	if (teredo_generate_HMAC (now, &src, &dst, hmac))
 		return 1;
-	if (teredo_compare_HMAC (&src, &dst, hmac))
+	if (teredo_compare_HMAC (now, &src, &dst, hmac))
 		return 1;
 
 	/* retry after first run */
-	if (teredo_generate_HMAC (&dst, &src, hmac))
+	if (teredo_generate_HMAC (now, &dst, &src, hmac))
 		return 1;
-	if (teredo_compare_HMAC (&dst, &src, hmac))
+	if (teredo_compare_HMAC (now, &dst, &src, hmac))
 		return 1;
-	if (teredo_compare_HMAC (&src, &dst, hmac) == 0)
+	if (teredo_compare_HMAC (now, &src, &dst, hmac) == 0)
 		/* mixed addresses : should fail */
 		return 1;
 
 	for (unsigned i = 0; i < sizeof (hmac); i++)
 	{
 		hmac[i] ^= 0x40;
-		if (teredo_compare_HMAC (&dst, &src, hmac) == 0)
+		if (teredo_compare_HMAC (now, &dst, &src, hmac) == 0)
 			/* altered hash : should fail */
 			return 1;
 		hmac[i] ^= 0x40;
 	}
 
-	if (teredo_compare_HMAC (&dst, &src, hmac))
-		return 1;
+	for (unsigned delay = 0; delay < 30; delay++)
+		/* should still be valid after <30 seconds */
+		if (teredo_compare_HMAC (now + delay, &dst, &src, hmac))
+			return 1;
 
-	sleep (3);
-	if (teredo_compare_HMAC (&dst, &src, hmac))
-		return 1;
-	/* should still be valid after 3 seconds */
-
-	sleep (28);
-	/* should no longer be valid after 31 seconds */
-	if (teredo_compare_HMAC (&dst, &src, hmac) == 0)
+	/* should no longer be valid after 30 seconds, or in the past */
+	if ((teredo_compare_HMAC (now + 30, &dst, &src, hmac) == 0)
+	 || (teredo_compare_HMAC (now + 31, &dst, &src, hmac) == 0)
+	 || (teredo_compare_HMAC (now - 1, &dst, &src, hmac) == 0))
 		return 1;
 
 	teredo_cleanup (true);
-
 	return 0;
 }

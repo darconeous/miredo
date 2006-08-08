@@ -4,7 +4,7 @@
  */
 
 /***********************************************************************
- *  Copyright © 2005 Rémi Denis-Courmont.                              *
+ *  Copyright © 2005-2006 Rémi Denis-Courmont.                         *
  *  This program is free software; you can redistribute and/or modify  *
  *  it under the terms of the GNU General Public License as published  *
  *  by the Free Software Foundation; version 2 of the license.         *
@@ -34,6 +34,7 @@
 #include <assert.h>
 
 #ifdef MIREDO_TEREDO_CLIENT
+# include <time.h>
 # include "security.h"
 #endif
 

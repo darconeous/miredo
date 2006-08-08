@@ -218,14 +218,14 @@ teredo_hash (const struct in6_addr *src, const struct in6_addr *dst,
 
 
 int
-teredo_generate_HMAC (const struct in6_addr *src, const struct in6_addr *dst,
-                      uint8_t *restrict hash)
+teredo_generate_HMAC (time_t now, const struct in6_addr *src,
+                      const struct in6_addr *dst, uint8_t *restrict hash)
 {
 	/* save hash-protected data */
 	memcpy (hash, &hmac_pid, sizeof (hmac_pid));
 	hash += sizeof (hmac_pid);
 
-	uint32_t timestamp = htonl (time (NULL));
+	uint32_t timestamp = htonl (now);
 	memcpy (hash, ((uint8_t *)&timestamp) + 2, 2);
 	hash += 2;
 	memcpy (hash, &timestamp, 2);
@@ -238,8 +238,8 @@ teredo_generate_HMAC (const struct in6_addr *src, const struct in6_addr *dst,
 
 
 int
-teredo_compare_HMAC (const struct in6_addr *src, const struct in6_addr *dst,
-                     const uint8_t *hash)
+teredo_compare_HMAC (time_t now, const struct in6_addr *src,
+                     const struct in6_addr *dst, const uint8_t *hash)
 {
 	/* Check ICMPv6 ID */
 	if (memcmp (hash, &hmac_pid, sizeof (hmac_pid)))
@@ -253,7 +253,7 @@ teredo_compare_HMAC (const struct in6_addr *src, const struct in6_addr *dst,
 	memcpy (&timestamp, hash, 2);
 	hash += 2;
 
-	if ((((unsigned)time (NULL) - htonl (timestamp)) & 0xffffffff) >= 30)
+	if (((((unsigned)now) - htonl (timestamp)) & 0xffffffff) >= 30)
 		return -1; /* replay attack */
 
 	unsigned char h1[LIBTEREDO_HASH_LEN];
