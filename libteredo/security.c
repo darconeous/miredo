@@ -57,75 +57,79 @@ static struct
 	int devfd;
 	pthread_mutex_t mutex;
 	unsigned refs;
-} nonce = { -1, PTHREAD_MUTEX_INITIALIZER, 0 };
+} teredo_random = { -1, PTHREAD_MUTEX_INITIALIZER, 0 };
 
 /**
- * Has to be called before any call to teredo_generate_nonce() can succeed.
+ * Has to be called before any call to teredo_get_random() can succeed.
  * It should additionnaly be called before calling chroot().
  * Thread-safe. Can be called multiple times with no side effect.
  *
  * @return 0 on success, -1 on fatal error.
  */
 int
-teredo_init_nonce_generator (void)
+teredo_init_random (void)
 {
 	int retval = 0;
-	pthread_mutex_lock (&nonce.mutex);
+	pthread_mutex_lock (&teredo_random.mutex);
 
-	if (nonce.refs == 0)
-		nonce.devfd = open (randfile, 0);
+	if (teredo_random.refs == 0)
+		teredo_random.devfd = open (randfile, 0);
 
-	if ((nonce.devfd != -1) && (nonce.refs < UINT_MAX))
-		nonce.refs++;
+	if ((teredo_random.devfd != -1) && (teredo_random.refs < UINT_MAX))
+		teredo_random.refs++;
 	else
 		retval = -1;
 
-	pthread_mutex_unlock (&nonce.mutex);
+	pthread_mutex_unlock (&teredo_random.mutex);
 
 	return retval;
 }
 
 
 /**
- * Should be called after use of GenerateNonce(), as many times as
- * teredo_init_nonce_generator() was called.
+ * Should be called after use of teredo_get_random(), as many times as
+ * teredo_init_random() was called.
  * Thread-safe.
  *
- * Calling teredo_deinit_nonce_generator() more times than
- * teredo_init_nonce_generator is undefined. If debugging is enabled,
+ * Calling teredo_deinit_random() more times than
+ * teredo_init_random() is undefined. If debugging is enabled,
  * an assertion will fail, and the program will abort.
  */
 void
-teredo_deinit_nonce_generator (void)
+teredo_deinit_random (void)
 {
-	pthread_mutex_lock (&nonce.mutex);
-	assert ((nonce.refs > 0) && (nonce.devfd != -1));
+	pthread_mutex_lock (&teredo_random.mutex);
+	assert ((teredo_random.refs > 0) && (teredo_random.devfd != -1));
 
-	if (--nonce.refs == 0)
+	if (--teredo_random.refs == 0)
 	{
-		(void)close (nonce.devfd);
-		nonce.devfd = -1;
+		(void)close (teredo_random.devfd);
+		teredo_random.devfd = -1;
 	}
 
-	pthread_mutex_unlock (&nonce.mutex);
+	pthread_mutex_unlock (&teredo_random.mutex);
 }
 
 
 /**
- * Generates an unpredictible random nonce value (8 bytes). Thread-safe.
+ * Generates an unpredictible random value. Thread-safe.
  *
- * @param b pointer to a 8-bytes buffer [OUT]
+ * @param ptr pointer to receive random data [OUT]
+ * @param len number of bytes to write to pointer.
  */
 void
-teredo_generate_nonce (unsigned char *b)
+teredo_get_random (unsigned char *ptr, size_t len)
 {
-	assert (nonce.devfd != -1);
+	assert (teredo_random.devfd != -1);
 
-	for (int tot = 0, val; tot < LIBTEREDO_NONCE_LEN; tot += val)
+	while (len > 0)
 	{
-		val = read (nonce.devfd, b + tot, LIBTEREDO_NONCE_LEN - tot);
-		if (val == -1)
-			val = 0;
+		int val = read (teredo_random.devfd, ptr, len);
+		if (val > 0)
+		{
+			len -= val;
+			ptr += val;
+		}
 	}
 }
 
@@ -154,7 +158,7 @@ static void init_hmac_once (void)
 
 	/* Generate HMAC key and precomputes padding */
 	memset (&inner_key, 0, sizeof (inner_key));
-	teredo_generate_nonce (inner_key.key);
+	teredo_get_random (inner_key.key, LIBTEREDO_KEY_LEN);
 	memcpy (&outer_key, &inner_key, sizeof (outer_key));
 
 	for (unsigned i = 0; i < sizeof (inner_key); i++)
