@@ -135,8 +135,11 @@ teredo_get_random (unsigned char *ptr, size_t len)
 
 
 /* HMAC authentication */
-#define HMAC_BLOCK_LEN 64 /* block size in bytes for MD5 (or SHA1) */
 #define LIBTEREDO_KEY_LEN LIBTEREDO_NONCE_LEN
+#define HMAC_BLOCK_LEN 64 /* block size in bytes for MD5 (or SHA1) */
+#if LIBTEREDO_KEY_LEN > HMAC_BLOCK_LEN
+# error HMAC key too long.
+#endif
 
 static union
 {
