@@ -587,7 +587,9 @@ int teredo_maintenance_process (teredo_maintenance *restrict m,
 	 * We don't accept router advertisement without nonce.
 	 * It is far too easy to spoof such packets.
 	 */
-	if ((packet->auth_nonce == NULL)
+	if ((packet->source_port != htons (IPPORT_TEREDO))
+	    /* TODO: check for primary or secondary server address */
+	 || (packet->auth_nonce == NULL)
 	 || memcmp (packet->ip6 + 24, &teredo_restrict, 16))
 		return -1;
 
