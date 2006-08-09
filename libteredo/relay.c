@@ -649,38 +649,23 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 
 	/*
 	 * NOTE:
-	 * In the client case, the spec says we should check that the
-	 * destination is our Teredo IPv6 address. However, this library makes
-	 * no difference between relay, host-specific relay and client
-	 * (it very much sounds like market segmentation to me).
-	 * We purposedly leave it up to the kernel to determine whether he
-	 * should accept, route, or drop the packet, according to its
-	 * configuration. It is expected that client will normally not have
-	 * IPv6 forwarding enabled, so that the kernel will actually make said
-	 * destination address check itself.
+	 * Clients are supposed to check that the destination is their Teredo IPv6
+	 * address; this is done by the IPv6 stack. When IPv6 forwarding is enabled,
+	 * Teredo clients behave like Teredo non-host-specific relays.
 	 *
-	 * In the relay case, it is said we should accept packet toward the range
-	 * of hosts for which we serve as a Teredo relay, and should otherwise
-	 * drop it. That should be done just before sending the packet. We leave
-	 * it up to the network administrator to configure or not configure
-	 * source address filtering on its Teredo relay/router, via standard
-	 * firewalling (e.g. NetFilter/iptables on Linux).
+	 * Teredo relays are advised to accept only packets whose IPv6 destination
+	 * is served by them (i.e. egress filtering from Teredo to native IPv6).
+	 * The IPv6 stack firewall should be used to that end.
 	 *
-	 * It should also be noted that dropping packets with link-local
-	 * destination here, before further processing, breaks connectivity
-	 * with restricted Teredo clients: we send them Teredo bubbles with
-	 * a link-local source, to which they reply with Teredo bubbles with
-	 * a link-local destination. Indeed, the specification specifies that
-	 * the relay MUST look up the peer in the list and update last
-	 * reception date even if the destination is incorrect.
+	 * Multicast destinations are not supposed to occur, not even for hole
+	 * punching. We drop them as a precautionary measure.
 	 *
-	 * Therefore, we don't check that the destination in any case. However, we
-	 * DO check source address quite a lot...
+	 * We purposedly don't drop packets on the basis of link-local destination
+	 * as it breaks hole punching: we send Teredo bubbles with a link-local
+	 * source, and get replies with a link-local destination. Indeed, the
+	 * specification specifies that relays MUST look up the peer in the list
+	 * and update last reception date regardless of the destination.
 	 *
-	 * Well, ok, we do still check that the destination is not multicast since
-	 * this is not supposed to happen, even for hole punching, and there is no
-	 * way to handle multicast over Teredo at the moment. This is a
-	 * precautionary measure.
 	 */
 	if (ip6.ip6_dst.s6_addr[0] == 0xff)
 		return;
@@ -691,17 +676,16 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 	 * could break IPv6 routing completely. Router advertisements MUST
 	 * have a link-local source address (RFC 2461).
 	 *
-	 * Note: only Linux defines convenient s6_addr16, so we don't use it.
-	 *
-	 * In no case are relays and clients supposed to receive and process
-	 * such a packet *except* from their server (that processing is done
-	 * in the "Maintenance" case above), or bubbles from other restricted
-	 * clients/relays, which can safely be ignored (so long as the other
-	 * bubbles sent through the server are not ignored).
+	 * This is not supposed to occur except from the Teredo server for Teredo
+	 * maintenance (done above), and in hole punching packets (bubbles).
+	 * Direct bubbles can safely be ignored, so long as the indirect ones
+	 * are processed (and they are processed above).
 	 *
 	 * This check is not part of the Teredo specification, but I really don't
 	 * feel like letting link-local packets come in through the virtual
 	 * network interface.
+	 *
+	 * Only Linux defines s6_addr16, so we don't use it.
 	 */
 	if ((((uint16_t *)ip6.ip6_src.s6_addr)[0] & 0xffc0) == 0xfe80)
 		return;
