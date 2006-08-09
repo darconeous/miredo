@@ -601,52 +601,41 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 
 #ifdef MIREDO_TEREDO_CLIENT
 	/* Maintenance */
-	if (IsClient (tunnel) && (packet->source_port == htons (IPPORT_TEREDO)))
+	if (IsClient (tunnel))
 	{
 		if (teredo_maintenance_process (tunnel->maintenance, packet) == 0)
 			return;
-		else
+
 		if (!s.up)
+			return; /* Not qualified -> do not accept incoming packets */
+
+		if ((packet->source_ipv4 == s.addr.teredo.server_ip)
+		 && (packet->source_port == htons (IPPORT_TEREDO)))
 		{
-			/* Not qualified -> do not accept incoming packets */
-			return;
-		}
-		else
-		if (packet->source_ipv4 != s.addr.teredo.server_ip)
-		{
-			/* Not from primary server IPv4 address
-			   -> force normal packet reception */
-// 			syslog (LOG_DEBUG, "packet from relay");
-		}
-		else
-		if (packet->orig_ipv4)
-		{
-// 			syslog (LOG_DEBUG, "bubble from server (+reply)");
-			/* TODO: record sending of bubble, create a peer, etc ? */
-			SendBubble (tunnel->fd, packet->orig_ipv4, packet->orig_port,
-			            &ip6.ip6_dst, &ip6.ip6_src);
-			if (IsBubble (&ip6))
-				return; // don't pass bubble to kernel
-		}
-		else
-		if (IsBubble (&ip6))
-		{
-			/*
-			 * Some servers do not insert an origin indication.
-			 * When the source IPv6 address is a Teredo address,
-			 * we can guess the mapping. Otherwise, we're stuck.
-			 */
-			if (IN6_TEREDO_PREFIX (&ip6.ip6_src) == s.addr.teredo.prefix)
+			if (packet->orig_ipv4)
+			{
+				/* TODO: record sending of bubble, create a peer, etc ? */
+				SendBubble (tunnel->fd, packet->orig_ipv4, packet->orig_port,
+							&ip6.ip6_dst, &ip6.ip6_src);
+
+				if (IsBubble (&ip6))
+					return; // don't pass bubble to kernel
+			}
+			else
+			if (IsBubble (&ip6)
+			 && (IN6_TEREDO_PREFIX (&ip6.ip6_src) == s.addr.teredo.prefix))
+			{
+				/*
+				 * Some servers do not insert an origin indication.
+				 * When the source IPv6 address is a Teredo address,
+				 * we can guess the mapping. Otherwise, we're stuck.
+				 */
 				/* TODO: record sending of bubble, create a peer, etc ? */
 				SendBubble (tunnel->fd, IN6_TEREDO_IPV4 (&ip6.ip6_src),
 				            IN6_TEREDO_PORT (&ip6.ip6_src), &ip6.ip6_dst,
 				            &ip6.ip6_src);
-			else
-			{
-				syslog (LOG_WARNING, _("Ignoring invalid bubble: "
-				        "your Teredo server is probably buggy."));
+				return; // don't pass bubble to kernel
 			}
-			return; // don't pass bubble to kernel
 		}
 		/*
 		 * Normal reception of packet must only occur if it does not
@@ -656,9 +645,6 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 		 * At the moment, we only drop bubble (see above).
 		 */
 	}
-	else if (!s.up)
-		/* Not qualified -> do not accept incoming packets */
-		return;
 #endif /* MIREDO_TEREDO_CLIENT */
 
 	/*
