@@ -731,8 +731,12 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 		}
 
 #ifdef MIREDO_TEREDO_CLIENT
-		// Client case 2 (untrusted non-Teredo node):
-		if (IsClient (tunnel) && (!p->trusted) && (CheckPing (packet) == 0))
+		/*
+		 * Client case 2 (untrusted non-Teredo node):
+		 * Mismatching trusted non-Teredo nodes are also accepted to recover
+		 * faster from a Teredo relay change. This is legal (client case 6).
+		 */
+		if (IsClient (tunnel) && (CheckPing (packet) == 0))
 		{
 			p->trusted = 1;
 			SetMappingFromPacket (p, packet);
