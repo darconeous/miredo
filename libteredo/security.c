@@ -192,6 +192,46 @@ void teredo_deinit_HMAC (void)
 
 
 #define LIBTEREDO_HASH_LEN 16
+
+static void
+teredo_hash (const void *src, size_t slen, const void *dst, size_t dlen,
+			 uint8_t *restrict hash, uint32_t timestamp)
+{
+	/* compute hash */
+	md5_state_t ctx;
+	md5_init (&ctx);
+	md5_append (&ctx, inner_key.ipad, sizeof (inner_key.ipad));
+	md5_append (&ctx, (unsigned char *)src, slen);
+	md5_append (&ctx, (unsigned char *)dst, dlen);
+	md5_append (&ctx, (unsigned char *)&hmac_pid, sizeof (hmac_pid));
+	md5_append (&ctx, (unsigned char *)&timestamp, sizeof (timestamp));
+	md5_finish (&ctx, hash);
+
+	md5_init (&ctx);
+	md5_append (&ctx, outer_key.opad, sizeof (outer_key.opad));
+	md5_append (&ctx, hash, LIBTEREDO_HASH_LEN);
+	md5_finish (&ctx, hash);
+}
+
+
+/**
+ * Generates a cryptographically strong hash to use a payload for ping
+ * packets. That's how we authenticate the last hop of the echo reply
+ * (i.e. Teredo relay) before ourselves as being a legitimate first hop
+ * toward the echo request's destination.
+ *
+ * The hash includes a timestamp with a lifetime of 30 units (seconds),
+ * source and destination addresses, process ID, and a secret pseudo-random
+ * key.
+ */
+static inline void
+teredo_pinghash (const struct in6_addr *src, const struct in6_addr *dst,
+                 uint8_t *restrict hash, uint32_t timestamp)
+{
+	teredo_hash (src, sizeof (*src), dst, sizeof (*dst), hash, timestamp);
+}
+
+
 #if 0
 typedef struct teredo_hmac
 {
@@ -205,27 +245,6 @@ typedef struct teredo_hmac
 #if (LIBTEREDO_HASH_LEN + 6) != LIBTEREDO_HMAC_LEN
 # error Inconsistent hash and HMAC length
 #endif
-
-
-static void
-teredo_pinghash (const struct in6_addr *src, const struct in6_addr *dst,
-                 uint8_t *restrict hash, uint32_t timestamp)
-{
-	/* compute hash */
-	md5_state_t ctx;
-	md5_init (&ctx);
-	md5_append (&ctx, inner_key.ipad, sizeof (inner_key.ipad));
-	md5_append (&ctx, (unsigned char *)src, sizeof (*src));
-	md5_append (&ctx, (unsigned char *)dst, sizeof (*dst));
-	md5_append (&ctx, (unsigned char *)&hmac_pid, sizeof (hmac_pid));
-	md5_append (&ctx, (unsigned char *)&timestamp, sizeof (timestamp));
-	md5_finish (&ctx, hash);
-
-	md5_init (&ctx);
-	md5_append (&ctx, outer_key.opad, sizeof (outer_key.opad));
-	md5_append (&ctx, hash, LIBTEREDO_HASH_LEN);
-	md5_finish (&ctx, hash);
-}
 
 
 void
@@ -272,3 +291,12 @@ teredo_verify_pinghash (uint32_t now, const struct in6_addr *src,
 	/* compare HMAC hash */
 	return memcmp (h1, hash, LIBTEREDO_HASH_LEN) ? -1 : 0;
 }
+
+
+/*void
+teredo_get_nonce (uint32_t timestamp, uint32_t ipv4, uint16_t port,
+                  const uint8_t *restrict nonce)
+{
+	uint8_t hash[LIBTEREDO_HASH_LEN];
+	teredo_pinghash
+}*/
