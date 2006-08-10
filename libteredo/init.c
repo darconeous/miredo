@@ -34,7 +34,6 @@
 #include <assert.h>
 
 #ifdef MIREDO_TEREDO_CLIENT
-# include <time.h>
 # include "security.h"
 #endif
 

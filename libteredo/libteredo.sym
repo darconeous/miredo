@@ -23,8 +23,6 @@ teredo_recv
 teredo_wait_recv
 teredo_send
 teredo_sendv
-teredo_generate_HMAC
-teredo_compare_HMAC
 teredo_list_create
 teredo_list_destroy
 teredo_list_reset

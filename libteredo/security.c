@@ -38,7 +38,6 @@
 #include <unistd.h> /* read(), close() */
 #include <pthread.h>
 #include <netinet/in.h> /* struct in6_addr */
-#include <time.h> /* time_t */
 #include <errno.h>
 
 #include "security.h"
@@ -58,6 +57,12 @@ static struct
 	pthread_mutex_t mutex;
 	unsigned refs;
 } teredo_random = { -1, PTHREAD_MUTEX_INITIALIZER, 0 };
+
+/* TODO:
+ * - provide a single initialization function (and a single deinit one)
+ * - hide the random number generator completely
+ *   (use HMAC in maintenance procedure as well).
+ */
 
 /**
  * Has to be called before any call to teredo_get_random() can succeed.
@@ -203,15 +208,14 @@ typedef struct teredo_hmac
 
 
 static void
-teredo_hash (const struct in6_addr *src, const struct in6_addr *dst,
-             uint8_t *restrict hash, uint32_t timestamp)
+teredo_pinghash (const struct in6_addr *src, const struct in6_addr *dst,
+                 uint8_t *restrict hash, uint32_t timestamp)
 {
 	/* compute hash */
 	md5_state_t ctx;
 	md5_init (&ctx);
 	md5_append (&ctx, inner_key.ipad, sizeof (inner_key.ipad));
-	if (src != NULL)
-		md5_append (&ctx, (unsigned char *)src, sizeof (*src));
+	md5_append (&ctx, (unsigned char *)src, sizeof (*src));
 	md5_append (&ctx, (unsigned char *)dst, sizeof (*dst));
 	md5_append (&ctx, (unsigned char *)&hmac_pid, sizeof (hmac_pid));
 	md5_append (&ctx, (unsigned char *)&timestamp, sizeof (timestamp));
@@ -224,29 +228,28 @@ teredo_hash (const struct in6_addr *src, const struct in6_addr *dst,
 }
 
 
-int
-teredo_generate_HMAC (time_t now, const struct in6_addr *src,
-                      const struct in6_addr *dst, uint8_t *restrict hash)
+void
+teredo_get_pinghash (uint32_t timestamp, const struct in6_addr *src,
+                     const struct in6_addr *dst, uint8_t *restrict hash)
 {
 	/* save hash-protected data */
 	memcpy (hash, &hmac_pid, sizeof (hmac_pid));
 	hash += sizeof (hmac_pid);
 
-	uint32_t timestamp = htonl (now);
+	timestamp = htonl (timestamp);
 	memcpy (hash, ((uint8_t *)&timestamp) + 2, 2);
 	hash += 2;
 	memcpy (hash, &timestamp, 2);
 	hash += 2;
 
-	teredo_hash (src, dst, hash, timestamp);
-
-	return 0;
+	teredo_pinghash (src, dst, hash, timestamp);
 }
 
 
 int
-teredo_compare_HMAC (time_t now, const struct in6_addr *src,
-                     const struct in6_addr *dst, const uint8_t *hash)
+teredo_verify_pinghash (uint32_t now, const struct in6_addr *src,
+                        const struct in6_addr *dst,
+                        const uint8_t *restrict hash)
 {
 	/* Check ICMPv6 ID */
 	if (memcmp (hash, &hmac_pid, sizeof (hmac_pid)))
@@ -260,11 +263,11 @@ teredo_compare_HMAC (time_t now, const struct in6_addr *src,
 	memcpy (&timestamp, hash, 2);
 	hash += 2;
 
-	if (((((unsigned)now) - htonl (timestamp)) & 0xffffffff) >= 30)
+	if (((now - ntohl (timestamp)) & 0xffffffff) >= 30)
 		return -1; /* replay attack */
 
 	unsigned char h1[LIBTEREDO_HASH_LEN];
-	teredo_hash (src, dst, h1, timestamp);
+	teredo_pinghash (src, dst, h1, timestamp);
 
 	/* compare HMAC hash */
 	return memcmp (h1, hash, LIBTEREDO_HASH_LEN) ? -1 : 0;

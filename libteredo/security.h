@@ -37,10 +37,11 @@ void teredo_get_random (unsigned char *ptr, size_t len);
 
 int teredo_init_HMAC (void);
 void teredo_deinit_HMAC (void);
-int teredo_generate_HMAC (time_t now, const struct in6_addr *src,
+void teredo_get_pinghash (uint32_t timestamp, const struct in6_addr *src,
                           const struct in6_addr *dst, uint8_t *restrict hash);
-int teredo_compare_HMAC (time_t now, const struct in6_addr *src,
-                         const struct in6_addr *dst, const uint8_t *hash);
+int teredo_verify_pinghash (uint32_t now, const struct in6_addr *src,
+                            const struct in6_addr *dst,
+                            const uint8_t *restrict hash);
 
 # ifdef __cplusplus
 }

@@ -38,8 +38,7 @@ libteredo_stresslist_SOURCES = stresslist.c
 libteredo_stresslist_LDADD = ../libteredo.la
 
 # libteredo-hmac
-libteredo_hmac_SOURCES = hmac.c
-libteredo_hmac_LDADD = ../libteredo.la
+libteredo_hmac_SOURCES = hmac.c ../md5.c ../security.c
 
 # md5main
 md5test_SOURCES = md5test.c ../md5.c
