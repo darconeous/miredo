@@ -4,7 +4,7 @@
  */
 
 /***********************************************************************
- *  Copyright © 2004-2005 Rémi Denis-Courmont.                         *
+ *  Copyright © 2004-2006 Rémi Denis-Courmont.                         *
  *  This program is free software; you can redistribute and/or modify  *
  *  it under the terms of the GNU General Public License as published  *
  *  by the Free Software Foundation; version 2 of the license.         *
@@ -335,6 +335,15 @@ teredo_process_packet (const teredo_server *s, bool sec)
 		// sends a Router Advertisement
 		return SendRA (s, &packet, &ip6.ip6_src, sec) ? 1 : -1;
 
+	/* Secondary address is only meant for Router Solicitation */
+	if (sec)
+		return -2;
+
+	/* Security fix: Prevent infinite UDP packet loop */
+	if ((packet.source_ipv4 == s->server_ip)
+	 && (packet.source_port == htons (3544)))
+		return -2;
+
 	myprefix = s->prefix;
 
 	if (IN6_TEREDO_PREFIX (&ip6.ip6_src) == myprefix)
@@ -369,11 +378,6 @@ teredo_process_packet (const teredo_server *s, bool sec)
 
 		/** Packet accepted for processing **/
 	}
-
-	/* Security fix: Prevent infinite UDP packet loop */
-	if ((packet.source_ipv4 == s->server_ip)
-	 && (packet.source_port == htons (3544)))
-		return -2;
 
 	/*
 	 * While an explicit breakage of RFC 4380, we purposedly drop ICMPv6
