@@ -743,29 +743,24 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 		if (IN6_MATCHES_TEREDO_CLIENT (&ip6.ip6_src, packet->source_ipv4,
 		                               packet->source_port))
 		{
-			if (p == NULL)
-			{
 #ifdef MIREDO_TEREDO_CLIENT
-				if (IsClient (tunnel))
-				{
-					bool create;
+			if (IsClient (tunnel) && (p == NULL))
+			{
+				bool create;
 
-					// TODO: do not duplicate this code
-					p = teredo_list_lookup (list, now, &ip6.ip6_src, &create);
-					if (p == NULL)
-						return; // insufficient memory
-				}
-				else
-#endif
-				/*
-				 * Relays are explicitly allowed to drop packets from
-				 * unknown peers. It makes it a little more difficult to route
-				 * packets through the wrong relay. The specification leaves
-				 * us a choice here. It is arguable whether accepting these
-				 * packets would make it easier to DoS the peer list.
-				 */
-					return; // list not locked (p = NULL)
+				// TODO: do not duplicate this code
+				p = teredo_list_lookup (list, now, &ip6.ip6_src, &create);
 			}
+#endif
+			/*
+			 * Relays are explicitly allowed to drop packets from
+			 * unknown peers. It makes it a little more difficult to route
+			 * packets through the wrong relay. The specification leaves
+			 * us a choice here. It is arguable whether accepting these
+			 * packets would make it easier to DoS the peer list.
+			*/
+			if (p == NULL)
+				return; // list not locked (p = NULL)
 
 			SetMappingFromPacket (p, packet);
 			p->trusted = 1;
