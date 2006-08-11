@@ -122,7 +122,7 @@ teredo_deinit_random (void)
  * @param ptr pointer to receive random data [OUT]
  * @param len number of bytes to write to pointer.
  */
-void
+static void
 teredo_get_random (unsigned char *ptr, size_t len)
 {
 	assert (teredo_random.devfd != -1);

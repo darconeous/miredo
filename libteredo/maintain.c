@@ -272,7 +272,6 @@ cleanup_unlock (void *o)
 static unsigned QualificationTimeOut = 4; // seconds
 static unsigned QualificationRetries = 3;
 
-static unsigned ServerNonceLifetime = 3600; // seconds
 static unsigned RestartDelay = 100; // seconds
 
 /**
@@ -280,11 +279,6 @@ static unsigned RestartDelay = 100; // seconds
  */
 static inline void maintenance_thread (teredo_maintenance *m)
 {
-	struct
-	{
-		uint8_t value[8];
-		struct timeval expiry;
-	} nonce = { { }, { 0, 0 } };
 	struct timespec deadline = { 0, 0 };
 	teredo_state *c_state = &m->state.state;
 	uint32_t server_ip = 0, server_ip2 = 0;
@@ -334,23 +328,15 @@ static inline void maintenance_thread (teredo_maintenance *m)
 			}
 		}
 
-		if (deadline.tv_sec >= nonce.expiry.tv_sec)
-		{
-			/* The lifetime of the nonce is not second-critical
-			 => we don't check/set tv_usec */
-			teredo_get_random (nonce.value, sizeof (nonce.value));
-			nonce.expiry.tv_sec += ServerNonceLifetime;
-			/* If nonce generation is too long, checkTimeDrift() will fix */
-		}
-
 		/* SEND ROUTER SOLICATION */
 		do
 			deadline.tv_sec += QualificationTimeOut;
 		while (!checkTimeDrift (&deadline));
 
-		teredo_send_rs (m->fd,
-		                (state == PROBE_RESTRICT) ? server_ip2 : server_ip,
-		                nonce.value, false);
+		uint8_t nonce[8];
+		uint32_t dst = (state == PROBE_RESTRICT) ? server_ip2 : server_ip;
+		teredo_get_nonce (deadline.tv_sec, dst, htons (IPPORT_TEREDO), nonce);
+		teredo_send_rs (m->fd, dst, nonce, false);
 
 		int val = 0;
 		union teredo_addr newaddr;
@@ -366,8 +352,7 @@ static inline void maintenance_thread (teredo_maintenance *m)
 			/* check received packet */
 			bool accept;
 			accept = maintenance_recv (m->incoming, server_ip,
-			                           nonce.value, false,
-			                           &mtu, &newaddr);
+			                           nonce, false, &mtu, &newaddr);
 			m->incoming = NULL;
 
 			(void)pthread_barrier_wait (&m->processed);

@@ -33,7 +33,7 @@ extern "C" {
 
 int teredo_init_random (void);
 void teredo_deinit_random (void);
-void teredo_get_random (unsigned char *ptr, size_t len);
+//void teredo_get_random (unsigned char *ptr, size_t len);
 
 int teredo_init_HMAC (void);
 void teredo_deinit_HMAC (void);
