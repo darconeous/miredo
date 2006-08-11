@@ -367,55 +367,46 @@ int teredo_transmit (teredo_tunnel *restrict tunnel,
 	pthread_rwlock_unlock (&tunnel->state_lock);
 
 #ifdef MIREDO_TEREDO_CLIENT
-	if (IsClient (tunnel))
+	if (IsClient (tunnel) && !s.up)
 	{
-		if (!s.up) /* not qualified */
-		{
-			teredo_send_unreach (tunnel, ICMP6_DST_UNREACH_ADDR,
-			                        packet, length);
-			return 0;
-		}
+		/* Client not qualified */
+		teredo_send_unreach (tunnel, ICMP6_DST_UNREACH_ADDR, packet, length);
+		return 0;
+	}
+#endif
 
-		const union teredo_addr *src = (union teredo_addr *)&packet->ip6_src;
-		if ((dst->teredo.prefix != s.addr.teredo.prefix)
-		 && (src->teredo.prefix != s.addr.teredo.prefix))
+	if (dst->teredo.prefix != s.addr.teredo.prefix)
+	{
+		/* Non-Teredo destination */
+#ifdef MIREDO_TEREDO_CLIENT
+		if (IsClient (tunnel))
 		{
-			/*
-			 * Routing packets not from a Teredo client,
-			 * neither toward a Teredo client is NOT allowed through a
-			 * Teredo tunnel. The Teredo server will reject the packet.
-			 */
-			teredo_send_unreach (tunnel, ICMP6_DST_UNREACH_ADMIN,
-			                        packet, length);
+			const union teredo_addr *src =
+				(union teredo_addr *)&packet->ip6_src;
+
+			if (src->teredo.prefix != s.addr.teredo.prefix)
+			{
+				// Teredo servers and relays would reject the packet
+				// if it does not have a Teredo source.
+				teredo_send_unreach (tunnel, ICMP6_DST_UNREACH_ADMIN,
+				                     packet, length);
+				return 0;
+			}
+		}
+		else
+#endif
+		{
+			// Teredo relays only routes toward Teredo clients.
+			// The routing table must be misconfigured.
+			teredo_send_unreach (tunnel, ICMP6_DST_UNREACH_ADDR,
+			                     packet, length);
 			return 0;
 		}
 	}
 	else
-#endif
 	{
-		if (dst->teredo.prefix != s.addr.teredo.prefix)
-		{
-			/*
-			 * If we are not a qualified client, ie. we have no server
-			 * IPv4 address to contact for direct IPv6 connectivity, we
-			 * cannot route packets toward non-Teredo IPv6 addresses, and
-			 * we are not allowed to do it by the specification either.
-			 *
-			 * NOTE:
-			 * The specification mandates silently ignoring such
-			 * packets. However, this only happens in case of
-			 * misconfiguration, so I believe it could be better to
-			 * notify the user. An alternative is to send an ICMPv6 error
-			 * back to the kernel.
-			 */
-			teredo_send_unreach (tunnel, ICMP6_DST_UNREACH_ADDR,
-			                        packet, length);
-			return 0;
-		}
-	}
-
-	if (dst->teredo.prefix == s.addr.teredo.prefix)
-	{
+		/* Teredo destination */
+		assert (dst->teredo.prefix == s.addr.teredo.prefix);
 		/*
 		 * Ignores Teredo clients with incorrect server IPv4.
 		 * This check is only specified for client case 4 & 5.
@@ -745,12 +736,8 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 		{
 #ifdef MIREDO_TEREDO_CLIENT
 			if (IsClient (tunnel) && (p == NULL))
-			{
-				bool create;
-
-				// TODO: do not duplicate this code
-				p = teredo_list_lookup (list, now, &ip6.ip6_src, &create);
-			}
+				p = teredo_list_lookup (list, now, &ip6.ip6_src,
+				                        &(bool){ false });
 #endif
 			/*
 			 * Relays are explicitly allowed to drop packets from
@@ -797,20 +784,22 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 		if (p == NULL)
 		{
 			bool create;
-
-			// TODO: do not duplicate this code
 			p = teredo_list_lookup (list, now, &ip6.ip6_src, &create);
 			if (p == NULL)
 				return; // memory error
 
+			/*
+			 * We have to check "create": there is a race condition whereby
+			 * another thread could have created the peer in between the two
+			 * lookups of this function, since we did not lock the list
+			 * in between.
+			 */
 			if (create)
 			{
 				p->mapped_port = 0;
 				p->mapped_addr = 0;
 				p->trusted = p->bubbles = p->pings = 0;
 			}
-			//else race condition - peer already created by another thread
-				// -> nothing to set in that case
 //			syslog (LOG_DEBUG, " peer created");
 		}
 
