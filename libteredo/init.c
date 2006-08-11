@@ -57,17 +57,11 @@ int teredo_startup (bool use_client)
 	(void)bindtextdomain (PACKAGE_NAME, LOCALEDIR);
 
 	if (use_client)
-	{
 #ifdef MIREDO_TEREDO_CLIENT
-		if (teredo_init_random () == 0)
-		{
-			if (teredo_init_HMAC () == 0)
-				return 0;
-		}
-		teredo_deinit_random ();
-#endif
+		return teredo_init_HMAC ();
+#else
 		return -1;
-	}
+#endif
 	return 0;
 }
 
@@ -83,10 +77,7 @@ void teredo_cleanup (bool use_client)
 {
 #ifdef MIREDO_TEREDO_CLIENT
 	if (use_client)
-	{
 		teredo_deinit_HMAC ();
-		teredo_deinit_random ();
-	}
 #else
 	assert (!use_client);
 	(void)use_client;

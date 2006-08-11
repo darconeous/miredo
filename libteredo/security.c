@@ -51,94 +51,6 @@ static const char randfile[] = "/dev/random";
 #endif
 
 
-static struct
-{
-	int devfd;
-	pthread_mutex_t mutex;
-	unsigned refs;
-} teredo_random = { -1, PTHREAD_MUTEX_INITIALIZER, 0 };
-
-/* TODO:
- * - provide a single initialization function (and a single deinit one)
- * - hide the random number generator completely
- *   (use HMAC in maintenance procedure as well).
- */
-
-/**
- * Has to be called before any call to teredo_get_random() can succeed.
- * It should additionnaly be called before calling chroot().
- * Thread-safe. Can be called multiple times with no side effect.
- *
- * @return 0 on success, -1 on fatal error.
- */
-int
-teredo_init_random (void)
-{
-	int retval = 0;
-	pthread_mutex_lock (&teredo_random.mutex);
-
-	if (teredo_random.refs == 0)
-		teredo_random.devfd = open (randfile, 0);
-
-	if ((teredo_random.devfd != -1) && (teredo_random.refs < UINT_MAX))
-		teredo_random.refs++;
-	else
-		retval = -1;
-
-	pthread_mutex_unlock (&teredo_random.mutex);
-
-	return retval;
-}
-
-
-/**
- * Should be called after use of teredo_get_random(), as many times as
- * teredo_init_random() was called.
- * Thread-safe.
- *
- * Calling teredo_deinit_random() more times than
- * teredo_init_random() is undefined. If debugging is enabled,
- * an assertion will fail, and the program will abort.
- */
-void
-teredo_deinit_random (void)
-{
-	pthread_mutex_lock (&teredo_random.mutex);
-	assert ((teredo_random.refs > 0) && (teredo_random.devfd != -1));
-
-	if (--teredo_random.refs == 0)
-	{
-		(void)close (teredo_random.devfd);
-		teredo_random.devfd = -1;
-	}
-
-	pthread_mutex_unlock (&teredo_random.mutex);
-}
-
-
-/**
- * Generates an unpredictible random value. Thread-safe.
- *
- * @param ptr pointer to receive random data [OUT]
- * @param len number of bytes to write to pointer.
- */
-static void
-teredo_get_random (unsigned char *ptr, size_t len)
-{
-	assert (teredo_random.devfd != -1);
-
-	while (len > 0)
-	{
-		int val = read (teredo_random.devfd, ptr, len);
-		if (val > 0)
-		{
-			len -= val;
-			ptr += val;
-		}
-	}
-}
-
-
 /* HMAC authentication */
 #define LIBTEREDO_KEY_LEN LIBTEREDO_NONCE_LEN
 #define HMAC_BLOCK_LEN 64 /* block size in bytes for MD5 (or SHA1) */
@@ -158,30 +70,51 @@ static union
 	unsigned char opad[HMAC_BLOCK_LEN];
 } outer_key;
 
-static uint16_t hmac_pid;
-
-static void init_hmac_once (void)
-{
-	hmac_pid = htons (getpid ());
-
-	/* Generate HMAC key and precomputes padding */
-	memset (&inner_key, 0, sizeof (inner_key));
-	teredo_get_random (inner_key.key, LIBTEREDO_KEY_LEN);
-	memcpy (&outer_key, &inner_key, sizeof (outer_key));
-
-	for (unsigned i = 0; i < sizeof (inner_key); i++)
-	{
-		inner_key.ipad[i] ^= 0x36;
-		outer_key.opad[i] ^= 0x5c;
-	}
-}
-
+// PID cannot be zero (otherwise, have fun using fork()!)
+static uint16_t hmac_pid = 0;
 
 int teredo_init_HMAC (void)
 {
-	static pthread_once_t once = PTHREAD_ONCE_INIT;
+	static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+	int retval = -1;
 
-	pthread_once (&once, init_hmac_once);
+#define return YOU_DONT_MEAN_return
+	pthread_mutex_lock (&mutex);
+
+	if (hmac_pid != htons (getpid ()))
+	{
+		/* Get a non-predictable random key from the kernel PRNG */
+		int fd = open (randfile, O_RDONLY);
+		if (fd == -1)
+			goto error;
+
+		memset (&inner_key, 0, sizeof (inner_key));
+
+		for (unsigned len = 0; len < LIBTEREDO_KEY_LEN;)
+		{
+			int val = read (fd, inner_key.key + len, LIBTEREDO_KEY_LEN - len);
+			if (val > 0)
+				len -= val;
+		}
+		close (fd);
+
+		/* Precomputes HMAC padding */
+		memcpy (&outer_key, &inner_key, sizeof (outer_key));
+	
+		for (unsigned i = 0; i < sizeof (inner_key); i++)
+		{
+			inner_key.ipad[i] ^= 0x36;
+			outer_key.opad[i] ^= 0x5c;
+		}
+
+		hmac_pid = htons (getpid ());
+	}
+	retval = 0;
+
+error:
+	pthread_mutex_unlock (&mutex);
+#undef return
+
 	return 0;
 }
 
@@ -293,7 +226,7 @@ teredo_verify_pinghash (uint32_t now, const struct in6_addr *src,
 }
 
 
-#if LIBTEREDO_HASH_LEN < 8
+#if LIBTEREDO_HASH_LEN < LIBTEREDO_NONCE_LEN
 # error Inconsistent hash size
 #endif
 void
@@ -303,7 +236,7 @@ teredo_get_nonce (uint32_t timestamp, uint32_t ipv4, uint16_t port,
 	uint8_t buf[LIBTEREDO_HASH_LEN];
 
 	teredo_hash (&ipv4, 4, &port, 2, buf, timestamp);
-	memcpy (nonce, buf, 8);
+	memcpy (nonce, buf, LIBTEREDO_NONCE_LEN);
 }
 
 
@@ -315,5 +248,5 @@ teredo_verify_nonce (uint32_t timestamp, uint32_t ipv4, uint16_t port,
 	teredo_hash (&ipv4, 4, &port, 2, buf, timestamp);
 
 	/* compare HMAC hash */
-	return memcmp (nonce, buf, 8) ? -1 : 0;
+	return memcmp (nonce, buf, LIBTEREDO_NONCE_LEN) ? -1 : 0;
 }

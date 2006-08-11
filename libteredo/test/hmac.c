@@ -47,9 +47,8 @@ int main (void)
 	uint8_t hmac[LIBTEREDO_HMAC_LEN];
 	const uint32_t stamp = 0x12345678;
 
-	if (teredo_init_random () || teredo_init_HMAC ())
+	if (teredo_init_HMAC ())
 		return 1;
-	teredo_deinit_random ();
 
 	memcpy (&src, "\x20\x01\x00\x00\x8a\xc3\x9d\xdd"
 			"\x80\x00\xf2\x27\x75\x3c\x67\x74", 16);
