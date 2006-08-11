@@ -195,7 +195,7 @@ void teredo_deinit_HMAC (void)
 
 static void
 teredo_hash (const void *src, size_t slen, const void *dst, size_t dlen,
-			 uint8_t *restrict hash, uint32_t timestamp)
+             uint8_t *restrict hash, uint32_t timestamp)
 {
 	/* compute hash */
 	md5_state_t ctx;
@@ -293,10 +293,27 @@ teredo_verify_pinghash (uint32_t now, const struct in6_addr *src,
 }
 
 
-/*void
+#if LIBTEREDO_HASH_LEN < 8
+# error Inconsistent hash size
+#endif
+void
 teredo_get_nonce (uint32_t timestamp, uint32_t ipv4, uint16_t port,
-                  const uint8_t *restrict nonce)
+                  uint8_t *restrict nonce)
 {
-	uint8_t hash[LIBTEREDO_HASH_LEN];
-	teredo_pinghash
-}*/
+	uint8_t buf[LIBTEREDO_HASH_LEN];
+
+	teredo_hash (&ipv4, 4, &port, 2, buf, timestamp);
+	memcpy (nonce, buf, 8);
+}
+
+
+int
+teredo_verify_nonce (uint32_t timestamp, uint32_t ipv4, uint16_t port,
+                     const uint8_t *restrict nonce)
+{
+	unsigned char buf[LIBTEREDO_HASH_LEN];
+	teredo_hash (&ipv4, 4, &port, 2, buf, timestamp);
+
+	/* compare HMAC hash */
+	return memcmp (nonce, buf, 8) ? -1 : 0;
+}

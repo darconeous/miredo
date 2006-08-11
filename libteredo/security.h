@@ -43,6 +43,12 @@ int teredo_verify_pinghash (uint32_t now, const struct in6_addr *src,
                             const struct in6_addr *dst,
                             const uint8_t *restrict hash);
 
+void teredo_get_nonce (uint32_t timestamp, uint32_t ipv4, uint16_t port,
+                       uint8_t *restrict nonce);
+int teredo_verify_nonce (uint32_t timestamp, uint32_t ipv4, uint16_t port,
+                         const uint8_t *restrict nonce);
+
+
 # ifdef __cplusplus
 }
 # endif
