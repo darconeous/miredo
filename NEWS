@@ -17,14 +17,16 @@ changes, run “miredo -h” to get help. For detailled internal changes, see
 ChangeLog.
 
 ============================================================================
-BETA RELEASE 0.9.8 : Major security fixes
+BETA RELEASE 0.9.8 : Major feature enhancements, major security fixes
 
+# Support interacting with Teredo clients behind symmetric NATs.
 # Fix multiple problems with HMAC/ping authentication of non-Teredo nodes.
 # Increase timestamp wrap time from 18 hours to 70 years to avoid replay
   attacks against authentication tokens.
 # Allow Router Advertisement through the ISATAP tunnel (untested).
   isatapd remain very experimental, particular client-side.
   Someone ought to make a clean kernel implementation instead.
+# Use HMAC instead of random nonces in Teredo clients.
 
 =============================================================================
 BETA RELEASE 0.9.7 : Major security fixes
