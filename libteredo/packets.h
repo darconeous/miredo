@@ -7,7 +7,7 @@
  */
 
 /***********************************************************************
- *  Copyright © 2004-2005 Rémi Denis-Courmont.                         *
+ *  Copyright © 2004-2006 Rémi Denis-Courmont.                         *
  *  This program is free software; you can redistribute and/or modify  *
  *  it under the terms of the GNU General Public License as published  *
  *  by the Free Software Foundation; version 2 of the license.         *
@@ -38,11 +38,12 @@ int teredo_parse_ra (const teredo_packet *restrict packet,
                      bool cone, uint16_t *restrict mtu);
 
 int CheckPing (const teredo_packet *packet);
+int CheckBubble (const teredo_packet *packet);
 
 
 int SendBubbleFromDst (int fd, const struct in6_addr *dst, bool indirect);
-int SendBubble (int fd, uint32_t ip, uint16_t port,
-                const struct in6_addr *src, const struct in6_addr *dst);
+int ReplyBubble (int fd, uint32_t ip, uint16_t port,
+                 const struct in6_addr *src, const struct in6_addr *dst);
 
 int teredo_send_rs (int fd, uint32_t server_ip,
                     const unsigned char *nonce, bool cone);

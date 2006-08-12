@@ -606,8 +606,8 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 			if (packet->orig_ipv4)
 			{
 				/* TODO: record sending of bubble, create a peer, etc ? */
-				SendBubble (tunnel->fd, packet->orig_ipv4, packet->orig_port,
-							&ip6.ip6_dst, &ip6.ip6_src);
+				ReplyBubble (tunnel->fd, packet->orig_ipv4, packet->orig_port,
+				             &ip6.ip6_dst, &ip6.ip6_src);
 
 				if (IsBubble (&ip6))
 					return; // don't pass bubble to kernel
@@ -622,9 +622,9 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 				 * we can guess the mapping. Otherwise, we're stuck.
 				 */
 				/* TODO: record sending of bubble, create a peer, etc ? */
-				SendBubble (tunnel->fd, IN6_TEREDO_IPV4 (&ip6.ip6_src),
-				            IN6_TEREDO_PORT (&ip6.ip6_src), &ip6.ip6_dst,
-				            &ip6.ip6_src);
+				ReplyBubble (tunnel->fd, IN6_TEREDO_IPV4 (&ip6.ip6_src),
+				             IN6_TEREDO_PORT (&ip6.ip6_src), &ip6.ip6_dst,
+				             &ip6.ip6_src);
 				return; // don't pass bubble to kernel
 			}
 		}
@@ -732,7 +732,9 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 	{
 		// Client case 3 (unknown or untrusted matching Teredo client):
 		if (IN6_MATCHES_TEREDO_CLIENT (&ip6.ip6_src, packet->source_ipv4,
-		                               packet->source_port))
+		                               packet->source_port)
+		// Extension: allow mismatch (i.e. clients behind symmetric NATs)
+		 || CheckBubble (packet))
 		{
 #ifdef MIREDO_TEREDO_CLIENT
 			if (IsClient (tunnel) && (p == NULL))
