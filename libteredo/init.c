@@ -56,14 +56,15 @@ int teredo_startup (bool use_client)
 {
 	(void)bindtextdomain (PACKAGE_NAME, LOCALEDIR);
 
-	if (use_client)
 #ifdef MIREDO_TEREDO_CLIENT
-		return teredo_init_HMAC ();
+	(void)use_client;
 #else
+	if (use_client)
 		return -1;
 #endif
-	return 0;
+	return teredo_init_HMAC ();
 }
+
 
 /**
  * Releases resources allocated with teredo_startup().
@@ -75,11 +76,9 @@ int teredo_startup (bool use_client)
  */
 void teredo_cleanup (bool use_client)
 {
-#ifdef MIREDO_TEREDO_CLIENT
-	if (use_client)
-		teredo_deinit_HMAC ();
-#else
-	assert (!use_client);
 	(void)use_client;
+#ifndef MIREDO_TEREDO_CLIENT
+	assert (!use_client);
 #endif
+	teredo_deinit_HMAC ();
 }
