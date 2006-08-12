@@ -238,15 +238,3 @@ teredo_get_nonce (uint32_t timestamp, uint32_t ipv4, uint16_t port,
 	teredo_hash (&ipv4, 4, &port, 2, buf, timestamp);
 	memcpy (nonce, buf, LIBTEREDO_NONCE_LEN);
 }
-
-
-int
-teredo_verify_nonce (uint32_t timestamp, uint32_t ipv4, uint16_t port,
-                     const uint8_t *restrict nonce)
-{
-	unsigned char buf[LIBTEREDO_HASH_LEN];
-	teredo_hash (&ipv4, 4, &port, 2, buf, timestamp);
-
-	/* compare HMAC hash */
-	return memcmp (nonce, buf, LIBTEREDO_NONCE_LEN) ? -1 : 0;
-}
