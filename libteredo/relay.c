@@ -45,7 +45,6 @@
 #include <netinet/in.h>
 #include <netinet/ip6.h> // struct ip6_hdr
 #include <netinet/icmp6.h> // ICMP6_DST_UNREACH_*
-#include <syslog.h>
 #include <pthread.h>
 
 #include "teredo.h"
