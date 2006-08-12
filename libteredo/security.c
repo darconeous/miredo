@@ -147,6 +147,7 @@ teredo_hash (const void *src, size_t slen, const void *dst, size_t dlen,
 }
 
 
+#ifdef MIREDO_TEREDO_CLIENT
 /**
  * Generates a cryptographically strong hash to use a payload for ping
  * packets. That's how we authenticate the last hop of the echo reply
@@ -224,6 +225,7 @@ teredo_verify_pinghash (uint32_t now, const struct in6_addr *src,
 	/* compare HMAC hash */
 	return memcmp (h1, hash, LIBTEREDO_HASH_LEN) ? -1 : 0;
 }
+#endif /* MIREDO_TEREDO_CLIENT */
 
 
 #if LIBTEREDO_HASH_LEN < LIBTEREDO_NONCE_LEN
