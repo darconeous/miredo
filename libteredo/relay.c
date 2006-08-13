@@ -627,6 +627,7 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 				return; // don't pass bubble to kernel
 			}
 		}
+
 		/*
 		 * Normal reception of packet must only occur if it does not
 		 * come from the server, as specified. However, it is not
@@ -634,8 +635,32 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 		 * further process packets from it.
 		 * At the moment, we only drop bubble (see above).
 		 */
+
+		/*
+		 * Packets with a link-local source address are purposedly dropped to
+		 * prevent the kernel from receiving faked Router Advertisement which
+		 * could break IPv6 routing completely. Router advertisements MUST
+		 * have a link-local source address (RFC 2461).
+		 *
+		 * This is not supposed to occur except from the Teredo server for
+		 * Teredo maintenance (done above), and in hole punching packets
+		 * (bubbles). Direct bubbles can safely be ignored, so long as the
+		 * indirect ones are processed (and they are processed above).
+		 *
+		 * This check is not part of the Teredo specification, but I really
+		 * don't feel like letting link-local packets come in through the
+		 * virtual network interface.
+		 *
+		 * Only Linux defines s6_addr16, so we don't use it.
+		 */
+		if ((((uint16_t *)ip6.ip6_src.s6_addr)[0] & 0xffc0) == 0xfe80)
+			return;
 	}
+	else
 #endif /* MIREDO_TEREDO_CLIENT */
+	/* Relays only accept packets from Teredo clients */
+	if (IN6_TEREDO_PREFIX (&ip6.ip6_src) != s.addr.teredo.prefix)
+		return;
 
 	/*
 	 * NOTE:
@@ -660,26 +685,6 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 	if (ip6.ip6_dst.s6_addr[0] == 0xff)
 		return;
 
-	/*
-	 * Packets with a link-local source address are purposedly dropped to
-	 * prevent the kernel from receiving faked Router Advertisement which
-	 * could break IPv6 routing completely. Router advertisements MUST
-	 * have a link-local source address (RFC 2461).
-	 *
-	 * This is not supposed to occur except from the Teredo server for Teredo
-	 * maintenance (done above), and in hole punching packets (bubbles).
-	 * Direct bubbles can safely be ignored, so long as the indirect ones
-	 * are processed (and they are processed above).
-	 *
-	 * This check is not part of the Teredo specification, but I really don't
-	 * feel like letting link-local packets come in through the virtual
-	 * network interface.
-	 *
-	 * Only Linux defines s6_addr16, so we don't use it.
-	 */
-	if ((((uint16_t *)ip6.ip6_src.s6_addr)[0] & 0xffc0) == 0xfe80)
-		return;
-
 	/* Actual packet reception, either as a relay or a client */
 
 	time_t now = tunnel->now;
@@ -691,7 +696,6 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 	if (p != NULL)
 	{
 //		syslog (LOG_DEBUG, " peer is %strusted", p->trusted ? "" : "NOT ");
-//		syslog (LOG_DEBUG, " not checking validity");
 //		syslog (LOG_DEBUG, " pings = %u, bubbles = %u", p->pings, p->bubbles);
 
 		// Client case 1 (trusted node or (trusted) Teredo client):
@@ -746,7 +750,7 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 			 * packets through the wrong relay. The specification leaves
 			 * us a choice here. It is arguable whether accepting these
 			 * packets would make it easier to DoS the peer list.
-			*/
+			 */
 			if (p == NULL)
 				return; // list not locked (p = NULL)
 
@@ -759,27 +763,24 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 			return;
 		}
 
-		if (p != NULL)
-			teredo_list_release (list);
-		// TODO: remove this line if we implement local teredo
-		return;
+		// TODO: local Teredo
 	}
-
-	assert (IN6_TEREDO_PREFIX (&ip6.ip6_src) != s.addr.teredo.prefix);
-
 #ifdef MIREDO_TEREDO_CLIENT
-	if (IsClient (tunnel))
+	else
 	{
+		assert (IN6_TEREDO_PREFIX (&ip6.ip6_src) != s.addr.teredo.prefix);
+		assert (IsClient (tunnel));
+
 		// TODO: implement client cases 4 & 5 for local Teredo
 	
 		/*
-		* Default: Client case 6:
-		* (unknown non-Teredo node or Tereco client with incorrect mapping):
-		* We should be cautious when accepting packets there, all the
-		* more as we don't know if we are a really client or just a
-		* qualified relay (ie. whether the host's default route is
-		* actually the Teredo tunnel).
-		*/
+		 * Default: Client case 6:
+		 * (unknown non-Teredo node or Tereco client with incorrect mapping):
+		 * We should be cautious when accepting packets there, all the
+		 * more as we don't know if we are a really client or just a
+		 * qualified relay (ie. whether the host's default route is
+		 * actually the Teredo tunnel).
+		 */
 	
 		// TODO: avoid code duplication (direct IPv6 connectivity test)
 		if (p == NULL)
@@ -820,8 +821,7 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 	}
 #endif /* ifdef MIREDO_TEREDO_CLIENT */
 
-	// Relays don't accept packets not from Teredo clients,
-	// nor from mismatching packets
+	// Rejected packet
 	if (p != NULL)
 		teredo_list_release (list);
 }
