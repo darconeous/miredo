@@ -50,42 +50,45 @@ kernels with IPv6 and userland layer-3 tunneling support. See below
 for system specific notes.
 
   Miredo is believed to be architecture-independant, but it was only
-properly tested on i386.
+properly tested on Linux i386, with GCC 4.1, GCC 3.3 and ICC 8.0.
+GCC 2.95 is purposedly not supported.
 
   When available, Miredo can use the following optional libraries :
  - GNU gettext for localization,
- - libcap (or non-Linux equivalent) for POSIX capabilities,
+ - libcap (currently Linux-specific) for POSIX capabilities,
  - Judy dynamic arrays library for better scalability.
 
 Linux:
 -------
   Miredo runs fine on Linux kernel 2.6.9; if possible, kernel version
 2.6.12 or more recent is recommended. It can run with older versions as
-well (including 2.4.x) but you might be bitten by the IPv6 onlink
-assumption issue (fixed in 2.6.9).
+well, including the 2.4 branch. However, there are known problems with
+the -experimental- IPv6 stack of these kernel releases; this is not
+specific to the usage of Miredo.
 
   Miredo requires the Universal TUNTAP driver (CONFIG_TUN) and IPv6
 (CONFIG_IPV6).
 
 FreeBSD:
 ---------
-  Miredo works fine with FreeBSD 6.0, but there should be no problem
-with the branch 5.x either. See DragonFly instructions below if you are
-using the old FreeBSD 4.x branch.
+  Miredo works fine with FreeBSD 5.5 and 6.1. Version 4.11 is not
+supported (newer GCC is needed).
+  There is a known problem with the FreeBSD kernel: see PR kern/100080.
+It should only affect Miredo in "relay" mode.
 
 OpenBSD:
 ---------
-  OpenBSD 3.7 is supported. Older versions should also work, insofar as
+  OpenBSD 3.7 is supported. Older versions might also work, insofar as
 IPv6 is enabled.
 
 NetBSD:
 --------
   NetBSD 4.0 (work-in-progress “current” branch at the time of writing)
 is reportedly supported. NetBSD 3.0 and older are definitely not
-supported because their userland tunneling driver did not support IPv6.
+supported because their userland tunneling driver do not support IPv6.
 
-Darwin:
---------
+Darwin (Mac OS X):
+-------------------
   Miredo works on Mac OS X (Panther, Tiger) and might work on other
 Darwin variants. On Mac OS X, you will have to install a third party
 tunneling driver; Miredo was tested with Mattis Nissler's tuntap from:
