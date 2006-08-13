@@ -99,6 +99,7 @@ AC_CHECK_TYPE([clockid_t],, [
 
 # Checks for library functions.
 AS_MESSAGE([checking library functions...])
+AC_CHECK_FUNCS([devname_r])
 RDC_REPLACE_FUNC_GETOPT_LONG
 LIBS_save="$LIBS"
 LIBS="$LIBRT $LIBS"

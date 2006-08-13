@@ -239,7 +239,13 @@ tun6 *tun6_create (const char *req_name)
 	{
 		struct stat st;
 		fstat (fd, &st);
+# ifdef HAVE_DEVNAME_R
 		devname_r (st.st_rdev, S_IFCHR, t->orig_name, sizeof (t->orig_name));
+# else
+		const char *name = devname (st.st_rdev, S_IFCHR);
+		if (safe_strcpy (t->orig_name, name))
+			goto error;
+# endif		
 	}
 
 	int id = if_nametoindex (t->orig_name);
