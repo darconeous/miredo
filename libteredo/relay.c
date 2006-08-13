@@ -1084,7 +1084,7 @@ int teredo_register_readset (teredo_tunnel *t, fd_set *rdset)
 
 
 /**
- * Receives all pending packets coming from the Teredo tunnel. If you
+ * Receives one pending packet coming from the Teredo tunnel. If you
  * don't use teredo_run_async(), you have to call this function as
  * often as possible. It is up to you to find the correct tradeoff
  * between busy waiting on this function for better response time of
