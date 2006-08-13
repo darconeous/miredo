@@ -1110,8 +1110,7 @@ void teredo_run (teredo_tunnel *tunnel)
 
 /**
  * Overrides the Teredo prefix of a Teredo relay. It is undefined if the
- * tunnel is configured as a Teredo client. teredo_set_prefix() is
- * undefined if teredo_set_relay_mode() was already invoked.
+ * tunnel is configured as a Teredo client.
  *
  * Thread-safety: This function is thread-safe.
  *
@@ -1138,47 +1137,31 @@ int teredo_set_prefix (teredo_tunnel *t, uint32_t prefix)
 
 
 /**
- * Enables Teredo relay mode for a teredo_tunnel,
- * and starts processing of encapsulated IPv6 packets.
- * This is undefined if Teredo client mode was previously enabled.
- *
- * @return 0 if the initialization was succesful, -1 in case of error.
- * In case of error, the teredo_tunnel instance is not modifed.
+ * Does nothing. This is a place-holder for backward compatibility.
+ * @return 0.
  */
 int teredo_set_relay_mode (teredo_tunnel *t)
 {
-	assert (t != NULL);
-#ifdef MIREDO_TEREDO_CLIENT
-	assert (t->maintenance == NULL);
-#endif
-
-	pthread_rwlock_wrlock (&t->state_lock);
-	t->state.up = true;
-	pthread_rwlock_unlock (&t->state_lock);
-
+	(void)t;
 	return 0;
 }
 
 
 /**
- * teredo_set_cone_flag is an obsoleted alias for
- * teredo_set_relay_mode(). Do not use it new program.
- *
- * @param cone This parameter is ignored and is only present for
- * backward compatiblity.
+ * Does nothing for backward compatibility.
+ * @return 0.
  */
 int teredo_set_cone_flag (teredo_tunnel *t, bool cone)
 {
+	(void)t;
 	(void)cone;
-	return teredo_set_relay_mode (t);
+	return 0;
 }
 
 
 /**
  * Enables Teredo client mode for a teredo_tunnel and starts the Teredo
- * client maintenance procedure in a separate thread. This is undefined if
- * either teredo_set_cone_flag(), teredo_set_prefix() were previously called
- * for this tunnel.
+ * client maintenance procedure in a separate thread.
  *
  * NOTE: calling teredo_set_client_mode() multiple times on the same tunnel
  * is currently not supported, and will safely return an error. Future
@@ -1213,7 +1196,6 @@ int teredo_set_client_mode (teredo_tunnel *restrict t,
 
 	if (m != NULL)
 		return 0;
-
 #else
 	(void)t;
 	(void)s;
