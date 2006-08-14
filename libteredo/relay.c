@@ -1109,8 +1109,9 @@ void teredo_run (teredo_tunnel *tunnel)
 
 
 /**
- * Overrides the Teredo prefix of a Teredo relay. It is undefined if the
- * tunnel is configured as a Teredo client.
+ * Overrides the Teredo prefix of a Teredo relay.
+ * Currently ignored for Teredo client (but might later restrict accepted
+ * Teredo prefix to the specified one).
  *
  * Thread-safety: This function is thread-safe.
  *
@@ -1122,14 +1123,14 @@ void teredo_run (teredo_tunnel *tunnel)
 int teredo_set_prefix (teredo_tunnel *t, uint32_t prefix)
 {
 	assert (t != NULL);
-#ifdef MIREDO_TEREDO_CLIENT
-	assert (t->maintenance == NULL);
-#endif
-
 	if (!is_valid_teredo_prefix (prefix))
 		return -1;
 
 	pthread_rwlock_wrlock (&t->state_lock);
+#ifdef MIREDO_TEREDO_CLIENT
+	if (t->maintenance != NULL)
+		return 0;
+#endif
 	t->state.addr.teredo.prefix = prefix;
 	pthread_rwlock_unlock (&t->state_lock);
 	return 0;
