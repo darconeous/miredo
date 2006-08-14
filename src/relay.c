@@ -331,7 +331,7 @@ static int
 setup_relay (teredo_tunnel *relay, uint32_t prefix)
 {
 	teredo_set_prefix (relay, prefix);
-	return 0;
+	return teredo_set_relay_mode (relay);
 }
 
 
