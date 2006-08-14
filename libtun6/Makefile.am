@@ -34,7 +34,7 @@ include_libtun6_HEADERS = tun6.h
 libtun6_la_SOURCES = tun6.c diag.c
 libtun6_la_LIBADD = @LTLIBINTL@ ../compat/libcompat.la
 libtun6_la_LDFLAGS = -no-undefined -export-symbols-regex tun6_.* \
-	-version-info 1:0:1
+	-version-info 1:1:1
 
 # libtun6 versions:
 # 0) First stable shared release (0.8.2)
