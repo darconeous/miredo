@@ -244,8 +244,8 @@ int clock_gettime (clockid_t id, struct timespec *now);
 # ifndef TIMER_ABSTIME
 #  define TIMER_ABSTIME 1
 # endif
-# undef _POSIX_CLOCK_SELECT
-# define _POSIX_CLOCK_SELECT (-1)
+# undef _POSIX_CLOCK_SELECTION
+# define _POSIX_CLOCK_SELECTION (-1)
 # undef _POSIX_MONOTONIC_CLOCK
 # define _POSIX_MONOTONIC_CLOCK (-1)
 int clock_nanosleep (clockid_t id, int flags, const struct timespec *ts,
