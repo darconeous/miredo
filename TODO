@@ -47,9 +47,9 @@ Portability:
 (H) Solaris: libtun6 support
 (H) Solaris: tests & fixes
 (H) FreeBSD kernel support fix (PR: kern/100080)
-(H) OpenBSD kernel support correctness check
-(H) NetBSD 4 kernel support correctness check
+(H) NetBSD 4 kernel support fix (same problem as FreeBSD)
 (H) DragonFly kernel support fix
+(H) OpenBSD kernel support correctness check
 (*) BSD: setsockopt SO_REUSEPORT if/where appropriate
 
 Documentation & support:

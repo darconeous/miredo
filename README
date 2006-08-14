@@ -83,9 +83,9 @@ IPv6 is enabled.
 
 NetBSD:
 --------
-  NetBSD 4.0 (work-in-progress “current” branch at the time of writing)
-is reportedly supported. NetBSD 3.0 and older are definitely not
-supported because their userland tunneling driver do not support IPv6.
+  NetBSD 4.0 (in beta stage at the time of writing) is supported.
+NetBSD 3.0 and older versions are definitely not supported because
+their userland tunneling driver do not support IPv6.
 
 Darwin (Mac OS X):
 -------------------
