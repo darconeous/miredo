@@ -58,7 +58,7 @@ int teredo_run_async (teredo_tunnel *t);
 int teredo_set_prefix (teredo_tunnel *t, uint32_t pref);
 int teredo_set_cone_flag (teredo_tunnel *t, bool flag) LIBTEREDO_DEPRECATED;
 
-int teredo_set_relay_mode (teredo_tunnel *t) LIBTEREDO_DEPRECATED;
+int teredo_set_relay_mode (teredo_tunnel *t);
 int teredo_set_client_mode (teredo_tunnel *restrict t, const char *s1,
                             const char *s2);
 

@@ -1138,25 +1138,35 @@ int teredo_set_prefix (teredo_tunnel *t, uint32_t prefix)
 
 
 /**
- * Does nothing. This is a place-holder for backward compatibility.
- * @return 0.
+ * Enables Teredo relay mode (this is the default).
+ *
+ * Thread-safety: This function is thread-safe.
+ *
+ * @return 0 on success, -1 on error.
  */
 int teredo_set_relay_mode (teredo_tunnel *t)
 {
-	(void)t;
-	return 0;
+	int retval;
+
+	pthread_rwlock_wrlock (&t->state_lock);
+	retval = (t->maintenance != NULL) ? -1 : 0;
+	pthread_rwlock_unlock (&t->state_lock);
+
+	return retval;
 }
 
 
 /**
- * Does nothing for backward compatibility.
+ * This is an alias for teredo_set_relay_mode.
+ *
+ * @param cone ignored for backward compatibility.
+ *
  * @return 0.
  */
 int teredo_set_cone_flag (teredo_tunnel *t, bool cone)
 {
-	(void)t;
 	(void)cone;
-	return 0;
+	return teredo_set_relay_mode (t);
 }
 
 
