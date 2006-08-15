@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: miredo 0.8.1\n"
 "Report-Msgid-Bugs-To: miredo-devel_no_bulk_mail@remlab.net\n"
-"POT-Creation-Date: 2006-07-30 21:46+0300\n"
+"POT-Creation-Date: 2006-08-15 23:08+0300\n"
 "PO-Revision-Date: 2005-03-10 14:32+0100\n"
 "Last-Translator: Rémi Denis-Courmont <rdenis (at) simphalempin (dot) com>\n"
 "Language-Team: N/A\n"
@@ -16,32 +16,28 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: libteredo/relay.c:646
-msgid "Ignoring invalid bubble: your Teredo server is probably buggy."
-msgstr ""
-
-#: libteredo/server.c:411 libteredo/server.c:476 src/isatap.c:77
+#: libteredo/server.c:415 libteredo/server.c:480 src/isatap.c:77
 #, c-format
 msgid "Raw IPv6 socket not working: %s"
 msgstr ""
 
-#: libteredo/server.c:484
+#: libteredo/server.c:488
 msgid ""
 "Teredo server UDP socket error: Server IPv4 addresses must be global unicast."
 msgstr ""
 
-#: libteredo/server.c:511 libteredo/server.c:522 libteredo/maintain.c:551
-#: libtun6/tun6.c:623 src/main.c:287 src/main.c:315 src/main.c:356
+#: libteredo/server.c:515 libteredo/server.c:526 libteredo/maintain.c:536
+#: libtun6/tun6.c:620 src/main.c:287 src/main.c:315 src/main.c:356
 #: src/main.c:495 src/miredo.c:107 src/miredo.c:115 src/miredo.c:237
 #, c-format
 msgid "Error (%s): %s\n"
 msgstr ""
 
-#: libteredo/packets.c:264
+#: libteredo/packets.c:282
 msgid "Multiple Teredo prefixes received"
 msgstr ""
 
-#: libteredo/packets.c:300
+#: libteredo/packets.c:318
 msgid "Invalid Teredo prefix received"
 msgstr ""
 
@@ -53,93 +49,49 @@ msgstr ""
 msgid "Too much time drift. Resynchronizing."
 msgstr ""
 
-#: libteredo/maintain.c:315
+#: libteredo/maintain.c:309
 #, c-format
 msgid "Cannot resolve Teredo server address \"%s\": %s"
 msgstr "Cannot resolve Teredo server address “%s”: %s"
 
-#: libteredo/maintain.c:327
+#: libteredo/maintain.c:321
 msgid "Server has a non global IPv4 address. It will most likely not work."
 msgstr ""
 
-#: libteredo/maintain.c:393
+#: libteredo/maintain.c:378
 msgid "Lost Teredo connectivity"
 msgstr ""
 
-#: libteredo/maintain.c:401
+#: libteredo/maintain.c:386
 msgid "No reply from Teredo server"
 msgstr ""
 
-#: libteredo/maintain.c:422
+#: libteredo/maintain.c:407
 msgid "Teredo address/MTU changed"
 msgstr ""
 
-#: libteredo/maintain.c:440
+#: libteredo/maintain.c:425
 msgid "Unsupported symmetric NAT detected."
 msgstr ""
 
-#: libteredo/maintain.c:447
+#: libteredo/maintain.c:432
 #, c-format
 msgid "Qualified (NAT type: %s)"
 msgstr ""
 
-#: libteredo/maintain.c:448
+#: libteredo/maintain.c:433
 msgid "restricted"
 msgstr ""
 
-#: libtun6/tun6.c:185 libtun6/tun6.c:195 libtun6/tun6.c:234 libtun6/tun6.c:248
-#: libtun6/tun6.c:267 libtun6/tun6.c:284 libtun6/tun6.c:299 libtun6/tun6.c:321
+#: libtun6/tun6.c:185 libtun6/tun6.c:195 libtun6/tun6.c:234 libtun6/tun6.c:254
+#: libtun6/tun6.c:268 libtun6/tun6.c:282 libtun6/tun6.c:296 libtun6/tun6.c:318
 #, c-format
 msgid "Tunneling driver error (%s): %s"
 msgstr ""
 
-#: libtun6/tun6.c:343
+#: libtun6/tun6.c:340
 #, c-format
 msgid "%s tunneling interface creation failure"
-msgstr ""
-
-#: libtun6/tun6.c:978
-msgid ""
-"You should run these commands to create it:\n"
-"# mkdir -p /dev/net\n"
-"# mknod /dev/net/tun c 10 200\n"
-"(you must be root to do that).\n"
-msgstr ""
-
-#: libtun6/tun6.c:983 libtun6/tun6.c:1008
-msgid ""
-"You can obtain a tunnel driver for the Darwin kernel (Mac OS X) from:\n"
-"http://www-user.rhrk.uni-kl.de/~nissler/tuntap/\n"
-msgstr ""
-
-#: libtun6/tun6.c:991
-#, c-format
-msgid ""
-"Error: %s character device not found or unavailable.\n"
-"%s"
-msgstr ""
-
-#: libtun6/tun6.c:1004
-msgid ""
-"Make sure your Linux kernel includes the \"Universal TUNTAP driver\"\n"
-"(CONFIG_TUN option), possibly as a module.\n"
-msgstr ""
-"Make sure your Linux kernel includes the “Universal TUNTAP driver”\n"
-"(CONFIG_TUN option), possibly as a module.\n"
-
-#: libtun6/tun6.c:1016
-#, c-format
-msgid ""
-"Error: your operating system does not seem to provide a network tunneling\n"
-"device driver, which is required.\n"
-"%s"
-msgstr ""
-
-#: libtun6/tun6.c:1025
-#, c-format
-msgid ""
-"Error: cannot open device file %s (%s)\n"
-"IPv6 tunneling will not work.\n"
 msgstr ""
 
 #: src/main.c:66
@@ -309,49 +261,49 @@ msgstr ""
 msgid "Terminated with no error."
 msgstr ""
 
-#: src/relay.c:195 src/checkconf.c:85
+#: src/relay.c:193 src/checkconf.c:85
 #, c-format
 msgid "Invalid relay type \"%s\" at line %u"
 msgstr "Invalid relay type “%s” at line %u"
 
-#: src/relay.c:245
+#: src/relay.c:243
 msgid "Teredo pseudo-tunnel started"
 msgstr ""
 
-#: src/relay.c:247
+#: src/relay.c:245
 #, c-format
 msgid " (address: %s, MTU: %u)"
 msgstr ""
 
-#: src/relay.c:266
+#: src/relay.c:264
 msgid "Teredo pseudo-tunnel stopped"
 msgstr ""
 
-#: src/relay.c:428 src/relay.c:447 src/relay.c:464 src/relay.c:477
-#: src/relay.c:501 src/server.c:98 src/server.c:106 src/server.c:124
-#: src/isatap.c:358 src/isatap.c:369 src/isatap.c:381 src/checkconf.c:153
+#: src/relay.c:426 src/relay.c:445 src/relay.c:462 src/relay.c:475
+#: src/relay.c:499 src/server.c:98 src/server.c:106 src/server.c:124
+#: src/isatap.c:360 src/isatap.c:371 src/isatap.c:383 src/checkconf.c:153
 msgid "Fatal configuration error"
 msgstr ""
 
-#: src/relay.c:446 src/server.c:105 src/checkconf.c:107
+#: src/relay.c:444 src/server.c:105 src/checkconf.c:107
 msgid "Server address not specified"
 msgstr ""
 
-#: src/relay.c:463 src/checkconf.c:111
+#: src/relay.c:461 src/checkconf.c:111
 msgid "Unsupported Teredo client mode"
 msgstr ""
 
-#: src/relay.c:528 src/relay.c:534 src/relay.c:598 src/isatap.c:412
-#: src/isatap.c:438
+#: src/relay.c:526 src/relay.c:532 src/relay.c:596 src/isatap.c:414
+#: src/isatap.c:440
 #, c-format
 msgid "Miredo setup failure: %s"
 msgstr ""
 
-#: src/relay.c:529 src/isatap.c:413
+#: src/relay.c:527 src/isatap.c:415
 msgid "Cannot create IPv6 tunnel"
 msgstr ""
 
-#: src/relay.c:535 src/relay.c:599
+#: src/relay.c:533 src/relay.c:597
 msgid "libteredo cannot be initialized"
 msgstr ""
 
@@ -399,22 +351,29 @@ msgstr ""
 msgid "Invalid integer value \"%s\" for %s: %s"
 msgstr "Invalid integer value “%s” for %s: %s"
 
-#: src/conf.c:380
+#: src/conf.c:381
 #, c-format
 msgid "Invalid boolean value \"%s\" for %s"
 msgstr "Invalid Boolean value “%s” for %s"
 
-#: src/conf.c:423 src/conf.c:454
+#: src/conf.c:424 src/conf.c:455
 #, c-format
 msgid "Invalid hostname \"%s\" at line %u: %s"
 msgstr "Invalid host name “%s” at line %u: %s"
 
-#: src/conf.c:480
+#: src/conf.c:481
 #, c-format
 msgid "Invalid Teredo IPv6 prefix: %x::/32"
 msgstr ""
 
-#: src/conf.c:564
+#: src/conf.c:565
 #, c-format
 msgid "Unknown syslog facility \"%s\" at line %u"
 msgstr "Unknown syslog facility “%s” at line %u"
+
+#~ msgid ""
+#~ "Make sure your Linux kernel includes the \"Universal TUNTAP driver\"\n"
+#~ "(CONFIG_TUN option), possibly as a module.\n"
+#~ msgstr ""
+#~ "Make sure your Linux kernel includes the “Universal TUNTAP driver”\n"
+#~ "(CONFIG_TUN option), possibly as a module.\n"
