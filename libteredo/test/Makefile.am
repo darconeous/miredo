@@ -19,15 +19,12 @@
 
 AM_CPPFLAGS = -I@top_srcdir@ -I@top_srcdir@/libteredo -D_REENTRANT
 
-check_PROGRAMS = libteredo-addrcmp libteredo-list libteredo-stresslist md5test
+check_PROGRAMS = libteredo-list libteredo-stresslist md5test
 TESTS = $(check_PROGRAMS)
 
 if TEREDO_CLIENT
 check_PROGRAMS += libteredo-hmac
 endif
-
-# libteredo-addr
-libteredo_addrcmp_SOURCES = addrcmp.c
 
 # libteredo-list
 libteredo_list_SOURCES = list.c

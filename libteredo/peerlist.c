@@ -420,7 +420,7 @@ teredo_peer *teredo_list_lookup (teredo_peerlist *restrict list, time_t atime,
 	p = list->sentinel.next;
 	while (p != &list->sentinel)
 	{
-		if (t6cmp (&p->key, (const union teredo_addr *)addr) == 0)
+		if (memcmp (&p->key, addr, sizeof (*addr)) == 0)
 		{
 			found = true;
 			break;
