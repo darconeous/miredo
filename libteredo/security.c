@@ -81,7 +81,7 @@ int teredo_init_HMAC (void)
 #define return YOU_DONT_MEAN_return
 	pthread_mutex_lock (&mutex);
 
-	if (hmac_pid != htons (getpid ()))
+	if (hmac_pid != htons ((uint16_t)getpid ()))
 	{
 		/* Get a non-predictable random key from the kernel PRNG */
 		int fd = open (randfile, O_RDONLY);
@@ -107,7 +107,7 @@ int teredo_init_HMAC (void)
 			outer_key.opad[i] ^= 0x5c;
 		}
 
-		hmac_pid = htons (getpid ());
+		hmac_pid = htons ((uint16_t)getpid ());
 	}
 	retval = 0;
 
@@ -115,7 +115,7 @@ error:
 	pthread_mutex_unlock (&mutex);
 #undef return
 
-	return 0;
+	return retval;
 }
 
 
