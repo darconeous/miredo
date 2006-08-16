@@ -1148,9 +1148,13 @@ int teredo_set_relay_mode (teredo_tunnel *t)
 {
 	int retval;
 
+#ifdef MIREDO_TEREDO_CLIENT
 	pthread_rwlock_wrlock (&t->state_lock);
 	retval = (t->maintenance != NULL) ? -1 : 0;
 	pthread_rwlock_unlock (&t->state_lock);
+#else
+	retval = 0;
+#endif
 
 	return retval;
 }
