@@ -63,6 +63,12 @@ AC_SEARCH_LIBS(inet_ntop, [nsl])
 AC_CHECK_LIB(resolv, res_init)
 
 # POSIX threads
+AC_ARG_VAR(PTHREAD_CFLAGS, [C compiler flags for POSIX threads])
+AS_IF([test "${PTHREAD_CFLAGS}"], [
+	CFLAGS="${CFLAGS} ${PTHREAD_CFLAGS}"
+])
+AC_ARG_VAR(PTHREAD_LDFLAGS, [Linker flags for POSIX threads])
+AC_ARG_VAR(PTHREAD_LIBS, [Same as PTHREAD_LFLAGS])
 AS_IF([test "${PTHREAD_LDFAGS}${PTHREAD_LIBS}"], [
 	# Neat! the packaging system tells us how to use pthread
 	LIBS="${PTHREAD_LDFLAGS} ${PTHREAD_LIBS} ${LIBS}"
