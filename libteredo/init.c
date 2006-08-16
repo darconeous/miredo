@@ -37,7 +37,8 @@
 # include "security.h"
 #endif
 
-#include <sys/select.h>
+#include <sys/types.h> /* requiring this sucks */
+#include <sys/select.h> /* same note */
 #include "tunnel.h"
 
 /**
