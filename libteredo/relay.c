@@ -892,8 +892,6 @@ static void *teredo_clock (void *val)
 
 		clock_nanosleep (CLOCK_REALTIME, TIMER_ABSTIME, &now, NULL);
 	}
-
-	return NULL;
 }
 
 
@@ -1024,8 +1022,6 @@ static void *teredo_recv_thread (void *t)
 			pthread_setcancelstate (PTHREAD_CANCEL_ENABLE, NULL);
 		}
 	}
-
-	return NULL;
 }
 
 /**
@@ -1055,31 +1051,6 @@ int teredo_run_async (teredo_tunnel *t)
 
 	t->recv.running = true;
 	return 0;
-}
-
-/**
- * Registers file descriptors in an fd_set for use with select().
- *
- * Thread-safety: This function is thread-safe.
- *
- * @return the "biggest" file descriptor registered (useful as the
- * first parameter to select()). -1 if any of the descriptors exceeded
- * FD_SETSIZE - 1.
- */
-int teredo_register_readset (teredo_tunnel *t, fd_set *rdset)
-{
-	assert (t != NULL);
-	assert (t->fd != -1);
-
-	// FIXME: May be problematic once multicast local discovery gets
-	// implemented.
-
-	if (t->fd >= (int)FD_SETSIZE)
-		return -1;
-
-	FD_SET (t->fd, rdset);
-	return t->fd;
-
 }
 
 
@@ -1161,20 +1132,6 @@ int teredo_set_relay_mode (teredo_tunnel *t)
 
 
 /**
- * This is an alias for teredo_set_relay_mode.
- *
- * @param cone ignored for backward compatibility.
- *
- * @return 0.
- */
-int teredo_set_cone_flag (teredo_tunnel *t, bool cone)
-{
-	(void)cone;
-	return teredo_set_relay_mode (t);
-}
-
-
-/**
  * Enables Teredo client mode for a teredo_tunnel and starts the Teredo
  * client maintenance procedure in a separate thread.
  *
@@ -1217,17 +1174,6 @@ int teredo_set_client_mode (teredo_tunnel *restrict t,
 	(void)s2;
 #endif
 	return -1;
-}
-
-
-/**
- * Does nothing (backward compatibility stub).
- */
-void teredo_set_cone_ignore (teredo_tunnel *t, bool ignore)
-{
-	assert (t != NULL);
-	(void)t;
-	(void)ignore;
 }
 
 

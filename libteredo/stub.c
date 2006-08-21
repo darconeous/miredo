@@ -1,10 +1,13 @@
 /*
- * init.c
- * $Id$
+ * relay.c - Teredo relay core
+ * $Id: relay.c 1699 2006-08-16 18:51:08Z remi $
+ *
+ * See "Teredo: Tunneling IPv6 over UDP through NATs"
+ * for more information
  */
 
 /***********************************************************************
- *  Copyright © 2005-2006 Rémi Denis-Courmont.                         *
+ *  Copyright © 2004-2006 Rémi Denis-Courmont.                         *
  *  This program is free software; you can redistribute and/or modify  *
  *  it under the terms of the GNU General Public License as published  *
  *  by the Free Software Foundation; version 2 of the license.         *
@@ -24,53 +27,32 @@
 #endif
 
 #include <stdbool.h>
-#include <gettext.h>
-
 #include <assert.h>
 
 #include <inttypes.h>
-#include "security.h"
 #include "tunnel.h"
 
-/**
- * Initializes libteredo. That function must be called before any other
- * libteredo functions. It can safely be called multiple times and is
- * thread-safe. If the process is to be chrooted(), it should be called
- * before chroot().
- *
- * @param use_client true if libteredo is to be used in client-mode
- *
- * @return 0 on success, -1 on failure.
- * -1 is also returned when use_client is true while libteredo was
- *  compiled without client support.
- */
-int teredo_startup (bool use_client)
-{
-	(void)bindtextdomain (PACKAGE_NAME, LOCALEDIR);
 
-#ifdef MIREDO_TEREDO_CLIENT
-	(void)use_client;
-#else
-	if (use_client)
-		return -1;
-#endif
-	return teredo_init_HMAC ();
+/**
+ * This is an alias for teredo_set_relay_mode.
+ *
+ * @param cone ignored for backward compatibility.
+ *
+ * @return 0.
+ */
+int teredo_set_cone_flag (teredo_tunnel *t, bool cone)
+{
+	(void)cone;
+	return teredo_set_relay_mode (t);
 }
 
 
 /**
- * Releases resources allocated with teredo_startup().
- * Should be called as many times as teredo_startup() was called.
- * Thread-safe.
- *
- * @param use_client true if the matching teredo_preinit call
- * had the use_client parameter set.
+ * Does nothing (backward compatibility stub).
  */
-void teredo_cleanup (bool use_client)
+void teredo_set_cone_ignore (teredo_tunnel *t, bool ignore)
 {
-	(void)use_client;
-#ifndef MIREDO_TEREDO_CLIENT
-	assert (!use_client);
-#endif
-	teredo_deinit_HMAC ();
+	assert (t != NULL);
+	(void)t;
+	(void)ignore;
 }
