@@ -25,11 +25,7 @@
 
 #include <stdbool.h>
 #include <string.h>
-#ifdef HAVE_STDINT_H
-# include <stdint.h>
-#else
-# include <inttypes.h>
-#endif
+#include <inttypes.h>
 #include <limits.h>
 #include <assert.h>
 

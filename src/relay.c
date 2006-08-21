@@ -26,12 +26,7 @@
 #include <assert.h>
 #include <gettext.h>
 
-#if HAVE_STDINT_H
-# include <stdint.h>
-#elif HAVE_INTTYPES_H
-# include <inttypes.h>
-#endif
-
+#include <inttypes.h>
 #include <stdlib.h> // free()
 #include <stdio.h> // fputs()
 #include <sys/types.h>

@@ -27,11 +27,7 @@
 
 #include <stddef.h>
 #include <string.h> /* memcpy(), memset() */
-#if HAVE_STDINT_H
-# include <stdint.h>
-#elif HAVE_INTTYPES_H
-# include <inttypes.h>
-#endif
+#include <inttypes.h>
 #include <limits.h>
 
 #include <stdbool.h>

@@ -30,9 +30,7 @@
 #include <signal.h>
 #include <limits.h>
 
-#if HAVE_STDINT_H
-# include <stdint.h> /* Mac OS X needs that */
-#endif
+#include <inttypes.h> /* for Mac OS X */
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <unistd.h>

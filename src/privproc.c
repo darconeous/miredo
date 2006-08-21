@@ -26,12 +26,7 @@
 #include <string.h>
 #include <stdlib.h> /* exit() */
 #include <errno.h>
-
-#if HAVE_STDINT_H
-# include <stdint.h>
-#elif HAVE_INTTYPES_H
-# include <inttypes.h>
-#endif
+#include <inttypes.h>
 
 #include <sys/types.h>
 #include <unistd.h>

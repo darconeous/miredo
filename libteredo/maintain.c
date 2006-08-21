@@ -32,11 +32,7 @@
 #include <assert.h>
 
 #include <stdbool.h>
-#if HAVE_STDINT_H
-# include <stdint.h>
-#elif HAVE_INTTYPES_H
-# include <inttypes.h>
-#endif
+#include <inttypes.h>
 #include <time.h> /* clock_gettime() */
 
 #include <sys/types.h>

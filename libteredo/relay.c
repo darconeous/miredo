@@ -33,12 +33,7 @@
 #include <time.h>
 #include <stdlib.h> // malloc()
 #include <assert.h>
-
-#if HAVE_STDINT_H
-# include <stdint.h>
-#elif HAVE_INTTYPES_H
-# include <inttypes.h>
-#endif
+#include <inttypes.h>
 
 #include <sys/types.h>
 #include <sys/time.h>

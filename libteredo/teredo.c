@@ -28,9 +28,7 @@
 
 #include <string.h> // memcpy()
 
-#if HAVE_STDINT_H
-# include <stdint.h> /* Mac OS X needs that */
-#endif
+#include <inttypes.h> /* for Mac OS X */
 #include <sys/types.h>
 #include <sys/uio.h>
 #include <netinet/in.h>

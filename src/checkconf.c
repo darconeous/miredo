@@ -34,11 +34,7 @@
 #include <stdbool.h>
 
 #include <unistd.h>
-#ifdef HAVE_STDINT_H
-# include <stdint.h>
-#else
-# include <inttypes.h>
-#endif
+#include <inttypes.h>
 #include <netinet/in.h>
 #include "miredo.h"
 #include "conf.h"
