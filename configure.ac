@@ -22,7 +22,7 @@ dnl ***********************************************************************
 AC_COPYRIGHT([Copyright (C) 2004-2006 Remi Denis-Courmont])
 AC_INIT(miredo, 1.0.0, miredo-devel_no_bulk_mail@remlab.net)
 AC_PREREQ(2.59c)
-INVOCATION="$0 $*"
+INVOCATION="$0 $ac_configure_args"
 
 AS_MESSAGE(checking system...)
 AC_CONFIG_SRCDIR(configure.ac)
