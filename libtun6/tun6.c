@@ -30,11 +30,7 @@
 #include <stdio.h> // snprintf() for BSD drivers
 #include <string.h>
 #include <stdlib.h> // free()
-#if HAVE_STDINT_H
-# include <stdint.h>
-#elif HAVE_INTTYES_H
-# include <inttypes.h>
-#endif
+#include <inttypes.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
