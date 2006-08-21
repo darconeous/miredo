@@ -71,10 +71,10 @@ specific to the usage of Miredo.
 
 FreeBSD:
 ---------
-  Miredo works fine with FreeBSD 5.5 and 6.1. Version 4.11 is not
-supported (newer GCC is needed).
-  There is a known problem with the FreeBSD kernel: see PR kern/100080.
-It should only affect Miredo in "relay" mode.
+  Miredo works fine with FreeBSD 5.5 and up. 4.11 should also work.
+You can use the net/miredo port.
+  There is a known problem with the FreeBSD kernel:
+see PR kern/100080. It should mostly affect Miredo in "relay" mode.
 
 OpenBSD:
 ---------
@@ -83,9 +83,8 @@ IPv6 is enabled.
 
 NetBSD:
 --------
-  NetBSD 4.0 (in beta stage at the time of writing) is supported.
-NetBSD 3.0 and older versions are definitely not supported because
-their userland tunneling driver do not support IPv6.
+  NetBSD 4.0 is required, for IPv6 tunneling. Miredo should be
+available through pkgsrc.
 
 Darwin (Mac OS X):
 -------------------
@@ -96,9 +95,7 @@ http://www-user.rhrk.uni-kl.de/~nissler/tuntap/
 
 DragonFly:
 -----------
-  Miredo should work. You will have to define the CFLAGS and CXXFLAGS
-environment variable to include "-pthread" before running the configure
-script (e.g. “setenv CFLAGS "-pthread"; setenv CXXFLAGS "-pthread"”).
+  Miredo should work. It is in NetBSD's pkgsrc.
 
 
 Quick usage

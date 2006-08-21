@@ -1,5 +1,5 @@
 RELEASE NOTES for Miredo
-candidate release version 0.9.9
+candidate release version 1.0.0
 ================================
 $Id$
 
@@ -12,6 +12,11 @@ from the previous stable branch 0.8.x.
 informations on this program, see README. For syntax details and
 changes, run “miredo -h” to get help. For detailled internal changes, see
 ChangeLog.
+
+============================================================================
+STABLE RELEASE 1.0.0 : Minor portability fixes
+
+# FreeBSD 4.11 build fixes.
 
 ============================================================================
 RELEASE CANDIDATE 0.9.9 : Minor portability fixes
