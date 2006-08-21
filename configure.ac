@@ -20,7 +20,7 @@ dnl *  http://www.gnu.org/copyleft/gpl.html                               *
 dnl ***********************************************************************
 
 AC_COPYRIGHT([Copyright (C) 2004-2006 Remi Denis-Courmont])
-AC_INIT(miredo, 0.9.9, miredo-devel_no_bulk_mail@remlab.net)
+AC_INIT(miredo, 1.0.0, miredo-devel_no_bulk_mail@remlab.net)
 AC_PREREQ(2.59c)
 INVOCATION="$0 $*"
 
@@ -43,6 +43,11 @@ AC_PROG_CC_C99
 AC_USE_SYSTEM_EXTENSIONS
 AC_DEFINE(_APPLE_C_SOURCE, 1, [Define to fix pthread_cancel() on Mac OS X.])
 
+dnl Work-around for libtool bug (from Darren Salt)
+m4_undefine([AC_PROG_CXX])
+m4_defun([AC_PROG_CXX],[])
+m4_undefine([AC_PROG_F77])
+m4_defun([AC_PROG_F77],[])
 AC_DISABLE_STATIC
 AC_PROG_LIBTOOL
 
