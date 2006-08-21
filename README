@@ -71,10 +71,10 @@ specific to the usage of Miredo.
 
 FreeBSD:
 ---------
-  Miredo works fine with FreeBSD 5.5 and up. 4.11 should also work.
-You can use the net/miredo port.
-  There is a known problem with the FreeBSD kernel:
-see PR kern/100080. It should mostly affect Miredo in "relay" mode.
+  Miredo works fine with FreeBSD 5.5 and up. You can use the net/miredo
+port. There is a known problem with the FreeBSD kernel: see Problem
+Report kern/100080. It should mostly affect Miredo in "relay" mode.
+  FreeBSD 4.11 is way too buggy to support Miredo. DO NOT USE IT.
 
 OpenBSD:
 ---------

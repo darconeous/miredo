@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: miredo 0.8.1\n"
 "Report-Msgid-Bugs-To: miredo-devel_no_bulk_mail@remlab.net\n"
-"POT-Creation-Date: 2006-08-15 23:08+0300\n"
+"POT-Creation-Date: 2006-08-21 20:10+0300\n"
 "PO-Revision-Date: 2006-03-20 15:36+0100\n"
 "Last-Translator: Rémi Denis-Courmont <rdenis (at) simphalempin (dot) com>\n"
 "Language-Team: N/A\n"
@@ -16,84 +16,84 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: libteredo/server.c:415 libteredo/server.c:480 src/isatap.c:77
+#: libteredo/server.c:411 libteredo/server.c:476 src/isatap.c:73
 #, c-format
 msgid "Raw IPv6 socket not working: %s"
 msgstr "Socket IPv6 brute (« raw ») non disponible : %s"
 
-#: libteredo/server.c:488
+#: libteredo/server.c:484
 msgid ""
 "Teredo server UDP socket error: Server IPv4 addresses must be global unicast."
 msgstr ""
 "Erreur de socket UDP de serveur Teredo : l’adresse IPv4 de serveur doit être "
 "globale unicast."
 
-#: libteredo/server.c:515 libteredo/server.c:526 libteredo/maintain.c:536
-#: libtun6/tun6.c:620 src/main.c:287 src/main.c:315 src/main.c:356
-#: src/main.c:495 src/miredo.c:107 src/miredo.c:115 src/miredo.c:237
+#: libteredo/server.c:511 libteredo/server.c:522 libteredo/maintain.c:532
+#: libtun6/tun6.c:616 src/main.c:287 src/main.c:315 src/main.c:356
+#: src/main.c:495 src/miredo.c:103 src/miredo.c:111 src/miredo.c:233
 #, c-format
 msgid "Error (%s): %s\n"
 msgstr "Erreur (%s) : %s\n"
 
-#: libteredo/packets.c:282
+#: libteredo/packets.c:278
 msgid "Multiple Teredo prefixes received"
 msgstr "Plusieurs préfixes Teredo reçus"
 
-#: libteredo/packets.c:318
+#: libteredo/packets.c:314
 msgid "Invalid Teredo prefix received"
 msgstr "Préfixe Teredo reçu invalide"
 
-#: libteredo/maintain.c:179
+#: libteredo/maintain.c:175
 msgid "Authentication with server failed."
 msgstr "Authentification refusée par le serveur."
 
-#: libteredo/maintain.c:248
+#: libteredo/maintain.c:244
 msgid "Too much time drift. Resynchronizing."
 msgstr "Décalage temporel trop important. Re-synchronisation."
 
-#: libteredo/maintain.c:309
+#: libteredo/maintain.c:305
 #, c-format
 msgid "Cannot resolve Teredo server address \"%s\": %s"
 msgstr "Impossible de déterminer l’adresse du serveur Teredo « %s » : %s"
 
-#: libteredo/maintain.c:321
+#: libteredo/maintain.c:317
 msgid "Server has a non global IPv4 address. It will most likely not work."
 msgstr ""
 "Le serveur a une adresse IPv4 non globale. Ça ne fonctionnera "
 "vraisemblablement pas."
 
-#: libteredo/maintain.c:378
+#: libteredo/maintain.c:374
 msgid "Lost Teredo connectivity"
 msgstr "Connectivité Teredo perdue"
 
-#: libteredo/maintain.c:386
+#: libteredo/maintain.c:382
 msgid "No reply from Teredo server"
 msgstr "Pas de réponse du serveur Teredo"
 
-#: libteredo/maintain.c:407
+#: libteredo/maintain.c:403
 msgid "Teredo address/MTU changed"
 msgstr "Adresse/MTU Teredo changée"
 
-#: libteredo/maintain.c:425
+#: libteredo/maintain.c:421
 msgid "Unsupported symmetric NAT detected."
 msgstr "NAT symmétrique non supporté détecté."
 
-#: libteredo/maintain.c:432
+#: libteredo/maintain.c:428
 #, c-format
 msgid "Qualified (NAT type: %s)"
 msgstr "Qualifié (type de NAT : %s)"
 
-#: libteredo/maintain.c:433
+#: libteredo/maintain.c:429
 msgid "restricted"
 msgstr "restreint"
 
-#: libtun6/tun6.c:185 libtun6/tun6.c:195 libtun6/tun6.c:234 libtun6/tun6.c:254
-#: libtun6/tun6.c:268 libtun6/tun6.c:282 libtun6/tun6.c:296 libtun6/tun6.c:318
+#: libtun6/tun6.c:181 libtun6/tun6.c:191 libtun6/tun6.c:230 libtun6/tun6.c:250
+#: libtun6/tun6.c:264 libtun6/tun6.c:278 libtun6/tun6.c:292 libtun6/tun6.c:314
 #, c-format
 msgid "Tunneling driver error (%s): %s"
 msgstr "Erreur du pilote de tunneling (%s) : %s"
 
-#: libtun6/tun6.c:340
+#: libtun6/tun6.c:336
 #, c-format
 msgid "%s tunneling interface creation failure"
 msgstr "Échec de création de l’interface de tunneling %s"
@@ -239,7 +239,7 @@ msgstr ""
 "Impossible de créer le fichier de PID %s :\n"
 " %s\n"
 
-#: src/main.c:346 src/server.c:162
+#: src/main.c:346 src/server.c:158
 msgid "Make sure another instance of the program is not already running."
 msgstr "Vérifiez qu’une autre instance du programme n’est pas déjà en marche."
 
@@ -248,149 +248,149 @@ msgstr "Vérifiez qu’une autre instance du programme n’est pas déjà en mar
 msgid "Reading configuration from %s: %s\n"
 msgstr "Lecture de la configuration depuis %s : %s\n"
 
-#: src/miredo.c:215
+#: src/miredo.c:211
 #, c-format
 msgid "Loading configuration from %s failed"
 msgstr "Échec du chargement de la configuration depuis %s"
 
-#: src/miredo.c:229
+#: src/miredo.c:225
 msgid "Starting..."
 msgstr "Démarrage..."
 
-#: src/miredo.c:272
+#: src/miredo.c:268
 #, c-format
 msgid "Exiting on signal %d (%s)"
 msgstr "Arrêt suite au signal %d (%s)"
 
-#: src/miredo.c:280
+#: src/miredo.c:276
 #, c-format
 msgid "Reloading configuration on signal %d (%s)"
 msgstr "Rechargement de la configuration suite au signal %d (%s)"
 
-#: src/miredo.c:288
+#: src/miredo.c:284
 #, c-format
 msgid "Terminated (exit code: %d)"
 msgstr "Terminé (code de retour : %d)"
 
-#: src/miredo.c:296
+#: src/miredo.c:292
 #, c-format
 msgid "Child %d killed by signal %d (%s)"
 msgstr "Fils %d tué par le signal %d (%s)"
 
-#: src/miredo.c:304
+#: src/miredo.c:300
 msgid "Terminated with error(s)."
 msgstr "Terminé avec une/des erreur(s)."
 
-#: src/miredo.c:306
+#: src/miredo.c:302
 msgid "Terminated with no error."
 msgstr "Terminé sans erreur."
 
-#: src/relay.c:193 src/checkconf.c:85
+#: src/relay.c:188 src/checkconf.c:81
 #, c-format
 msgid "Invalid relay type \"%s\" at line %u"
 msgstr "Type de relais invalide « %s » à la ligne %u"
 
-#: src/relay.c:243
+#: src/relay.c:238
 msgid "Teredo pseudo-tunnel started"
 msgstr "Pseudo-tunnel Teredo démarré"
 
-#: src/relay.c:245
+#: src/relay.c:240
 #, c-format
 msgid " (address: %s, MTU: %u)"
 msgstr " (adresse : %s, MTU : %u)"
 
-#: src/relay.c:264
+#: src/relay.c:259
 msgid "Teredo pseudo-tunnel stopped"
 msgstr "Pseudo-tunnel Teredo arrêté"
 
-#: src/relay.c:426 src/relay.c:445 src/relay.c:462 src/relay.c:475
-#: src/relay.c:499 src/server.c:98 src/server.c:106 src/server.c:124
-#: src/isatap.c:360 src/isatap.c:371 src/isatap.c:383 src/checkconf.c:153
+#: src/relay.c:421 src/relay.c:440 src/relay.c:457 src/relay.c:470
+#: src/relay.c:494 src/server.c:94 src/server.c:102 src/server.c:120
+#: src/isatap.c:356 src/isatap.c:367 src/isatap.c:379 src/checkconf.c:149
 msgid "Fatal configuration error"
 msgstr "Erreur fatale de configuration"
 
-#: src/relay.c:444 src/server.c:105 src/checkconf.c:107
+#: src/relay.c:439 src/server.c:101 src/checkconf.c:103
 msgid "Server address not specified"
 msgstr "Adresse du serveur non indiquée"
 
-#: src/relay.c:461 src/checkconf.c:111
+#: src/relay.c:456 src/checkconf.c:107
 msgid "Unsupported Teredo client mode"
 msgstr "Mode client Teredo non supporté"
 
-#: src/relay.c:526 src/relay.c:532 src/relay.c:596 src/isatap.c:414
-#: src/isatap.c:440
+#: src/relay.c:521 src/relay.c:527 src/relay.c:591 src/isatap.c:410
+#: src/isatap.c:436
 #, c-format
 msgid "Miredo setup failure: %s"
 msgstr "Échec du démarrage de Miredo : %s"
 
-#: src/relay.c:527 src/isatap.c:415
+#: src/relay.c:522 src/isatap.c:411
 msgid "Cannot create IPv6 tunnel"
 msgstr "Impossible de créer le tunnel IPv6"
 
-#: src/relay.c:533 src/relay.c:597
+#: src/relay.c:528 src/relay.c:592
 msgid "libteredo cannot be initialized"
 msgstr "Impossible d’initialiser libteredo"
 
-#: src/server.c:88
+#: src/server.c:84
 #, c-format
 msgid "Invalid server hostname \"%s\": %s"
 msgstr "Nom d’hôte invalide « %s » : %s"
 
-#: src/server.c:161
+#: src/server.c:157
 msgid "Teredo server fatal error"
 msgstr "Erreur fatale du serveur Teredo"
 
-#: src/conf.c:139
+#: src/conf.c:135
 #, c-format
 msgid "Superfluous directive %s at line %u"
 msgstr "Directive %s superflue à la ligne %u"
 
-#: src/conf.c:195
+#: src/conf.c:191
 #, c-format
 msgid "Error (%s): %s"
 msgstr "Erreur (%s) : %s"
 
-#: src/conf.c:248
+#: src/conf.c:244
 #, c-format
 msgid "Skipped overly long line %u"
 msgstr "Ligne %u trop longue ignorée"
 
-#: src/conf.c:265
+#: src/conf.c:261
 #, c-format
 msgid "Ignoring line %u: %s"
 msgstr "Line %u ignorée : %s"
 
-#: src/conf.c:273
+#: src/conf.c:269
 #, c-format
 msgid "Error reading configuration file: %s"
 msgstr "Erreur de lecture du fichier de configuration : %s"
 
-#: src/conf.c:297
+#: src/conf.c:293
 #, c-format
 msgid "Error opening configuration file %s: %s"
 msgstr "Erreur d’ouverture du fichier de configuration %s : %s"
 
-#: src/conf.c:325
+#: src/conf.c:321
 #, c-format
 msgid "Invalid integer value \"%s\" for %s: %s"
 msgstr "Valeur entière invalide « %s » pour %s : %s"
 
-#: src/conf.c:381
+#: src/conf.c:377
 #, c-format
 msgid "Invalid boolean value \"%s\" for %s"
 msgstr "Valeur booléenne incorrecte « %s » pour %s"
 
-#: src/conf.c:424 src/conf.c:455
+#: src/conf.c:420 src/conf.c:451
 #, c-format
 msgid "Invalid hostname \"%s\" at line %u: %s"
 msgstr "Nom d’hôte invalide « %s » à la ligne %u : %s"
 
-#: src/conf.c:481
+#: src/conf.c:477
 #, c-format
 msgid "Invalid Teredo IPv6 prefix: %x::/32"
 msgstr "Préfixe Teredo IPv6 invalide : %x::/32"
 
-#: src/conf.c:565
+#: src/conf.c:561
 #, c-format
 msgid "Unknown syslog facility \"%s\" at line %u"
 msgstr "Catégorie syslog « %s » inconnue à la ligne %u"
