@@ -1,11 +1,11 @@
 RELEASE NOTES for Miredo
-candidate release version 1.0.0
-================================
+stable release version 1.0.0
+=============================
 $Id$
 
-  This is a new stable release branch. There are no known outstanding issues,
-and quite a lot of bug fixes and improvements made their way into the code
-from the previous stable branch 0.8.x.
+  This is a stable release. There are no known outstanding issues. We
+strongly encourage users from previous releases to upgrade. There are a
+lot of bug fixes and improvements compared with branch 0.8.x.
   Please report any problem by email to miredo-devel (at) remlab (dot) net
 
   You can find major changes since version 0.1.0 below. For more general
@@ -16,7 +16,7 @@ ChangeLog.
 ============================================================================
 STABLE RELEASE 1.0.0 : Minor portability fixes
 
-# FreeBSD 4.11 build fixes.
+# Various minor build fixes.
 
 ============================================================================
 RELEASE CANDIDATE 0.9.9 : Minor portability fixes
