@@ -79,7 +79,7 @@ int main (void)
 	// Insertion stress test
 	srand ((unsigned int)seed);
 	t = clock ();
-	for (i = 0; count < STRESS_DELAY; i++)
+	for (i = 0; (count < STRESS_DELAY) && (i < 100000); i++)
 	{
 		teredo_peer *p;
 		bool create;
