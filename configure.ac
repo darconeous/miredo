@@ -181,27 +181,19 @@ AC_MSG_RESULT([${enable_teredo_client}])
 
 
 # Configuration files installation
-AC_MSG_CHECKING([how to install configuration files])
-AC_ARG_ENABLE(erase-conf,
-	[AS_HELP_STRING(--enable-erase-conf,
-		[erase configuration files (default disabled)])],,
-	[enable_erase_conf="no"])
+AC_ARG_ENABLE(examplesdir,
+	[AS_HELP_STRING(--enable-examplesdir,
+		[install sample config files (default ${docdir}/examples)])],,
+	[enable_examplesdir='${docdir}/examples'])
+AS_IF([test "x${enable_examplesdir}" != "xno"],
+	[examplesdir="${enable_examplesdir}"])
+AC_SUBST(examplesdir)
+
 AC_ARG_ENABLE(sample-conf,
 	[AS_HELP_STRING(--disable-sample-conf,
 		[do not install sample config files (default enabled)])],,
 	[enable_sample_conf="yes"])
-AM_CONDITIONAL(CONF_ERASE, [test "${enable_erase_conf}" != "no"])
 AM_CONDITIONAL(CONF_SAMPLE, [test "${enable_sample_conf}" != "no"])
-AS_IF([test "${enable_erase_conf}" != "no"], [
-	conf_msg="replace existing"
-], [
-	AS_IF([test "${enable_sample_conf}" != "no"], [
-		conf_msg="install samples"
-	], [
-		conf_msg="do nothing"
-	])
-])
-AC_MSG_RESULT([${conf_msg}])
 
 
 # Unprivileged user
@@ -270,5 +262,5 @@ int clock_nanosleep (clockid_t id, int flags, const struct timespec *ts,
 
 # END
 AS_MESSAGE(writing results...)
-AC_CONFIG_FILES([Makefile m4/Makefile doc/Makefile compat/Makefile libtun6/Makefile libteredo/Makefile libteredo/test/Makefile src/Makefile po/Makefile.in ])
+AC_CONFIG_FILES([Makefile m4/Makefile doc/Makefile misc/Makefile compat/Makefile libtun6/Makefile libteredo/Makefile libteredo/test/Makefile src/Makefile po/Makefile.in ])
 AC_OUTPUT

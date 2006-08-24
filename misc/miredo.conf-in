@@ -1,3 +1,5 @@
+#! @sbindir@/miredo -f -c
+#
 # Sample configuration file for Miredo
 # $Id$
 

@@ -19,29 +19,12 @@
 
 ACLOCAL_AMFLAGS = -I m4
 
-SUBDIRS = po doc compat libteredo libtun6 src
+SUBDIRS = po doc misc compat libteredo libtun6 src
 DIST_SUBDIRS = m4 $(SUBDIRS)
 noinst_HEADERS = include/gettext.h
 EXTRA_DIST = autogen.sh autopackage/default.apspec.in
 
-if CONF_ERASE
-dist_sysconf_DATA = \
-	misc/miredo.conf \
-	misc/miredo-server.conf \
-	misc/isatapd.conf
-else
 if CONF_SAMPLE
-nodist_sysconf_DATA = \
-	misc/miredo.conf-dist \
-	misc/miredo-server.conf-dist \
-	misc/isatapd.conf-dist
-
-.conf.conf-dist:
-	mkdir -p -- "$$(dirname -- "$@")"
-	cat $< > $@
-
-MOSTLYCLEANFILES = $(nodist_sysconf_DATA)
-
 # For user's convenience, we install miredo.conf
 # iif it does not already exist.
 # Packagers might consider using --enable-erase-conf instead
@@ -58,7 +41,7 @@ install-data-hook:
 	@echo "  $(miredo_conf)-dist"
 	@echo " "
 	@if test ! -e "$(DESTDIR)$(miredo_conf)"; then \
-		cp -- "$(DESTDIR)$(miredo_conf)-dist" "$(DESTDIR)$(miredo_conf)" ; \
+		cp -- "$(DESTDIR)$(exampledir)/miredo.conf" "$(DESTDIR)$(miredo_conf)" ; \
 		echo "No pre-existing configuration file for Miredo" ; \
 		echo "could be found, so the sample as been copied as" ; \
 		echo "  $(miredo_conf) too." ; \
@@ -70,7 +53,6 @@ install-data-hook:
 	@echo "Please take time to review the settings and adjust them"
 	@echo "if necessary. Once finished, save the file as:"
 	@echo "  $(miredo_conf) and run miredo (as root)."
-endif
 endif
 
 # Safe automatic ChangeLog update

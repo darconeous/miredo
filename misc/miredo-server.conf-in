@@ -1,3 +1,5 @@
+#! @sbindir@/miredo-server -f -c
+#
 # Sample configuration file for miredo-server
 # $Id$
 

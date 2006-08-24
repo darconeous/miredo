@@ -17,22 +17,11 @@
 # *  http://www.gnu.org/copyleft/gpl.html                               *
 # ***********************************************************************
 
-EXTRA_DIST = miredo.in miredo-server.in
-noinst_SCRIPTS = miredo miredo-server
-CLEANFILES = $(noinst_SCRIPTS)
+nodist_examples_DATA = miredo.conf miredo-server.conf isatapd.conf
+EXTRA_DIST = miredo.conf-in miredo-server.conf-in isatapd.conf-in
+MOSTLYCLEANFILES = $(nodist_examples_DATA)
 
-edit = sed \
-	-e 's,@localstatedir\@,$(localstatedir),g' \
-	-e 's,@sbindir\@,$(sbindir),g' \
-	-e 's,@sysconfdir\@,$(sysconfdir),g'
-editexec = \
-	rm -f -- $@ $@.tmp ; \
-	$(edit) $< > $@.tmp ; \
-	chmod -- +x $@.tmp ; \
-	mv -- $@.tmp $@
+.conf-in.conf:
+	rm -f -- $@
+	sed -e 's,@sbindir\@,$(sbindir),g' < $< > $@
 
-miredo: miredo.in Makefile
-	$(editexec)
-
-miredo-server: miredo-server.in Makefile
-	$(editexec)
