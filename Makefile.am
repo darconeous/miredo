@@ -40,7 +40,7 @@ install-data-hook:
 	@echo "  $(miredo_conf)-dist"
 	@echo " "
 	@if test ! -e "$(DESTDIR)$(miredo_conf)"; then \
-		cp -- "$(DESTDIR)$(exampledir)/miredo.conf" "$(DESTDIR)$(miredo_conf)" ; \
+		cp -- "$(DESTDIR)$(examplesdir)/miredo.conf" "$(DESTDIR)$(miredo_conf)" || exit $$?; \
 		echo "No pre-existing configuration file for Miredo" ; \
 		echo "could be found, so the sample as been copied as" ; \
 		echo "  $(miredo_conf) too." ; \
