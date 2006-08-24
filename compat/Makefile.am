@@ -1,5 +1,4 @@
 # Makefile.am - compat/ directory Makefile for miredo
-# $Id$
 
 # ***********************************************************************
 # *  Copyright © 2006 Rémi Denis-Courmont.                              *

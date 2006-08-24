@@ -1,5 +1,4 @@
 # Makefile.am - doc Makefile for miredo
-# $Id$
 
 # ***********************************************************************
 # *  Copyright © 2004-2006 Rémi Denis-Courmont.                         *
