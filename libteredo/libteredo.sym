@@ -14,7 +14,6 @@ teredo_set_recv_callback
 teredo_set_state_cb
 teredo_run
 teredo_run_async
-teredo_register_readset
 teredo_transmit
 teredo_cone
 teredo_restrict
