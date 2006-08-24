@@ -210,13 +210,7 @@ int main(int argc, char *argv[])
 		const char *srcdir = getenv ("srcdir");
 
 		if (srcdir != NULL)
-		{
-
-			if (asprintf (&path, "%s/../misc/miredo.conf",
-			              srcdir) == -1)
-				return 1;
-			filename = path;
-		}
+			filename = "../misc/miredo.conf";
 		else
 			filename = conffile;
 	}
