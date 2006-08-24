@@ -29,7 +29,8 @@ if CONF_SAMPLE
 # Packagers might consider using --enable-erase-conf instead
 # or do everything by hand with --disable-sample-conf.
 
-miredo_conf = $(sysconfdir)/miredo.conf
+example = $(examplesdir)/miredo.conf
+conf = $(sysconfdir)/miredo.conf
 
 install-data-hook:
 	@echo "************************"
@@ -37,21 +38,22 @@ install-data-hook:
 	@echo "************************"
 	@echo " "
 	@echo "A sample configuration file has been installed at:"
-	@echo "  $(miredo_conf)-dist"
+	@echo "  $(examplesdir)/miredo.conf"
 	@echo " "
-	@if test ! -e "$(DESTDIR)$(miredo_conf)"; then \
-		cp -- "$(DESTDIR)$(examplesdir)/miredo.conf" "$(DESTDIR)$(miredo_conf)" || exit $$?; \
+	@if test ! -e "$(DESTDIR)$(conf)"; then \
+		mkdir -p -- "$(DESTDIR)$(sysconfdir)" || exit $$? ; \
+		cp -- "$(DESTDIR)$(example)" "$(DESTDIR)$(conf)" || exit $$?; \
 		echo "No pre-existing configuration file for Miredo" ; \
 		echo "could be found, so the sample as been copied as" ; \
-		echo "  $(miredo_conf) too." ; \
+		echo "  $(conf) too." ; \
 	else \
 		echo "There was already a configuration file at:" ; \
-		echo "  $(miredo_conf) - it was not modified." ; \
+		echo "  $(conf) - it was not modified." ; \
 	fi
 	@echo " "
 	@echo "Please take time to review the settings and adjust them"
 	@echo "if necessary. Once finished, save the file as:"
-	@echo "  $(miredo_conf) and run miredo (as root)."
+	@echo "  $(conf) and run miredo (as root)."
 endif
 
 # Safe automatic ChangeLog update
