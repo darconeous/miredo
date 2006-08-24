@@ -22,8 +22,3 @@ teredo_recv
 teredo_wait_recv
 teredo_send
 teredo_sendv
-teredo_list_create
-teredo_list_destroy
-teredo_list_reset
-teredo_list_lookup
-teredo_list_release
