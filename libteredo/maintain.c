@@ -74,8 +74,8 @@ static inline void gettime (struct timespec *now)
 	clock_gettime (CLOCK_REALTIME, now);
 }
 
-//# warning Using real-time rather than monotonic clock:
-//# warning Teredo client maintenance might not work properly!
+# warning Using real-time rather than monotonic clock:
+# warning Teredo client maintenance might not work properly!
 # undef CLOCK_MONOTONIC
 # define CLOCK_MONOTONIC CLOCK_REALTIME
 # define pthread_condattr_setclock( a, c ) (0)
