@@ -19,7 +19,7 @@
  *  http://www.gnu.org/copyleft/gpl.html                               *
  ***********************************************************************/
 
-#if HAVE_CONFIG_H
+#ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
 
@@ -33,7 +33,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <fcntl.h> // fcntl()
-#if HAVE_SYS_CAPABILITY_H
+#ifdef HAVE_SYS_CAPABILITY_H
 # include <sys/capability.h>
 #endif
 #ifndef AF_LOCAL

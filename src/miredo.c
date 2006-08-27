@@ -22,7 +22,7 @@
  *  http://www.gnu.org/copyleft/gpl.html                               *
  ***********************************************************************/
 
-#if HAVE_CONFIG_H
+#ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
 
@@ -42,7 +42,7 @@
 #include <syslog.h>
 #include <unistd.h> // uid_t
 #include <sys/wait.h> // waitpid()
-#if HAVE_SYS_CAPABILITY_H
+#ifdef HAVE_SYS_CAPABILITY_H
 # include <sys/capability.h>
 #endif
 

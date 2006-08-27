@@ -224,24 +224,24 @@ AH_BOTTOM([
 #ifdef __cplusplus
 extern "C" {
 #endif
-#if !HAVE_CLEARENV
+#ifndef HAVE_CLEARENV
 int clearenv (void);
 #endif
-#if !HAVE_CLOSEFROM
+#ifndef HAVE_CLOSEFROM
 int closefrom (int lowfd);
 #endif
-#if !HAVE_STRLCPY
+#ifndef HAVE_STRLCPY
 # include <stddef.h>
 size_t strlcpy (char *tgt, const char *str, size_t len);
 #endif
-#if !HAVE_CLOCK_GETTIME
+#ifndef HAVE_CLOCK_GETTIME
 # include <time.h>
 # ifndef CLOCK_REALTIME
 #  define CLOCK_REALTIME 0
 # endif
 int clock_gettime (clockid_t id, struct timespec *now);
 #endif
-#if !HAVE_CLOCK_NANOSLEEP
+#ifndef HAVE_CLOCK_NANOSLEEP
 # include <time.h>
 # ifndef TIMER_ABSTIME
 #  define TIMER_ABSTIME 1

@@ -19,7 +19,7 @@
  *  http://www.gnu.org/copyleft/gpl.html                               *
  ***********************************************************************/
 
-#if HAVE_CONFIG_H
+#ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
 
@@ -452,7 +452,7 @@ tun6_setState (tun6 *t, bool up)
 }
 
 
-#ifdef USE_BSD
+#if defined (USE_BSD)
 /**
  * Converts a prefix length to a netmask (used for the BSD routing)
  */
@@ -482,7 +482,7 @@ plen_to_sin6 (unsigned plen, struct sockaddr_in6 *sin6)
 
 	/* NetBSD kernel strangeness:
 	 sin6->sin6_family = AF_INET6;*/
-# if HAVE_SA_LEN
+# ifdef HAVE_SA_LEN
 	sin6->sin6_len = sizeof (struct sockaddr_in6);
 # endif
 	plen_to_mask (plen, &sin6->sin6_addr);

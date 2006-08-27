@@ -19,7 +19,7 @@
  *  http://www.gnu.org/copyleft/gpl.html                               *
  ***********************************************************************/
 
-#if HAVE_CONFIG_H
+#ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
 
@@ -38,7 +38,7 @@
 #ifndef NDEBUG
 # define JUDYERROR_NOTEST 1
 #endif
-#if HAVE_JUDY_H
+#ifdef HAVE_JUDY_H
 # include <Judy.h>
 #endif
 
@@ -169,7 +169,7 @@ struct teredo_peerlist
 	pthread_t gc;
 	pthread_mutex_t lock;
 	pthread_cond_t cond;
-#if HAVE_LIBJUDY
+#ifdef HAVE_LIBJUDY
 	Pvoid_t PJHSArray;
 #endif
 };
@@ -218,7 +218,7 @@ static void *garbage_collector (void *data)
 					break;
 
 				// The victim was not touched in the mean time... destroy it.
-#if HAVE_LIBJUDY
+#ifdef HAVE_LIBJUDY
 				int Rc_int;
 				JHSD (Rc_int, l->PJHSArray, (uint8_t *)&p->key, 16);
 #endif
@@ -277,7 +277,7 @@ teredo_peerlist *teredo_list_create (unsigned max, unsigned expiration)
 	l->sentinel.next = l->sentinel.prev = &l->sentinel;
 	l->left = max;
 	l->expiration = expiration;
-#if HAVE_LIBJUDY
+#ifdef HAVE_LIBJUDY
 	l->PJHSArray = (Pvoid_t)NULL;
 #endif
 
@@ -301,7 +301,7 @@ void teredo_list_reset (teredo_peerlist *l, unsigned max)
 {
 	pthread_mutex_lock (&l->lock);
 
-#if HAVE_LIBJUDY
+#ifdef HAVE_LIBJUDY
 	// detach old array
 	Pvoid_t array = l->PJHSArray;
 	l->PJHSArray = (Pvoid_t)NULL;
@@ -333,7 +333,7 @@ void teredo_list_reset (teredo_peerlist *l, unsigned max)
 		p = buf;
 	}
 
-#if HAVE_LIBJUDY
+#ifdef HAVE_LIBJUDY
 	// destroy the old array that was detached before unlocking
 	long Rc_word;
 	JHSFA (Rc_word, array);
@@ -384,7 +384,7 @@ teredo_peer *teredo_list_lookup (teredo_peerlist *restrict list, time_t atime,
 
 	pthread_mutex_lock (&list->lock);
 
-#if HAVE_LIBJUDY
+#ifdef HAVE_LIBJUDY
 	teredo_listitem **pp = NULL;
 
 	/* Judy dynamic array-based fast lookup */
@@ -469,7 +469,7 @@ teredo_peer *teredo_list_lookup (teredo_peerlist *restrict list, time_t atime,
 
 	if (p == NULL)
 	{
-#if HAVE_LIBJUDY
+#ifdef HAVE_LIBJUDY
 		int Rc_int;
 		JHSD (Rc_int, list->PJHSArray, (uint8_t *)addr, sizeof (*addr));
 #endif
@@ -494,7 +494,7 @@ teredo_peer *teredo_list_lookup (teredo_peerlist *restrict list, time_t atime,
 	assert (p->next->prev == p);
 	assert (p->prev->next == p);
 
-#if HAVE_LIBJUDY
+#ifdef HAVE_LIBJUDY
 	*pp = p;
 #endif
 	memcpy (&p->key.ip6, addr, sizeof (struct in6_addr));

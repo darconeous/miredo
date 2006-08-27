@@ -20,7 +20,7 @@
  *  http://www.gnu.org/copyleft/gpl.html                               *
  ***********************************************************************/
 
-#if HAVE_CONFIG_H
+#ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
 
@@ -47,7 +47,7 @@
 #include <pwd.h> /* getpwnam() */
 #include <grp.h> /* setgroups() */
 
-#if HAVE_GETOPT_H
+#ifdef HAVE_GETOPT_H
 # include <getopt.h>
 #endif
 

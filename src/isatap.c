@@ -19,7 +19,7 @@
  *  http://www.gnu.org/copyleft/gpl.html                               *
  ***********************************************************************/
 
-#if HAVE_CONFIG_H
+#ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
 
@@ -151,7 +151,7 @@ static int get_bind_ipv4 (uint32_t conn_ipv4, uint32_t *bind_ipv4)
 	struct sockaddr_in addr =
 	{
 		.sin_family = AF_INET,
-#if HAVE_SA_LEN
+#ifdef HAVE_SA_LEN
 		.sin_len = sizeof (struct sockaddr_in),
 #endif
 		.sin_addr.s_addr = conn_ipv4
