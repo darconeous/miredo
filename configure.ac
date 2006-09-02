@@ -109,7 +109,7 @@ AC_CHECK_TYPE([clockid_t],, [
 
 # Checks for library functions.
 AS_MESSAGE([checking library functions...])
-AC_CHECK_FUNCS([devname_r])
+AC_CHECK_FUNCS([devname_r pthread_condattr_setclock])
 RDC_REPLACE_FUNC_GETOPT_LONG
 LIBS_save="$LIBS"
 LIBS="$LIBRT $LIBS"
@@ -211,46 +211,7 @@ AS_IF([test "${enable_miredo_user}" != "root"], [
 
 
 # Defines for <config.h>
-AH_BOTTOM([
-#define _( str )		dgettext (PACKAGE_NAME, str)
-#define N_( str )		gettext_noop (str)
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-#ifndef HAVE_CLEARENV
-int clearenv (void);
-#endif
-#ifndef HAVE_CLOSEFROM
-int closefrom (int lowfd);
-#endif
-#ifndef HAVE_STRLCPY
-# include <stddef.h>
-size_t strlcpy (char *tgt, const char *str, size_t len);
-#endif
-#ifndef HAVE_CLOCK_GETTIME
-# include <time.h>
-# ifndef CLOCK_REALTIME
-#  define CLOCK_REALTIME 0
-# endif
-int clock_gettime (clockid_t id, struct timespec *now);
-#endif
-#ifndef HAVE_CLOCK_NANOSLEEP
-# include <time.h>
-# ifndef TIMER_ABSTIME
-#  define TIMER_ABSTIME 1
-# endif
-# undef _POSIX_CLOCK_SELECTION
-# define _POSIX_CLOCK_SELECTION (-1)
-# undef _POSIX_MONOTONIC_CLOCK
-# define _POSIX_MONOTONIC_CLOCK (-1)
-int clock_nanosleep (clockid_t id, int flags, const struct timespec *ts,
-                     struct timespec *ots);
-#endif
-#ifdef __cplusplus
-}
-#endif
-])
+AH_BOTTOM([#include "compat/fixups.h"])
 
 
 # END
