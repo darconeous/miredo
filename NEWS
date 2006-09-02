@@ -14,9 +14,10 @@ changes, run “miredo -h” to get help. For detailled internal changes, see
 ChangeLog.
 
 ============================================================================
-STABLE RELEASE 1.0.01 : Minor portability fixes
+STABLE RELEASE 1.0.1 : Minor portability fixes
 
 # Install configuration file samples into a dedicated directory.
+# Build fixes (libteredo would not link on Mac OS X).
 
 ============================================================================
 STABLE RELEASE 1.0.0 : Minor portability fixes
