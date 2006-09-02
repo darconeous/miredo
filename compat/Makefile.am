@@ -18,9 +18,8 @@
 
 AM_CPPFLAGS = -D_REENTRANT -I@top_srcdir@
 
-noinst_HEADERS = barrier.h pselect.h
 noinst_LTLIBRARIES = libcompat.la
-libcompat_la_SOURCES = dummy.c
+libcompat_la_SOURCES = fixups.h dummy.c barrier.h pselect.h
 libcompat_la_LIBADD = $(LTLIBOBJS)
 libcompat_la_LDFLAGS = -no-undefined
 

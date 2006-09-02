@@ -29,25 +29,25 @@
 #define N_( str )		gettext_noop (str)
 
 #ifdef __cplusplus
-# define EXPORT extern "C"
+# define EXTERN extern "C"
 #else
-# define EXPORT
+# define EXTERN
 #endif
 
 /* Non standard */
 #ifndef HAVE_CLEARENV
-EXPORT int clearenv (void);
+EXTERN int clearenv (void);
 #endif
 
 /* Non standard but useful OpenBSDism */
 #ifndef HAVE_CLOSEFROM
-EXPORT int closefrom (int lowfd);
+EXTERN int closefrom (int lowfd);
 #endif
 
 /* Another useful BSDism */
 #ifndef HAVE_STRLCPY
 # include <stddef.h>
-EXPORT size_t strlcpy (char *tgt, const char *str, size_t len);
+EXTERN size_t strlcpy (char *tgt, const char *str, size_t len);
 #endif
 
 /* _Standard_ POSIX - for broken and obsolete OSes */
