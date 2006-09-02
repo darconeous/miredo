@@ -20,20 +20,22 @@
  ***********************************************************************/
 
 
-#ifndef __MIREDO_COMPAT_BARRIER_H
-# define __MIREDO_COMPAT_BARRIER_H
+#ifndef MIREDO_COMPAT_BARRIER_H
+# define MIREDO_COMPAT_BARRIER_H
 
+# if !HAVE_PTHREAD_BARRIER_WAIT
 /*
  * Of course, someone had to mess with barriers. uclibc does not support them,
  * but still defines not only PTHREAD_BARRIER_SERIAL_THREAD, but also, the
  * associated typedefs, and *even* _POSIX_BARRIERS (!!) which is supposed to
  * mean that they are supported. No thanks.
  */
-# ifndef PTHREAD_BARRIER_SERIAL_THREAD
-#  define PTHREAD_BARRIER_SERIAL_THREAD (-1)
-# endif
+#  undef _POSIX_BARRIERS
+#  define _POSIX_BARRIES (-1)
 
-# if !HAVE_PTHREAD_BARRIER
+#  undef PTHREAD_BARRIER_SERIAL_THREAD
+#  define PTHREAD_BARRIER_SERIAL_THREAD (-1)
+
 #  define pthread_barrier_t compat_pthread_barrier_t
 #  define pthread_barrierattr_t compat_pthread_barrierattr_t
 typedef struct
@@ -63,4 +65,4 @@ int pthread_barrierattr_destroy (pthread_barrierattr_t *attr);
 }
 #  endif
 # endif /* !HAVE_PTHREAD_BARRIER */
-#endif /* __MIREDO_COMPAT_BARRIER_H */
+#endif /* MIREDO_COMPAT_BARRIER_H */

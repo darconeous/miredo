@@ -113,14 +113,8 @@ AC_CHECK_FUNCS([devname_r])
 RDC_REPLACE_FUNC_GETOPT_LONG
 LIBS_save="$LIBS"
 LIBS="$LIBRT $LIBS"
-AC_REPLACE_FUNCS([clearenv closefrom pselect strlcpy clock_gettime clock_nanosleep])
+AC_REPLACE_FUNCS([clearenv closefrom pselect strlcpy clock_gettime clock_nanosleep pthread_barrier_wait])
 LIBS="$LIBS_save"
-
-AC_CHECK_FUNC([pthread_barrier_wait], [
-  AC_DEFINE([HAVE_PTHREAD_BARRIER], 1, [Define to 1 if you have pthread_barrier_*.])
-], [
-  AC_LIBOBJ([barrier])
-])
 
 # Checks for optionnal features
 AS_MESSAGE([checking optional features...])
