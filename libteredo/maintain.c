@@ -469,7 +469,6 @@ teredo_maintenance *
 teredo_maintenance_start (int fd, teredo_state_cb cb, void *opaque,
                           const char *s1, const char *s2)
 {
-	int err;
 	teredo_maintenance *m = (teredo_maintenance *)malloc (sizeof (*m));
 
 	if (m == NULL)
@@ -487,51 +486,37 @@ teredo_maintenance_start (int fd, teredo_state_cb cb, void *opaque,
 		return NULL;
 	}
 
-	if (s2 != NULL)
-	{
-		m->server2 = strdup (s2);
-		if (m->server2 == NULL)
-		{
-			free (m->server);
-			free (m);
-			return NULL;
-		}
-	}
-	else
-		m->server2 = NULL;
+	m->server2 = (s2 != NULL) ? strdup (s2) : NULL;
+	if ((s2 != NULL) != (m->server2 != NULL))
+		goto error;
 
-	err = pthread_mutex_init (&m->lock, NULL);
+	pthread_condattr_t attr;
+
+	pthread_condattr_init (&attr);
+	if (pthread_condattr_setclock (&attr, CLOCK_MONOTONIC))
+	{
+		pthread_condattr_destroy (&attr);
+		goto error;
+	}
+
+	pthread_cond_init (&m->received, &attr);
+	pthread_condattr_destroy (&attr);
+
+	pthread_mutex_init (&m->lock, NULL);
+	pthread_barrier_init (&m->processed, NULL, 2);
+
+	int err = pthread_create (&m->thread, NULL, do_maintenance, m);
 	if (err == 0)
-	{
-		pthread_condattr_t attr;
+		return m;
 
-		err = pthread_condattr_init (&attr);
-		if (err == 0)
-		{
-			(void)pthread_condattr_setclock (&attr, CLOCK_MONOTONIC);
-
-			err = pthread_cond_init (&m->received, &attr);
-			pthread_condattr_destroy (&attr);
-
-			if (err == 0)
-			{
-				err = pthread_barrier_init (&m->processed, NULL, 2);
-				if (err == 0)
-				{
-					err = pthread_create (&m->thread, NULL, do_maintenance, m);
-					if (err == 0)
-						return m;
-	
-					pthread_barrier_destroy (&m->processed);
-				}
-				pthread_cond_destroy (&m->received);
-			}
-		}
-		pthread_mutex_destroy (&m->lock);
-	}
 	syslog (LOG_ALERT, _("Error (%s): %s\n"), "pthread_create",
-	        strerror (err));
+			strerror (err));
 
+	pthread_barrier_destroy (&m->processed);
+	pthread_cond_destroy (&m->received);
+	pthread_mutex_destroy (&m->lock);
+
+error:
 	if (m->server2 != NULL)
 		free (m->server2);
 	free (m->server);
@@ -547,8 +532,11 @@ void teredo_maintenance_stop (teredo_maintenance *m)
 {
 	pthread_cancel (m->thread);
 	pthread_join (m->thread, NULL);
+
+	pthread_barrier_destroy (&m->processed);
 	pthread_cond_destroy (&m->received);
 	pthread_mutex_destroy (&m->lock);
+
 	if (m->server2 != NULL)
 		free (m->server2);
 	free (m->server);
