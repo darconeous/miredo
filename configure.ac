@@ -145,7 +145,7 @@ AS_IF([test "${with_Judy}" != "no"], [
 			AC_DEFINE(HAVE_LIBJUDY, 1,
 				  [Define to 1 if you the `Judy' library (-lJudy).])
 		], [
-			AS_IF([test "${with_judy}"], [
+			AS_IF([test "${with_Judy}"], [
 				AC_MSG_ERROR([Judy requested while not available])
 			])
 		])
