@@ -30,17 +30,14 @@ int clock_nanosleep (clockid_t id, int flags, const struct timespec *ts,
                      struct timespec *ots)
 {
 	if (id != CLOCK_REALTIME)
-	{
-		errno = EINVAL;
-		return -1;
-	}
+		return EINVAL;
 
 	if (flags & TIMER_ABSTIME)
 	{
 		struct timespec mine;
 
 		if (clock_gettime (id, &mine))
-			return -1;
+			return errno;
 
 		if (mine.tv_sec > ts->tv_sec)
 			return 0; // behind schedule
@@ -59,9 +56,9 @@ int clock_nanosleep (clockid_t id, int flags, const struct timespec *ts,
 		mine.tv_sec = ts->tv_sec - mine.tv_sec;
 
 		/* With TIMER_ABSTIME, clock_nanosleep ignores <ots> */
-		return nanosleep (&mine, NULL);
+		return nanosleep (&mine, NULL) ? errno : 0;
 	}
 
-	return nanosleep (ts, ots);
+	return nanosleep (ts, ots) ? errno : 0;
 }
 
