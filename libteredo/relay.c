@@ -1092,14 +1092,19 @@ int teredo_set_prefix (teredo_tunnel *t, uint32_t prefix)
 	if (!is_valid_teredo_prefix (prefix))
 		return -1;
 
+	int retval = 0;
+
 	pthread_rwlock_wrlock (&t->state_lock);
+
 #ifdef MIREDO_TEREDO_CLIENT
 	if (t->maintenance != NULL)
-		return 0;
+		retval = -1;
+	else
 #endif
-	t->state.addr.teredo.prefix = prefix;
+		t->state.addr.teredo.prefix = prefix;
+
 	pthread_rwlock_unlock (&t->state_lock);
-	return 0;
+	return retval;
 }
 
 
