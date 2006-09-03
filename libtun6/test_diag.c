@@ -57,7 +57,7 @@ int main (void)
 	if (t == NULL)
 	{
 		puts ("Warning: cannot perform full libtun6 test");
-		return 0;
+		return 77;
 	}
 
 	/* TODO: further testing */
