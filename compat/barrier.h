@@ -23,7 +23,7 @@
 #ifndef MIREDO_COMPAT_BARRIER_H
 # define MIREDO_COMPAT_BARRIER_H
 
-# if !HAVE_PTHREAD_BARRIER_WAIT
+# ifndef HAVE_PTHREAD_BARRIER_WAIT
 /*
  * Of course, someone had to mess with barriers. uclibc does not support them,
  * but still defines not only PTHREAD_BARRIER_SERIAL_THREAD, but also, the
