@@ -1012,7 +1012,7 @@ static void *teredo_recv_thread (void *t)
 
 		if (teredo_wait_recv (tunnel->fd, &packet) == 0)
 		{
-			pthread_setcancelstate (PTHREAD_CANCEL_ENABLE, NULL);
+			pthread_setcancelstate (PTHREAD_CANCEL_DISABLE, NULL);
 			teredo_run_inner (tunnel, &packet);
 			pthread_setcancelstate (PTHREAD_CANCEL_ENABLE, NULL);
 		}
