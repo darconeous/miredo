@@ -36,8 +36,15 @@
 #  undef PTHREAD_BARRIER_SERIAL_THREAD
 #  define PTHREAD_BARRIER_SERIAL_THREAD (-1)
 
-#  define pthread_barrier_t compat_pthread_barrier_t
-#  define pthread_barrierattr_t compat_pthread_barrierattr_t
+#  define pthread_barrier_t           compat_pthread_barrier_t
+#  define pthread_barrier_init        compat_pthread_barrier_init
+#  define pthread_barrier_destroy     compat_pthread_barrier_destroy
+#  define pthread_barrier_wait        compat_pthread_barrier_wait
+
+#  define pthread_barrierattr_t       compat_pthread_barrierattr_t
+#  define pthread_barrierattr_init    compat_pthread_barrierattr_init
+#  define pthread_barrierattr_destroy compat_pthread_barrierattr_destroy
+
 typedef struct
 {
 	pthread_mutex_t mutex;
