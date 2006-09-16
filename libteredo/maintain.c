@@ -69,7 +69,10 @@ static inline void gettime (struct timespec *now)
 		clock_gettime (CLOCK_REALTIME, now);
 }
 #else
-# define pthread_condattr_setclock( a, c ) (0)
+# define pthread_condattr_setclock( a, c ) (((c) != CLOCK_REALTIME) ? EINVAL : 0)
+# ifndef CLOCK_MONOTONIC
+#  define CLOCK_MONOTONIC CLOCK_REALTIME
+# endif
 
 static inline void gettime (struct timespec *now)
 {
@@ -491,7 +494,7 @@ teredo_maintenance_start (int fd, teredo_state_cb cb, void *opaque,
 	pthread_condattr_t attr;
 
 	pthread_condattr_init (&attr);
-	pthread_condattr_setclock (&attr, CLOCK_MONOTONIC);
+	(void)pthread_condattr_setclock (&attr, CLOCK_MONOTONIC);
 	/* EINVAL: CLOCK_MONOTONIC unknown */
 
 	pthread_cond_init (&m->received, &attr);
