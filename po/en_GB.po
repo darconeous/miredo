@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: miredo 0.8.1\n"
 "Report-Msgid-Bugs-To: miredo-devel_no_bulk_mail@remlab.net\n"
-"POT-Creation-Date: 2006-08-21 20:10+0300\n"
+"POT-Creation-Date: 2006-09-18 18:22+0300\n"
 "PO-Revision-Date: 2006-03-20 15:39+0100\n"
 "Last-Translator: Rémi Denis-Courmont <rdenis (at) simphalempin (dot) com>\n"
 "Language-Team: N/A\n"
@@ -26,7 +26,7 @@ msgid ""
 "Teredo server UDP socket error: Server IPv4 addresses must be global unicast."
 msgstr ""
 
-#: libteredo/server.c:511 libteredo/server.c:522 libteredo/maintain.c:532
+#: libteredo/server.c:511 libteredo/server.c:522 libteredo/maintain.c:510
 #: libtun6/tun6.c:616 src/main.c:287 src/main.c:315 src/main.c:356
 #: src/main.c:495 src/miredo.c:103 src/miredo.c:111 src/miredo.c:233
 #, c-format
@@ -41,45 +41,45 @@ msgstr ""
 msgid "Invalid Teredo prefix received"
 msgstr ""
 
-#: libteredo/maintain.c:175
+#: libteredo/maintain.c:176
 msgid "Authentication with server failed."
 msgstr ""
 
-#: libteredo/maintain.c:244
+#: libteredo/maintain.c:245
 msgid "Too much time drift. Resynchronizing."
 msgstr "Too much time drift. Resynchronising."
 
-#: libteredo/maintain.c:305
+#: libteredo/maintain.c:306
 #, c-format
 msgid "Cannot resolve Teredo server address \"%s\": %s"
 msgstr "Cannot resolve Teredo server address “%s”: %s"
 
-#: libteredo/maintain.c:317
+#: libteredo/maintain.c:318
 msgid "Server has a non global IPv4 address. It will most likely not work."
 msgstr ""
 
-#: libteredo/maintain.c:374
+#: libteredo/maintain.c:375
 msgid "Lost Teredo connectivity"
 msgstr ""
 
-#: libteredo/maintain.c:382
+#: libteredo/maintain.c:383
 msgid "No reply from Teredo server"
 msgstr ""
 
-#: libteredo/maintain.c:403
+#: libteredo/maintain.c:404
 msgid "Teredo address/MTU changed"
 msgstr ""
 
-#: libteredo/maintain.c:421
+#: libteredo/maintain.c:422
 msgid "Unsupported symmetric NAT detected."
 msgstr ""
 
-#: libteredo/maintain.c:428
+#: libteredo/maintain.c:429
 #, c-format
 msgid "Qualified (NAT type: %s)"
 msgstr ""
 
-#: libteredo/maintain.c:429
+#: libteredo/maintain.c:430
 msgid "restricted"
 msgstr ""
 

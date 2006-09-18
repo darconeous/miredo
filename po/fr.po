@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: miredo 0.8.1\n"
 "Report-Msgid-Bugs-To: miredo-devel_no_bulk_mail@remlab.net\n"
-"POT-Creation-Date: 2006-08-21 20:10+0300\n"
+"POT-Creation-Date: 2006-09-18 18:22+0300\n"
 "PO-Revision-Date: 2006-03-20 15:36+0100\n"
 "Last-Translator: Rémi Denis-Courmont <rdenis (at) simphalempin (dot) com>\n"
 "Language-Team: N/A\n"
@@ -28,7 +28,7 @@ msgstr ""
 "Erreur de socket UDP de serveur Teredo : l’adresse IPv4 de serveur doit être "
 "globale unicast."
 
-#: libteredo/server.c:511 libteredo/server.c:522 libteredo/maintain.c:532
+#: libteredo/server.c:511 libteredo/server.c:522 libteredo/maintain.c:510
 #: libtun6/tun6.c:616 src/main.c:287 src/main.c:315 src/main.c:356
 #: src/main.c:495 src/miredo.c:103 src/miredo.c:111 src/miredo.c:233
 #, c-format
@@ -43,47 +43,47 @@ msgstr "Plusieurs préfixes Teredo reçus"
 msgid "Invalid Teredo prefix received"
 msgstr "Préfixe Teredo reçu invalide"
 
-#: libteredo/maintain.c:175
+#: libteredo/maintain.c:176
 msgid "Authentication with server failed."
 msgstr "Authentification refusée par le serveur."
 
-#: libteredo/maintain.c:244
+#: libteredo/maintain.c:245
 msgid "Too much time drift. Resynchronizing."
 msgstr "Décalage temporel trop important. Re-synchronisation."
 
-#: libteredo/maintain.c:305
+#: libteredo/maintain.c:306
 #, c-format
 msgid "Cannot resolve Teredo server address \"%s\": %s"
 msgstr "Impossible de déterminer l’adresse du serveur Teredo « %s » : %s"
 
-#: libteredo/maintain.c:317
+#: libteredo/maintain.c:318
 msgid "Server has a non global IPv4 address. It will most likely not work."
 msgstr ""
 "Le serveur a une adresse IPv4 non globale. Ça ne fonctionnera "
 "vraisemblablement pas."
 
-#: libteredo/maintain.c:374
+#: libteredo/maintain.c:375
 msgid "Lost Teredo connectivity"
 msgstr "Connectivité Teredo perdue"
 
-#: libteredo/maintain.c:382
+#: libteredo/maintain.c:383
 msgid "No reply from Teredo server"
 msgstr "Pas de réponse du serveur Teredo"
 
-#: libteredo/maintain.c:403
+#: libteredo/maintain.c:404
 msgid "Teredo address/MTU changed"
 msgstr "Adresse/MTU Teredo changée"
 
-#: libteredo/maintain.c:421
+#: libteredo/maintain.c:422
 msgid "Unsupported symmetric NAT detected."
 msgstr "NAT symmétrique non supporté détecté."
 
-#: libteredo/maintain.c:428
+#: libteredo/maintain.c:429
 #, c-format
 msgid "Qualified (NAT type: %s)"
 msgstr "Qualifié (type de NAT : %s)"
 
-#: libteredo/maintain.c:429
+#: libteredo/maintain.c:430
 msgid "restricted"
 msgstr "restreint"
 
