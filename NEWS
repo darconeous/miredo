@@ -1,5 +1,5 @@
 RELEASE NOTES for Miredo
-stable release version 1.0.1
+stable release version 1.0.2
 =============================
 $Id$
 
@@ -12,6 +12,11 @@ lot of bug fixes and improvements compared with branch 0.8.x.
 informations on this program, see README. For syntax details and
 changes, run “miredo -h” to get help. For detailled internal changes, see
 ChangeLog.
+
+============================================================================
+STABLE RELEASE 1.0.2 : Minor portability and bug fixes
+
+# Several portability and minor/impossible bug fixes (see ChangeLog).
 
 ============================================================================
 STABLE RELEASE 1.0.1 : Minor portability fixes
