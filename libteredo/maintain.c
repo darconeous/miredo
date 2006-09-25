@@ -55,8 +55,6 @@
 #include "v4global.h" // is_ipv4_global_unicast()
 #include "debug.h"
 
-#include <compat/barrier.h>
-
 #define QUALIFIED	0
 #define PROBE_RESTRICT	2
 #define PROBE_SYMMETRIC	3
@@ -85,10 +83,12 @@ static inline void gettime (struct timespec *now)
 struct teredo_maintenance
 {
 	pthread_t thread;
-	pthread_mutex_t lock;
+	pthread_mutex_t outer;
+	pthread_mutex_t inner;
 	pthread_cond_t received;
+	pthread_cond_t processed;
+
 	const teredo_packet *incoming;
-	pthread_barrier_t processed;
 
 	int fd;
 	struct
@@ -197,7 +197,7 @@ static int wait_reply (teredo_maintenance *restrict m,
 	/* Ignore EINTR */
 	for (;;)
 	{
-		int val = pthread_cond_timedwait (&m->received, &m->lock, deadline);
+		int val = pthread_cond_timedwait (&m->received, &m->inner, deadline);
 
 		switch (val)
 		{
@@ -223,7 +223,7 @@ static void wait_reply_ignore (teredo_maintenance *restrict m,
 	while (wait_reply (m, deadline) == 0)
 	{
 		m->incoming = NULL;
-		(void)pthread_barrier_wait (&m->processed);
+		pthread_cond_signal (&m->processed);
 	}
 }
 
@@ -282,12 +282,12 @@ static inline void maintenance_thread (teredo_maintenance *m)
 	unsigned count = 0;
 	int state = PROBE_RESTRICT;
 
-	pthread_mutex_lock (&m->lock);
+	pthread_mutex_lock (&m->inner);
 
 	/*
 	 * Qualification/maintenance procedure
 	 */
-	pthread_cleanup_push (cleanup_unlock, &m->lock);
+	pthread_cleanup_push (cleanup_unlock, &m->inner);
 	for (;;)
 	{
 		/* Resolve server IPv4 addresses */
@@ -352,7 +352,7 @@ static inline void maintenance_thread (teredo_maintenance *m)
 			                           nonce, false, &mtu, &newaddr);
 			m->incoming = NULL;
 
-			(void)pthread_barrier_wait (&m->processed);
+			pthread_cond_signal (&m->processed);
 			if (accept)
 				break;
 		}
@@ -462,7 +462,7 @@ static void *do_maintenance (void *opaque)
 }
 
 /**
- * Creates and starts a Teredo client maintenance procedure thread
+ * Creates and starts a Teredo client maintenance procedure thread.
  *
  * @return NULL on error.
  */
@@ -490,29 +490,33 @@ teredo_maintenance_start (int fd, teredo_state_cb cb, void *opaque,
 	m->server2 = (s2 != NULL) ? strdup (s2) : NULL;
 	if ((s2 != NULL) != (m->server2 != NULL))
 		goto error;
+	else
+	{
+		pthread_condattr_t attr;
 
-	pthread_condattr_t attr;
+		pthread_condattr_init (&attr);
+		(void)pthread_condattr_setclock (&attr, CLOCK_MONOTONIC);
+		/* EINVAL: CLOCK_MONOTONIC unknown */
 
-	pthread_condattr_init (&attr);
-	(void)pthread_condattr_setclock (&attr, CLOCK_MONOTONIC);
-	/* EINVAL: CLOCK_MONOTONIC unknown */
+		pthread_cond_init (&m->received, &attr);
+		pthread_condattr_destroy (&attr);
+	}
 
-	pthread_cond_init (&m->received, &attr);
-	pthread_condattr_destroy (&attr);
-
-	pthread_mutex_init (&m->lock, NULL);
-	pthread_barrier_init (&m->processed, NULL, 2);
+	pthread_cond_init (&m->processed, NULL);
+	pthread_mutex_init (&m->outer, NULL);
+	pthread_mutex_init (&m->inner, NULL);
 
 	int err = pthread_create (&m->thread, NULL, do_maintenance, m);
 	if (err == 0)
 		return m;
 
 	syslog (LOG_ALERT, _("Error (%s): %s\n"), "pthread_create",
-			strerror (err));
+	        strerror (err));
 
-	pthread_barrier_destroy (&m->processed);
+	pthread_cond_destroy (&m->processed);
 	pthread_cond_destroy (&m->received);
-	pthread_mutex_destroy (&m->lock);
+	pthread_mutex_destroy (&m->outer);
+	pthread_mutex_destroy (&m->inner);
 
 error:
 	if (m->server2 != NULL)
@@ -531,9 +535,10 @@ void teredo_maintenance_stop (teredo_maintenance *m)
 	pthread_cancel (m->thread);
 	pthread_join (m->thread, NULL);
 
-	pthread_barrier_destroy (&m->processed);
+	pthread_cond_destroy (&m->processed);
 	pthread_cond_destroy (&m->received);
-	pthread_mutex_destroy (&m->lock);
+	pthread_mutex_destroy (&m->inner);
+	pthread_mutex_destroy (&m->outer);
 
 	if (m->server2 != NULL)
 		free (m->server2);
@@ -544,12 +549,16 @@ void teredo_maintenance_stop (teredo_maintenance *m)
 
 /**
  * Passes a Teredo packet to a maintenance thread for processing.
+ * Thread-safe, not async-cancel safe.
  *
  * @return 0 if processed, -1 if not a valid router solicitation.
  */
 int teredo_maintenance_process (teredo_maintenance *restrict m,
                                 const teredo_packet *restrict packet)
 {
+	assert (m != NULL);
+	assert (packet != NULL);
+
 	/*
 	 * We don't accept router advertisement without nonce.
 	 * It is far too easy to spoof such packets.
@@ -560,10 +569,19 @@ int teredo_maintenance_process (teredo_maintenance *restrict m,
 	 || memcmp (packet->ip6 + 24, &teredo_restrict, 16))
 		return -1;
 
-	(void)pthread_mutex_lock (&m->lock);
+	pthread_mutex_lock (&m->outer);
+	pthread_mutex_lock (&m->inner);
+
 	m->incoming = packet;
-	(void)pthread_cond_signal (&m->received);
-	(void)pthread_mutex_unlock (&m->lock);
-	(void)pthread_barrier_wait (&m->processed);
+	pthread_cond_signal (&m->received);
+
+	/* Waits for maintenance thread to process packet... */
+	do
+		pthread_cond_wait (&m->processed, &m->inner);
+	while (m->incoming != NULL);
+
+	pthread_mutex_unlock (&m->inner);
+	pthread_mutex_unlock (&m->outer);
+
 	return 0;
 }
