@@ -318,10 +318,7 @@ teredo_parse_ra (const teredo_packet *restrict packet,
 		newaddr->teredo.prefix = htonl (TEREDO_PREFIX);
 
 	if (!is_valid_teredo_prefix (newaddr->teredo.prefix))
-	{
-		syslog (LOG_WARNING, _("Invalid Teredo prefix received"));
 		return -1;
-	}
 
 	// only accept the cone flag:
 	newaddr->teredo.flags = cone ? htons (TEREDO_FLAG_CONE) : 0;
