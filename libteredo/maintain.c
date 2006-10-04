@@ -413,6 +413,7 @@ static inline void maintenance_thread (teredo_maintenance *m)
 				break;
 
 			case PROBE_SYMMETRIC:
+				count = 0;
 				if ((c_state->addr.teredo.client_port != newaddr.teredo.client_port)
 				 || (c_state->addr.teredo.client_ip != newaddr.teredo.client_ip))
 				{
@@ -420,7 +421,6 @@ static inline void maintenance_thread (teredo_maintenance *m)
 					/* Wait some time before retrying */
 					syslog (LOG_ERR,
 					        _("Unsupported symmetric NAT detected."));
-					count = 0;
 					state = PROBE_RESTRICT;
 					sleep = RestartDelay;
 					break;
@@ -428,7 +428,6 @@ static inline void maintenance_thread (teredo_maintenance *m)
 
 				syslog (LOG_INFO, _("Qualified (NAT type: %s)"),
 				        _("restricted"));
-				count = 0;
 				state = QUALIFIED;
 				memcpy (&c_state->addr, &newaddr, sizeof (c_state->addr));
 				c_state->mtu = mtu;
