@@ -43,7 +43,8 @@
 extern const struct in6_addr teredo_restrict;
 extern const struct in6_addr teredo_cone;
 
-#define TEREDO_PREFIX 0x20010000
+#define TEREDO_PREFIX          0x20010000
+#define TEREDO_PREFIX_OBSOLETE 0x3ffe831f
 
 union teredo_addr
 {
