@@ -396,7 +396,7 @@ static inline void maintenance_thread (teredo_maintenance *m)
 				/* Success: schedule next NAT binding maintenance */
 				sleep = SERVER_PING_DELAY;
 				if (memcmp (&c_state->addr, &newaddr, sizeof (newaddr))
-				|| (c_state->mtu != mtu))
+				 || (c_state->mtu != mtu))
 				{
 					memcpy (&c_state->addr, &newaddr, sizeof (c_state->addr));
 					c_state->mtu = mtu;
