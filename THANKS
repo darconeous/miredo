@@ -1,37 +1,21 @@
   The following people deserve particular thanks for their contribution to the
-project (in chronological order):
+project (in almost chronological order):
 
-François-Xavier Potel
-	Support, help and good appreciation of the initial assignation at ECP.
-
-Gene Cronk
-	Extremely useful FreeBSD testing platform.
-
-Laurent Granger
-	Some testing of the server and relay with the Windows XP client.
-
-Michael H. Warfield
-	Compilation fix on RedHat 7.3, testing.
-
-Vladimir Kotal
-	FreeBSD compilation fix.
-
-Guy Thornley
-	Bug fix for clients to clients communication.
-
-Richard Bejtlich
-	FreeBSD testing and bug reports.
-
-Rui Paulo
-	NetBSD port and compilation fixes.
-
-Marco d’Itri (ITGate)
-	Large scale relay testing.
-
-André-John Mas
-	Darwin/Mac OS X testing platform.
-
-Jörg Sonnenberger
-	DragonFly fixes (NetBSD port).
+François-Xavier Potel	Support at ECP university
+Gene Cronk		FreeBSD test platform
+Laurent Granger		Tests against Windows XP
+Michael H. Warfield	RHEL testing, fix
+Vladimir Kotal		FreeBSD fix
+Guy Thornley		Fix for clients to clients communication
+Richard Bejtlich	FreeBSD tests and reports
+Rui Paulo		NetBSD port, fixes and reports
+Anand Kumria		Debian fixes and reports
+Marco d’Itri (ITGate)	First relay deployment
+André-John Mas		Darwin/Mac OS X test platform
+Jörg Sonnenberger	DragonFly fixes (via NetBSD port)
+Bernhard Schmidt	Relay deployment and Teredo server hosting
+Pekka Savola		FreeBSD tests, report
+Nathan Lutchansky	Linux tests, report
+Marcus Rückert		OpenSUSE package
 
 $Id$
