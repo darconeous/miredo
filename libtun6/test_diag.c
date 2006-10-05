@@ -49,10 +49,17 @@ int main (void)
 	}
 
 	t = tun6_create (NULL);
-	if (t != NULL)
+	if (t == NULL)
+	{
+		if ((res == 0) && (errno != EPERM) && (errno != EACCES))
+			return 1;
+	}
+	else
+	{
 		tun6_destroy (t);
-	if ((t == NULL) != (res != 0))
-		return 1;
+		if (res)
+			return 1;
+	}
 
 	if (t == NULL)
 	{
