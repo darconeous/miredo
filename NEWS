@@ -1,5 +1,5 @@
 RELEASE NOTES for Miredo
-stable release version 1.0.2
+stable release version 1.0.3
 =============================
 $Id$
 
@@ -12,6 +12,13 @@ lot of bug fixes and improvements compared with branch 0.8.x.
 informations on this program, see README. For syntax details and
 changes, run “miredo -h” to get help. For detailled internal changes, see
 ChangeLog.
+
+============================================================================
+STABLE RELEASE 1.0.3 : Minor feature enhancement
+
+# Work-around for compatibility Microsoft Teredo servers.
+# Better detection of symmetric NATs and access network changes.
+# Limit spamming of syslog.
 
 ============================================================================
 STABLE RELEASE 1.0.2 : Minor portability and bug fixes
