@@ -283,6 +283,12 @@ static inline void maintenance_thread (teredo_maintenance *m)
 	uint32_t server_ip = 0, server_ip2 = 0;
 	unsigned count = 0;
 	int state = PROBE_RESTRICT;
+	enum
+	{
+		TERR_NONE,
+		TERR_BLACKHOLE,
+		TERR_SYMM
+	} last_error = TERR_NONE;
 
 	pthread_mutex_lock (&m->inner);
 
@@ -399,7 +405,11 @@ static inline void maintenance_thread (teredo_maintenance *m)
 
 				count = 0;
 				/* No response from server */
-				syslog (LOG_INFO, _("No reply from Teredo server"));
+				if (last_error != TERR_BLACKHOLE)
+				{
+					syslog (LOG_INFO, _("No reply from Teredo server"));
+					last_error = TERR_BLACKHOLE;
+				}
 				/* Wait some time before retrying */
 				state = PROBE_RESTRICT;
 				sleep = RestartDelay;
@@ -425,8 +435,12 @@ static inline void maintenance_thread (teredo_maintenance *m)
 				if (state == PROBE_SYMMETRIC)
 				{
 					// Symmetric NAT failure
-					syslog (LOG_ERR,
-					        _("Unsupported symmetric NAT detected."));
+					if (last_error != TERR_SYMM)
+					{
+						last_error = TERR_SYMM;
+						syslog (LOG_ERR,
+						        _("Unsupported symmetric NAT detected."));
+					}
 					sleep = RestartDelay; // Wait some time before retry
 				}
 				else
@@ -459,6 +473,7 @@ static inline void maintenance_thread (teredo_maintenance *m)
 				}
 
 				/* Success: schedule next NAT binding maintenance */
+				last_error = TERR_NONE;
 				sleep = SERVER_PING_DELAY;
 			}
 		}
