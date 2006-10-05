@@ -55,11 +55,6 @@
 #include "v4global.h" // is_ipv4_global_unicast()
 #include "debug.h"
 
-#define QUALIFIED	0
-#define PROBE_RESTRICT	2
-#define PROBE_SYMMETRIC	3
-#define NOT_RUNNING	(-1)
-
 #if (_POSIX_CLOCK_SELECTION - 0 >= 0) && (_POSIX_MONOTONIC_CLOCK - 0 >= 0)
 static inline void gettime (struct timespec *now)
 {
@@ -282,7 +277,12 @@ static inline void maintenance_thread (teredo_maintenance *m)
 	teredo_state *c_state = &m->state.state;
 	uint32_t server_ip = 0, server_ip2 = 0;
 	unsigned count = 0;
-	int state = PROBE_RESTRICT;
+	enum
+	{
+		QUALIFIED,
+		PROBE_RESTRICT,
+		PROBE_SYMMETRIC
+	} state = PROBE_RESTRICT;
 	enum
 	{
 		TERR_NONE,
