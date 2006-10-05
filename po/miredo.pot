@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: miredo-devel_no_bulk_mail@remlab.net\n"
-"POT-Creation-Date: 2006-09-18 18:22+0300\n"
+"POT-Creation-Date: 2006-10-05 19:09+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -26,7 +26,7 @@ msgid ""
 "Teredo server UDP socket error: Server IPv4 addresses must be global unicast."
 msgstr ""
 
-#: libteredo/server.c:511 libteredo/server.c:522 libteredo/maintain.c:510
+#: libteredo/server.c:511 libteredo/server.c:522 libteredo/maintain.c:551
 #: libtun6/tun6.c:616 src/main.c:287 src/main.c:315 src/main.c:356
 #: src/main.c:495 src/miredo.c:103 src/miredo.c:111 src/miredo.c:233
 #, c-format
@@ -37,50 +37,46 @@ msgstr ""
 msgid "Multiple Teredo prefixes received"
 msgstr ""
 
-#: libteredo/packets.c:314
-msgid "Invalid Teredo prefix received"
-msgstr ""
-
-#: libteredo/maintain.c:176
+#: libteredo/maintain.c:171
 msgid "Authentication with server failed."
 msgstr ""
 
-#: libteredo/maintain.c:245
+#: libteredo/maintain.c:242
 msgid "Too much time drift. Resynchronizing."
 msgstr ""
 
-#: libteredo/maintain.c:306
+#: libteredo/maintain.c:316
 #, c-format
 msgid "Cannot resolve Teredo server address \"%s\": %s"
 msgstr ""
 
-#: libteredo/maintain.c:318
+#: libteredo/maintain.c:328
 msgid "Server has a non global IPv4 address. It will most likely not work."
 msgstr ""
 
-#: libteredo/maintain.c:375
+#: libteredo/maintain.c:400
 msgid "Lost Teredo connectivity"
 msgstr ""
 
-#: libteredo/maintain.c:383
+#: libteredo/maintain.c:410
 msgid "No reply from Teredo server"
 msgstr ""
 
-#: libteredo/maintain.c:404
-msgid "Teredo address/MTU changed"
-msgstr ""
-
-#: libteredo/maintain.c:422
+#: libteredo/maintain.c:442
 msgid "Unsupported symmetric NAT detected."
 msgstr ""
 
-#: libteredo/maintain.c:429
+#: libteredo/maintain.c:458
 #, c-format
 msgid "Qualified (NAT type: %s)"
 msgstr ""
 
-#: libteredo/maintain.c:430
+#: libteredo/maintain.c:459
 msgid "restricted"
+msgstr ""
+
+#: libteredo/maintain.c:471
+msgid "New Teredo address/MTU"
 msgstr ""
 
 #: libtun6/tun6.c:181 libtun6/tun6.c:191 libtun6/tun6.c:230 libtun6/tun6.c:250

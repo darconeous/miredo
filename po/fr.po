@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: miredo 0.8.1\n"
 "Report-Msgid-Bugs-To: miredo-devel_no_bulk_mail@remlab.net\n"
-"POT-Creation-Date: 2006-09-18 18:22+0300\n"
+"POT-Creation-Date: 2006-10-05 19:09+0300\n"
 "PO-Revision-Date: 2006-03-20 15:36+0100\n"
 "Last-Translator: Rémi Denis-Courmont <rdenis (at) simphalempin (dot) com>\n"
 "Language-Team: N/A\n"
@@ -28,7 +28,7 @@ msgstr ""
 "Erreur de socket UDP de serveur Teredo : l’adresse IPv4 de serveur doit être "
 "globale unicast."
 
-#: libteredo/server.c:511 libteredo/server.c:522 libteredo/maintain.c:510
+#: libteredo/server.c:511 libteredo/server.c:522 libteredo/maintain.c:551
 #: libtun6/tun6.c:616 src/main.c:287 src/main.c:315 src/main.c:356
 #: src/main.c:495 src/miredo.c:103 src/miredo.c:111 src/miredo.c:233
 #, c-format
@@ -39,53 +39,49 @@ msgstr "Erreur (%s) : %s\n"
 msgid "Multiple Teredo prefixes received"
 msgstr "Plusieurs préfixes Teredo reçus"
 
-#: libteredo/packets.c:314
-msgid "Invalid Teredo prefix received"
-msgstr "Préfixe Teredo reçu invalide"
-
-#: libteredo/maintain.c:176
+#: libteredo/maintain.c:171
 msgid "Authentication with server failed."
 msgstr "Authentification refusée par le serveur."
 
-#: libteredo/maintain.c:245
+#: libteredo/maintain.c:242
 msgid "Too much time drift. Resynchronizing."
 msgstr "Décalage temporel trop important. Re-synchronisation."
 
-#: libteredo/maintain.c:306
+#: libteredo/maintain.c:316
 #, c-format
 msgid "Cannot resolve Teredo server address \"%s\": %s"
 msgstr "Impossible de déterminer l’adresse du serveur Teredo « %s » : %s"
 
-#: libteredo/maintain.c:318
+#: libteredo/maintain.c:328
 msgid "Server has a non global IPv4 address. It will most likely not work."
 msgstr ""
 "Le serveur a une adresse IPv4 non globale. Ça ne fonctionnera "
 "vraisemblablement pas."
 
-#: libteredo/maintain.c:375
+#: libteredo/maintain.c:400
 msgid "Lost Teredo connectivity"
 msgstr "Connectivité Teredo perdue"
 
-#: libteredo/maintain.c:383
+#: libteredo/maintain.c:410
 msgid "No reply from Teredo server"
 msgstr "Pas de réponse du serveur Teredo"
 
-#: libteredo/maintain.c:404
-msgid "Teredo address/MTU changed"
-msgstr "Adresse/MTU Teredo changée"
-
-#: libteredo/maintain.c:422
+#: libteredo/maintain.c:442
 msgid "Unsupported symmetric NAT detected."
 msgstr "NAT symmétrique non supporté détecté."
 
-#: libteredo/maintain.c:429
+#: libteredo/maintain.c:458
 #, c-format
 msgid "Qualified (NAT type: %s)"
 msgstr "Qualifié (type de NAT : %s)"
 
-#: libteredo/maintain.c:430
+#: libteredo/maintain.c:459
 msgid "restricted"
 msgstr "restreint"
+
+#: libteredo/maintain.c:471
+msgid "New Teredo address/MTU"
+msgstr "Nouvelle adresse/MTU Teredo"
 
 #: libtun6/tun6.c:181 libtun6/tun6.c:191 libtun6/tun6.c:230 libtun6/tun6.c:250
 #: libtun6/tun6.c:264 libtun6/tun6.c:278 libtun6/tun6.c:292 libtun6/tun6.c:314
@@ -394,6 +390,9 @@ msgstr "Préfixe Teredo IPv6 invalide : %x::/32"
 #, c-format
 msgid "Unknown syslog facility \"%s\" at line %u"
 msgstr "Catégorie syslog « %s » inconnue à la ligne %u"
+
+#~ msgid "Invalid Teredo prefix received"
+#~ msgstr "Préfixe Teredo reçu invalide"
 
 #~ msgid "Ignoring invalid bubble: your Teredo server is probably buggy."
 #~ msgstr ""
