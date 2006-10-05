@@ -194,6 +194,8 @@ maintenance_recv (const teredo_packet *restrict packet, uint32_t server_ip,
 static int wait_reply (teredo_maintenance *restrict m,
                        const struct timespec *restrict deadline)
 {
+	assert (m->incoming == NULL);
+
 	/* Ignore EINTR */
 	for (;;)
 	{
@@ -290,6 +292,8 @@ static inline void maintenance_thread (teredo_maintenance *m)
 	pthread_cleanup_push (cleanup_unlock, &m->inner);
 	for (;;)
 	{
+		assert (c_state->up == (state == QUALIFIED));
+
 		/* Resolve server IPv4 addresses */
 		while (server_ip == 0)
 		{
@@ -403,55 +407,60 @@ static inline void maintenance_thread (teredo_maintenance *m)
 		}
 		else
 		/* RA received and parsed succesfully */
-		switch (state)
+		if (state == PROBE_RESTRICT)
 		{
-			case QUALIFIED:
-				/* packet received, already qualified */
-				count = 0;
-				/* Success: schedule next NAT binding maintenance */
-				sleep = SERVER_PING_DELAY;
-				if (memcmp (&c_state->addr, &newaddr, sizeof (newaddr))
+			state = PROBE_SYMMETRIC;
+			memcpy (&c_state->addr, &newaddr, sizeof (c_state->addr));
+			gettime (&deadline);
+		}
+		else
+		{
+			count = 0;
+
+			if ((c_state->addr.teredo.client_port != newaddr.teredo.client_port)
+			 || (c_state->addr.teredo.client_ip != newaddr.teredo.client_ip))
+			{
+				state = PROBE_RESTRICT;
+
+				if (state == PROBE_SYMMETRIC)
+				{
+					// Symmetric NAT failure
+					syslog (LOG_ERR,
+					        _("Unsupported symmetric NAT detected."));
+					sleep = RestartDelay; // Wait some time before retry
+				}
+				else
+				{
+					// External mapping changed! Reset everything.
+					c_state->up = false;
+					m->state.cb (c_state, m->state.opaque);
+					gettime (&deadline);
+				}
+			}
+			else
+			{
+				if (state != QUALIFIED)
+				{
+					syslog (LOG_INFO, _("Qualified (NAT type: %s)"),
+					        _("restricted"));
+					state = QUALIFIED;
+				}
+
+				if ((!c_state->up)
+				 || memcmp (&c_state->addr, &newaddr, sizeof (c_state->addr))
 				 || (c_state->mtu != mtu))
 				{
 					memcpy (&c_state->addr, &newaddr, sizeof (c_state->addr));
 					c_state->mtu = mtu;
-		
-					syslog (LOG_NOTICE, _("Teredo address/MTU changed"));
+					c_state->up = true;
+
+					syslog (LOG_NOTICE, _("New Teredo address/MTU"));
 					m->state.cb (c_state, m->state.opaque);
 				}
-				break;
 
-			case PROBE_RESTRICT:
-				state = PROBE_SYMMETRIC;
-				memcpy (&c_state->addr, &newaddr, sizeof (c_state->addr));
-				gettime (&deadline);
-				break;
-
-			case PROBE_SYMMETRIC:
-				count = 0;
-				if ((c_state->addr.teredo.client_port != newaddr.teredo.client_port)
-				 || (c_state->addr.teredo.client_ip != newaddr.teredo.client_ip))
-				{
-					/* Symmetric NAT failure */
-					/* Wait some time before retrying */
-					syslog (LOG_ERR,
-					        _("Unsupported symmetric NAT detected."));
-					state = PROBE_RESTRICT;
-					sleep = RestartDelay;
-					break;
-				}
-
-				syslog (LOG_INFO, _("Qualified (NAT type: %s)"),
-				        _("restricted"));
-				state = QUALIFIED;
-				memcpy (&c_state->addr, &newaddr, sizeof (c_state->addr));
-				c_state->mtu = mtu;
-				c_state->up = true;
-				m->state.cb (c_state, m->state.opaque);
-
-				/* Success: schedule NAT binding maintenance */
+				/* Success: schedule next NAT binding maintenance */
 				sleep = SERVER_PING_DELAY;
-				break;
+			}
 		}
 
 		/* WAIT UNTIL NEXT SOLICITATION */
