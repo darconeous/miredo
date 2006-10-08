@@ -430,8 +430,6 @@ static inline void maintenance_thread (teredo_maintenance *m)
 			if ((c_state->addr.teredo.client_port != newaddr.teredo.client_port)
 			 || (c_state->addr.teredo.client_ip != newaddr.teredo.client_ip))
 			{
-				state = PROBE_RESTRICT;
-
 				if (state == PROBE_SYMMETRIC)
 				{
 					// Symmetric NAT failure
@@ -450,6 +448,8 @@ static inline void maintenance_thread (teredo_maintenance *m)
 					m->state.cb (c_state, m->state.opaque);
 					gettime (&deadline);
 				}
+
+				state = PROBE_RESTRICT;
 			}
 			else
 			{
