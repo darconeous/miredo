@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: miredo-devel_no_bulk_mail@remlab.net\n"
-"POT-Creation-Date: 2006-10-05 19:09+0300\n"
+"POT-Creation-Date: 2006-10-08 12:45+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -62,7 +62,7 @@ msgstr ""
 msgid "No reply from Teredo server"
 msgstr ""
 
-#: libteredo/maintain.c:442
+#: libteredo/maintain.c:440
 msgid "Unsupported symmetric NAT detected."
 msgstr ""
 
