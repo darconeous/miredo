@@ -87,8 +87,12 @@ struct teredo_tunnel
 	} recv;
 
 	int fd;
-	volatile time_t now;
-	pthread_t clock;
+
+	struct
+	{
+		pthread_t thread;
+		volatile time_t now;
+	} clock;
 };
 
 #ifdef HAVE_LIBJUDY
@@ -128,9 +132,9 @@ teredo_send_unreach (teredo_tunnel *restrict tunnel, uint8_t code,
 
 	/* ICMPv6 rate limit */
 	pthread_mutex_lock (&tunnel->ratelimit.lock);
-	if (tunnel->now != tunnel->ratelimit.last)
+	if (tunnel->clock.now != tunnel->ratelimit.last)
 	{
-		tunnel->ratelimit.last = tunnel->now;
+		tunnel->ratelimit.last = tunnel->clock.now;
 		tunnel->ratelimit.count =
 			ICMP_RATE_LIMIT_MS ? (int)(1000 / ICMP_RATE_LIMIT_MS) : -1;
 	}
@@ -315,7 +319,7 @@ int teredo_encap (teredo_tunnel *restrict tunnel, teredo_peer *restrict peer,
 {
 	uint32_t ipv4 = peer->mapped_addr;
 	uint16_t port = peer->mapped_port;
-	TouchTransmit (peer, tunnel->now);
+	TouchTransmit (peer, tunnel->clock.now);
 	teredo_list_release (tunnel->list);
 
 	return (teredo_send (tunnel->fd,
@@ -345,7 +349,8 @@ int teredo_transmit (teredo_tunnel *restrict tunnel,
 {
 	assert (tunnel != NULL);
 
-	const union teredo_addr *dst = (union teredo_addr *)&packet->ip6_dst;
+	const union teredo_addr *dst =
+		(const union teredo_addr *)&packet->ip6_dst;
 
 	/* Drops multicast destination, we cannot handle these */
 	if (dst->ip6.s6_addr[0] == 0xff)
@@ -376,7 +381,7 @@ int teredo_transmit (teredo_tunnel *restrict tunnel,
 		if (IsClient (tunnel))
 		{
 			const union teredo_addr *src =
-				(union teredo_addr *)&packet->ip6_src;
+				(const union teredo_addr *)&packet->ip6_src;
 
 			if (src->teredo.prefix != s.addr.teredo.prefix)
 			{
@@ -420,7 +425,7 @@ int teredo_transmit (teredo_tunnel *restrict tunnel,
 	}
 
 	bool created;
-	time_t now = tunnel->now;
+	time_t now = tunnel->clock.now;
 	struct teredo_peerlist *list = tunnel->list;
 
 //	syslog (LOG_DEBUG, "packet to be sent");
@@ -532,7 +537,7 @@ static
 void teredo_predecap (teredo_tunnel *restrict tunnel,
                       teredo_peer *restrict peer)
 {
-	TouchReceive (peer, tunnel->now);
+	TouchReceive (peer, tunnel->clock.now);
 	peer->bubbles = peer->pings = 0;
 	teredo_queue *q = teredo_peer_queue_yield (peer);
 	teredo_list_release (tunnel->list);
@@ -682,7 +687,7 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 
 	/* Actual packet reception, either as a relay or a client */
 
-	time_t now = tunnel->now;
+	time_t now = tunnel->clock.now;
 
 	// Checks source IPv6 address / looks up peer in the list:
 	struct teredo_peerlist *list = tunnel->list;
@@ -870,22 +875,22 @@ static void teredo_dummy_state_down_cb (void *o)
  * -current for FreeBSD...
  *
  * TODO:
- * - use monotonic clock if available (GC will need fixing)
+ * - use monotonic clock if available (GC and teredo_create will need fixing)
  */
 static void *teredo_clock (void *val)
 {
-	volatile time_t *clock = (time_t *)val;
+	volatile time_t *now = (time_t *)val;
 
 	for (;;)
 	{
-		struct timespec now;
-		clock_gettime (CLOCK_REALTIME, &now);
+		struct timespec ts;
+		clock_gettime (CLOCK_REALTIME, &ts);
 
-		*clock = now.tv_sec;
-		now.tv_sec++;
-		now.tv_nsec = 0;
+		*now = ts.tv_sec;
+		ts.tv_sec++;
+		ts.tv_nsec = 0;
 
-		clock_nanosleep (CLOCK_REALTIME, TIMER_ABSTIME, &now, NULL);
+		clock_nanosleep (CLOCK_REALTIME, TIMER_ABSTIME, &ts, NULL);
 	}
 }
 
@@ -935,10 +940,10 @@ teredo_tunnel *teredo_create (uint32_t ipv4, uint16_t port)
 	tunnel->down_cb = teredo_dummy_state_down_cb;
 #endif
 
-	tunnel->now = time (NULL);
+	tunnel->clock.now = time (NULL);
 
-	if (pthread_create (&tunnel->clock, NULL, teredo_clock,
-	                    (void *)&tunnel->now) == 0)
+	if (pthread_create (&tunnel->clock.thread, NULL, teredo_clock,
+	                    &tunnel->clock) == 0)
 	{
 		if ((tunnel->fd = teredo_socket (ipv4, port)) != -1)
 		{
@@ -950,8 +955,8 @@ teredo_tunnel *teredo_create (uint32_t ipv4, uint16_t port)
 			}
 			teredo_close (tunnel->fd);
 		}
-		pthread_cancel (tunnel->clock);
-		pthread_join (tunnel->clock, NULL);
+		pthread_cancel (tunnel->clock.thread);
+		pthread_join (tunnel->clock.thread, NULL);
 	}
 
 	free (tunnel);
@@ -996,8 +1001,8 @@ void teredo_destroy (teredo_tunnel *t)
 	pthread_rwlock_destroy (&t->state_lock);
 	pthread_mutex_destroy (&t->ratelimit.lock);
 	teredo_close (t->fd);
-	pthread_cancel (t->clock);
-	pthread_join (t->clock, NULL);
+	pthread_cancel (t->clock.thread);
+	pthread_join (t->clock.thread, NULL);
 	free (t);
 }
 
