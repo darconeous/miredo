@@ -506,9 +506,9 @@ relay_run (miredo_conf *conf, const char *server_name)
 	 */
 
 	// Tunneling interface initialization
-	int fd = -1;
+	int privfd = -1;
 	tun6 *tunnel = (mode & TEREDO_CLIENT)
-		? create_dynamic_tunnel (ifname, &fd)
+		? create_dynamic_tunnel (ifname, &privfd)
 		: create_static_tunnel (ifname, &prefix.ip6, mtu);
 
 	if (ifname != NULL)
@@ -559,7 +559,7 @@ relay_run (miredo_conf *conf, const char *server_name)
 				teredo_tunnel *relay = teredo_create (bind_ip, bind_port);
 				if (relay != NULL)
 				{
-					miredo_tunnel data = { tunnel, fd, relay };
+					miredo_tunnel data = { tunnel, privfd, relay };
 					teredo_set_privdata (relay, &data);
 					teredo_set_recv_callback (relay, miredo_recv_callback);
 					teredo_set_icmpv6_callback (relay, miredo_icmp6_callback);
@@ -600,7 +600,7 @@ relay_run (miredo_conf *conf, const char *server_name)
 	}
 
 	if (mode & TEREDO_CLIENT)
-		destroy_dynamic_tunnel (tunnel, fd);
+		destroy_dynamic_tunnel (tunnel, privfd);
 	else
 		destroy_static_tunnel (tunnel, &prefix.ip6);
 
