@@ -130,10 +130,10 @@ teredo_hash (const void *src, size_t slen, const void *dst, size_t dlen,
 	md5_state_t ctx;
 	md5_init (&ctx);
 	md5_append (&ctx, inner_key.ipad, sizeof (inner_key.ipad));
-	md5_append (&ctx, (unsigned char *)src, slen);
-	md5_append (&ctx, (unsigned char *)dst, dlen);
-	md5_append (&ctx, (unsigned char *)&hmac_pid, sizeof (hmac_pid));
-	md5_append (&ctx, (unsigned char *)&timestamp, sizeof (timestamp));
+	md5_append (&ctx, (const unsigned char *)src, slen);
+	md5_append (&ctx, (const unsigned char *)dst, dlen);
+	md5_append (&ctx, (const unsigned char *)&hmac_pid, sizeof (hmac_pid));
+	md5_append (&ctx, (const unsigned char *)&timestamp, sizeof (timestamp));
 	md5_finish (&ctx, hash);
 
 	md5_init (&ctx);

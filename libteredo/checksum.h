@@ -51,9 +51,9 @@ ipv6_sum (const struct ip6_hdr *ip6)
 
 	/* Pseudo-header sum */
 	for (i = 0; i < 16; i += 2)
-		sum32 += *(uint16_t *)(&ip6->ip6_src.s6_addr[i]);
+		sum32 += *(const uint16_t *)(&ip6->ip6_src.s6_addr[i]);
 	for (i = 0; i < 16; i += 2)
-		sum32 += *(uint16_t *)(&ip6->ip6_dst.s6_addr[i]);
+		sum32 += *(const uint16_t *)(&ip6->ip6_dst.s6_addr[i]);
 
 	sum32 += ip6->ip6_plen + ntohs (ip6->ip6_nxt);
 
@@ -69,7 +69,7 @@ ipv6_sum (const struct ip6_hdr *ip6)
 static inline uint16_t
 icmp6_checksum (const struct ip6_hdr *ip6, const struct icmp6_hdr *icmp6)
 {
-	return ~sum16 ((uint16_t *)icmp6, ntohs (ip6->ip6_plen),
+	return ~sum16 ((const uint16_t *)icmp6, ntohs (ip6->ip6_plen),
 			ipv6_sum (ip6));
 }
 

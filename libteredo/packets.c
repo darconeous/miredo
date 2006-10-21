@@ -233,7 +233,7 @@ teredo_parse_ra (const teredo_packet *restrict packet,
 	// Only read bytes, so no need to align
 	const struct nd_router_advert *ra =
 		(const struct nd_router_advert *)
-			(((uint8_t *)ip6) + sizeof (struct ip6_hdr));
+			(((const uint8_t *)ip6) + sizeof (struct ip6_hdr));
 	length -= sizeof (struct nd_router_advert);
 
 	if ((ra->nd_ra_type != ND_ROUTER_ADVERT)
@@ -457,7 +457,7 @@ int CheckPing (const teredo_packet *packet)
 		return -1;
 
 	return teredo_verify_pinghash ((uint32_t)time (NULL), me, it,
-	                               (uint8_t *)&icmp6->icmp6_id);
+	                               (const uint8_t *)&icmp6->icmp6_id);
 	/* TODO: check the sum(?) */
 }
 #endif
