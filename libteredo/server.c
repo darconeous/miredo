@@ -327,7 +327,7 @@ teredo_process_packet (const teredo_server *s, bool sec)
 	 && IN6_ARE_ADDR_EQUAL (&in6addr_allrouters, &ip6.ip6_dst)
 	 && (ip6.ip6_nxt == IPPROTO_ICMPV6)
 	 && (ip6len >= sizeof (struct nd_router_solicit))
-	 && (((struct icmp6_hdr *)ptr)->icmp6_type == ND_ROUTER_SOLICIT))
+	 && (((const struct icmp6_hdr *)ptr)->icmp6_type == ND_ROUTER_SOLICIT))
 		// sends a Router Advertisement
 		return SendRA (s, &packet, &ip6.ip6_src, sec) ? 1 : -1;
 

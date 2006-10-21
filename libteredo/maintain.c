@@ -372,17 +372,17 @@ static inline void maintenance_thread (teredo_maintenance *m)
 				break; // time out
 
 			/* check received packet */
-			bool accept;
-			accept = maintenance_recv (m->incoming, server_ip,
-			                           nonce, false, &mtu, &newaddr);
+			bool ok;
+			ok = maintenance_recv (m->incoming, server_ip,
+			                       nonce, false, &mtu, &newaddr);
 			m->incoming = NULL;
 
 			pthread_cond_signal (&m->processed);
-			if (accept)
+			if (ok)
 				break;
 		}
 
-		unsigned sleep = 0;
+		unsigned delay = 0;
 
 		/* UPDATE FINITE STATE MACHINE */
 		if (val /* == ETIMEDOUT */)
@@ -412,7 +412,7 @@ static inline void maintenance_thread (teredo_maintenance *m)
 				}
 				/* Wait some time before retrying */
 				state = PROBE_RESTRICT;
-				sleep = RestartDelay;
+				delay = RestartDelay;
 			}
 		}
 		else
@@ -439,7 +439,7 @@ static inline void maintenance_thread (teredo_maintenance *m)
 						syslog (LOG_ERR,
 						        _("Unsupported symmetric NAT detected."));
 					}
-					sleep = RestartDelay; // Wait some time before retry
+					delay = RestartDelay; // Wait some time before retry
 				}
 				else
 				{
@@ -474,17 +474,17 @@ static inline void maintenance_thread (teredo_maintenance *m)
 
 				/* Success: schedule next NAT binding maintenance */
 				last_error = TERR_NONE;
-				sleep = SERVER_PING_DELAY;
+				delay = SERVER_PING_DELAY;
 			}
 		}
 
 		/* WAIT UNTIL NEXT SOLICITATION */
 		/* TODO: watch for new interface events
 		 * (netlink on Linux, PF_ROUTE on BSD) */
-		if (sleep)
+		if (delay)
 		{
 			deadline.tv_sec -= QualificationTimeOut;
-			deadline.tv_sec += sleep;
+			deadline.tv_sec += delay;
 			wait_reply_ignore (m, &deadline);
 		}
 	}
