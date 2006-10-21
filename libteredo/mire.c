@@ -146,13 +146,13 @@ process_none (int fd, const struct ip6_hdr *ip6, size_t plen,
 	 */
 
 	struct iovec reply[4];
-	reply[0].iov_base = "\x60\x00\x00\x00" "\x00\x04" "\x3b" "\x00";
+	reply[0].iov_base = (uint8_t *)"\x60\x00\x00\x00" "\x00\x04" "\x3b" "\x00";
 	reply[0].iov_len = 8;
 	reply[1].iov_base = (uint8_t *)&ip6->ip6_dst;
 	reply[1].iov_len = 16;
 	reply[2].iov_base = (uint8_t *)&ip6->ip6_src;
 	reply[2].iov_len = 16;
-	reply[3].iov_base = "MIRE";
+	reply[3].iov_base = (uint8_t *)"MIRE";
 	reply[3].iov_len = 4;
 	teredo_sendv (fd, reply, sizeof (reply) / sizeof (reply[0]), ipv4, port);
 }
