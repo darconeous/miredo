@@ -250,7 +250,7 @@ static inline bool IsClient (const teredo_tunnel *tunnel)
  * Returs true if the packet whose header is passed as a parameter looks
  * like a Teredo bubble.
  */
-inline bool IsBubble (const struct ip6_hdr *hdr)
+static inline bool IsBubble (const struct ip6_hdr *hdr)
 {
 	return (hdr->ip6_plen == 0) && (hdr->ip6_nxt == IPPROTO_NONE);
 }
