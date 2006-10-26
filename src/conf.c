@@ -83,9 +83,12 @@ void miredo_conf_destroy (miredo_conf *conf)
 }
 
 
-static void
+static
+#ifdef __GNUC__
+__attribute__ ((format (printf, 2, 3)))
+#endif
+void
 LogError (miredo_conf *conf, const char *fmt, ...)
-//	__attribute__(((format (printf (2, 3)))
 {
 	assert (conf != NULL);
 	assert (fmt != NULL);
@@ -102,8 +105,10 @@ LogError (miredo_conf *conf, const char *fmt, ...)
 
 
 static void
+#ifdef __GNUC__
+__attribute__ ((format (printf, 2, 3)))
+#endif
 LogWarning (miredo_conf *conf, const char *fmt, ...)
-//	__attribute__((format (printf (2, 3)))
 {
 	assert (conf != NULL);
 	assert (fmt != NULL);
