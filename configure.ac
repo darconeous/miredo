@@ -99,6 +99,12 @@ AC_CHECK_HEADERS([net/if_var.h],,,
 
 # Checks for typedefs, structures, and compiler characteristics.
 AS_MESSAGE([checking target characteristics...])
+RDC_PROG_CC_WFLAGS([all extra undef pointer-arith bad-function-cast cast-align write-strings aggregate-return strict-prototypes old-style-definition missing-prototypes packed nested-externs redundant-decls volatile-register-var])
+#shadow fails because of ntohl()
+#cast-qual fails because of const/iovec, libcap, Judy
+# missing-noreturn missing-format-attribute
+# padded unreachable-code inline
+
 AC_C_BIGENDIAN
 RDC_STRUCT_SOCKADDR_LEN
 AC_CHECK_TYPE([clockid_t],, [
