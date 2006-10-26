@@ -310,7 +310,6 @@ miredo (const char *confpath, const char *server_name, int pidfd)
 int (*miredo_diagnose) (void);
 int (*miredo_run) (miredo_conf *conf, const char *server);
 
-const char *miredo_chrootdir;
 const char *miredo_name;
 
 # ifdef HAVE_LIBCAP
