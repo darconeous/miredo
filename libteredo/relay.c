@@ -877,7 +877,7 @@ static void teredo_dummy_state_down_cb (void *o)
  * TODO:
  * - use monotonic clock if available (GC and teredo_create will need fixing)
  */
-static void *teredo_clock (void *val)
+static LIBTEREDO_NORETURN void *teredo_clock (void *val)
 {
 	volatile time_t *now = (time_t *)val;
 
@@ -1007,7 +1007,7 @@ void teredo_destroy (teredo_tunnel *t)
 }
 
 
-static void *teredo_recv_thread (void *t)
+static LIBTEREDO_NORETURN void *teredo_recv_thread (void *t)
 {
 	teredo_tunnel *tunnel = (teredo_tunnel *)t;
 

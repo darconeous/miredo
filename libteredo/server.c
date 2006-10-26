@@ -414,7 +414,7 @@ int teredo_server_check (char *errmsg, size_t len)
 }
 
 
-static void *thread_primary (void *data)
+static LIBTEREDO_NORETURN void *thread_primary (void *data)
 {
 	for (;;)
 	{
@@ -424,7 +424,7 @@ static void *thread_primary (void *data)
 }
 
 
-static void *thread_secondary (void *data)
+static LIBTEREDO_NORETURN void *thread_secondary (void *data)
 {
 	for (;;)
 	{

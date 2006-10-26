@@ -185,7 +185,7 @@ static void mutex_unlock (void *mutex)
  *
  * @return never ever.
  */
-static void *garbage_collector (void *data)
+static LIBTEREDO_NORETURN void *garbage_collector (void *data)
 {
 	struct teredo_peerlist *l = (struct teredo_peerlist *)data;
 
@@ -254,7 +254,6 @@ static void *garbage_collector (void *data)
 	}
 
 	pthread_cleanup_pop (1);
-	return NULL;
 }
 
 /**

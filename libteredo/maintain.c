@@ -271,7 +271,8 @@ static unsigned RestartDelay = 100; // seconds
 /**
  * Teredo client maintenance procedure
  */
-static inline void maintenance_thread (teredo_maintenance *m)
+static inline LIBTEREDO_NORETURN
+void maintenance_thread (teredo_maintenance *m)
 {
 	struct timespec deadline = { 0, 0 };
 	teredo_state *c_state = &m->state.state;
@@ -493,10 +494,9 @@ static inline void maintenance_thread (teredo_maintenance *m)
 }
 
 
-static void *do_maintenance (void *opaque)
+static LIBTEREDO_NORETURN void *do_maintenance (void *opaque)
 {
 	maintenance_thread ((teredo_maintenance *)opaque);
-	return NULL;
 }
 
 /**
