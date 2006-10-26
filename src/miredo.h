@@ -25,6 +25,12 @@
 #ifndef MIREDO_MIREDO_H
 # define MIREDO_MIREDO_H
 
+# ifdef __GNUC__
+#  define LIBTEREDO_NORETURN __attribute__ ((noreturn))
+# else
+#  define LIBTEREDO_NORETURN
+# endif
+
 typedef struct miredo_conf miredo_conf;
 
 # ifdef __cplusplus

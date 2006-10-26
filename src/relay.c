@@ -334,7 +334,7 @@ setup_relay (teredo_tunnel *relay, uint32_t prefix)
  * Thread to encapsulate IPv6 packets into UDP.
  * Cancellation safe.
  */
-static void *miredo_encap_thread (void *d)
+static LIBTEREDO_NORETURN void *miredo_encap_thread (void *d)
 {
 	teredo_tunnel *relay = ((miredo_tunnel *)d)->relay;
 	tun6 *tunnel = ((miredo_tunnel *)d)->tunnel;
@@ -360,7 +360,6 @@ static void *miredo_encap_thread (void *d)
 		else
 			pthread_testcancel ();
 	}
-	return NULL;
 }
 
 

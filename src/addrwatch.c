@@ -54,7 +54,7 @@ struct miredo_addrwatch
 /**
  * @return never ever. Thread must be cancelled.
  */
-static void *addrwatch (void *opaque)
+static LIBTEREDO_NORETURN void *addrwatch (void *opaque)
 {
 	struct miredo_addrwatch *data = (struct miredo_addrwatch *)opaque;
 	struct timespec deadline;
@@ -113,8 +113,7 @@ static void *addrwatch (void *opaque)
 		deadline.tv_sec += 5;
 		clock_nanosleep (clock_id, TIMER_ABSTIME, &deadline, NULL);
 	}
-
-	return NULL; // dead code
+	// dead code
 }
 
 
