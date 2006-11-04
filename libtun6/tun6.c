@@ -266,7 +266,7 @@ tun6 *tun6_create (const char *req_name)
 #  if defined (__APPLE__)
 		if (errno == EINVAL)
 			syslog (LOG_NOTICE,
-			        "*** Ignoring tun-tap-osx spurious error ***\n");
+			        "*** Ignoring tun-tap-osx spurious error ***");
 		else
 #  endif
 		goto error;
