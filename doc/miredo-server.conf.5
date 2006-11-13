@@ -58,14 +58,21 @@ are believed not to support such setup.
 relay and/or server will advertise.
 .IR "teredo_prefix" " must be a valid IPv6 prefix."
 
-.RB "The default value is " "2001:0000::" " (it was " "3ffe:831f::"
-in pre-0.8.0 versions).
+.RB "The default value is " "2001:0000::" "."
+A 32-bits prefix is required to use this option. Since you do not have
+such big an IPv6 prefix
+.B YOU WILL NOT USE THIS OPTION.
+Moreover, certain third party Teredo client implementations
+require the default prefix.
 
 .TP
 .BI "InterfaceMTU " "mtu"
 This directive overrides the value of the MTU that is advertised to
 Teredo clients. The default value is 1280 bytes and should not be
 changed if the default Teredo prefix is used.
+
+.B YOU MUST NOT USE THIS OPTION with the default prefix.
+This would break interoperability with most Teredo relays.
 
 .TP
 .BI "SyslogFacility " "facility"
