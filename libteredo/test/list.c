@@ -26,6 +26,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <time.h>
+#include <stdlib.h> // putenv()
 
 #include <inttypes.h> /* for Mac OS X */
 #include <sys/types.h>
@@ -41,6 +42,8 @@ int main (void)
 	struct in6_addr addr = { { } };
 	unsigned i;
 	time_t now;
+
+	putenv ((char *)"MALLOC_CHECK_=2");
 
 	// test empty list
 	l = teredo_list_create (0, 0);
