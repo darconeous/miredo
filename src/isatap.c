@@ -40,6 +40,7 @@
 #include <signal.h> // sigemptyset()
 #include <compat/pselect.h>
 #include <syslog.h>
+#include <pthread.h>
 
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -201,30 +202,17 @@ create_static_tunnel (const char *ifname, uint32_t ipv4)
 }
 
 
-
-/**
- * Miredo main daemon function, with UDP datagrams and IPv6 packets
- * receive loop.
- */
-static int
-run_tunnel (int ipv6fd, tun6 *tunnel, uint32_t router_ipv4)
+typedef struct
 {
-	fd_set refset;
+	tun6 *tunnel;
+	int fd;
+	uint32_t router_ipv4;
+} isatapd_t;
 
-	FD_ZERO (&refset);
-	int maxfd = tun6_registerReadSet (tunnel, &refset);
 
-	if ((maxfd == -1) || (ipv6fd >= (int)FD_SETSIZE))
-		return -1;
-
-	FD_SET (ipv6fd, &refset);
-	if (ipv6fd > maxfd)
-		maxfd = ipv6fd;
-
-	maxfd++;
-	sigset_t set;
-	sigemptyset (&set);
-
+static LIBTEREDO_NORETURN void *encap_thread (void *data)
+{
+	isatapd_t conf = *((isatapd_t *)data);
 	struct sockaddr_in dst =
 	{
 		.sin_family = AF_INET,
@@ -233,110 +221,140 @@ run_tunnel (int ipv6fd, tun6 *tunnel, uint32_t router_ipv4)
 #endif
 	};
 
-	/* Main loop */
 	for (;;)
 	{
-		fd_set readset;
-		memcpy (&readset, &refset, sizeof (readset));
-
-		/* Wait until one of them is ready for read */
-		int val = pselect (maxfd, &readset, NULL, NULL, NULL, &set);
-		if (val < 0)
-			return 0;
-		if (val == 0)
-			continue;
-
-		/* Handle incoming data */
 		union
 		{
 			struct ip6_hdr ip6;
+			uint8_t fill[65535];
+		} buf;
+
+		int val = tun6_wait_recv (conf.tunnel, &buf.ip6, sizeof (buf));
+		if (val < (int)sizeof (buf.ip6))
+			continue;
+
+		dst.sin_addr.s_addr = conf.router_ipv4;
+
+		/*
+		 * FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME
+		 *
+		 * This is not just an ugly piece of code, this is also severely
+		 * _broken_. It will (sometime) send packet to the ISATAP router
+		 * instead of an other on-link node. This typically happends when an
+		 * application binds manually to an address, instead of letting the
+		 * IPv6 stack use the longest-prefix match rule.
+		 *
+		 * A more proper solution would consists of reading the local
+		 * addresses assigned to the tunnel interface, though this is a
+		 * little “racy”. Ultimately, the correct solutions are:
+		 *  - a next-hop hint from the tunnel driver
+		 *    (not supported on Linux, might be IPv4-only on BSD),
+		 *  - better yet, use a fully in-kernel ISATAP client tunnel.
+		 */
+		if (memcmp (buf.ip6.ip6_src.s6_addr, buf.ip6.ip6_dst.s6_addr, 8) == 0)
+		{
+			uint32_t v;
+			memcpy (&v, buf.ip6.ip6_dst.s6_addr + 8, sizeof (v));
+
+			if ((ntohl (v) & 0xfcffffff) == 0x00005efe)
+				memcpy (&dst.sin_addr, buf.ip6.ip6_dst.s6_addr + 12, 4);
+			/*else
+			 * If we knew that the destination was actually on-link, we ought
+			 * to send an ICMPv6 unreachable error back here.
+			 */
+		}
+
+		// Make sure the IPv4 destination is valid
+		if ((dst.sin_addr.s_addr == INADDR_ANY)
+		 || IN_MULTICAST (ntohl (dst.sin_addr.s_addr)))
+			continue; // drop packet
+
+		sendto (conf.fd, &buf, val, 0,
+		        (struct sockaddr *)&dst, sizeof (dst));
+	}
+}
+
+
+static LIBTEREDO_NORETURN void *decap_thread (void *data)
+{
+	isatapd_t conf = *((isatapd_t *)data);
+
+	for (;;)
+	{
+		union
+		{
 			struct ip ip4;
 			uint8_t fill[65535];
 		} buf;
 
-		val = tun6_recv (tunnel, &readset, &buf.ip6, sizeof (buf));
-		do
-		{
-			if (val < 40)
-				break;
 
-#ifdef MIREDO_TEREDO_CLIENT
-			/*
-			 * FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME
-			 *
-			 * This is not just an ugly piece of code, this is also severely
-			 * _broken_. It will (sometime) fail miserably if any upper layer
-			 * application binds manually to an address that does not obey the
-			 * “logical” longest-prefix match rule.
-			 *
-			 * A more proper solution would consists of reading the local
-			 * addresses assigned to the tunnel interface, though this is a
-			 * little “racy”. Ultimately, the correct solutions are:
-			 *  - handle Router Solicitation in userland (still sucks),
-			 *  - a next-hop hint from the tunnel driver
-			 *    (not supported on Linux, might be IPv4-only on BSD),
-			 *  - better yet, use a fully in-kernel ISATAP client tunnel.
-			 */
-			if ((router_ipv4 != INADDR_ANY)
-			 && memcmp (buf.ip6.ip6_src.s6_addr, buf.ip6.ip6_dst.s6_addr, 8))
-				dst.sin_addr.s_addr = router_ipv4;
-			else
-#endif
-			{
-				uint32_t v;
-				memcpy (&v, buf.ip6.ip6_dst.s6_addr + 8, sizeof (v));
-				if ((ntohl (v) & 0xfcffffff) != 0x00005efe)
-					break; // TODO: send ICMPv6 unreachable?
-	
-				memcpy (&v, buf.ip6.ip6_dst.s6_addr + 12, sizeof (v));
-				// Make sure the destination is not multicast
-				if (IN_MULTICAST (ntohl (v)))
-					break;
-	
-				dst.sin_addr.s_addr = v;
-			}
+		int val = recv (conf.fd, &buf, sizeof (buf), 0);
+		if ((val < (int)sizeof (struct ip))
+		 || (ntohs (buf.ip4.ip_len) != val))
+			continue;
 
-			sendto (ipv6fd, &buf, val, 0,
-			        (struct sockaddr *)&dst, sizeof (dst));
-		}
-		while (0);
+		val -= buf.ip4.ip_hl << 2;
+		if (val < (int)sizeof (struct ip6_hdr))
+			continue; // no room for IPv6 header
 
-		do
-		{
-			if (!FD_ISSET (ipv6fd, &readset))
-				break;
+		const struct ip6_hdr *ip6 =
+			(const struct ip6_hdr *)(buf.fill + (buf.ip4.ip_hl << 2));
 
-			val = recv (ipv6fd, &buf, sizeof (buf), 0);
-
-			if ((val < (int)sizeof (struct ip))
-			 || (ntohs (buf.ip4.ip_len) != val))
-				break;
-
-			val -= buf.ip4.ip_hl << 2;
-			if (val < (int)sizeof (struct ip6_hdr))
-				break; // no room for IPv6 header
-
-			const struct ip6_hdr *ip6 =
-				(const struct ip6_hdr *)(buf.fill + (buf.ip4.ip_hl << 2));
-
-			if (((ip6->ip6_vfc >> 4) != 6)
-			 || (ntohs (ip6->ip6_plen) != val))
-				break; // invalid IPv6 header
+		if (((ip6->ip6_vfc >> 4) != 6)
+		 || (ntohs (ip6->ip6_plen) != val))
+			continue; // invalid IPv6 header
 
 #if 0
-			uint32_t v;
-			memcpy (&v, ip6->ip6_src.s6_addr + 8, sizeof (v));
-			if ((ntohl (v) & 0xfcffffff) != 0x00005efe)
-				break; // TODO: check if it comes from the router
+		uint32_t v;
+		memcpy (&v, ip6->ip6_src.s6_addr + 8, sizeof (v));
+		if ((ntohl (v) & 0xfcffffff) != 0x00005efe)
+			break; // TODO: check if it comes from the router
 
-			if (memcmp (ip6->ip6_src.s6_addr + 12, &buf.ip4.ip_src, 4))
-				break;
+		if (memcmp (ip6->ip6_src.s6_addr + 12, &buf.ip4.ip_src, 4))
+			break;
 #endif
 
-			tun6_send (tunnel, ip6, val);
-		}
-		while (0);
+		tun6_send (conf.tunnel, ip6, val);
 	}
+}
+
+
+/**
+ * Miredo main daemon function, with UDP datagrams and IPv6 packets
+ * receive loop.
+ */
+static int
+run_tunnel (int ipv6fd, tun6 *tunnel, uint32_t router_ipv4)
+{
+	isatapd_t t = { tunnel, ipv6fd, router_ipv4 };
+	pthread_t deth, enth;
+
+	int retval = -1;
+
+	if (pthread_create (&deth, NULL, decap_thread, &t) == 0)
+	{
+		if (pthread_create (&enth, NULL, encap_thread, &t) == 0)
+		{
+			sigset_t dummyset, set;
+
+			/* changes nothing, only gets the current mask */
+			sigemptyset (&dummyset);
+			pthread_sigmask (SIG_BLOCK, &dummyset, &set);
+
+			/* wait for fatal signal */
+			while (sigwait (&set, &(int) { 0 }) != 0);
+
+			retval = 0;
+
+			pthread_cancel (enth);
+			pthread_join (enth, NULL);
+		}
+
+		pthread_cancel (deth);
+		pthread_join (deth, NULL);
+	}
+
+	return retval;
 }
 
 
@@ -415,7 +433,7 @@ isatap_run (miredo_conf *conf, const char *server_name)
 	int ipv6_fd = socket (AF_INET, SOCK_RAW, IPPROTO_IPV6);
 	if (ipv6_fd != -1)
 	{
-		miredo_setup_nonblock_fd (ipv6_fd);
+		miredo_setup_fd (ipv6_fd);
 
 		struct sockaddr_in a =
 		{
@@ -457,17 +475,6 @@ extern
 void miredo_setup_fd (int fd)
 {
 	(void) fcntl (fd, F_SETFD, FD_CLOEXEC);
-}
-
-
-extern
-void miredo_setup_nonblock_fd (int fd)
-{
-	int flags = fcntl (fd, F_GETFL);
-	if (flags == -1)
-		flags = 0;
-	(void) fcntl (fd, F_SETFL, O_NONBLOCK | flags);
-	miredo_setup_fd (fd);
 }
 
 
