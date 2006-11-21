@@ -26,8 +26,8 @@ EXTRA_DIST = autogen.sh autopackage/default.apspec.in
 if CONF_SAMPLE
 # For user's convenience, we install miredo.conf
 # iif it does not already exist.
-# Packagers might consider using --enable-erase-conf instead
-# or do everything by hand with --disable-sample-conf.
+# Packagers will probably use --disable-sample-conf
+# and copy their own default (or those in misc/) to @sysconfdir@
 
 example = $(examplesdir)/miredo.conf
 conf = $(sysconfdir)/miredo.conf
