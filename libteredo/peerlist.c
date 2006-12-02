@@ -71,7 +71,7 @@ static inline void teredo_peer_init (teredo_peer *peer)
 }
 
 
-static void teredo_peer_destroy (teredo_peer *peer)
+static inline void teredo_peer_destroy (teredo_peer *peer)
 {
 	teredo_queue *p = peer->queue;
 
@@ -175,6 +175,22 @@ struct teredo_peerlist
 };
 
 
+static inline teredo_listitem *listitem_create (void)
+{
+	teredo_listitem *entry = malloc (sizeof (*entry));
+	if (entry != NULL)
+		teredo_peer_init (&entry->peer);
+	return entry;
+}
+
+
+static void listitem_destroy (teredo_listitem *entry)
+{
+	teredo_peer_destroy (&entry->peer);
+	free (entry);
+}
+
+
 static void mutex_unlock (void *mutex)
 {
 	(void)pthread_mutex_unlock ((pthread_mutex_t *)mutex);
@@ -239,8 +255,7 @@ static LIBTEREDO_NORETURN void *garbage_collector (void *data)
 			while (victim != NULL)
 			{
 				teredo_listitem *buf = victim->next;
-				teredo_peer_destroy (&victim->peer);
-				free (victim);
+				listitem_destroy (victim);
 				victim = buf;
 			}
 
@@ -327,8 +342,7 @@ void teredo_list_reset (teredo_peerlist *l, unsigned max)
 	while (p != NULL)
 	{
 		teredo_listitem *buf = p->next;
-		teredo_peer_destroy (&p->peer);
-		free (p);
+		listitem_destroy (p);
 		p = buf;
 	}
 
@@ -454,6 +468,8 @@ teredo_peer *teredo_list_lookup (teredo_peerlist *restrict list, time_t atime,
 		return &p->peer;
 	}
 
+	assert (p == NULL);
+
 	/* otherwise, peer was not in list */
 	if (create == NULL)
 	{
@@ -464,7 +480,8 @@ teredo_peer *teredo_list_lookup (teredo_peerlist *restrict list, time_t atime,
 	*create = true;
 
 	/* Allocates a new peer entry */
-	p = (list->left != 0) ? (teredo_listitem *)malloc (sizeof (*p)) : NULL;
+	if (list->left > 0)
+		p = listitem_create ();
 
 	if (p == NULL)
 	{
@@ -475,8 +492,6 @@ teredo_peer *teredo_list_lookup (teredo_peerlist *restrict list, time_t atime,
 		pthread_mutex_unlock (&list->lock);
 		return NULL;
 	}
-
-	teredo_peer_init (&p->peer);
 
 	if (list->sentinel.next == &list->sentinel)
 		/* tell GC the list is no longer empty */
