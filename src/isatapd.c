@@ -1,5 +1,5 @@
 /*
- * isatap.c - basic ISATAP implementation
+ * isatapd.c - basic ISATAP daemon implementation
  * $Id$
  */
 

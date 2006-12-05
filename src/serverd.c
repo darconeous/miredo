@@ -1,5 +1,5 @@
 /*
- * server.c - Unix Teredo server implementation daemon
+ * serverd.c - Teredo server implementation daemon
  * $Id$
  */
 

@@ -47,7 +47,7 @@ libmiredo_la_LDFLAGS = -no-undefined -static
 # That is why we use -release at the moment.
 
 # miredo
-miredo_SOURCES = relay.c
+miredo_SOURCES = relayd.c
 if TEREDO_CLIENT
 miredo_SOURCES += privproc.c privproc.h addrwatch.c addrwatch.h
 TESTS += miredo-checkconf
@@ -56,7 +56,7 @@ miredo_LDADD = ../libtun6/libtun6.la ../libteredo/libteredo.la libmiredo.la \
 		@LIBRT@ $(LIBINTL)
 
 # miredo-server
-miredo_server_SOURCES = server.c
+miredo_server_SOURCES = serverd.c
 miredo_server_LDADD = ../libteredo/libteredo-server.la libmiredo.la $(LIBINTL)
 
 # miredo-checkconf
@@ -64,7 +64,7 @@ miredo_checkconf_SOURCES = checkconf.c
 miredo_checkconf_LDADD = libmiredo.la $(LIBINTL)
 
 # isatapd
-isatapd_SOURCES = isatap.c
+isatapd_SOURCES = isatapd.c
 isatapd_LDADD = ../libtun6/libtun6.la libmiredo.la $(LIBINTL)
 
 install-exec-local:
