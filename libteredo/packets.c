@@ -349,7 +349,7 @@ SendPing (int fd, const union teredo_addr *src, const struct in6_addr *dst)
 	ping.ip6.ip6_flow = htonl (0x60000000);
 	ping.ip6.ip6_plen = htons (sizeof (ping.icmp6) + PING_PAYLOAD);
 	ping.ip6.ip6_nxt = IPPROTO_ICMPV6;
-	ping.ip6.ip6_hlim = 21;
+	ping.ip6.ip6_hlim = 128;
 	memcpy (&ping.ip6.ip6_src, src, sizeof (ping.ip6.ip6_src));
 	memcpy (&ping.ip6.ip6_dst, dst, sizeof (ping.ip6.ip6_dst));
 	
