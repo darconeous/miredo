@@ -1,5 +1,5 @@
 RELEASE NOTES for Miredo
-stable release version 1.0.4
+stable release version 1.0.5
 =============================
 $Id$
 
@@ -12,6 +12,15 @@ lot of bug fixes and improvements compared with branch 0.8.x.
 informations on this program, see README. For syntax details and
 changes, run “miredo -h” to get help. For detailled internal changes, see
 ChangeLog.
+
+===========================================================================
+STABLE RELEASE 1.0.5 : Major bug fixes
+
+# Fix issues with timer and compiler optimizations (bug from 0.9.4).
+# Increase ping test hop limit:
+  Some IPv6 native nodes could not be reached otherwise.
+# Increase HMAC secret size from 64 to 128 bits.
+# Fix filtering of packets with link-local source address (bug from 0.4.0).
 
 ============================================================================
 STABLE RELEASE 1.0.4 : Major bug fix
