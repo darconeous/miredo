@@ -37,6 +37,39 @@
 #include "peerlist.h"
 
 
+static void wait (unsigned sec)
+{
+	printf ("Waiting %d second%s...", sec, (sec != 1) ? "s" : "");
+	fflush (stdout);
+	nanosleep (&(struct timespec){ sec, 0 }, NULL);
+	puts ("");
+	fflush (stdout);
+}
+
+
+static teredo_peer *lookup (teredo_peerlist *l, time_t now,
+                            struct in6_addr *addr, bool *create)
+{
+	teredo_peer *p = teredo_list_lookup (l, now, addr, create);
+	if (p != NULL)
+		teredo_list_release (l);
+	return p;
+}
+
+
+static bool try_lookup (teredo_peerlist *l, time_t now, struct in6_addr *addr)
+{
+	return lookup (l, now, addr, NULL) != NULL;
+}
+
+
+static bool try_insert (teredo_peerlist *l, time_t now, struct in6_addr *addr)
+{
+	bool created;
+	return (lookup (l, now, addr, &created) != NULL) && created;
+}
+
+
 static int test_list (teredo_peerlist *l)
 {
 	struct in6_addr addr = { { } };
@@ -47,175 +80,91 @@ static int test_list (teredo_peerlist *l)
 	// initial insertion tests
 	for (unsigned i = 0; i < 256; i++)
 	{
-		teredo_peer *p;
-		bool create;
-
 		addr.s6_addr[12] = i;
-		p = teredo_list_lookup (l, now, &addr, (i & 1) ? &create : NULL);
-		if (i & 1)
-		{
-			// item should have been created
-			if ((!create) || (p == NULL))
-				return -1;
-			teredo_list_release (l);
-		}
-		else
-		{
-			// item did not exist and should not have been found
-			if (p != NULL)
-				return -1;
-		}
+		if ((i & 1) ? !try_insert (l, now, &addr)
+		            : try_lookup (l, now, &addr))
+			return -1;
 	}
 
 	// lookup tests
 	for (unsigned i = 0; i < 256; i++)
 	{
-		teredo_peer *p;
-
 		addr.s6_addr[12] = i;
-		p = teredo_list_lookup (l, now, &addr, NULL);
-		if (i & 1)
-		{
-			// item was created earlier
-			if (p == NULL)
-				return -1;
-			teredo_list_release (l);
-		}
-		else
-		{
-			// item did not exist and should not have been found
-			if (p != NULL)
-				return -1;
-		}
+		if ((i & 1) != try_lookup (l, now, &addr))
+			return -1;
 	}
 
-	puts ("Waiting 2 seconds...");
-	sleep (2);
+	wait (2);
 	time (&now);
 	addr.s6_addr[0] = 1;
 	// test further insertions
 	for (unsigned i = 0; i < 256; i++)
 	{
-		teredo_peer *p;
-		bool create;
 
 		addr.s6_addr[12] = i;
-		p = teredo_list_lookup (l, now, &addr, i & 1 ? &create : NULL);
-		if ((i & 1) && (i != 255))
-		{
-			// item should have been created... except the last one
-			if ((!create) || (p == NULL))
-				return -1;
-			teredo_list_release (l);
-		}
-		else
-		{
-			// item did not exist and should not have been found
-			if (p != NULL)
-				return -1;
-		}
+		if ((i & 1) ? ((i < 255) != try_insert (l, now, &addr))
+		            : try_lookup (l, now, &addr))
+			// items 1, 3...253 should have been created
+			// items 255 should cause an overflow
+			// items 0, 2... 254 did not exist and should not have been found
+			return -1;
 	}
 
 	// lookup tests
 	for (unsigned i = 0; i < 256; i++)
 	{
-		teredo_peer *p;
-
 		addr.s6_addr[0] = 0;
 		addr.s6_addr[12] = i;
-		if ((i & 3) == 3)
-		{
-			p = teredo_list_lookup (l, now, &addr, NULL);
-			{
-				// item was created earlier
-				if (p == NULL)
-					return -1;
-				teredo_list_release (l);
-			}
-		}
+
+		if (((i & 3) == 3) && !try_lookup (l, now, &addr))
+			// item was created earlier
+			return -1;
 
 		addr.s6_addr[0] = 1;
-		p = teredo_list_lookup (l, now, &addr, NULL);
-		if ((i & 1) && (i != 255))
-		{
-			// item was created earlier
-			if (p == NULL)
-				return -1;
-			teredo_list_release (l);
-		}
-		else
-		{
-			// item did not exist and should not have been found
-			if (p != NULL)
-				return -1;
-		}
+		if (((i & 1) && (i < 255)) != try_lookup (l, now, &addr))
+			return -1;
 	}
 
-	puts ("Waiting 2 seconds...");
-	sleep (2);
+	wait (2);
 	time (&now);
 	// further lookup tests
 	for (unsigned i = 0; i < 256; i++)
 	{
-		teredo_peer *p;
-
 		addr.s6_addr[0] = 0;
 		addr.s6_addr[12] = i;
-		p = teredo_list_lookup (l, now, &addr, NULL);
-		// item should not/no longet exist
 		if ((i & 3) == 3)
 		{
-			if (p == NULL)
-				return -1;
-			teredo_list_release (l);
-		}
-		else
-		{
-			if (p != NULL)
+			if (!try_lookup (l, now, &addr))
 				return -1;
 		}
 
 		addr.s6_addr[0] = 1;
-		p = teredo_list_lookup (l, now, &addr, NULL);
-		if ((i & 1) && (i != 255))
-		{
-			// item was created earlier
-			if (p == NULL)
-				return -1;
-			teredo_list_release (l);
-		}
-		else
-		{
-			// item did not exist and should not have been found
-			if (p != NULL)
-				return -1;
-		}
+		if (((i & 1) && (i != 255)) != try_lookup (l, now, &addr))
+			return -1;
 	}
 
-	puts ("Waiting 4 seconds...");
-	sleep (4);
+	wait (2);
+	addr.s6_addr[0] = 0;
+
+	for (unsigned i = 0; i < 256; i++)
+	{
+		addr.s6_addr[12] = i;
+		if ((i & 3) == 3)
+			continue;
+		if (try_lookup (l, now, &addr))
+			return -1;
+	}
+
+	wait (5);
+
 
 	// everything should have been deleted now
 	for (unsigned i = 0; i < 256; i++)
 	{
-		teredo_peer *p;
-		bool create;
-
 		addr.s6_addr[12] = i;
-		p = teredo_list_lookup (l, now, &addr, i & 1 ? &create : NULL);
-		if (i & 1)
-		{
-			// item should have been created
-			if ((!create) || (p == NULL))
-				return -1;
-			teredo_list_release (l);
-		}
-		else
-		{
-			// item did not exist and should not have been found
-			if (p != NULL)
-				return -1;
-		}
+		if ((i & 1) ? !try_insert (l, now, &addr)
+		            : try_lookup (l, now, &addr))
+			return -1;
 	}
 
 	return 0;
@@ -272,12 +221,16 @@ int main (void)
 	}
 
 	// test real list
-	l = teredo_list_create (255, 3);
+	l = teredo_list_create (255, 2);
 	if (l == NULL)
 		return -1;
 
-	if (test_list (l) || test_list (l))
-		return -1;
+	if (test_list (l))
+		return 1;
+	wait (7);
+	if (test_list (l))
+		return 1;
+
 
 	teredo_list_destroy (l);
 
