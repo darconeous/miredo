@@ -1082,6 +1082,7 @@ int teredo_set_relay_mode (teredo_tunnel *t)
 	retval = (t->maintenance != NULL) ? -1 : 0;
 	pthread_rwlock_unlock (&t->state_lock);
 #else
+	(void)t;
 	retval = 0;
 #endif
 
