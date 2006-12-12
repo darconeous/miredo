@@ -318,10 +318,6 @@ static LIBTEREDO_NORETURN void *decap_thread (void *data)
 }
 
 
-/**
- * Miredo main daemon function, with UDP datagrams and IPv6 packets
- * receive loop.
- */
 static int
 run_tunnel (int ipv6fd, tun6 *tunnel, uint32_t router_ipv4)
 {
@@ -388,8 +384,8 @@ isatap_run (miredo_conf *conf, const char *server_name)
 #ifdef MIREDO_TEREDO_CLIENT
 		if (router_ip != INADDR_ANY)
 		{
-			if (get_bind_ipv4 (router_ip, &bind_ip)
-			 || IN_MULTICAST (ntohl (router_ip)))
+			if (IN_MULTICAST (ntohl (router_ip))
+			 || get_bind_ipv4 (router_ip, &bind_ip))
 			{
 				syslog (LOG_ALERT, _("Fatal configuration error"));
 				return -2;
