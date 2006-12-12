@@ -179,7 +179,7 @@ int main (void)
 	putenv ((char *)"MALLOC_CHECK_=2");
 
 	// test empty list
-	teredo_peerlist *l = teredo_list_create (0, 0);
+	teredo_peerlist *l = teredo_list_create (0, 3);
 	time (&now);
 	if (l == NULL)
 		return -1;
