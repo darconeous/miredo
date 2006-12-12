@@ -48,7 +48,7 @@ static const char randfile[] = "/dev/random";
 
 
 /* HMAC authentication */
-#define LIBTEREDO_KEY_LEN LIBTEREDO_NONCE_LEN
+#define LIBTEREDO_KEY_LEN 16
 #define HMAC_BLOCK_LEN 64 /* block size in bytes for MD5 (or SHA1) */
 #if LIBTEREDO_KEY_LEN > HMAC_BLOCK_LEN
 # error HMAC key too long.
