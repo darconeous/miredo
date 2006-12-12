@@ -71,7 +71,9 @@ isatap_diagnose (void)
 	int fd = socket (AF_INET, SOCK_RAW, IPPROTO_IPV6);
 	if (fd == -1)
 	{
-		perror (_("Raw IPv6 socket not working: %s"));
+		fprintf (stderr, _("Raw IPv6 socket not working: %s"),
+		         strerror (errno));
+		fputc ('\n', stderr);
 		return -1;
 	}
 	close (fd);
