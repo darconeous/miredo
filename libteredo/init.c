@@ -31,6 +31,7 @@
 #include <inttypes.h>
 #include "security.h"
 #include "tunnel.h"
+#include "clock.h"
 
 /**
  * Initializes libteredo. That function must be called before any other
@@ -54,7 +55,14 @@ int teredo_startup (bool use_client)
 	if (use_client)
 		return -1;
 #endif
-	return teredo_init_HMAC ();
+
+	if (teredo_init_HMAC () == 0)
+	{
+		if (teredo_clock_create () == 0)
+			return 0;
+		teredo_deinit_HMAC ();
+	}
+	return -1;
 }
 
 
@@ -72,5 +80,7 @@ void teredo_cleanup (bool use_client)
 #ifndef MIREDO_TEREDO_CLIENT
 	assert (!use_client);
 #endif
+
+	teredo_clock_destroy ();
 	teredo_deinit_HMAC ();
 }
