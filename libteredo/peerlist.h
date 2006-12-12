@@ -31,8 +31,8 @@ typedef struct teredo_peer
 {
 	teredo_queue *queue;
 	size_t queue_left;
-	time_t last_rx;
-	time_t last_tx;
+	teredo_clock_t last_rx;
+	teredo_clock_t last_tx;
 	uint32_t mapped_addr;
 	uint16_t mapped_port;
 	unsigned trusted:1;
@@ -67,19 +67,19 @@ static inline void SetMapping (teredo_peer *peer, uint32_t ip, uint16_t port)
 	peer->mapped_port = port;
 }
 
-static inline void TouchReceive (teredo_peer *peer, time_t now)
+static inline void TouchReceive (teredo_peer *peer, teredo_clock_t now)
 {
 	peer->last_rx = now;
 }
 
-static inline void TouchTransmit (teredo_peer *peer, time_t now)
+static inline void TouchTransmit (teredo_peer *peer, teredo_clock_t now)
 {
 	peer->last_tx = now;
 }
 
 
 static inline
-bool IsValid (const teredo_peer *peer, time_t now)
+bool IsValid (const teredo_peer *peer, teredo_clock_t now)
 {
 	return (now - peer->last_rx) <= 30;
 }

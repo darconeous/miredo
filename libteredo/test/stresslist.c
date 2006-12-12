@@ -36,6 +36,7 @@
 #include <unistd.h>
 
 #include "teredo.h"
+#include "clock.h"
 #include "peerlist.h"
 
 static void make_address (struct in6_addr *addr)

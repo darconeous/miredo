@@ -23,6 +23,7 @@
 # include <config.h>
 #endif
 
+#include <stdbool.h>
 #include <string.h>
 #include <time.h>
 #include <stdlib.h> /* malloc() / free() */
@@ -45,7 +46,7 @@
 #include "teredo.h"
 #include "teredo-udp.h" // FIXME: ugly
 #include "debug.h"
-#include <stdbool.h>
+#include "clock.h"
 #include "peerlist.h"
 
 /*

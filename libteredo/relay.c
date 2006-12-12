@@ -49,11 +49,11 @@
 #include "packets.h"
 #include "tunnel.h"
 #include "maintain.h"
+#include "clock.h"
 #include "peerlist.h"
 #ifdef MIREDO_TEREDO_CLIENT
 # include "security.h"
 #endif
-#include "clock.h"
 #include "debug.h"
 
 struct teredo_tunnel
@@ -256,7 +256,7 @@ static inline bool IsBubble (const struct ip6_hdr *hdr)
  * Returns 0 if a bubble may be sent, -1 if no more bubble may be sent,
  * 1 if a bubble may be sent later.
  */
-static int CountBubble (teredo_peer *peer, time_t now)
+static int CountBubble (teredo_peer *peer, teredo_clock_t now)
 {
 	/* § 5.2.6 - sending bubbles */
 	int res;
@@ -683,7 +683,7 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 
 	/* Actual packet reception, either as a relay or a client */
 
-	time_t now = teredo_clock ();
+	teredo_clock_t now = teredo_clock ();
 
 	// Checks source IPv6 address / looks up peer in the list:
 	struct teredo_peerlist *list = tunnel->list;

@@ -34,6 +34,7 @@
 #include <unistd.h>
 
 #include "teredo.h"
+#include "clock.h"
 #include "peerlist.h"
 
 
