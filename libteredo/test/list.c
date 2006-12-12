@@ -89,7 +89,7 @@ static int test_list (teredo_peerlist *l)
 			return -1;
 	}
 
-	wait (2);
+	wait (1);
 	addr.s6_addr[0] = 1;
 	puts ("Further insertion test...");
 	for (unsigned i = 0; i < 256; i++)
