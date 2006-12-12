@@ -40,7 +40,8 @@ libteredo_common_la_LDFLAGS = -no-undefined
 
 # libteredo.la
 libteredo_la_SOURCES =	init.c relay.c security.c security.h md5.c md5.h \
-			packets.c packets.h peerlist.c peerlist.h stub.c
+			packets.c packets.h peerlist.c peerlist.h \
+			clock.c clock.h stub.c
 if TEREDO_CLIENT
 libteredo_la_SOURCES += maintain.c maintain.h
 endif
