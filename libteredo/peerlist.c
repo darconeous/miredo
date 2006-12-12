@@ -404,13 +404,16 @@ teredo_peer *teredo_list_lookup (teredo_peerlist *restrict list,
 	}
 #else
 	/* Slow O(n) simplistic peer lookup */
-	bool found = false;
-	for (p = list->recent; !found && (p != NULL); p = p->next)
-		found = memcmp (&p->key, addr, sizeof (*addr)) == 0;
-	for (p = list->old; !found && (p != NULL); p = p->next)
-		found = memcmp (&p->key, addr, sizeof (*addr)) == 0;
-	if (!found)
-		p = NULL;
+	p = NULL;
+
+	for (p = list->recent; p != NULL; p = p->next)
+		if (memcmp (&p->key, addr, sizeof (*addr)) == 0)
+			break;
+
+	if (p == NULL)
+		for (p = list->old; p != NULL; p = p->next)
+			if (memcmp (&p->key, addr, sizeof (*addr)) == 0)
+				break;
 #endif
 
 	if (p != NULL)
