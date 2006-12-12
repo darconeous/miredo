@@ -429,7 +429,7 @@ int teredo_transmit (teredo_tunnel *restrict tunnel,
 	struct teredo_peerlist *list = tunnel->list;
 
 //	syslog (LOG_DEBUG, "packet to be sent");
-	teredo_peer *p = teredo_list_lookup (list, now, &dst->ip6, &created);
+	teredo_peer *p = teredo_list_lookup (list, &dst->ip6, &created);
 	if (p == NULL)
 		return -1; /* error */
 
@@ -653,7 +653,7 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 		 *
 		 * Only Linux defines s6_addr16, so we don't use it.
 		 */
-		if ((((uint16_t *)ip6.ip6_src.s6_addr)[0] & 0xffc0) == 0xfe80)
+		if (ntohs ((*(uint16_t *)ip6.ip6_src.s6_addr) & 0xffc0) == 0xfe80)
 			return;
 	}
 	else
@@ -691,7 +691,7 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 
 	// Checks source IPv6 address / looks up peer in the list:
 	struct teredo_peerlist *list = tunnel->list;
-	teredo_peer *p = teredo_list_lookup (list, now, &ip6.ip6_src, NULL);
+	teredo_peer *p = teredo_list_lookup (list, &ip6.ip6_src, NULL);
 
 	if (p != NULL)
 	{
@@ -741,8 +741,7 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 		{
 #ifdef MIREDO_TEREDO_CLIENT
 			if (IsClient (tunnel) && (p == NULL))
-				p = teredo_list_lookup (list, now, &ip6.ip6_src,
-				                        &(bool){ false });
+				p = teredo_list_lookup (list, &ip6.ip6_src, &(bool){ false });
 #endif
 			/*
 			 * Relays are explicitly allowed to drop packets from
@@ -786,7 +785,7 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 		if (p == NULL)
 		{
 			bool create;
-			p = teredo_list_lookup (list, now, &ip6.ip6_src, &create);
+			p = teredo_list_lookup (list, &ip6.ip6_src, &create);
 			if (p == NULL)
 				return; // memory error
 

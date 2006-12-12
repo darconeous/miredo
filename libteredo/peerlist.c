@@ -359,8 +359,6 @@ void teredo_list_destroy (teredo_peerlist *l)
  * the next call to teredo_list_lookup will deadlock. Unlocking the list after
  * a failure is not defined.
  *
- * @param atime unused.
- *
  * @param create if not NULL, the peer will be added to the list if it is not
  * present already, and *create will be true on return. If create is not NULL
  * but the peer was already present, *create will be false on return.
@@ -369,13 +367,12 @@ void teredo_list_destroy (teredo_peerlist *l)
  * @return The peer if found or created. NULL on error (when create is not
  * NULL), or if the peer was not found (when create is NULL).
  */
-teredo_peer *teredo_list_lookup (teredo_peerlist *restrict list, time_t atime,
+teredo_peer *teredo_list_lookup (teredo_peerlist *restrict list,
                                  const struct in6_addr *restrict addr,
                                  bool *restrict create)
 {
 	teredo_listitem *p;
 
-	(void)atime;
 	pthread_mutex_lock (&list->lock);
 
 #ifdef HAVE_LIBJUDY

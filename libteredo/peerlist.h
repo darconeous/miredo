@@ -97,7 +97,7 @@ teredo_peerlist *teredo_list_create (unsigned max, unsigned expiration);
 void teredo_list_destroy (teredo_peerlist *l);
 void teredo_list_reset (teredo_peerlist *l, unsigned max);
 
-teredo_peer *teredo_list_lookup (teredo_peerlist *restrict list, time_t atime,
+teredo_peer *teredo_list_lookup (teredo_peerlist *restrict list,
                                  const struct in6_addr *restrict addr,
                                  bool *restrict create);
 void teredo_list_release (teredo_peerlist *l);

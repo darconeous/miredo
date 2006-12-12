@@ -85,7 +85,7 @@ int main (void)
 		bool create;
 
 		make_address (&addr);
-		p = teredo_list_lookup (l, seed, &addr, &create);
+		p = teredo_list_lookup (l, &addr, &create);
 		if ((!create) || (p == NULL))
 			return -1;
 		teredo_list_release (l);
@@ -104,7 +104,7 @@ int main (void)
 		teredo_peer *p;
 
 		make_address (&addr);
-		p = teredo_list_lookup (l, seed, &addr, NULL);
+		p = teredo_list_lookup (l, &addr, NULL);
 		if (p == NULL)
 			return -1;
 		teredo_list_release (l);
