@@ -40,11 +40,8 @@
 
 static void wait (unsigned sec)
 {
-	printf ("Waiting %d second%s...", sec, (sec != 1) ? "s" : "");
-	fflush (stdout);
+	printf ("Waiting %d second%s...\n", sec, (sec != 1) ? "s" : "");
 	nanosleep (&(struct timespec){ sec, 0 }, NULL);
-	puts ("");
-	fflush (stdout);
 }
 
 
@@ -75,7 +72,7 @@ static int test_list (teredo_peerlist *l)
 {
 	struct in6_addr addr = { { } };
 
-	// initial insertion tests
+	puts ("Initial insertion test...");
 	for (unsigned i = 0; i < 256; i++)
 	{
 		addr.s6_addr[12] = i;
@@ -83,6 +80,7 @@ static int test_list (teredo_peerlist *l)
 			return -1;
 	}
 
+	puts ("Initial lookup test...");
 	// lookup tests
 	for (unsigned i = 0; i < 256; i++)
 	{
@@ -93,7 +91,7 @@ static int test_list (teredo_peerlist *l)
 
 	wait (2);
 	addr.s6_addr[0] = 1;
-	// test further insertions
+	puts ("Further insertion test...");
 	for (unsigned i = 0; i < 256; i++)
 	{
 
@@ -106,7 +104,7 @@ static int test_list (teredo_peerlist *l)
 			return -1;
 	}
 
-	// lookup tests
+	puts ("Lookup test...");
 	for (unsigned i = 0; i < 256; i++)
 	{
 		addr.s6_addr[0] = 0;
@@ -122,7 +120,7 @@ static int test_list (teredo_peerlist *l)
 	}
 
 	wait (2);
-	// further lookup tests
+	puts ("Further lookup test...");
 	for (unsigned i = 0; i < 256; i++)
 	{
 		addr.s6_addr[0] = 0;
@@ -141,6 +139,7 @@ static int test_list (teredo_peerlist *l)
 	wait (2);
 	addr.s6_addr[0] = 0;
 
+	puts ("Partial expiration test...");
 	for (unsigned i = 0; i < 256; i++)
 	{
 		addr.s6_addr[12] = i;
@@ -152,8 +151,7 @@ static int test_list (teredo_peerlist *l)
 
 	wait (5);
 
-
-	// everything should have been deleted now
+	puts ("Full expiration test...");
 	for (unsigned i = 0; i < 256; i++)
 	{
 		addr.s6_addr[12] = i;
@@ -171,7 +169,7 @@ int main (void)
 
 	putenv ((char *)"MALLOC_CHECK_=2");
 
-	// test empty list
+	puts ("Basic empty list test...");
 	teredo_peerlist *l = teredo_list_create (0, 3);
 	if (l == NULL)
 		return -1;
@@ -185,7 +183,7 @@ int main (void)
 		teredo_list_destroy (l);
 	}
 
-	// further test empty list
+	puts ("Advanced empty list test...");
 	l = teredo_list_create (0, 3);
 	if (l == NULL)
 		return -1;
@@ -211,19 +209,21 @@ int main (void)
 		teredo_list_destroy (l);
 	}
 
-	// test real list
+	puts ("List creation test...");
 	l = teredo_list_create (255, 2);
 	if (l == NULL)
 		return -1;
 
 	if (test_list (l))
 		return 1;
+
 	wait (7);
 	if (test_list (l))
 		return 1;
 
-
+	puts ("Final list release...");
 	teredo_list_destroy (l);
+	puts ("Done.");
 
 	return 0;
 }
