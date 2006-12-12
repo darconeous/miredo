@@ -171,9 +171,8 @@ static int get_bind_ipv4 (uint32_t conn_ipv4, uint32_t *bind_ipv4)
 	*bind_ipv4 = addr.sin_addr.s_addr;
 	return bind_ipv4 ? 0 : -1;
 }
-#else /* MIREDO_TEREDO_CLIENT */
-# define run_tunnel( a, b, c ) run_tunnel_ROUTERonly (a, b)
-#endif
+#endif /* MIREDO_TEREDO_CLIENT */
+
 
 
 static tun6 *
@@ -364,9 +363,9 @@ isatap_run (miredo_conf *conf, const char *server_name)
 	/*
 	 * CONFIGURATION
 	 */
-#ifdef MIREDO_TEREDO_CLIENT
-	uint32_t router_ip;
+	uint32_t router_ip = INADDR_ANY, bind_ip = INADDR_ANY;
 
+#ifdef MIREDO_TEREDO_CLIENT
 	if ((server_name == NULL)
 		? !miredo_conf_parse_IPv4 (conf, "ServerAddress", &router_ip)
 		: GetIPv4ByName (server_name, &router_ip))
@@ -377,8 +376,6 @@ isatap_run (miredo_conf *conf, const char *server_name)
 #else
 	(void)server_name;
 #endif
-
-	uint32_t bind_ip = INADDR_ANY;
 
 	if (!miredo_conf_parse_IPv4 (conf, "BindAddress", &bind_ip))
 	{
