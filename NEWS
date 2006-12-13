@@ -4,8 +4,7 @@ stable release version 1.0.5
 $Id$
 
   This is a stable release. There are no known outstanding issues. We
-strongly encourage users from previous releases to upgrade. There are a
-lot of bug fixes and improvements compared with branch 0.8.x.
+strongly encourage users from previous releases to upgrade.
   Please report any problem by email to miredo-devel (at) remlab (dot) net
 
   You can find major changes since version 0.1.0 below. For more general
@@ -21,6 +20,7 @@ STABLE RELEASE 1.0.5 : Major bug fixes
   Some IPv6 native nodes could not be reached otherwise.
 # Increase HMAC secret size from 64 to 128 bits.
 # Fix filtering of packets with link-local source address (bug from 0.4.0).
+# Various fixes to the experimental ISATAP daemon.
 
 ============================================================================
 STABLE RELEASE 1.0.4 : Major bug fix
