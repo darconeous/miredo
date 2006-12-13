@@ -230,8 +230,8 @@ static LIBTEREDO_NORETURN void *encap_thread (void *data)
 			uint8_t fill[65535];
 		} buf;
 
-		int val = tun6_wait_recv (conf.tunnel, &buf.ip6, sizeof (buf));
-		if (val < (int)sizeof (buf.ip6))
+		ssize_t val = tun6_wait_recv (conf.tunnel, &buf.ip6, sizeof (buf));
+		if (val < (ssize_t)sizeof (buf.ip6))
 			continue;
 
 		dst.sin_addr.s_addr = conf.router_ipv4;
@@ -252,7 +252,8 @@ static LIBTEREDO_NORETURN void *encap_thread (void *data)
 		 *    (not supported on Linux, might be IPv4-only on BSD),
 		 *  - better yet, use a fully in-kernel ISATAP client tunnel.
 		 */
-		if (memcmp (buf.ip6.ip6_src.s6_addr, buf.ip6.ip6_dst.s6_addr, 8) == 0)
+		if (!memcmp (buf.ip6.ip6_src.s6_addr, buf.ip6.ip6_dst.s6_addr, 8)
+		 || (conf.router_ipv4 == INADDR_ANY))
 		{
 			uint32_t v;
 			memcpy (&v, buf.ip6.ip6_dst.s6_addr + 8, sizeof (v));
@@ -288,21 +289,21 @@ static LIBTEREDO_NORETURN void *decap_thread (void *data)
 			uint8_t fill[65535];
 		} buf;
 
+		ssize_t val = recv (conf.fd, &buf, sizeof (buf), 0);
 
-		int val = recv (conf.fd, &buf, sizeof (buf), 0);
-		if ((val < (int)sizeof (struct ip))
+		if ((val < (ssize_t)sizeof (struct ip))
 		 || (ntohs (buf.ip4.ip_len) != val))
 			continue;
 
 		val -= buf.ip4.ip_hl << 2;
-		if (val < (int)sizeof (struct ip6_hdr))
+		if (val < (ssize_t)sizeof (struct ip6_hdr))
 			continue; // no room for IPv6 header
 
 		const struct ip6_hdr *ip6 =
 			(const struct ip6_hdr *)(buf.fill + (buf.ip4.ip_hl << 2));
 
 		if (((ip6->ip6_vfc >> 4) != 6)
-		 || (ntohs (ip6->ip6_plen) != val))
+		 || (ntohs (ip6->ip6_plen) != (val - sizeof (*ip6))))
 			continue; // invalid IPv6 header
 
 #if 0
