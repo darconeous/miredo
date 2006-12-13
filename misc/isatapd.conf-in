@@ -7,7 +7,7 @@
 
 # Name of the ISATAP router
 # (Comment out to serve as a ISATAP router yourself)
-ServerAddress isatap
+ServerAddress	isatap
 
 # Name of the network tunneling interface.
 InterfaceName	isatap
