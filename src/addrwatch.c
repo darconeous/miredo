@@ -76,12 +76,12 @@ static LIBTEREDO_NORETURN void *addrwatch (void *opaque)
 			goto wait;
 
 		char buf[8192];
-		int val = read (data->if_inet6_fd, buf, sizeof (buf));
+		ssize_t val = read (data->if_inet6_fd, buf, sizeof (buf));
 		if (val == -1)
 			goto wait;
 
 		char *ptr = buf, *next;
-		bool found = false;
+		char found = 0;
 		while ((next = memchr (ptr, '\n', val)) != NULL)
 		{
 			*next++ = '\0';
@@ -94,7 +94,7 @@ static LIBTEREDO_NORETURN void *addrwatch (void *opaque)
 			{
 				if ((id != data->self_scope) && ((p & 0xe000) == 0x2000))
 				{
-					found = true;
+					found = 1;
 					break;
 				}
 			}
@@ -102,10 +102,10 @@ static LIBTEREDO_NORETURN void *addrwatch (void *opaque)
 		}
 
 		/* Update status */
-		if (data->status != found)
+		if (data->status != (found != 0))
 		{
-			data->status = found;
-			(void)write (data->pipefd[1], &found, sizeof (found));
+			data->status = (found != 0);
+			while (write (data->pipefd[1], &found, 1) == 0);
 		}
 
 	wait:
@@ -195,8 +195,8 @@ int miredo_addrwatch_available (miredo_addrwatch *self)
 	if (self == NULL)
 		return 0;
 
-	bool val;
-	while (read (self->pipefd[0], &val, sizeof (val)) > 0);
+	char val;
+	while (read (self->pipefd[0], &val, 1) > 0);
 
 	return self->status ? 1 : 0;
 }
