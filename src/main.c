@@ -161,10 +161,10 @@ open_pidfile (const char *path)
 		 && (lockf (fd, F_TEST, 0) == 0))
 			return fd;
 
-		close (fd);
-
 		if (errno == 0) /* !S_ISREG */
 			errno = EACCES;
+
+		(void)close (fd);
 	}
 	return -1;
 }
@@ -183,16 +183,20 @@ write_pid (int fd)
 	buf[sizeof (buf) - 1] = '\0';
 	size_t len = strlen (buf);
 
-	ftruncate (fd, 0);
-	return write (fd, buf, len) == (int)len ? 0 : -1;
+	if (ftruncate (fd, 0))
+		return -1;
+	return write (fd, buf, len) == (ssize_t)len ? 0 : -1;
 }
 
 
-static void
+static int
 close_pidfile (int fd)
 {
-	(void)lockf (fd, F_ULOCK, 0);
-	(void)close (fd);
+	if (lockf (fd, F_ULOCK, 0))
+		return -1;
+	if (close (fd))
+		return -1;
+	return 0;
 }
 
 
