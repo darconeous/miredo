@@ -403,17 +403,21 @@ int tun6_getId (const tun6 *t)
 
 
 #if defined (USE_LINUX)
-static void
+static int
 proc_write_zero (const char *path)
 {
-	int fd;
+	int fd = open (path, O_WRONLY);
+	if (fd == -1)
+		return -1;
 
-	fd = open (path, O_WRONLY);
-	if (fd != -1)
-	{
-		write (fd, "0", 1);
-		(void)close (fd);
-	}
+	int retval = 0;
+
+	if (write (fd, "0", 1) != 1)
+		retval = -1;
+	if (close (fd))
+		retval = -1;
+
+	return retval;
 }
 #endif
 
