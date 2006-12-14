@@ -55,7 +55,8 @@ static void alarm_handler (int sig)
 	count++;
 	signal (sig, alarm_handler);
 	alarm (1);
-	write (2, ".", 1);
+	if (write (2, ".", 1) == 1)
+		fsync (2);
 }
 
 #define STRESS_DELAY 10
