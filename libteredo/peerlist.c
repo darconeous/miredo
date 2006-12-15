@@ -168,7 +168,6 @@ struct teredo_peerlist
 	unsigned expiration;
 	pthread_t gc;
 	pthread_mutex_t lock;
-	pthread_cond_t cond;
 #ifdef HAVE_LIBJUDY
 	Pvoid_t PJHSArray;
 #endif
@@ -202,12 +201,6 @@ static void listitem_recdestroy (teredo_listitem *entry)
 }
 
 
-static void mutex_unlock (void *mutex)
-{
-	(void)pthread_mutex_unlock ((pthread_mutex_t *)mutex);
-}
-
-
 /**
  * Peer list garbage collector entry point.
  *
@@ -217,21 +210,15 @@ static LIBTEREDO_NORETURN void *garbage_collector (void *data)
 {
 	struct teredo_peerlist *l = (struct teredo_peerlist *)data;
 
-	pthread_mutex_lock (&l->lock);
-	pthread_cleanup_push (mutex_unlock, &l->lock);
-
 	for (;;)
 	{
-		struct timespec deadline;
-		clock_gettime (CLOCK_REALTIME, &deadline);
-		deadline.tv_sec += + l->expiration;
-
-		while (pthread_cond_timedwait (&l->cond, &l->lock,
-			                            &deadline) != ETIMEDOUT);
+		struct timespec delay = { .tv_sec = l->expiration };
+		while (clock_nanosleep (CLOCK_REALTIME, 0, &delay, &delay));
 
 		int state;
 		pthread_setcancelstate (PTHREAD_CANCEL_DISABLE, &state);
 		/* cancel-unsafe section starts */
+		pthread_mutex_lock (&l->lock);
 
 		// remove expired peers from hash table
 		for (teredo_listitem *p = l->old; p != NULL; p = p->next)
@@ -258,13 +245,11 @@ static LIBTEREDO_NORETURN void *garbage_collector (void *data)
 		// Perform possibly expensive memory release without the lock
 		listitem_recdestroy (old);
 
-		pthread_mutex_lock (&l->lock);
 		/* cancel-unsafe section ends */
 		pthread_setcancelstate (state, NULL);
 	}
-
-	pthread_cleanup_pop (1);
 }
+
 
 /**
  * Creates an empty peer list.
@@ -287,7 +272,6 @@ teredo_peerlist *teredo_list_create (unsigned max, unsigned expiration)
 
 	memset (l, 0, sizeof (l));
 	pthread_mutex_init (&l->lock, NULL);
-	pthread_cond_init (&l->cond, NULL);
 	l->recent = l->old = NULL;
 	l->left = max;
 	l->expiration = expiration;
@@ -297,7 +281,6 @@ teredo_peerlist *teredo_list_create (unsigned max, unsigned expiration)
 
 	if (pthread_create (&l->gc, NULL, garbage_collector, l))
 	{
-		pthread_cond_destroy (&l->cond);
 		pthread_mutex_destroy (&l->lock);
 		free (l);
 		return NULL;
@@ -348,7 +331,6 @@ void teredo_list_destroy (teredo_peerlist *l)
 
 	pthread_cancel (l->gc);
 	pthread_join (l->gc, NULL);
-	pthread_cond_destroy (&l->cond);
 	pthread_mutex_destroy (&l->lock);
 
 	free (l);

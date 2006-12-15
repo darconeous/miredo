@@ -98,7 +98,7 @@ static pthread_mutex_t user_mutex = PTHREAD_MUTEX_INITIALIZER;
  * Starts the clock. Thread-safe.
  *
  * TODO:
- * - use monotonic clock if available (GC and teredo_create will need fixing)
+ * - use monotonic clock if available
  *
  * @return 0 in case of success, an errno in case of error.
  */
