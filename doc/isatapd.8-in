@@ -63,7 +63,41 @@ Override the user that the program will run as. By default, it runs as
 .BR "\-V" " or " "\-\-version"
 Display program version and license and exit.
 
-.\".SH DIAGNOSTICS
+.SH DIAGNOSTICS
+.TP
+The ISATAP router sends duplicated packets or none at all.
+If there is another IPv6-over-IPv4 (pseudo)tunnel running on the same
+.RB "router, make sure it is bound " "explicitly" " to another IPv4"
+address. In particular, you cannot use the sit0 tunnel device on Linux
+while running isatapd, since you cannot bind sit0 to a specific IPv4
+address.
+
+.TP
+Dead loop on virtual device XXX, fix it urgently!
+Your routing table is probably incomplete or stalled.
+Keep in mind you must always configure network interfaces explicitly
+on IPv6 routers, including the ISATAP virtual interface.
+
+.TP
+Router advertisements are not sent to clients.
+ISATAP does not support multicast.
+You must configure the Router Advertisement daemon to send
+.B unicast
+advertisements only. With radvd, this is done by specifying
+'UnicastOnly on' in the ISATAP interface section.
+
+.TP
+ISATAP clients loose their autoconfigured addresses after a while.
+Linux (and possibly other IPv6 stacks) only try autoconfiguration when
+the network interface link state changes.
+For isatapd, that means only at startup.
+Therefore, you must ensure that the Router Advertisements specify
+lifetimes that are longer than the longest possible continuous uptime
+of isatapd on any ISATAP client.
+If this is not feasible, do not use autoconfiguration,
+do not use isatapd, or force manual periodic router solicitations
+with rdisc6 (from the ndisc6 package).
+
 .SH BUGS
 It would not be very complicated to implement support for ISATAP within
 the existing IPv6-over-IPv4 tunnel framework that exists in the Linux
@@ -74,9 +108,17 @@ holder has defined its policy as
 .IR "No License Required for Implementers" ", "
 so we will hopefully see in-kernel implementations back soon.
 
-ISATAPd only provide limited support for ISATAP client at the moment:
-autoconfiguration is not implemented; only one router can be used
-(Potential Routers List is not properly implemented).
+ISATAPd only provide limited support for ISATAP client at the moment.
+Only one router can be used (Potential Routers List is not properly
+implemented).
+
+Also, because of a limitation in the tunnel driver interface provided
+by the Linux and BSD IPv6 stacks,
+some packets may be unduely sent to the ISATAP router
+instead of another client on same ISATAP virtual network segment.
+That being noted, it would be much worse if you used a plain
+point-to-point tunnel to connect to an ISATAP network.
+More generally, gateway addresses in the routing table are ignored.
 
 .SH SECURITY
 .B ISATAPd
@@ -114,7 +156,7 @@ The default configuration file.
 The process-id file.
 
 .SH "SEE ALSO"
-isatapd.conf(5), radvd(8), ipv6(7)
+isatapd.conf(5), ipv6(7), radvd(8), rdisc6(8)
 
 .SH AUTHOR
 R\[char233]mi Denis-Courmont <rdenis at simphalempin.com>
