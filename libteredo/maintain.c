@@ -55,25 +55,21 @@
 #include "v4global.h" // is_ipv4_global_unicast()
 #include "debug.h"
 
-#if (_POSIX_CLOCK_SELECTION - 0 >= 0) && (_POSIX_MONOTONIC_CLOCK - 0 >= 0)
 static inline void gettime (struct timespec *now)
 {
-	if (clock_gettime (CLOCK_MONOTONIC, now))
-		clock_gettime (CLOCK_REALTIME, now);
-}
+#if (_POSIX_CLOCK_SELECTION - 0 >= 0) && (_POSIX_MONOTONIC_CLOCK - 0 >= 0)
+	if (clock_gettime (CLOCK_MONOTONIC, now) == 0)
+		return;
 #else
 # define pthread_condattr_setclock( a, c ) (((c) != CLOCK_REALTIME) ? EINVAL : 0)
 # ifndef CLOCK_MONOTONIC
 #  define CLOCK_MONOTONIC CLOCK_REALTIME
 # endif
-
-static inline void gettime (struct timespec *now)
-{
+# warning Monotonic clock is needed for proper Teredo maintenance!
+#endif
 	clock_gettime (CLOCK_REALTIME, now);
 }
 
-# warning Monotonic clock is needed for proper Teredo maintenance!
-#endif
 
 struct teredo_maintenance
 {
