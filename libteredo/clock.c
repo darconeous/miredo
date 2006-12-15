@@ -29,6 +29,7 @@
 
 #include <sys/types.h>
 #include <sys/time.h>
+#include <unistd.h> // _POSIX_*
 #include <pthread.h>
 
 #include "clock.h"
@@ -97,9 +98,6 @@ static pthread_mutex_t user_mutex = PTHREAD_MUTEX_INITIALIZER;
 /**
  * Starts the clock. Thread-safe.
  *
- * TODO:
- * - use monotonic clock if available
- *
  * @return 0 in case of success, an errno in case of error.
  */
 int teredo_clock_create (void)
@@ -111,12 +109,19 @@ int teredo_clock_create (void)
 	if (users == 0)
 	{
 		clock_data_t *ctx = (clock_data_t *)&data;
-	
 		struct timespec ts;
-		clock_gettime (CLOCK_REALTIME, &ts);
+
+#if (_POSIX_CLOCK_SELECTION - 0 >= 0) && (_POSIX_MONOTONIC_CLOCK - 0 >= 0)
+		/* Run-time POSIX monotonic clock detection */
+		ctx->id = CLOCK_MONOTONIC;
+		if (clock_gettime (CLOCK_MONOTONIC, &ts))
+#endif
+		{
+			ctx->id = CLOCK_REALTIME;
+			clock_gettime (CLOCK_REALTIME, &ts);
+		}
 	
 		ctx->value = ts.tv_sec;
-		ctx->id = CLOCK_REALTIME;
 	
 		val = pthread_rwlock_init (&ctx->lock, NULL);
 		if (val == 0)
