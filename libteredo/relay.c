@@ -146,8 +146,9 @@ teredo_send_unreach (teredo_tunnel *restrict tunnel, uint8_t code,
 	pthread_mutex_unlock (&tunnel->ratelimit.lock);
 
 	len = BuildICMPv6Error (&buf.hdr, ICMP6_DST_UNREACH, code, in, len);
-	tunnel->icmpv6_cb (tunnel->opaque, &buf.hdr, len,
-	                   &((const struct ip6_hdr *)in)->ip6_src);
+	struct in6_addr dst;
+	memcpy (&dst, &((const struct ip6_hdr *)in)->ip6_src, sizeof (dst));
+	tunnel->icmpv6_cb (tunnel->opaque, &buf.hdr, len, &dst);
 }
 
 #if 0
