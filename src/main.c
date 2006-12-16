@@ -191,9 +191,11 @@ write_pid (int fd)
 	buf[sizeof (buf) - 1] = '\0';
 	size_t len = strlen (buf);
 
-	if (ftruncate (fd, 0))
+	if (ftruncate (fd, 0)
+	 || (write (fd, buf, len) != (ssize_t)len)
+	 || fdatasync (fd))
 		return -1;
-	return write (fd, buf, len) == (ssize_t)len ? 0 : -1;
+	return 0;
 }
 
 
