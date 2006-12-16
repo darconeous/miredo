@@ -137,6 +137,14 @@ error_extra (const char *extra)
 }
 
 
+static int
+error_errno (const char *str)
+{
+	fprintf (stderr, _("Error (%s): %s\n"), str, strerror (errno));
+	return -1;
+}
+
+
 /**
  * Creates a Process-ID file.
  */
@@ -216,7 +224,7 @@ setuid_notice (void)
  * Initialize daemon context.
  */
 static int
-init_daemon (const char *username, const char *pidfile, int nodetach)
+init_security (const char *username)
 {
 	/* Clears environment */
 	(void)clearenv ();
@@ -286,12 +294,7 @@ init_daemon (const char *username, const char *pidfile, int nodetach)
 	/* POSIX.1e capabilities support */
 	cap_t s = cap_init ();
 	if (s == NULL)
-	{
-		/* Unlikely */
-		fprintf (stderr, _("Error (%s): %s\n"), "cap_init",
-		         strerror (errno));
-		return -1;
-	}
+		return error_errno ("cap_init"); // unlikely
 
 	static cap_value_t caps[] =
 	{
@@ -316,8 +319,7 @@ init_daemon (const char *username, const char *pidfile, int nodetach)
 
 	if (cap_set_proc (s))
 	{
-		fprintf (stderr, _("Error (%s): %s\n"), "cap_set_proc",
-		         strerror (errno));
+		error_errno ("cap_set_proc");
 		cap_free (s);
 		setuid_notice ();
 		return -1;
@@ -339,35 +341,7 @@ init_daemon (const char *username, const char *pidfile, int nodetach)
 	(void)username;
 #endif /* MIREDO_DEFAULT_USERNAME */
 
-	/* Opens pidfile */
-	fd = open_pidfile (pidfile);
-	if (fd == -1)
-	{
-		fprintf (stderr, _("Cannot create PID file %s:\n %s\n"),
-		         pidfile, strerror (errno));
-		if (errno == EAGAIN)
-			fprintf (stderr, "%s\n",
-			         _("Make sure another instance of the program is not "
-			           "already running."));
-		return -1;
-	}
-
-	/*
-	 * Detaches. While not security-related, it fits well here.
-	 */
-	if (!nodetach && daemon (0, 0))
-	{
-		fprintf (stderr, _("Error (%s): %s\n"), "daemon", strerror (errno));
-		return -1;
-	}
-
-	if (write_pid (fd))
-	{
-		close (fd);
-		return -1;
-	}
-
-	return fd;
+	return 0;
 }
 
 
@@ -496,8 +470,7 @@ int miredo_main (int argc, char *argv[])
 			if (errno == 0)
 				errno = ENOTDIR;
 
-			fprintf (stderr, _("Error (%s): %s\n"),
-			         chrootdir, strerror (errno));
+			error_errno (chrootdir);
 			return 1;
 		}
 	}
@@ -519,9 +492,34 @@ int miredo_main (int argc, char *argv[])
 	if (miredo_diagnose ())
 		return 1;
 
-	int fd = init_daemon (username, pidfile, flags.foreground);
-	if (fd == -1)
+	if (init_security (username))
 		return 1;
+
+	/* Opens pidfile */
+	int fd = open_pidfile (pidfile);
+	if (fd == -1)
+	{
+		fprintf (stderr, _("Cannot create PID file %s:\n %s\n"),
+		         pidfile, strerror (errno));
+		if (errno == EAGAIN)
+			fprintf (stderr, "%s\n",
+			         _("Make sure another instance of the program is not "
+			           "already running."));
+		return -1;
+	}
+
+	/* Detaches */
+	if (!flags.foreground && daemon (0, 0))
+	{
+		fprintf (stderr, _("Error (%s): %s\n"), "daemon", strerror (errno));
+		return -1;
+	}
+
+	if (write_pid (fd))
+	{
+		close (fd);
+		return -1;
+	}
 
 	/*
 	 * Run
