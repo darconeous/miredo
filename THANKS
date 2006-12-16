@@ -17,5 +17,6 @@ Bernhard Schmidt	Relay deployment and Teredo server hosting
 Pekka Savola		FreeBSD tests, report
 Nathan Lutchansky	Linux tests, report
 Marcus Rückert		OpenSUSE package
+Jari Korva		UMTS testing, bug report
 
 $Id$
