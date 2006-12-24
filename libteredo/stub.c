@@ -34,20 +34,6 @@
 
 
 /**
- * This is an alias for teredo_set_relay_mode.
- *
- * @param cone ignored for backward compatibility.
- *
- * @return 0.
- */
-int teredo_set_cone_flag (teredo_tunnel *t, bool cone)
-{
-	(void)cone;
-	return teredo_set_relay_mode (t);
-}
-
-
-/**
  * Does nothing (backward compatibility stub).
  */
 void teredo_set_cone_ignore (teredo_tunnel *t, bool ignore)
