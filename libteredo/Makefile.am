@@ -48,7 +48,7 @@ endif
 libteredo_la_DEPENDENCIES = libteredo.sym $(LIBADD)
 libteredo_la_LIBADD = @LIBJUDY@ @LIBRT@ $(LTLIBINTL) $(LIBADD)
 libteredo_la_LDFLAGS = -no-undefined -export-symbols $(srcdir)/libteredo.sym \
-	-version-info 3:3:0
+	-version-info 3:4:0
 
 # libteredo versions:
 # 0) First stable shared release (0.8.2)
