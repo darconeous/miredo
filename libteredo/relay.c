@@ -513,8 +513,8 @@ int teredo_transmit (teredo_tunnel *restrict tunnel,
 			 * Open the return path if we are behind a
 			 * restricted NAT.
 			 */
-			if (/* (!s.cone) && */
-			    SendBubbleFromDst (tunnel->fd, &dst->ip6, false))
+			if (!(s.addr.teredo.flags & htons (TEREDO_FLAG_CONE))
+			 && SendBubbleFromDst (tunnel->fd, &dst->ip6, false))
 				return -1;
 
 			return SendBubbleFromDst (tunnel->fd, &dst->ip6, true);
@@ -1064,6 +1064,37 @@ int teredo_set_prefix (teredo_tunnel *t, uint32_t prefix)
 
 	pthread_rwlock_unlock (&t->state_lock);
 	return retval;
+}
+
+
+/**
+ * Defines
+ *
+ * Thread-safety: This function is thread-safe.
+ *
+ * @param cone true to disable sending of direct Teredo bubble,
+ *             false to enable it.
+ *
+ * @return 0 on success, -1 on error (in which case the teredo_tunnel
+ * instance is not modified).
+ */
+int teredo_set_cone_flag (teredo_tunnel *t, bool cone)
+{
+	assert (t != NULL);
+
+	int retval = 0;
+
+	pthread_rwlock_wrlock (&t->state_lock);
+#ifdef MIREDO_TEREDO_CLIENT
+	if (t->maintenance != NULL)
+		retval = -1;
+	else
+#endif
+		t->state.addr.teredo.flags = htons (TEREDO_FLAG_CONE);
+	pthread_rwlock_unlock (&t->state_lock);
+
+	(void)cone;
+	return teredo_set_relay_mode (t);
 }
 
 
