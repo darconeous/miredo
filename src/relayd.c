@@ -158,7 +158,7 @@ miredo_icmp6_callback (void *data, const void *packet, size_t length,
 }
 
 
-//#define TEREDO_CONE     0
+#define TEREDO_CONE     0
 #define TEREDO_RESTRICT 1
 #define TEREDO_CLIENT   2
 #define TEREDO_EXCLIENT 3
@@ -178,8 +178,10 @@ ParseRelayType (miredo_conf *conf, const char *name, int *type)
 	if (strcasecmp (val, "autoclient") == 0)
 		*type = TEREDO_EXCLIENT;
 	else
+	if (strcasecmp (val, "cone") == 0)
+		*type = TEREDO_CONE;
+	else
 	if ((strcasecmp (val, "relay") == 0)
-	 || (strcasecmp (val, "cone") == 0)
 	 || (strcasecmp (val, "restricted") == 0))
 		*type = TEREDO_RESTRICT;
 	else
@@ -322,9 +324,10 @@ destroy_static_tunnel (tun6 *restrict tunnel,
 
 
 static int
-setup_relay (teredo_tunnel *relay, uint32_t prefix)
+setup_relay (teredo_tunnel *relay, uint32_t prefix, bool cone)
 {
 	teredo_set_prefix (relay, prefix);
+	teredo_set_cone_flag (relay, cone);
 	return teredo_set_relay_mode (relay);
 }
 
@@ -425,6 +428,7 @@ relay_run (miredo_conf *conf, const char *server_name)
 	char namebuf[NI_MAXHOST], namebuf2[NI_MAXHOST];
 #endif
 	uint16_t mtu = 1280;
+	bool cone = false;
 
 	if (mode & TEREDO_CLIENT)
 	{
@@ -460,6 +464,7 @@ relay_run (miredo_conf *conf, const char *server_name)
 	{
 		server_name = NULL;
 		mtu = 1280;
+		cone = (mode == TEREDO_CONE);
 
 		if (!miredo_conf_parse_teredo_prefix (conf, "Prefix",
 		                                      &prefix.teredo.prefix)
@@ -564,7 +569,7 @@ relay_run (miredo_conf *conf, const char *server_name)
 
 					retval = (mode & TEREDO_CLIENT)
 						? setup_client (relay, server_name, server_name2)
-						: setup_relay (relay, prefix.teredo.prefix);
+						: setup_relay (relay, prefix.teredo.prefix, cone);
 	
 					/*
 					 * RUN
