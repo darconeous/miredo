@@ -65,7 +65,9 @@ struct teredo_server
 	int fd_primary, fd_secondary; // UDP/IPv4 sockets
 
 	/* These are all in network byte order (including MTU!!) */
-	uint32_t server_ip, prefix, advLinkMTU;
+	uint32_t server_ip, server_ip2, prefix, advLinkMTU;
+
+	union teredo_addr lladdr; // server link-local IPv6 address
 };
 
 /**
@@ -126,13 +128,7 @@ SendRA (const teredo_server *restrict s, const struct teredo_packet *p,
 	ra.ip6.ip6_nxt = IPPROTO_ICMPV6;
 	ra.ip6.ip6_hlim = 255;
 
-	addr = (union teredo_addr *)&ra.ip6.ip6_src;
-	addr->teredo.prefix = htonl (0xfe800000);
-	//addr->teredo.server_ip = 0;
-	addr->teredo.flags = htons (TEREDO_FLAG_CONE);
-	addr->teredo.client_port = htons (IPPORT_TEREDO);
-	addr->teredo.client_ip = ~s->server_ip;
-
+	memcpy (&ra.ip6.ip6_src, &s->lladdr.ip6, sizeof (ra.ip6.ip6_src));
 	memcpy (&ra.ip6.ip6_dst, dest_ip6, sizeof (ra.ip6.ip6_dst));
 
 	// ICMPv6: Router Advertisement
@@ -172,6 +168,7 @@ SendRA (const teredo_server *restrict s, const struct teredo_packet *p,
 	return teredo_sendv (secondary ? s->fd_secondary : s->fd_primary,
 	                     iov, 3, p->source_ipv4, p->source_port) > 0;
 }
+
 
 /**
  * Forwards a Teredo packet to a client
@@ -268,6 +265,17 @@ teredo_send_ipv6 (const void *p, size_t len)
 static const struct in6_addr in6addr_allrouters =
 	{ { { 0xff, 0x02, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x2 } } };
 
+
+static inline bool IN6_IS_ADDR_GLOBAL (const struct in6_addr *addr)
+{
+	/* Normative reference: RFC4291 § 2.4 */
+	return !(IN6_IS_ADDR_UNSPECIFIED (addr)
+	      || IN6_IS_ADDR_LOOPBACK (addr)
+	      || IN6_IS_ADDR_LINKLOCAL (addr)
+	      || IN6_IS_ADDR_MULTICAST (addr));
+}
+
+
 /**
  * Checks and handles an Teredo-encapsulated packet.
  * Thread-safety note: prefix and advLinkMTU might be changed by another
@@ -280,28 +288,15 @@ static const struct in6_addr in6addr_allrouters =
 static int
 teredo_process_packet (const teredo_server *s, bool sec)
 {
-	const uint8_t *ptr;
 	struct teredo_packet packet;
-	size_t ip6len;
 	struct ip6_hdr ip6;
-	uint32_t myprefix;
 
 	if (teredo_wait_recv (sec ? s->fd_secondary : s->fd_primary, &packet))
 		return -1;
 
-	/*
-	 * Cases 1 to 3 are all about discarding packets,
-	 * so their actual order do not matter.
-	 * Similarly, cases 4 to 6 are all about processing the packet.
-	 */
-	// Teredo server case number 3
-	if (!is_ipv4_global_unicast (packet.source_ipv4))
-		return -2;
-
 	// Check IPv6 packet (Teredo server case number 1)
-	ptr = packet.ip6;
-	ip6len = packet.ip6_len;
-
+	const uint8_t *ptr = packet.ip6;
+	size_t ip6len = packet.ip6_len;
 	if (ip6len < sizeof (ip6))
 		return -2; // too small
 
@@ -320,7 +315,11 @@ teredo_process_packet (const teredo_server *s, bool sec)
 	 && (ip6.ip6_nxt != IPPROTO_ICMPV6)) // nor an ICMPv6 message
 		return -2; // packet not allowed through server
 
-	// Teredo server case number 3 was done above...
+	// Teredo server case number 3
+	if (!is_ipv4_global_unicast (packet.source_ipv4))
+		return -2;
+
+	const uint32_t myprefix = s->prefix;
 
 	// Teredo server case number 4
 	if (IN6_IS_ADDR_LINKLOCAL (&ip6.ip6_src)
@@ -328,52 +327,54 @@ teredo_process_packet (const teredo_server *s, bool sec)
 	 && (ip6.ip6_nxt == IPPROTO_ICMPV6)
 	 && (ip6len >= sizeof (struct nd_router_solicit))
 	 && (((const struct icmp6_hdr *)ptr)->icmp6_type == ND_ROUTER_SOLICIT))
-		// sends a Router Advertisement
-		return SendRA (s, &packet, &ip6.ip6_src, sec) ? 1 : -1;
-
-	/* Secondary address is only meant for Router Solicitation */
-	if (sec)
-		return -2;
-
-	/* Security fix: Prevent infinite UDP packet loop */
-	if ((packet.source_ipv4 == s->server_ip)
-	 && (packet.source_port == htons (3544)))
-		return -2;
-
-	myprefix = s->prefix;
+		goto accept;
 
 	if (IN6_TEREDO_PREFIX (&ip6.ip6_src) == myprefix)
 	{
 		/** Source address is Teredo **/
-		// Teredo server case number 5 (accept), otherwise 7 (discard)
-		if (!IN6_MATCHES_TEREDO_CLIENT (&ip6.ip6_src, packet.source_ipv4,
-		                                packet.source_port))
-			return -2;
-
-		/** Packet accepted for processing **/
-		/*
-		 * NOTE: Theoretically, we "should" accept ICMPv6 toward the
-		 * server's own local-link address or the ip6-allrouters
-		 * multicast address. In practice, it never happens.
-		 */
-
-		// Ensures destination is of global scope (ie 2000::/3)
-		if ((ip6.ip6_dst.s6_addr[0] & 0xe0) != 0x20)
-			return -2; // must not be forwarded over IPv6
-
-		if (IN6_TEREDO_PREFIX (&ip6.ip6_dst) != myprefix)
-			return teredo_send_ipv6 (packet.ip6, packet.ip6_len) ? 2 : -1;
+		// Teredo server case number 5
+		if (IN6_MATCHES_TEREDO_CLIENT (&ip6.ip6_src, packet.source_ipv4,
+		                               packet.source_port))
+			goto accept;
 	}
 	else
 	{
 		/** Source address is NOT Teredo **/
-		// Teredo server case number 6 (accept), otherwise 7 (discard)
-		if ((IN6_TEREDO_PREFIX (&ip6.ip6_dst) != myprefix)
-		 || (IN6_TEREDO_SERVER (&ip6.ip6_dst) != s->server_ip))
-			return -2;
-
-		/** Packet accepted for processing **/
+		// Teredo server case number 6
+		if ((IN6_TEREDO_PREFIX (&ip6.ip6_dst) == myprefix)
+		 && (IN6_TEREDO_SERVER (&ip6.ip6_dst) == s->server_ip))
+			goto accept;
 	}
+
+	// Teredo server case number 7
+	return -2;
+
+accept:
+	/** Packet "accepted" for processing **/
+
+	/* Security fix: Prevent infinite local UDP packet loops */
+	if (((packet.source_ipv4 == s->server_ip)
+	  || (packet.source_ipv4 == s->server_ip2))
+	 && (packet.source_port == htons (3544)))
+		return -2;
+
+	if (IN6_ARE_ADDR_EQUAL (&in6addr_allrouters, &ip6.ip6_dst)
+	 || IN6_ARE_ADDR_EQUAL (&s->lladdr.ip6, &ip6.ip6_dst))
+	{
+		const struct icmp6_hdr *icmp = (const struct icmp6_hdr *)ptr;
+			// ^^ unaligned!
+
+		if ((ip6.ip6_nxt == IPPROTO_ICMPV6)
+		 && (ip6len >= sizeof (struct nd_router_solicit))
+	     && (icmp->icmp6_type == ND_ROUTER_SOLICIT))
+			return SendRA (s, &packet, &ip6.ip6_src, sec) ? 1 : -1;
+
+		return -2;
+	}
+
+	/* Servers must not forward packets with non-global destination */
+	if (!IN6_IS_ADDR_GLOBAL (&ip6.ip6_src))
+		return -2;
 
 	/*
 	 * While an explicit breakage of RFC 4380, we purposedly drop ICMPv6
@@ -391,6 +392,9 @@ teredo_process_packet (const teredo_server *s, bool sec)
 	 */
 	if ((ip6.ip6_nxt != IPPROTO_NONE) && (ntohs (ip6.ip6_plen) > 88))
 		return -2;
+
+	if (IN6_TEREDO_PREFIX (&ip6.ip6_dst) != myprefix)
+		return teredo_send_ipv6 (packet.ip6, packet.ip6_len) ? 2 : -1;
 
 	// Forwards packet over Teredo (destination is a Teredo IPv6 address)
 	return teredo_forward_udp (s->fd_primary, &packet,
@@ -494,8 +498,14 @@ teredo_server *teredo_server_create (uint32_t ip1, uint32_t ip2)
 
 		memset (s, 0, sizeof (s));
 		s->server_ip = ip1;
+		s->server_ip2 = ip2;
 		s->prefix = htonl (TEREDO_PREFIX);
 		s->advLinkMTU = htonl (1280);
+		s->lladdr.teredo.prefix = htonl (0xfe800000);
+		//s->lladdr.teredo.server_ip = 0;
+		s->lladdr.teredo.flags = htons (TEREDO_FLAG_CONE);
+		s->lladdr.teredo.client_port = htons (IPPORT_TEREDO);
+		s->lladdr.teredo.client_ip = ~s->server_ip;
 
 		fd = s->fd_primary = teredo_socket (ip1, htons (IPPORT_TEREDO));
 		if (fd != -1)
