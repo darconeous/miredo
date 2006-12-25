@@ -385,10 +385,7 @@ void maintenance_thread (teredo_maintenance *m)
 		if (val /* == ETIMEDOUT */)
 		{
 			/* no response */
-			if (state == PROBE_SYMMETRIC)
-				state = PROBE_RESTRICT;
-			else
-				count++;
+			count++;
 
 			if (count >= QualificationRetries)
 			{
