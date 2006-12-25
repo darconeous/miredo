@@ -278,6 +278,9 @@ int main(int argc, char *argv[])
 				process_icmpv6 (fd, ip6, plen, p.source_ipv4, p.source_port);
 				break;
 
+			case IPPROTO_ROUTING:
+				break;
+
 			default:
 				process_unknown (fd, ip6, plen, p.source_ipv4, p.source_port);
 		}
