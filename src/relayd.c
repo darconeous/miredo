@@ -178,12 +178,16 @@ ParseRelayType (miredo_conf *conf, const char *name, int *type)
 	if (strcasecmp (val, "autoclient") == 0)
 		*type = TEREDO_EXCLIENT;
 	else
-	if (strcasecmp (val, "cone") == 0)
-		*type = TEREDO_CONE;
+	if (strcasecmp (val, "restricted") == 0)
+	{
+		syslog (LOG_WARNING, _("Using deprecated \"restricted\" relay type "
+		        "which is STRONGLY DISCOURAGED (at line %u)."), line);
+		*type = TEREDO_RESTRICT;
+	}
 	else
 	if ((strcasecmp (val, "relay") == 0)
-	 || (strcasecmp (val, "restricted") == 0))
-		*type = TEREDO_RESTRICT;
+	 || (strcasecmp (val, "cone") == 0))
+		*type = TEREDO_CONE;
 	else
 	{
 		syslog (LOG_ERR, _("Invalid relay type \"%s\" at line %u"),

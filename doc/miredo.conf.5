@@ -34,7 +34,7 @@ directives follows:
 .TP
 .BR "RelayType" " (" "client" "|" "relay" "|" "autoclient" ")"
 Specifies what type of Teredo relay/client Miredo will serve as.
-There are three possible choices:
+There are four possible choices:
 
 .TP
 .BR "client" " mode (the default)"
@@ -67,10 +67,12 @@ interfaces. Whenever it detects the availability of global IPv6
 connectivity through another interface, it stops its Teredo tunnel.
 
 .TP
-.BR "relay" " mode"
-.RB "In " "relay" " mode, " "Miredo" " acts as a "
+.BR "cone" " mode (" "relay" " also works)"
+.RB "In " "cone" " mode, " "Miredo" " acts as a "
 .IR "Teredo relay" ". It will assume that it has public global " "IPv4"
-.RI "connectivity or is located behind a " "cone" " NAT device. "
+connectivity with no firewall.
+In other words, the UDP port used by Miredo must receive unsoliticited
+.RB "traffic from the IPv4 Internet (see also " "BindPort" ")."
 Miredo will create a virtual networking interface with a route toward
 Teredo clients.
 
@@ -79,12 +81,22 @@ Teredo clients.
 have a working IPv6 connectivity through a way distinct from Teredo
 tunneling (native, 6to4, ISATAP, etc).
 
-Warning: This mode should only be used if the node has a public IPv4
-address or if it is behind a full cone NAT-router, otherwise the
-tunnel will not work properly.
+.B Warning:
+This mode should only be used if the node has a public IPv4 address, or
+if it is behind a full cone NAT-router with proper port forwarding
+rules.
+.RB "Otherwise the tunnel will " "NOT WORK PROPERLY" "."
+Note that many NAT port forwarding implementations are broken.
 
-.RI "Miredo also accepts " "restricted" " and " "cone" " as aliases"
-for the relay mode, for backward compatibility with older versions.
+.TP
+.BR "restricted" " mode"
+This mode is identical to the cone mode documented above,
+.RI "with the exception that " "direct Teredo bubbles" " will be sent."
+Theoretically (see RFC4380) this permits operation of a Teredo relay
+from behind a restricted-port NAT.
+In practice, this makes NAT traversal extremely unreliable.
+This setting is present for backward syntax compatibility of
+the miredo.conf file. PLEASE DO NOT USE THIS MODE.
 
 .SH CLIENT OPTIONS
 .RI "The following directives are only available in " "(auto)client"
