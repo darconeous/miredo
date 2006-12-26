@@ -36,4 +36,5 @@ $(man8_MANS): Makefile
 	$(edit) $< > $@
 
 distcheck-hook:
-	cd $(srcdir) && iconv -f ASCII $(SOURCES_MAN)
+	cd $(srcdir) && \
+	cat $(SOURCES_MAN) | grep -ve '\.\\"' | iconv -f ASCII >/dev/null
