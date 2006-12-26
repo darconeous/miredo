@@ -1153,7 +1153,8 @@ int teredo_set_client_mode (teredo_tunnel *restrict t,
 	}
 
 	struct teredo_maintenance *m;
-	m = teredo_maintenance_start (t->fd, teredo_state_change, t, s, s2);
+	m = teredo_maintenance_start (t->fd, teredo_state_change, t, s, s2,
+	                              0, 0, 0, 0);
 	t->maintenance = m;
 	pthread_rwlock_unlock (&t->state_lock);
 

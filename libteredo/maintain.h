@@ -38,7 +38,10 @@ typedef void (*teredo_state_cb) (const struct teredo_state *s, void *);
 
 teredo_maintenance *
 teredo_maintenance_start (int fd, teredo_state_cb cb, void *opaque,
-                          const char *s1, const char *s2);
+                          const char *s1, const char *s2,
+                          unsigned q_sec, unsigned q_retries,
+                          unsigned refresh_sec, unsigned restart_sec);
+
 void teredo_maintenance_stop (teredo_maintenance *m);
 int teredo_maintenance_process (teredo_maintenance *restrict m,
                                 const teredo_packet *restrict packet);
