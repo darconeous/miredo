@@ -64,6 +64,9 @@ distclean-local:
 
 dist-hook: stamp-svn
 
+distcheck-hook:
+	cd doc && $(MAKE) $(AM_MAKEFLAGS) distcheck-hook
+
 stamp-svn:
 	@rev=$$(LANG=C svnversion "$(srcdir)" 2>/dev/null || echo exported) ; \
 	oldrev=$$(cat stamp-svn 2>/dev/null || true) ; \
@@ -83,4 +86,4 @@ ChangeLog:
 	$(MAKE) $(AM_MAKEFLAGS) stamp-svn
 	touch $@
 
-.PHONY: stamp-svn
+.PHONY: distcheck-hook stamp-svn
