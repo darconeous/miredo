@@ -1,5 +1,5 @@
 RELEASE NOTES for Miredo
-stable release version 1.0.5
+stable release version 1.0.6
 =============================
 $Id$
 
@@ -11,6 +11,13 @@ strongly encourage users from previous releases to upgrade.
 informations on this program, see README. For syntax details and
 changes, run “miredo -h” to get help. For detailled internal changes, see
 ChangeLog.
+
+===========================================================================
+STABLE RELEASE 1.0.6 : Minor features enhancement
+
+# Restore "cone" RelayType to improve support for some (broken) NATs.
+# MacOS X compilation fix.
+# Minor specification conformance fixes to miredo-server.
 
 ===========================================================================
 STABLE RELEASE 1.0.5 : Major bug fixes
