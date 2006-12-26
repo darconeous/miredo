@@ -1068,7 +1068,8 @@ int teredo_set_prefix (teredo_tunnel *t, uint32_t prefix)
 
 
 /**
- * Defines
+ * Defines the cone flag of the Teredo tunnel.
+ * This only works for Teredo relays.
  *
  * Thread-safety: This function is thread-safe.
  *
