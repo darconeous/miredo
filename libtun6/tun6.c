@@ -117,7 +117,7 @@ typedef uint32_t tun_head_t;
 #else
 const char os_driver[] = "Generic";
 
-# warn Unknown host OS. The driver will probably not work.
+# warning Unknown host OS. The driver will probably not work.
 #endif
 
 #include <libtun6/tun6.h>
