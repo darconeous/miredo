@@ -1086,16 +1086,20 @@ int teredo_set_cone_flag (teredo_tunnel *t, bool cone)
 	int retval = 0;
 
 	pthread_rwlock_wrlock (&t->state_lock);
+
 #ifdef MIREDO_TEREDO_CLIENT
 	if (t->maintenance != NULL)
 		retval = -1;
 	else
 #endif
-		t->state.addr.teredo.flags = htons (TEREDO_FLAG_CONE);
+	if (cone)
+		t->state.addr.teredo.flags |= htons (TEREDO_FLAG_CONE);
+	else
+		t->state.addr.teredo.flags &= ~htons (TEREDO_FLAG_CONE);
+
 	pthread_rwlock_unlock (&t->state_lock);
 
-	(void)cone;
-	return teredo_set_relay_mode (t);
+	return retval;
 }
 
 
