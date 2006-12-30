@@ -734,7 +734,7 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 		if (IN6_MATCHES_TEREDO_CLIENT (&ip6.ip6_src, packet->source_ipv4,
 		                               packet->source_port)
 		// Extension: allow mismatch (i.e. clients behind symmetric NATs)
-		 || (IsBubble (&ip6) && CheckBubble (packet)))
+		 || (IsBubble (&ip6) && (CheckBubble (packet) == 0)))
 		{
 #ifdef MIREDO_TEREDO_CLIENT
 			if (IsClient (tunnel) && (p == NULL))
