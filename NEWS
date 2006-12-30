@@ -4,7 +4,8 @@ stable release version 1.0.6
 $Id$
 
   This is a stable release. There are no known outstanding issues. We
-strongly encourage users from previous releases to upgrade.
+strongly encourage users from previous releases to upgrade, as some important
+fixes are included.
   Please report any problem by email to miredo-devel (at) remlab (dot) net
 
   You can find major changes since version 0.1.0 below. For more general
@@ -15,6 +16,8 @@ ChangeLog.
 ===========================================================================
 STABLE RELEASE 1.0.6 : Minor features enhancement
 
+# Fix support for Teredo peers behind symmetric NATs (bug from 0.9.8).
+  This could probably be used to spoof a Teredo clients.
 # Restore "cone" RelayType to improve support for some (broken) NATs.
 # MacOS X compilation fix.
 # Minor specification conformance fixes to miredo-server.
