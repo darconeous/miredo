@@ -20,7 +20,7 @@ dnl *  http://www.gnu.org/copyleft/gpl.html                               *
 dnl ***********************************************************************
 
 AC_COPYRIGHT([Copyright (C) 2004-2006 Remi Denis-Courmont])
-AC_INIT(miredo, 1.0.6, miredo-devel_no_bulk_mail@remlab.net)
+AC_INIT(miredo, 1.1.0, miredo-devel_no_bulk_mail@remlab.net)
 AC_PREREQ(2.59c)
 INVOCATION="$0 $ac_configure_args"
 
