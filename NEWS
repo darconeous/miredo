@@ -1,16 +1,24 @@
 RELEASE NOTES for Miredo
-stable release version 1.0.5
+stable release version 1.0.6
 =============================
 $Id$
 
   This is a stable release. There are no known outstanding issues. We
-strongly encourage users from previous releases to upgrade.
+strongly encourage users from previous releases to upgrade, as some important
+fixes are included.
   Please report any problem by email to miredo-devel (at) remlab (dot) net
 
   You can find major changes since version 0.1.0 below. For more general
 informations on this program, see README. For syntax details and
 changes, run “miredo -h” to get help. For detailled internal changes, see
 ChangeLog.
+
+===========================================================================
+STABLE RELEASE 1.0.6 : Major bug fixes
+
+# Fix support for Teredo peers behind symmetric NATs (bug from 0.9.8).
+  This could probably be used to spoof a Teredo clients.
+# MacOS X compilation fix.
 
 ===========================================================================
 STABLE RELEASE 1.0.5 : Major bug fixes
