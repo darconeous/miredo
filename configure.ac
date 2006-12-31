@@ -118,7 +118,7 @@ AC_CHECK_FUNCS([devname_r pthread_condattr_setclock])
 RDC_REPLACE_FUNC_GETOPT_LONG
 LIBS_save="$LIBS"
 LIBS="$LIBRT $LIBS"
-AC_REPLACE_FUNCS([clearenv closefrom pselect strlcpy clock_gettime clock_nanosleep])
+AC_REPLACE_FUNCS([clearenv closefrom pselect strlcpy clock_gettime clock_nanosleep fdatasync])
 LIBS="$LIBS_save"
 
 # Checks for optionnal features
