@@ -338,7 +338,7 @@ void maintenance_thread (teredo_maintenance *m)
 		while (!checkTimeDrift (&deadline));
 
 		uint8_t nonce[8];
-		uint32_t dst = (state == PROBE_RESTRICT) ? server_ip2 : server_ip;
+		uint32_t dst = (state == PROBE_SYMMETRIC) ? server_ip2 : server_ip;
 		teredo_get_nonce (deadline.tv_sec, dst, htons (IPPORT_TEREDO), nonce);
 
 		if (state == PROBE_RESTRICT)
@@ -385,10 +385,7 @@ void maintenance_thread (teredo_maintenance *m)
 		if (val /* == ETIMEDOUT */)
 		{
 			/* no response */
-			if (state == PROBE_SYMMETRIC)
-				state = PROBE_RESTRICT;
-			else
-				count++;
+			count++;
 
 			if (count >= QualificationRetries)
 			{
