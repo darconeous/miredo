@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: miredo-devel_no_bulk_mail@remlab.net\n"
-"POT-Creation-Date: 2006-12-16 15:19+0100\n"
+"POT-Creation-Date: 2006-12-31 12:19+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -26,7 +26,7 @@ msgid ""
 "Teredo server UDP socket error: Server IPv4 addresses must be global unicast."
 msgstr ""
 
-#: libteredo/server.c:511 libteredo/server.c:522 libteredo/maintain.c:547
+#: libteredo/server.c:511 libteredo/server.c:522 libteredo/maintain.c:544
 #: libtun6/tun6.c:620 src/main.c:143 src/main.c:516 src/miredo.c:103
 #: src/miredo.c:111 src/miredo.c:233
 #, c-format
@@ -54,28 +54,28 @@ msgstr ""
 msgid "Server has a non global IPv4 address. It will most likely not work."
 msgstr ""
 
-#: libteredo/maintain.c:397
+#: libteredo/maintain.c:394
 msgid "Lost Teredo connectivity"
 msgstr ""
 
-#: libteredo/maintain.c:407
+#: libteredo/maintain.c:404
 msgid "No reply from Teredo server"
 msgstr ""
 
-#: libteredo/maintain.c:437
+#: libteredo/maintain.c:434
 msgid "Unsupported symmetric NAT detected."
 msgstr ""
 
-#: libteredo/maintain.c:455
+#: libteredo/maintain.c:452
 #, c-format
 msgid "Qualified (NAT type: %s)"
 msgstr ""
 
-#: libteredo/maintain.c:456
+#: libteredo/maintain.c:453
 msgid "restricted"
 msgstr ""
 
-#: libteredo/maintain.c:468
+#: libteredo/maintain.c:465
 msgid "New Teredo address/MTU"
 msgstr ""
 
