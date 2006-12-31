@@ -90,11 +90,6 @@ struct teredo_maintenance
 	} state;
 	char *server;
 	char *server2;
-
-	unsigned qualification_delay;
-	unsigned qualification_retries;
-	unsigned refresh_delay;
-	unsigned restart_delay;
 };
 
 
@@ -261,6 +256,13 @@ cleanup_unlock (void *o)
  * it makes NAT binding maintenance more brittle than it already is.
  * Interval determination is not required for compliance by the way.
  */
+#define SERVER_PING_DELAY 30
+
+/* TODO: allow modification of these values ? */
+static unsigned QualificationTimeOut = 4; // seconds
+static unsigned QualificationRetries = 3;
+
+static unsigned RestartDelay = 100; // seconds
 
 /**
  * Teredo client maintenance procedure
@@ -312,7 +314,7 @@ void maintenance_thread (teredo_maintenance *m)
 				        m->server, gai_strerror (val));
 
 				/* wait some time before next resolution attempt */
-				deadline.tv_sec += m->restart_delay;
+				deadline.tv_sec += RestartDelay;
 				wait_reply_ignore (m, &deadline);
 			}
 			else
@@ -332,7 +334,7 @@ void maintenance_thread (teredo_maintenance *m)
 
 		/* SEND ROUTER SOLICATION */
 		do
-			deadline.tv_sec += m->qualification_delay;
+			deadline.tv_sec += QualificationTimeOut;
 		while (!checkTimeDrift (&deadline));
 
 		uint8_t nonce[8];
@@ -385,7 +387,7 @@ void maintenance_thread (teredo_maintenance *m)
 			/* no response */
 			count++;
 
-			if (count >= m->qualification_retries)
+			if (count >= QualificationRetries)
 			{
 				if (state == QUALIFIED)
 				{
@@ -404,7 +406,7 @@ void maintenance_thread (teredo_maintenance *m)
 				}
 				/* Wait some time before retrying */
 				state = PROBE_RESTRICT;
-				delay = m->restart_delay;
+				delay = RestartDelay;
 			}
 		}
 		else
@@ -431,7 +433,7 @@ void maintenance_thread (teredo_maintenance *m)
 						syslog (LOG_ERR,
 						        _("Unsupported symmetric NAT detected."));
 					}
-					delay = m->restart_delay; // Wait some time before retry
+					delay = RestartDelay; // Wait some time before retry
 				}
 				else
 				{
@@ -466,7 +468,7 @@ void maintenance_thread (teredo_maintenance *m)
 
 				/* Success: schedule next NAT binding maintenance */
 				last_error = TERR_NONE;
-				delay = m->refresh_delay;
+				delay = SERVER_PING_DELAY;
 			}
 		}
 
@@ -475,7 +477,7 @@ void maintenance_thread (teredo_maintenance *m)
 		 * (netlink on Linux, PF_ROUTE on BSD) */
 		if (delay)
 		{
-			deadline.tv_sec -= m->qualification_delay;
+			deadline.tv_sec -= QualificationTimeOut;
 			deadline.tv_sec += delay;
 			wait_reply_ignore (m, &deadline);
 		}
@@ -490,33 +492,14 @@ static LIBTEREDO_NORETURN void *do_maintenance (void *opaque)
 	maintenance_thread ((teredo_maintenance *)opaque);
 }
 
-
-static const unsigned QualificationDelay = 4; // seconds
-static const unsigned QualificationRetries = 3;
-
-static const unsigned RefreshDelay = 30; // seconds
-static const unsigned RestartDelay = 100; // seconds
-
 /**
  * Creates and starts a Teredo client maintenance procedure thread.
- *
- * @param fd socket to send router solicitation with
- * @param cb status change notification callback
- * @param opaque data for <cb> callback
- * @param s1 primary server address/hostname
- * @param s2 secondary server address/hostname
- * @param q_sec qualification time out (seconds), 0 = default
- * @param q_retries qualification retries, 0 = default
- * @param refresh_sec qualification refresh interval (seconds), 0 = default
- * @param restart_sec qualification failure interval (seconds), 0 = default
  *
  * @return NULL on error.
  */
 teredo_maintenance *
 teredo_maintenance_start (int fd, teredo_state_cb cb, void *opaque,
-                          const char *s1, const char *s2,
-                          unsigned q_sec, unsigned q_retries,
-                          unsigned refresh_sec, unsigned restart_sec)
+                          const char *s1, const char *s2)
 {
 	teredo_maintenance *m = (teredo_maintenance *)malloc (sizeof (*m));
 
@@ -528,11 +511,6 @@ teredo_maintenance_start (int fd, teredo_state_cb cb, void *opaque,
 	m->state.cb = cb;
 	m->state.opaque = opaque;
 	m->server = strdup (s1);
-
-	m->qualification_delay = q_sec ?: QualificationDelay;
-	m->qualification_retries = q_retries ?: QualificationRetries;
-	m->refresh_delay = refresh_sec ?: RefreshDelay;
-	m->restart_delay = restart_sec ?: RestartDelay;
 
 	if (m->server == NULL)
 	{

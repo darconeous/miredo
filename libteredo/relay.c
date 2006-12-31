@@ -513,8 +513,8 @@ int teredo_transmit (teredo_tunnel *restrict tunnel,
 			 * Open the return path if we are behind a
 			 * restricted NAT.
 			 */
-			if (!(s.addr.teredo.flags & htons (TEREDO_FLAG_CONE))
-			 && SendBubbleFromDst (tunnel->fd, &dst->ip6, false))
+			if (/* (!s.cone) && */
+			    SendBubbleFromDst (tunnel->fd, &dst->ip6, false))
 				return -1;
 
 			return SendBubbleFromDst (tunnel->fd, &dst->ip6, true);
@@ -1068,42 +1068,6 @@ int teredo_set_prefix (teredo_tunnel *t, uint32_t prefix)
 
 
 /**
- * Defines the cone flag of the Teredo tunnel.
- * This only works for Teredo relays.
- *
- * Thread-safety: This function is thread-safe.
- *
- * @param cone true to disable sending of direct Teredo bubble,
- *             false to enable it.
- *
- * @return 0 on success, -1 on error (in which case the teredo_tunnel
- * instance is not modified).
- */
-int teredo_set_cone_flag (teredo_tunnel *t, bool cone)
-{
-	assert (t != NULL);
-
-	int retval = 0;
-
-	pthread_rwlock_wrlock (&t->state_lock);
-
-#ifdef MIREDO_TEREDO_CLIENT
-	if (t->maintenance != NULL)
-		retval = -1;
-	else
-#endif
-	if (cone)
-		t->state.addr.teredo.flags |= htons (TEREDO_FLAG_CONE);
-	else
-		t->state.addr.teredo.flags &= ~htons (TEREDO_FLAG_CONE);
-
-	pthread_rwlock_unlock (&t->state_lock);
-
-	return retval;
-}
-
-
-/**
  * Enables Teredo relay mode (this is the default).
  *
  * Thread-safety: This function is thread-safe.
@@ -1158,8 +1122,7 @@ int teredo_set_client_mode (teredo_tunnel *restrict t,
 	}
 
 	struct teredo_maintenance *m;
-	m = teredo_maintenance_start (t->fd, teredo_state_change, t, s, s2,
-	                              0, 0, 0, 0);
+	m = teredo_maintenance_start (t->fd, teredo_state_change, t, s, s2);
 	t->maintenance = m;
 	pthread_rwlock_unlock (&t->state_lock);
 

@@ -19,10 +19,9 @@
 man1_MANS = teredo-mire.1
 man5_MANS = miredo.conf.5 miredo-server.conf.5 isatapd.conf.5
 man8_MANS = miredo.8 miredo-server.8 miredo-checkconf.8 isatapd.8
-SOURCES_MAN = $(man1_MANS) $(man5_MANS) \
-	miredo.8-in miredo-server.8-in miredo-checkconf.8-in isatapd.8-in
 
-EXTRA_DIST = $(SOURCES_MAN)
+EXTRA_DIST = $(man1_MANS) $(man5_MANS) \
+	miredo.8-in miredo-server.8-in miredo-checkconf.8-in isatapd.8-in
 CLEANFILES = $(man8_MANS)
 
 edit = sed \
@@ -35,6 +34,3 @@ $(man8_MANS): Makefile
 	rm -f -- $@
 	$(edit) $< > $@
 
-distcheck-hook:
-	cd $(srcdir) && \
-	cat $(SOURCES_MAN) | grep -ve '\.\\"' | iconv -f ASCII >/dev/null
