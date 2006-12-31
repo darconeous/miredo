@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: miredo 0.8.1\n"
 "Report-Msgid-Bugs-To: miredo-devel_no_bulk_mail@remlab.net\n"
-"POT-Creation-Date: 2006-12-16 15:19+0100\n"
+"POT-Creation-Date: 2006-12-30 22:44+0100\n"
 "PO-Revision-Date: 2006-03-20 15:39+0100\n"
 "Last-Translator: Rémi Denis-Courmont <rdenis (at) simphalempin (dot) com>\n"
 "Language-Team: N/A\n"
@@ -16,17 +16,17 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: libteredo/server.c:411 libteredo/server.c:476 src/isatapd.c:74
+#: libteredo/server.c:415 libteredo/server.c:480 src/isatapd.c:74
 #, c-format
 msgid "Raw IPv6 socket not working: %s"
 msgstr ""
 
-#: libteredo/server.c:484
+#: libteredo/server.c:488
 msgid ""
 "Teredo server UDP socket error: Server IPv4 addresses must be global unicast."
 msgstr ""
 
-#: libteredo/server.c:511 libteredo/server.c:522 libteredo/maintain.c:547
+#: libteredo/server.c:521 libteredo/server.c:532 libteredo/maintain.c:566
 #: libtun6/tun6.c:620 src/main.c:143 src/main.c:516 src/miredo.c:103
 #: src/miredo.c:111 src/miredo.c:233
 #, c-format
@@ -37,45 +37,45 @@ msgstr ""
 msgid "Multiple Teredo prefixes received"
 msgstr ""
 
-#: libteredo/maintain.c:167
+#: libteredo/maintain.c:172
 msgid "Authentication with server failed."
 msgstr ""
 
-#: libteredo/maintain.c:238
+#: libteredo/maintain.c:243
 msgid "Too much time drift. Resynchronizing."
 msgstr "Too much time drift. Resynchronising."
 
-#: libteredo/maintain.c:313
+#: libteredo/maintain.c:311
 #, c-format
 msgid "Cannot resolve Teredo server address \"%s\": %s"
 msgstr "Cannot resolve Teredo server address “%s”: %s"
 
-#: libteredo/maintain.c:325
+#: libteredo/maintain.c:323
 msgid "Server has a non global IPv4 address. It will most likely not work."
 msgstr ""
 
-#: libteredo/maintain.c:397
+#: libteredo/maintain.c:392
 msgid "Lost Teredo connectivity"
 msgstr ""
 
-#: libteredo/maintain.c:407
+#: libteredo/maintain.c:402
 msgid "No reply from Teredo server"
 msgstr ""
 
-#: libteredo/maintain.c:437
+#: libteredo/maintain.c:432
 msgid "Unsupported symmetric NAT detected."
 msgstr ""
 
-#: libteredo/maintain.c:455
+#: libteredo/maintain.c:450
 #, c-format
 msgid "Qualified (NAT type: %s)"
 msgstr ""
 
-#: libteredo/maintain.c:456
+#: libteredo/maintain.c:451
 msgid "restricted"
 msgstr ""
 
-#: libteredo/maintain.c:468
+#: libteredo/maintain.c:463
 msgid "New Teredo address/MTU"
 msgstr ""
 
@@ -274,49 +274,56 @@ msgstr ""
 msgid "Terminated with no error."
 msgstr ""
 
-#: src/relayd.c:187 src/checkconf.c:81
+#: src/relayd.c:183
+#, c-format
+msgid ""
+"Using deprecated \"restricted\" relay type which is STRONGLY DISCOURAGED (at "
+"line %u)."
+msgstr ""
+
+#: src/relayd.c:193 src/checkconf.c:81
 #, c-format
 msgid "Invalid relay type \"%s\" at line %u"
 msgstr "Invalid relay type “%s” at line %u"
 
-#: src/relayd.c:237
+#: src/relayd.c:243
 msgid "Teredo pseudo-tunnel started"
 msgstr ""
 
-#: src/relayd.c:239
+#: src/relayd.c:245
 #, c-format
 msgid " (address: %s, MTU: %u)"
 msgstr ""
 
-#: src/relayd.c:258
+#: src/relayd.c:264
 msgid "Teredo pseudo-tunnel stopped"
 msgstr ""
 
-#: src/relayd.c:419 src/relayd.c:438 src/relayd.c:455 src/relayd.c:468
-#: src/relayd.c:492 src/serverd.c:94 src/serverd.c:102 src/serverd.c:120
+#: src/relayd.c:426 src/relayd.c:446 src/relayd.c:463 src/relayd.c:477
+#: src/relayd.c:501 src/serverd.c:94 src/serverd.c:102 src/serverd.c:120
 #: src/isatapd.c:372 src/isatapd.c:381 src/isatapd.c:393 src/checkconf.c:149
 msgid "Fatal configuration error"
 msgstr ""
 
-#: src/relayd.c:437 src/serverd.c:101 src/checkconf.c:103
+#: src/relayd.c:445 src/serverd.c:101 src/checkconf.c:103
 msgid "Server address not specified"
 msgstr ""
 
-#: src/relayd.c:454 src/checkconf.c:107
+#: src/relayd.c:462 src/checkconf.c:107
 msgid "Unsupported Teredo client mode"
 msgstr ""
 
-#: src/relayd.c:519 src/relayd.c:525 src/relayd.c:589 src/isatapd.c:424
+#: src/relayd.c:528 src/relayd.c:534 src/relayd.c:598 src/isatapd.c:424
 #: src/isatapd.c:450
 #, c-format
 msgid "Miredo setup failure: %s"
 msgstr ""
 
-#: src/relayd.c:520 src/isatapd.c:425
+#: src/relayd.c:529 src/isatapd.c:425
 msgid "Cannot create IPv6 tunnel"
 msgstr ""
 
-#: src/relayd.c:526 src/relayd.c:590
+#: src/relayd.c:535 src/relayd.c:599
 msgid "libteredo cannot be initialized"
 msgstr "libteredo cannot be initialised"
 
