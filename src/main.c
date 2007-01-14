@@ -440,7 +440,8 @@ int miredo_main (int argc, char *argv[])
 	if (conffile == NULL)
 	{
 		path = br_find_etc_dir (SYSCONFDIR);
-		str_len = strlen (path) + strlen (miredo_name) + 7;
+		str_len = strlen (path) + strlen (miredo_name)
+		                        + sizeof ("/miredo/.conf");
 	}
 	else
 		str_len = 0;
@@ -448,7 +449,8 @@ int miredo_main (int argc, char *argv[])
 	char conffile_buf[str_len];
 	if (conffile == NULL)
 	{
-		snprintf (conffile_buf, str_len, "%s/%s.conf", path, miredo_name);
+		snprintf (conffile_buf, str_len, "%s/miredo/%s.conf", path,
+		          miredo_name);
 		free (path);
 		conffile = conffile_buf;
 	}

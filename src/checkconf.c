@@ -53,7 +53,7 @@ static void logger (void *fail, bool error, const char *fmt, va_list ap)
 }
 
 /* FIXME: use same more clever code as in main.c */
-static const char conffile[] = SYSCONFDIR"/miredo.conf";
+static const char conffile[] = SYSCONFDIR"/miredo/miredo.conf";
 
 static int miredo_checkconf (miredo_conf *conf)
 {
