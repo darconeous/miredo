@@ -1,10 +1,10 @@
 /*
- * privproc.c - Privileged process for Miredo
+ * privproc.c - Privileged process and IPC for Miredo
  * $Id$
  */
 
 /***********************************************************************
- *  Copyright © 2004-2006 Rémi Denis-Courmont.                         *
+ *  Copyright © 2004-2007 Rémi Denis-Courmont.                         *
  *  This program is free software; you can redistribute and/or modify  *
  *  it under the terms of the GNU General Public License as published  *
  *  by the Free Software Foundation; version 2 of the license.         *
@@ -57,7 +57,8 @@ int
 miredo_privileged_process (struct tun6 *tunnel)
 {
 	int fd[2];
-	if (socketpair (AF_LOCAL, SOCK_STREAM, 0, fd))
+	if (socketpair (AF_LOCAL, SOCK_SEQPACKET, 0, fd)
+	 && socketpair (AF_LOCAL, SOCK_DGRAM, 0, fd))
 		return -1;
 
 	miredo_setup_fd (fd[0]);
