@@ -1,5 +1,5 @@
 RELEASE NOTES for Miredo
-stable release version 1.0.6
+stable release version 1.1.0
 =============================
 $Id$
 
@@ -14,13 +14,17 @@ changes, run “miredo -h” to get help. For detailled internal changes, see
 ChangeLog.
 
 ===========================================================================
+STABLE RELEASE 1.1.0 : Minor features enhancement
+
+# Restore "cone" RelayType to improve support for some (broken) NATs.
+# Minor specification conformance fixes to miredo-server.
+
+===========================================================================
 STABLE RELEASE 1.0.6 : Minor features enhancement
 
 # Fix support for Teredo peers behind symmetric NATs (bug from 0.9.8).
   This could probably be used to spoof a Teredo clients.
-# Restore "cone" RelayType to improve support for some (broken) NATs.
 # MacOS X compilation fix.
-# Minor specification conformance fixes to miredo-server.
 
 ===========================================================================
 STABLE RELEASE 1.0.5 : Major bug fixes
