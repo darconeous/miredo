@@ -89,7 +89,8 @@ static int run_script (void)
 
 
 int
-miredo_privileged_process (unsigned ifindex)
+miredo_privileged_process (unsigned ifindex,
+                           void (*clean_cb) (void *), void *opaque)
 {
 	char intbuf[21];
 	if ((size_t)snprintf (intbuf, sizeof (intbuf), "%u", ifindex)
@@ -112,6 +113,7 @@ miredo_privileged_process (unsigned ifindex)
 			return -1;
 
 		case 0:
+			clean_cb (opaque);
 			close (fd[1]);
 			break;
 

@@ -201,6 +201,11 @@ ParseRelayType (miredo_conf *conf, const char *name, int *type)
 
 
 #ifdef MIREDO_TEREDO_CLIENT
+static void privproc_clean (void *tunnel)
+{
+	tun6_destroy ((tun6 *)tunnel);
+}
+
 static tun6 *
 create_dynamic_tunnel (const char *ifname, int *fd)
 {
@@ -209,7 +214,8 @@ create_dynamic_tunnel (const char *ifname, int *fd)
 		return NULL;
 
 	/* FIXME: we leak all heap-allocated settings in the child process */
-	int res = miredo_privileged_process (tun6_getId (tunnel));
+	int res = miredo_privileged_process (tun6_getId (tunnel),
+	                                     privproc_clean, tunnel);
 	if (res == -1)
 	{
 		tun6_destroy (tunnel);
