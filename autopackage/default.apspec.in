@@ -24,7 +24,7 @@ ShortName: miredo
 Maintainer: Rémi Denis-Courmont <rdenis@simphalempin.com>
 Packager: Rémi Denis-Courmont <rdenis@simphalempin.com>
 Summary: Teredo IPv6 tunneling daemon.
-URL: http://www.simphalempin.com/dev/miredo/
+URL: http://www.remlab.net/miredo/
 License: GNU General Public License, Version 2
 SoftwareVersion: @VERSION@
 AutopackageTarget: 1.0
