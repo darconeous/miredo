@@ -209,7 +209,7 @@ create_dynamic_tunnel (const char *ifname, int *fd)
 		return NULL;
 
 	/* FIXME: we leak all heap-allocated settings in the child process */
-	int res = miredo_privileged_process (tunnel);
+	int res = miredo_privileged_process (tun6_getId (tunnel));
 	if (res == -1)
 	{
 		tun6_destroy (tunnel);

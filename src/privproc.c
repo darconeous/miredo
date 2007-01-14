@@ -27,12 +27,17 @@
 #include <stdlib.h> /* exit() */
 #include <errno.h>
 #include <inttypes.h>
+#include <stdio.h>
 
 #include <sys/types.h>
 #include <unistd.h>
 #include <sys/socket.h>
-#include <netinet/in.h>
-#include <fcntl.h> // fcntl()
+#include <sys/wait.h> /* waitpid() */
+#include <arpa/inet.h> /* inet_ntop() */
+#include <net/if.h> /* if_indextoname() */
+#ifndef IFNAMESIZE
+# define IFNAMESIZE IFNAMSIZ
+#endif
 #ifdef HAVE_SYS_CAPABILITY_H
 # include <sys/capability.h>
 #endif
@@ -53,9 +58,44 @@ struct miredo_tunnel_settings
 };
 
 
-int
-miredo_privileged_process (struct tun6 *tunnel)
+static const char script_path[] = SYSCONFDIR"/miredo/client-hook";
+
+/**
+ * Runs the hook script.
+ * @return the script exit status, or -1 in case of error.
+ */
+static int run_script (void)
 {
+	pid_t pid = fork ();
+
+	switch (pid)
+	{
+		case -1:
+			return -1;
+
+		case 0:
+			execl (script_path, script_path, (char *)NULL);
+			exit (1);
+	}
+
+	int res;
+	while (waitpid (pid, &res, 0) == -1);
+
+	if (WIFEXITED (res))
+		return WEXITSTATUS (res);
+
+	return -1;
+}
+
+
+int
+miredo_privileged_process (unsigned ifindex)
+{
+	char intbuf[21];
+	if ((size_t)snprintf (intbuf, sizeof (intbuf), "%u", ifindex)
+	             >= sizeof (intbuf))
+		return -1;
+
 	int fd[2];
 	if (socketpair (AF_LOCAL, SOCK_SEQPACKET, 0, fd)
 	 && socketpair (AF_LOCAL, SOCK_DGRAM, 0, fd))
@@ -100,81 +140,92 @@ miredo_privileged_process (struct tun6 *tunnel)
 	}
 #endif
 
-	struct miredo_tunnel_settings oldcfg;
-	const struct in6_addr *p_oldloc = NULL;
+	setenv ("IFINDEX", intbuf, 1);
 
-	memcpy (&oldcfg.addr, &in6addr_any, sizeof (oldcfg.addr));
-	oldcfg.mtu = 0;
-
-	tun6_bringUp (tunnel);
+	setenv ("OLD_STATE", "down", 1);
+	unsetenv ("OLD_ADDRESS");
+	unsetenv ("OLD_LLADDRESS");
+	unsetenv ("OLD_MTU");
 
 	for (;;)
 	{
-		struct miredo_tunnel_settings newcfg;
-		int res = 0;
+		struct miredo_tunnel_settings cfg;
+		int res = -1;
 
 		/* Waits until new (changed) settings arrive */
-		if (recv (fd[0], &newcfg, sizeof (newcfg), 0) != sizeof (newcfg))
+		if (recv (fd[0], &cfg, sizeof (cfg), 0) != sizeof (cfg))
 			break;
 
-		if (memcmp (&oldcfg.addr, &newcfg.addr, 16))
+		/* Prepare environment for hook script */
+		char addr[INET6_ADDRSTRLEN], lladdr[INET6_ADDRSTRLEN];
+		if (memcmp (&cfg.addr, &in6addr_any, sizeof (in6addr_any)))
 		{
-			/* Removes old addresses */
-			if (memcmp (&oldcfg.addr, &in6addr_any, 16))
-			{
-				tun6_delRoute (tunnel, &in6addr_any, 0, +5);
-				tun6_delAddress (tunnel, &oldcfg.addr, 32);
-			}
+			setenv ("STATE", "up", 1);
+			inet_ntop (AF_INET6, &cfg.addr, addr, sizeof (addr));
+			setenv ("ADDRESS", addr, 1);
 
-			/* Adds new addresses */
-			if (memcmp (&newcfg.addr, &in6addr_any, 16))
-			{
-				const struct in6_addr *p_newloc;
+			inet_ntop (AF_INET6, IN6_IS_TEREDO_ADDR_CONE (&cfg.addr)
+			            ? &teredo_cone : &teredo_restrict,
+			           lladdr, sizeof (lladdr));
+			setenv ("LLADDRESS", lladdr, 1);
 
-				/* Only change link-local if needed */
-				p_newloc = IN6_IS_TEREDO_ADDR_CONE (&newcfg.addr)
-						? &teredo_cone : &teredo_restrict;
-	
-				if (p_newloc != p_oldloc)
-				{
-					if (p_oldloc != NULL)
-						tun6_delAddress (tunnel, p_oldloc, 64);
-					if (tun6_addAddress (tunnel, p_newloc, 64))
-						res = -1;
-					p_oldloc = p_newloc;
-				}
-	
-				if (tun6_addAddress (tunnel, &newcfg.addr, 32)
-				 || tun6_addRoute (tunnel, &in6addr_any, 0, +5))
-					res = -1;
-			}
-
-			/* Saves address */
-			memcpy (&oldcfg.addr, &newcfg.addr, sizeof (oldcfg.addr));
+			snprintf (intbuf, sizeof (intbuf), "%u", (unsigned)cfg.mtu);
+			setenv ("MTU", intbuf, 1);
+		}
+		else
+		{
+			setenv ("STATE", "down", 1);
+			unsetenv ("ADDRESS");
+			unsetenv ("LLADDRESS");
+			unsetenv ("MTU");
 		}
 
-		/* Updates MTU if needed */
-		if (oldcfg.mtu != newcfg.mtu)
-			tun6_setMTU (tunnel, oldcfg.mtu = newcfg.mtu);
+		char iface[IFNAMESIZE];
+		if (if_indextoname (ifindex, iface) == NULL)
+			goto error;
+		setenv ("IFACE", iface, 1);
 
+		/* Run hook script */
+
+		res = run_script ();
+
+		/* Notify main process of completion */
+	error:
 		if (send (fd[0], &res, sizeof (res), 0) != sizeof (res))
 			break;
+
+		/* Prepend "OLD_" to variables names for next script invocation */
+		if (memcmp (&cfg.addr, &in6addr_any, sizeof (in6addr_any)))
+		{
+			setenv ("OLD_STATE", "up", 1);
+			setenv ("OLD_ADDRESS", addr, 1);
+			setenv ("OLD_LLADDRESS", lladdr, 1);
+			setenv ("OLD_MTU", intbuf, 1);
+		}
+		else
+		{
+			setenv ("OLD_STATE", "down", 1);
+			unsetenv ("OLD_ADDRESS");
+			unsetenv ("OLD_LLADDRESS");
+			unsetenv ("OLD_MTU");
+		}
 	}
 
 	close (fd[0]);
 
-	/* Removes old addresses */
-	if (memcmp (&oldcfg.addr, &in6addr_any, 16))
+	/* Run script for the last time */
+	char iface[IFNAMESIZE];
+	if (if_indextoname (ifindex, iface) != NULL)
 	{
-		tun6_delRoute (tunnel, &in6addr_any, 0, +5);
-		tun6_delAddress (tunnel, &oldcfg.addr, 32);
+		setenv ("STATE", "down", 1);
+		unsetenv ("ADDRESS");
+		unsetenv ("LLADDRESS");
+		unsetenv ("MTU");
+		setenv ("IFACE", iface, 1);
+
+		run_script ();
 	}
 
-	if (p_oldloc != NULL)
-		tun6_delAddress (tunnel, p_oldloc, 64);
-
-	tun6_bringDown (tunnel);
-	tun6_destroy (tunnel);
 	exit (0);
 }
 
