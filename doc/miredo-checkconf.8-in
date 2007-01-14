@@ -38,7 +38,7 @@ Display program version and exit.
 .TP
 .BR "config_file"
 This optional argument specifies the path to the configuration file to
-be checked. If not given, the default @sysconfdir@/miredo.conf will be
+be checked. If not given, the default @confdir@/miredo.conf will be
 assumed.
 
 .\".SH DIAGNOSTICS
@@ -48,7 +48,7 @@ miredo-server.
 
 .SH FILES
 .TP
-.I @sysconfdir@/miredo.conf
+.I @confdir@/miredo.conf
 The default configuration file.
 
 .SH "SEE ALSO"

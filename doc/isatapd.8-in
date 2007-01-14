@@ -37,7 +37,7 @@ on the tunnel interface, to provide autoconf services to other nodes.
 .TP
 .BR "\-c config_file" " or " "\-\-config config_file"
 Specify an alternate configuration file for ISATAPd instead of the
-.RI "default, " "@sysconfdir@/isatapd.conf" "."
+.RI "default, " "@confdir@/isatapd.conf" "."
 
 .TP
 .BR "\-f" " or " "\-\-foreground"
@@ -148,7 +148,7 @@ versions.
 
 .SH FILES
 .TP
-.I @sysconfdir@/isatapd.conf
+.I @confdir@/isatapd.conf
 The default configuration file.
 
 .TP

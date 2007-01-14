@@ -27,7 +27,7 @@ CLEANFILES = $(man8_MANS)
 
 edit = sed \
 	-e 's,@localstatedir\@,$(localstatedir),g' \
-	-e 's,@sysconfdir\@,$(sysconfdir),g'
+	-e 's,@confdir\@,$(sysconfdir)/miredo,g'
 
 $(man8_MANS): Makefile
 

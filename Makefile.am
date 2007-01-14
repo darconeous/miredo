@@ -27,10 +27,11 @@ if CONF_SAMPLE
 # For user's convenience, we install miredo.conf
 # iif it does not already exist.
 # Packagers will probably use --disable-sample-conf
-# and copy their own default (or those in misc/) to @sysconfdir@
+# and copy their own default (or those in misc/) to @sysconfdir@/miredo/
 
 example = $(examplesdir)/miredo.conf
-conf = $(sysconfdir)/miredo.conf
+confdir = $(sysconfdir)/miredo
+conf = $(confdir)/miredo.conf
 
 install-data-hook:
 	@echo "************************"
@@ -41,7 +42,7 @@ install-data-hook:
 	@echo "  $(examplesdir)/miredo.conf"
 	@echo " "
 	@if test ! -e "$(DESTDIR)$(conf)"; then \
-		mkdir -p -- "$(DESTDIR)$(sysconfdir)" || exit $$? ; \
+		mkdir -p -- "$(DESTDIR)$(confdir)" || exit $$? ; \
 		cp -- "$(DESTDIR)$(example)" "$(DESTDIR)$(conf)" || exit $$?; \
 		echo "No pre-existing configuration file for Miredo" ; \
 		echo "could be found, so the sample as been copied as" ; \

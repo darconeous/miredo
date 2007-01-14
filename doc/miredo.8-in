@@ -51,7 +51,7 @@ receives packets from Teredo clients and Teredo relays on UDP port
 .TP
 .BR "\-c config_file" " or " "\-\-config config_file"
 Specify an alternate configuration file for Miredo instead of the
-.RI "default, " "@sysconfdir@/miredo.conf" "."
+.RI "default, " "@confdir@/miredo.conf" "."
 
 .TP
 .BR "\-f" " or " "\-\-foreground"
@@ -116,7 +116,7 @@ versions.
 
 .SH FILES
 .TP
-.I @sysconfdir@/miredo.conf
+.I @confdir@/miredo.conf
 The default configuration file.
 
 .TP
