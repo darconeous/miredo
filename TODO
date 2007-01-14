@@ -23,6 +23,7 @@ Not so important features:
 (*) some statistics
 (H) other localizations
 ( ) support for UPnP IGD to open an UDP port on supporting NATs
+( ) support for (Apple) NAT-PMP
 (?) “automatic sunset” / “exit strategy”
 
 Conformance:
@@ -33,6 +34,11 @@ Conformance:
 Security:
 ----------
 (?) full secure qualification support with user ID
+(H) code review
+
+Packaging:
+-----------
+(H) MacOS X package (not sure if do-able though)
 
 Extension:
 -----------
