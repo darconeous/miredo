@@ -158,6 +158,10 @@ miredo_privileged_process (unsigned ifindex,
 		if (recv (fd[0], &cfg, sizeof (cfg), 0) != sizeof (cfg))
 			break;
 
+		/* Sanity checks */
+		if ((cfg.addr.s6_addr[0] == 0xff) || (cfg.mtu < 1280))
+			break;
+
 		/* Prepare environment for hook script */
 		char addr[INET6_ADDRSTRLEN], lladdr[INET6_ADDRSTRLEN];
 		if (memcmp (&cfg.addr, &in6addr_any, sizeof (in6addr_any)))
