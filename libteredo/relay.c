@@ -599,17 +599,10 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 		if ((packet->source_ipv4 == s.addr.teredo.server_ip)
 		 && (packet->source_port == htons (IPPORT_TEREDO)))
 		{
-			if (packet->orig_ipv4)
-			{
-				/* TODO: record sending of bubble, create a peer, etc ? */
-				ReplyBubble (tunnel->fd, packet->orig_ipv4, packet->orig_port,
-				             &ip6.ip6_dst, &ip6.ip6_src);
+			uint32_t ipv4 = packet->orig_ipv4;
+			uint16_t port = packet->orig_port;
 
-				if (IsBubble (&ip6))
-					return; // don't pass bubble to kernel
-			}
-			else
-			if (IsBubble (&ip6)
+			if ((ipv4 == 0) && IsBubble (&ip6)
 			 && (IN6_TEREDO_PREFIX (&ip6.ip6_src) == s.addr.teredo.prefix))
 			{
 				/*
@@ -617,11 +610,16 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 				 * When the source IPv6 address is a Teredo address,
 				 * we can guess the mapping. Otherwise, we're stuck.
 				 */
+				ipv4 = IN6_TEREDO_IPV4 (&ip6.ip6_src);
+				port = IN6_TEREDO_PORT (&ip6.ip6_src);
+			}
+
+			if (ipv4)
+			{
 				/* TODO: record sending of bubble, create a peer, etc ? */
-				ReplyBubble (tunnel->fd, IN6_TEREDO_IPV4 (&ip6.ip6_src),
-				             IN6_TEREDO_PORT (&ip6.ip6_src), &ip6.ip6_dst,
-				             &ip6.ip6_src);
-				return; // don't pass bubble to kernel
+				teredo_reply_bubble (tunnel->fd, ipv4, port, buf);
+				if (IsBubble (&ip6))
+					return; // don't pass bubble to kernel
 			}
 		}
 

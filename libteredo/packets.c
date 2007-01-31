@@ -55,27 +55,28 @@
  *
  * @param ip destination IPv4
  * @param port destination UDP port
+ * @param src unaligned pointer to source IPv6 address
+ * @param dst unaligned pointer to destination IPv6 address
  *
  * @return 0 on success, -1 on error.
  */
 int
-ReplyBubble (int fd, uint32_t ip, uint16_t port,
-            const struct in6_addr *src, const struct in6_addr *dst)
+teredo_send_bubble (int fd, uint32_t ip, uint16_t port,
+                    const uint8_t *src, const uint8_t *dst)
 {
 	if (is_ipv4_global_unicast (ip))
 	{
-		struct ip6_hdr hdr;
+		static const uint8_t head[] =
+			"\x60\x00\x00\x00" /* flow */
+			"\x00\x00" /* plen = 0 */
+			"\x3b" /* nxt = IPPROTO_NONE */
+			"\x00" /* hlim = 0 */;
 		struct iovec iov[3] =
 		{
-			{ &hdr, 8 },
+			{ (void *)head, 8 },
 			{ (void *)src, 16 },
 			{ (void *)dst, 16 }
 		};
-
-		hdr.ip6_flow = htonl (0x60000000);
-		hdr.ip6_plen = 0;
-		hdr.ip6_nxt = IPPROTO_NONE;
-		hdr.ip6_hlim = 255;
 
 		return teredo_sendv (fd, iov, 3, ip, port) == 40 ? 0 : -1;
 	}
@@ -111,7 +112,7 @@ SendBubbleFromDst (int fd, const struct in6_addr *dst, bool indirect)
 		port = htons (IPPORT_TEREDO);
 	}
 
-	return ReplyBubble (fd, ip, port, &src, dst);
+	return teredo_send_bubble (fd, ip, port, src.s6_addr, dst->s6_addr);
 }
 
 

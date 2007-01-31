@@ -42,8 +42,14 @@ int CheckBubble (const teredo_packet *packet);
 
 
 int SendBubbleFromDst (int fd, const struct in6_addr *dst, bool indirect);
-int ReplyBubble (int fd, uint32_t ip, uint16_t port,
-                 const struct in6_addr *src, const struct in6_addr *dst);
+int teredo_send_bubble (int fd, uint32_t ip, uint16_t port,
+                        const uint8_t *src, const uint8_t *dst);
+
+static inline int teredo_reply_bubble (int fd, uint32_t ip, uint16_t port,
+                                       const uint8_t *req)
+{
+	return teredo_send_bubble (fd, ip, port, req + 8 + 16, req + 8);
+}
 
 int teredo_send_rs (int fd, uint32_t server_ip,
                     const unsigned char *nonce, bool cone);
