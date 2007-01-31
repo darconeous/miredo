@@ -22,3 +22,4 @@ teredo_recv
 teredo_wait_recv
 teredo_send
 teredo_sendv
+teredo_send_bubble

@@ -48,7 +48,7 @@ endif
 libteredo_la_DEPENDENCIES = libteredo.sym $(LIBADD)
 libteredo_la_LIBADD = @LIBJUDY@ @LIBRT@ $(LTLIBINTL) $(LIBADD)
 libteredo_la_LDFLAGS = -no-undefined -export-symbols $(srcdir)/libteredo.sym \
-	-version-info 3:4:0
+	-version-info 4:0:1
 
 # libteredo versions:
 # 0) First stable shared release (0.8.2)
@@ -56,6 +56,7 @@ libteredo_la_LDFLAGS = -no-undefined -export-symbols $(srcdir)/libteredo.sym \
 # 2) teredo_set_relay_mode() added, teredo_set_cone_*() deprecated (0.9.5)
 # -- backward compatibility break --
 # 3) remove teredo_register_readset() (1.0.0)
+# 4) added internal teredo_send_bubble (1.1.0)
 
 # libteredo-server.la
 libteredo_server_la_SOURCES = server.c server.h
@@ -67,4 +68,4 @@ libteredo_server_la_LDFLAGS = -no-undefined -static
 
 # teredo-mire
 teredo_mire_SOURCES = mire.c
-teredo_mire_LDADD = libteredo-common.la
+teredo_mire_LDADD = libteredo.la
