@@ -40,6 +40,8 @@
 #include <unistd.h>
 #include <errno.h> /* errno */
 #include <fcntl.h> /* O_RDONLY */
+#include <resolv.h> /* res_init() */
+#include <pthread.h>
 #ifdef HAVE_SYS_CAPABILITY_H
 # include <sys/capability.h>
 #endif
@@ -222,15 +224,19 @@ setuid_notice (void)
 #endif
 
 
+static void *dummy_thread (void *data)
+{
+	pause ();
+	return data;
+}
+
+
 /**
  * Initialize daemon context.
  */
 static int
 init_security (const char *username)
 {
-	/* Clears environment */
-	(void)clearenv ();
-
 	/* Sets sensible umask */
 	(void)umask (022);
 
@@ -252,6 +258,29 @@ init_security (const char *username)
 	if (fd < 3)
 		return -1;
 	close (fd);
+
+	/* Initialize libc resolver: 
+	 * - before clearenv() for LOCALDOMAIN
+	 * - before chroot() for /etc/resolv.conf
+	 * - after closefrom() just in case
+	 */
+	(void)res_init ();
+
+	/* Clears environment */
+	(void)clearenv ();
+
+	/* Hack to thread library is working:
+	 * - this avoids infinite crashes/restart loops on broken OSes
+	 * - this eases setting chroots (preloads libgcc_s on glibc)
+	 */
+	{
+		pthread_t dummyth;
+		errno = pthread_create (&dummyth, NULL, dummy_thread, NULL);
+		if (errno)
+			return error_errno ("pthread_create");
+		pthread_cancel (dummyth);
+		pthread_join (dummyth, NULL);
+	}
 
 #ifdef MIREDO_DEFAULT_USERNAME
 	/* Determines unpriviledged user */
