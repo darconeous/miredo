@@ -141,7 +141,7 @@ static void
 process_unknown (int fd, const uint8_t *ip6, size_t plen,
                  uint32_t ipv4, uint16_t port)
 {
-	plen += sizeof (*ip6);
+	plen += sizeof (struct ip6_hdr);
 	if (plen > (1280 - sizeof (struct icmp6_hdr)))
 		plen = 1280 - sizeof (struct icmp6_hdr);
 
