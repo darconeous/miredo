@@ -65,6 +65,9 @@ int teredo_sendv (int fd, const struct iovec *iov, size_t count,
 int teredo_recv (int fd, struct teredo_packet *p);
 int teredo_wait_recv (int fd, struct teredo_packet *p);
 
+uint16_t teredo_cksum (const void *src, const void *dst, uint8_t protocol,
+                       const struct iovec *data, size_t n);
+
 # ifdef __cplusplus
 }
 # endif

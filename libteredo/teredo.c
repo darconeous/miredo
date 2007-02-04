@@ -330,3 +330,85 @@ int teredo_wait_recv (int fd, struct teredo_packet *p)
 
 	return teredo_recv_inner (fd, p, 0);
 }
+
+
+/* This does not fit anywhere and is needed by both relay and server */
+#include <stdbool.h>
+
+/**
+ * Computes an Internet checksum over a scatter-gather array.
+ * Buffers need not be aligned neither of even length.
+ * Jumbograms are supported (though you probably don't care).
+ */
+static uint16_t in_cksum (const struct iovec *iov, size_t n)
+{
+	uint32_t sum = 0;
+	union
+	{
+		uint16_t word;
+		uint8_t  bytes[2];
+	} w;
+	bool odd = false;
+
+	while (n > 0)
+	{
+		const uint8_t *ptr = iov->iov_base;
+
+		for (size_t len = iov->iov_len; len > 0; len--)
+		{
+			if (odd)
+			{
+				w.bytes[1] = *ptr++;
+				sum += w.word;
+				if (sum > 0xffff)
+					sum -= 0xffff;
+			}
+			else
+				w.bytes[0] = *ptr++;
+			odd = !odd;
+		}
+
+		iov++;
+		n--;
+	}
+
+	if (odd)
+	{
+		w.bytes[1] = 0;
+		sum += w.word;
+		if (sum > 0xffff)
+			sum -= 0xffff;
+	}
+
+	return sum ^ 0xffff;
+}
+
+
+/**
+ * Computes an IPv6 layer-3 checksum.
+ * The input buffers do not need to be aligned neither of even length.
+ * Jumbo datagrams are supported.
+ */
+uint16_t
+teredo_cksum (const void *src, const void *dst, uint8_t protocol,
+              const struct iovec *data, size_t n)
+{
+	struct iovec iov[3 + n];
+	size_t plen = 0;
+	for (size_t i = 0; i < n; i++)
+	{
+		iov[3 + i].iov_base = data[i].iov_base;
+		plen += (iov[3 + i].iov_len = data[i].iov_len);
+	}
+
+	uint32_t pseudo[4] = { htonl (plen), htonl (prot) };
+	iov[0].iov_base = (void *)src;
+	iov[0].iov_len = 16;
+	iov[1].iov_base = (void *)dst;
+	iov[1].iov_len = 16;
+	iov[2].iov_base = pseudo;
+	iov[2].iov_len = 8;
+
+	return in_cksum (iov, 3 + n);
+}
+
