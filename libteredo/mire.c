@@ -138,37 +138,38 @@ process_none (int fd, const uint8_t *ip6, size_t plen,
 
 
 static void
-process_unknown (int fd, const uint8_t *ip6, size_t plen,
+process_unknown (int fd, const uint8_t *in, size_t plen,
                  uint32_t ipv4, uint16_t port)
 {
 	plen += sizeof (struct ip6_hdr);
-	if (plen > (1280 - sizeof (struct icmp6_hdr)))
-		plen = 1280 - sizeof (struct icmp6_hdr);
+	if (plen > 1232)
+		plen = 1232;
 
-	// TODO: use an iovec instead - needs to rewrite checksum though
-	struct
+	struct ip6_hdr   ip6;
+	struct icmp6_hdr icmp6;
+	struct iovec iov[] =
 	{
-		struct ip6_hdr   ip6;
-		struct icmp6_hdr icmp6;
-		uint8_t          payload[plen];
-	} reply;
+		{ &ip6, sizeof (ip6) },
+		{ &icmp6, sizeof (icmp6) },
+		{ (void *)in, plen }
+	};
 
-	reply.ip6.ip6_flow = htonl (6 << 28);
-	reply.ip6.ip6_plen = htons (sizeof (struct icmp6_hdr) + plen);
-	reply.ip6.ip6_nxt = IPPROTO_ICMPV6;
-	reply.ip6.ip6_hlim = 255;
-	memcpy (&reply.ip6.ip6_src, ip6 + 8 + 16, sizeof (reply.ip6.ip6_src));
-	memcpy (&reply.ip6.ip6_dst, ip6 + 8, sizeof (reply.ip6.ip6_dst));
+	ip6.ip6_flow = htonl (6 << 28);
+	ip6.ip6_plen = htons (sizeof (struct icmp6_hdr) + plen);
+	ip6.ip6_nxt = IPPROTO_ICMPV6;
+	ip6.ip6_hlim = 255;
+	memcpy (&ip6.ip6_src, in + 8 + 16, sizeof (ip6.ip6_src));
+	memcpy (&ip6.ip6_dst, in + 8, sizeof (ip6.ip6_dst));
 
-	reply.icmp6.icmp6_type = ICMP6_PARAM_PROB;
-	reply.icmp6.icmp6_code = ICMP6_PARAMPROB_NEXTHEADER;
-	reply.icmp6.icmp6_cksum = 0;
-	reply.icmp6.icmp6_pptr = htonl (6);
+	icmp6.icmp6_type = ICMP6_PARAM_PROB;
+	icmp6.icmp6_code = ICMP6_PARAMPROB_NEXTHEADER;
+	icmp6.icmp6_cksum = 0;
+	icmp6.icmp6_pptr = htonl (6);
 
-	memcpy (&reply.payload, ip6, plen);
-	reply.icmp6.icmp6_cksum = icmp6_checksum (&reply.ip6, &reply.icmp6);
+	icmp6.icmp6_cksum = teredo_cksum (&ip6.ip6_src, &ip6.ip6_dst,
+	                                  IPPROTO_ICMPV6, iov + 2, 1);
 
-	teredo_send (fd, &reply, 48 + plen, ipv4, port);
+	teredo_sendv (fd, iov, sizeof (iov) / sizeof (iov[0]), ipv4, port);
 }
 
 
