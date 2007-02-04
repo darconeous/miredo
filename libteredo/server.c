@@ -48,10 +48,10 @@
 
 #include "server.h"
 #include "v4global.h"
-#include "checksum.h"
 #include "teredo.h"
 #include <sys/uio.h>
 #include "teredo-udp.h"
+#include "checksum.h"
 #include "debug.h"
 
 static pthread_mutex_t raw_mutex = PTHREAD_MUTEX_INITIALIZER;
