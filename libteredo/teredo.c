@@ -401,7 +401,7 @@ teredo_cksum (const void *src, const void *dst, uint8_t protocol,
 		plen += (iov[3 + i].iov_len = data[i].iov_len);
 	}
 
-	uint32_t pseudo[4] = { htonl (plen), htonl (prot) };
+	uint32_t pseudo[4] = { htonl (plen), htonl (protocol) };
 	iov[0].iov_base = (void *)src;
 	iov[0].iov_len = 16;
 	iov[1].iov_base = (void *)dst;
