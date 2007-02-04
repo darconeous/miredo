@@ -167,7 +167,7 @@ process_unknown (int fd, const uint8_t *in, size_t plen,
 	icmp6.icmp6_pptr = htonl (6);
 
 	icmp6.icmp6_cksum = teredo_cksum (&ip6.ip6_src, &ip6.ip6_dst,
-	                                  IPPROTO_ICMPV6, iov + 2, 1);
+	                                  IPPROTO_ICMPV6, iov + 1, 2);
 
 	teredo_sendv (fd, iov, sizeof (iov) / sizeof (iov[0]), ipv4, port);
 }
