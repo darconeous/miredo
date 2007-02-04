@@ -56,7 +56,7 @@ libteredo_la_LDFLAGS = -no-undefined -export-symbols $(srcdir)/libteredo.sym \
 # 2) teredo_set_relay_mode() added, teredo_set_cone_*() deprecated (0.9.5)
 # -- backward compatibility break --
 # 3) remove teredo_register_readset() (1.0.0)
-# 4) added internal teredo_send_bubble (1.1.0)
+# 4) added internal teredo_send_bubble, teredo_cksum (1.1.0)
 
 # libteredo-server.la
 libteredo_server_la_SOURCES = server.c server.h
