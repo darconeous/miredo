@@ -67,6 +67,8 @@
 #include "miredo.h"
 #include "conf.h"
 
+static const char* command_if_up;
+static const char* command_if_down;
 
 static int relay_diagnose (void)
 {
@@ -246,8 +248,17 @@ miredo_up_callback (void *data, const struct in6_addr *addr, uint16_t mtu)
 		        str, (unsigned)mtu);
 
 	assert (data != NULL);
-
+	
 	miredo_configure_tunnel (((miredo_tunnel *)data)->priv_fd, addr, mtu);
+	
+	if(command_if_up)
+	{
+		int ret;
+		syslog (LOG_NOTICE, _("Executing \"%s\"."), command_if_up);
+		if((ret=system(command_if_up))) {
+			syslog (LOG_NOTICE, _("\"%s\" returned error code %d."), command_if_up, ret);
+		}
+	}
 }
 
 
@@ -262,6 +273,14 @@ miredo_down_callback (void *data)
 	miredo_configure_tunnel (((miredo_tunnel *)data)->priv_fd, &in6addr_any,
 	                         1280);
 	syslog (LOG_NOTICE, _("Teredo pseudo-tunnel stopped"));
+	if(command_if_down)
+	{
+		int ret;
+		syslog (LOG_NOTICE, _("Executing \"%s\"."), command_if_down);
+		if((ret=system(command_if_down))) {
+			syslog (LOG_NOTICE, _("\"%s\" returned error code %d."), command_if_down, ret);
+		}
+	}
 }
 
 
@@ -426,6 +445,9 @@ relay_run (miredo_conf *conf, const char *server_name)
 		syslog (LOG_ALERT, _("Fatal configuration error"));
 		return -2;
 	}
+	
+	command_if_up = miredo_conf_get (conf, "CommandUp", NULL);
+	command_if_down = miredo_conf_get (conf, "CommandDown", NULL);
 
 #ifdef MIREDO_TEREDO_CLIENT
 	const char *server_name2 = NULL;

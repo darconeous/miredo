@@ -238,6 +238,7 @@ static bool miredo_conf_read_FILE (miredo_conf *conf, FILE *stream)
 	while (fgets (lbuf, sizeof (lbuf), stream) != NULL)
 	{
 		size_t len = strlen (lbuf) - 1;
+		size_t start_of_value;
 		line++;
 
 		if (lbuf[len] != '\n')
@@ -252,10 +253,20 @@ static bool miredo_conf_read_FILE (miredo_conf *conf, FILE *stream)
 
 		lbuf[len] = '\0';
 		char nbuf[32], vbuf[1024];
-
-		switch (sscanf (lbuf, " %31s %1023s", nbuf, vbuf))
+		
+		// Remove comments
+		for(char* c=lbuf;*c;++c)
+			if(*c=='#') {
+				*c = 0;
+				break;
+			}
+		
+		switch (sscanf (lbuf, " %31s %n%1023s", nbuf,&start_of_value, vbuf))
 		{
 			case 2:
+			case 3:
+				strncpy(vbuf,lbuf+start_of_value,sizeof(vbuf));
+				
 				if ((*nbuf != '#') // comment
 				 && !miredo_conf_set (conf, nbuf, vbuf, line))
 					return false;
