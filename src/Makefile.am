@@ -49,7 +49,7 @@ libmiredo_la_LDFLAGS = -no-undefined -static
 # miredo
 miredo_SOURCES = relayd.c
 if TEREDO_CLIENT
-miredo_SOURCES += privproc.c privproc.h addrwatch.c addrwatch.h
+miredo_SOURCES += privproc.c privproc.h
 TESTS += miredo-checkconf
 endif
 miredo_LDADD = ../libtun6/libtun6.la ../libteredo/libteredo.la libmiredo.la \

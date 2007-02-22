@@ -61,7 +61,6 @@
 #include <libteredo/tunnel.h>
 
 #include "privproc.h"
-#include "addrwatch.h"
 #include "miredo.h"
 #include "conf.h"
 
@@ -159,7 +158,6 @@ miredo_icmp6_callback (void *data, const void *packet, size_t length,
 #define TEREDO_CONE     0
 #define TEREDO_RESTRICT 1
 #define TEREDO_CLIENT   2
-#define TEREDO_EXCLIENT 3
 
 static bool
 ParseRelayType (miredo_conf *conf, const char *name, int *type)
@@ -170,11 +168,9 @@ ParseRelayType (miredo_conf *conf, const char *name, int *type)
 	if (val == NULL)
 		return true;
 
-	if (strcasecmp (val, "client") == 0)
+	if ((strcasecmp (val, "client") == 0)
+	 || (strcasecmp (val, "autoclient") == 0))
 		*type = TEREDO_CLIENT;
-	else
-	if (strcasecmp (val, "autoclient") == 0)
-		*type = TEREDO_EXCLIENT;
 	else
 	if (strcasecmp (val, "restricted") == 0)
 	{
@@ -279,9 +275,6 @@ setup_client (teredo_tunnel *client, const char *server, const char *server2)
 # define create_dynamic_tunnel( a, b )   NULL
 # define destroy_dynamic_tunnel( a, b )   (void)0
 # define setup_client( a, b, c )         (-1)
-# define miredo_addrwatch_available( a ) 0
-# define miredo_addrwatch_getfd( a )     (-1)
-# define run_tunnel( a, b )           run_tunnel_RELAY_ONLY( a )
 #endif
 
 
