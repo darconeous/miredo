@@ -232,26 +232,18 @@ miredo (const char *confpath, const char *server_name, int pidfd)
 			case -1:
 				syslog (LOG_ALERT, _("Error (%s): %s\n"), "fork",
 				        strerror (errno));
-				break;
+				continue;
 
 			case 0:
 				close (pidfd);
 				retval = miredo_run (cnf, server_name);
 				miredo_conf_destroy (cnf);
+				closelog ();
+				exit (-retval);
 				break;
 
 			default:
 				miredo_conf_clear (cnf, 0);
-		}
-
-		switch (pid)
-		{
-			case -1:
-				continue;
-
-			case 0:
-				closelog ();
-				exit (-retval);
 		}
 
 		sigset_t set, saved_set;
