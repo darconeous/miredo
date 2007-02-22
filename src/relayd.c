@@ -35,9 +35,7 @@
 #include <unistd.h> // close()
 #include <fcntl.h>
 #include <sys/wait.h> // wait()
-#include <sys/select.h> // pselect()
 #include <signal.h> // sigemptyset()
-#include <compat/pselect.h>
 #include <syslog.h>
 #include <pthread.h>
 
@@ -380,39 +378,21 @@ static LIBTEREDO_NORETURN void *miredo_encap_thread (void *d)
  * receive loop.
  */
 static int
-run_tunnel (miredo_tunnel *tunnel, miredo_addrwatch *w)
+run_tunnel (miredo_tunnel *tunnel)
 {
-	int fd = miredo_addrwatch_getfd (w);
-	if (fd >= (int)FD_SETSIZE)
-		return -1;
-
 	pthread_t encap_th;
 	if (teredo_run_async (tunnel->relay)
 	 || pthread_create (&encap_th, NULL, miredo_encap_thread, tunnel))
 		return -1;
 
-	/* Main loop */
-	int retval = -2;
-
-	while (!miredo_addrwatch_available (w))
-	{
-		fd_set readset;
-		FD_ZERO (&readset);
-		if (fd != -1)
-			FD_SET (fd, &readset);
-
-		sigset_t set;
-		sigemptyset (&set);
-		if (pselect (fd + 1, &readset, NULL, NULL, NULL, &set) < 0)
-		{
-			retval = 0;
-			break;
-		}
-	}
+	sigset_t dummyset, set;
+	sigemptyset (&dummyset);
+	pthread_sigmask (SIG_BLOCK, &dummyset, &set);
+	while (sigwait (&set, &(int){ 0 }));
 
 	pthread_cancel (encap_th);
 	pthread_join (encap_th, NULL);
-	return retval;
+	return 0;
 }
 
 
@@ -541,74 +521,32 @@ relay_run (miredo_conf *conf, const char *server_name)
 		        _("libteredo cannot be initialized"));
 	else
 	{
-#ifdef MIREDO_TEREDO_CLIENT
-		miredo_addrwatch *watch = (mode == TEREDO_EXCLIENT)
-			? miredo_addrwatch_start (tun6_getId (tunnel)) : NULL;
-#endif
 		if (drop_privileges () == 0)
 		{
-			do
+			teredo_tunnel *relay = teredo_create (bind_ip, bind_port);
+			if (relay != NULL)
 			{
-				if (miredo_addrwatch_available (watch))
-				{
-					sigset_t sig;
-					sigemptyset (&sig);
+				miredo_tunnel data = { tunnel, privfd, relay };
+				teredo_set_privdata (relay, &data);
+				teredo_set_recv_callback (relay, miredo_recv_callback);
+				teredo_set_icmpv6_callback (relay, miredo_icmp6_callback);
 
-					int fd = miredo_addrwatch_getfd (watch);
-					assert (fd != -1);
-
-					fd_set rdset;
-					FD_ZERO (&rdset);
-					FD_SET (fd, &rdset);
-
-					if (pselect (fd + 1, &rdset, NULL, NULL, NULL, &sig) == 1)
-						retval = -2;
-					else
-						retval = 0;
-
-					continue;
-				}
-
-				teredo_tunnel *relay = teredo_create (bind_ip, bind_port);
-				if (relay != NULL)
-				{
-					miredo_tunnel data = { tunnel, privfd, relay };
-					teredo_set_privdata (relay, &data);
-					teredo_set_recv_callback (relay, miredo_recv_callback);
-					teredo_set_icmpv6_callback (relay, miredo_icmp6_callback);
-
-					retval = (mode & TEREDO_CLIENT)
-						? setup_client (relay, server_name, server_name2)
-						: setup_relay (relay, prefix.teredo.prefix, cone);
+				retval = (mode & TEREDO_CLIENT)
+					? setup_client (relay, server_name, server_name2)
+					: setup_relay (relay, prefix.teredo.prefix, cone);
 	
-					/*
-					 * RUN
-					 */
-					if (retval == 0)
-					{
-						retval = run_tunnel (&data, watch);
-#ifdef MIREDO_TEREDO_CLIENT
-						if (retval == -2)
-						{
-							assert (mode == TEREDO_EXCLIENT);
-							miredo_down_callback (&data);
-						}
-#endif
-					}
-					teredo_destroy (relay);
-				}
+				/*
+				 * RUN
+				 */
+				if (retval == 0)
+					retval = run_tunnel (&data);
+				teredo_destroy (relay);
 			}
-			while (retval == -2);
 
 			if (retval)
 				syslog (LOG_ALERT, _("Miredo setup failure: %s"),
 				        _("libteredo cannot be initialized"));
 		}
-
-#ifdef MIREDO_TEREDO_CLIENT
-		if (watch != NULL)
-			miredo_addrwatch_stop (watch);
-#endif
 		miredo_deinit ((mode & TEREDO_CLIENT) != 0);
 	}
 
