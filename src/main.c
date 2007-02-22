@@ -230,6 +230,22 @@ static void *dummy_thread (void *data)
 	return data;
 }
 
+static int check_threading (void)
+{
+	/* Hack to ensure that thread library is working:
+	 * - this avoids infinite crashes/restart loops on broken OSes
+	 * - this eases setting chroots (preloads libgcc_s on glibc)
+	 */
+	pthread_t dummyth;
+	errno = pthread_create (&dummyth, NULL, dummy_thread, NULL);
+	if (errno)
+		return error_errno ("pthread_create");
+
+	pthread_cancel (dummyth);
+	pthread_join (dummyth, NULL);
+	return 0;
+}
+
 
 /**
  * Initialize daemon context.
@@ -237,6 +253,8 @@ static void *dummy_thread (void *data)
 static int
 init_security (const char *username)
 {
+	int val;
+
 	/* Sets sensible umask */
 	(void)umask (022);
 
@@ -254,10 +272,10 @@ init_security (const char *username)
 	/*
 	 * Make sure 0, 1 and 2 are open.
 	 */
-	int fd = dup (2);
-	if (fd < 3)
+	val = dup (2);
+	if (val < 3)
 		return -1;
-	close (fd);
+	close (val);
 
 	/* Initialize libc resolver: 
 	 * - before clearenv() for LOCALDOMAIN
@@ -269,18 +287,8 @@ init_security (const char *username)
 	/* Clears environment */
 	(void)clearenv ();
 
-	/* Hack to thread library is working:
-	 * - this avoids infinite crashes/restart loops on broken OSes
-	 * - this eases setting chroots (preloads libgcc_s on glibc)
-	 */
-	{
-		pthread_t dummyth;
-		errno = pthread_create (&dummyth, NULL, dummy_thread, NULL);
-		if (errno)
-			return error_errno ("pthread_create");
-		pthread_cancel (dummyth);
-		pthread_join (dummyth, NULL);
-	}
+	if (check_threading ())
+		return -1;
 
 #ifdef MIREDO_DEFAULT_USERNAME
 	/* Determines unpriviledged user */
@@ -321,7 +329,15 @@ init_security (const char *username)
 		return -1;
 	}
 
-# ifdef HAVE_LIBCAP
+	/* Unpriviledged group */
+	(void)setgid (pw->pw_gid);
+	(void)initgroups (username, pw->pw_gid);
+#else
+	(void)username;
+#endif /* MIREDO_DEFAULT_USERNAME */
+
+
+#ifdef HAVE_LIBCAP
 	/* POSIX.1e capabilities support */
 	cap_t s = cap_init ();
 	if (s == NULL)
@@ -330,8 +346,7 @@ init_security (const char *username)
 	static cap_value_t caps[] =
 	{
 		CAP_KILL, // required by the signal handler
-		CAP_SETUID,
-		CAP_SETGID
+		CAP_SETUID
 	};
 	cap_set_flag (s, CAP_PERMITTED, 3, caps, CAP_SET);
 	cap_set_flag (s, CAP_EFFECTIVE, 3, caps, CAP_SET);
@@ -348,29 +363,16 @@ init_security (const char *username)
 	cap_set_flag (s, CAP_EFFECTIVE, miredo_capc,
 	              (cap_value_t *)miredo_capv, CAP_SET);
 
-	if (cap_set_proc (s))
+	val = cap_set_proc (s);
+	cap_free (s);
+
+	if (val)
 	{
 		error_errno ("cap_set_proc");
-		cap_free (s);
 		setuid_notice ();
 		return -1;
 	}
-# endif
-
-	/* Unpriviledged group */
-	(void)setgid (pw->pw_gid);
-	(void)initgroups (username, pw->pw_gid);
-
-# ifdef HAVE_LIBCAP
-	static cap_value_t setgid_cap[] = { CAP_SETGID };
-	cap_set_flag (s, CAP_EFFECTIVE, 1, setgid_cap, CAP_CLEAR);
-	cap_set_flag (s, CAP_PERMITTED, 1, setgid_cap, CAP_CLEAR);
-	cap_set_proc (s);
-	cap_free (s);
-# endif
-#else
-	(void)username;
-#endif /* MIREDO_DEFAULT_USERNAME */
+#endif
 
 	return 0;
 }
