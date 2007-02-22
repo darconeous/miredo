@@ -1,0 +1,39 @@
+#!/bin/sh
+#
+# Miredo client hook script for BSD
+# Untested and incomplete FIXME FIXME FIXME
+# $Id$
+
+IFCONFIG=/sbin/ifconfig
+ROUTE=/sbin/route
+
+if ! test -x "$IFCONFIG"; then
+        echo "$0: $IFCONFIG is required!" >&2
+        exit 1
+fi
+
+if ! test -x "$ROUTE"; then
+        echo "$0: $ROUTE is required!" >&2
+        exit 1
+fi
+
+"$IFCONFIG" "$IFACE" "$STATE"
+
+# FIXME: untested, certainly syntaxically incorrect
+"$ROUTE" flush dev "$IFACE" 2>/dev/null
+"$IFCONFIG" "$IFACE" flush 2>/dev/null
+
+case "$STATE" in
+	up)
+		# FIXME: untested, most likly syntaxically incorrect
+		"$IFCONFIG" "$IFACE" add "${LLADDRESS}/64"
+		"$IFCONFIG" "$IFACE" add "${ADDRESS}/32"
+		"$ROUTE" -inet6 add default dev "$IFACE" metric "$METRIC"
+		;;
+esac
+
+# TODO: MacOS X should probably gets its fork of the script
+# MacOS X DNS resolver must be reloaded when IPv6 availability changes
+#/sbin/killall -HUP something
+
+exit 0

@@ -1,0 +1,30 @@
+#!/bin/sh
+#
+# Miredo client hook script for Linux/iproute2
+# $Id$
+
+IP=/sbin/ip
+
+# Linux default route default metric is 1024.
+# We put 1029 so that any Teredo is used as a last resort.
+METRIC=1029
+
+if ! test -x "$IP"; then
+	echo "$0: iproute2 is required! Please install it." >&2
+	exit 1
+fi
+
+"$IP" -6 link set dev "$IFACE" "$STATE"
+
+"$IP" -6 route flush dev "$IFACE" 2>/dev/null
+"$IP" -6 address flush dev "$IFACE" 2>/dev/null
+
+case "$STATE" in
+	up)
+		"$IP" -6 address add "${LLADDRESS}/64" dev "$IFACE"
+		"$IP" -6 address add "${ADDRESS}/32" dev "$IFACE"
+		"$IP" -6 route add default dev "$IFACE" metric "$METRIC"
+		;;
+esac
+
+exit 0
