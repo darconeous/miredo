@@ -118,10 +118,10 @@ miredo (const char *confpath, const char *server_name, int pidfd)
 	sigaddset (&set, SIGINT);
 	sigaddset (&set, SIGQUIT);
 	sigaddset (&set, SIGTERM);
+	sigaddset (&set, SIGCHLD);
 	sigset_t exit_set = set;
 
 	sigaddset (&set, SIGHUP);
-	sigaddset (&set, SIGCHLD);
 	sigset_t reload_set = set;
 
 	sigaddset (&set, SIGPIPE);
