@@ -18,6 +18,8 @@ STABLE RELEASE 1.1.0 : Minor features enhancement
 
 # Restore "cone" RelayType to improve support for some (broken) NATs.
 # Minor specification conformance fixes to miredo-server.
+# Use a hook shell script for client interface configuration.
+# Remove (Linux-only) buggy and power-saving unfriendly "autoclient" mode.
 
 ===========================================================================
 STABLE RELEASE 1.0.6 : Minor features enhancement
