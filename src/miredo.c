@@ -53,39 +53,6 @@
 #include "miredo.h"
 #include "conf.h"
 
-/*
- * Signal handlers
- *
- * We block all signals when one of those we catch is being handled.
- * SECURITY NOTE: these signal handlers might be called as root or not,
- * in the context of the privileged child process or in that of the main
- * unprivileged worker process. They must not compromise the child's security.
- */
-static volatile int should_exit;
-static volatile int should_reload;
-
-static void
-exit_handler (int signum)
-{
-	if (should_exit)
-		return;
-
-	should_exit = signum;
-	kill (0, signum);
-}
-
-
-static void
-reload_handler (int signum)
-{
-	if (should_reload)
-		return;
-
-	should_reload = signum;
-	kill (0, signum);
-}
-
-
 uid_t unpriv_uid = 0;
 const char *miredo_chrootdir = NULL;
 
@@ -124,61 +91,6 @@ drop_privileges (void)
 }
 
 
-/**
- * Defines signal handlers.
- */
-static void
-InitSignals (void)
-{
-	struct sigaction sa;
-	sigset_t set;
-
-	should_exit = 0;
-	should_reload = 0;
-
-	memset (&sa, 0, sizeof (sa));
-	sigemptyset (&sa.sa_mask); // -- can that really fail ?!?
-	sigemptyset (&set);
-
-	/* Signals that trigger a clean exit */
-	sa.sa_handler = exit_handler;
-
-	sigaction (SIGINT, &sa, NULL);
-	sigaddset (&set, SIGINT);
-
-	sigaction (SIGQUIT, &sa, NULL);
-	sigaddset (&set, SIGQUIT);
-
-	sigaction (SIGTERM, &sa, NULL);
-	sigaddset (&set, SIGTERM);
-
-	/* Signals that are ignored */
-	sa.sa_handler = SIG_IGN;
-
-	sigaction (SIGPIPE, &sa, NULL); // We check errno == EPIPE instead
-	sigaddset (&set, SIGPIPE);
-
-#if 0
-	// might use these for other purpose in later versions:
-	// or maybe not, GNU/kFreeBSD use these for pthread
-	sigaction (SIGUSR1, &sa, NULL);
-	sigaddset (&set, SIGUSR1);
-
-	sigaction (SIGUSR2, &sa, NULL);
-	sigaddset (&set, SIGUSR2);
-#endif
-
-	/* Signals that trigger a configuration reload */
-	sa.sa_handler = reload_handler;
-
-	sigaction (SIGHUP, &sa, NULL);
-	sigaddset (&set, SIGHUP);
-
-	/* Block all handled signals */
-	pthread_sigmask (SIG_BLOCK, &set, NULL);
-}
-
-
 /*
  * Configuration and respawning stuff
  */
@@ -200,11 +112,25 @@ miredo (const char *confpath, const char *server_name, int pidfd)
 	if (cnf == NULL)
 		return -1;
 
+	sigset_t set, oldset;
+	sigemptyset (&set);
+
+	sigaddset (&set, SIGINT);
+	sigaddset (&set, SIGQUIT);
+	sigaddset (&set, SIGTERM);
+	sigset_t exit_set = set;
+
+	sigaddset (&set, SIGHUP);
+	sigaddset (&set, SIGCHLD);
+	sigset_t reload_set = set;
+
+	sigaddset (&set, SIGPIPE);
+
+	pthread_sigmask (SIG_BLOCK, &set, &oldset);
+
 	do
 	{
 		retval = 1;
-
-		InitSignals ();
 
 		if (!miredo_conf_read_file (cnf, confpath))
 		{
@@ -246,54 +172,54 @@ miredo (const char *confpath, const char *server_name, int pidfd)
 				miredo_conf_clear (cnf, 0);
 		}
 
-		sigset_t set, saved_set;
-		sigemptyset (&set);
-		pthread_sigmask (SIG_SETMASK, &set, &saved_set);
-
 		// Waits until the miredo process terminates
-		while (waitpid (pid, &retval, 0) == -1);
+		int val = 0, status;
+		while (sigwait (&set, &val) || !sigismember (&reload_set, val));
 
-		pthread_sigmask (SIG_SETMASK, &saved_set, NULL);
-
-		if (should_exit)
+		if (sigismember (&exit_set, val))
 		{
 			syslog (LOG_NOTICE, _("Exiting on signal %d (%s)"),
-			        should_exit, strsignal (should_exit));
+			        val, strsignal (val));
 			retval = 0;
 		}
 		else
-		if (should_reload)
 		{
 			syslog (LOG_NOTICE,
 			        _("Reloading configuration on signal %d (%s)"),
-			        should_reload, strsignal (should_reload));
+			        val, strsignal (val));
 			retval = 2;
 		}
-		else
-		if (WIFEXITED (retval))
+
+		/* Terminate children (if not already done) */
+		if (val != SIGCHLD)
+			kill (pid, SIGTERM);
+		while (waitpid (pid, &status, 0) == -1);
+
+		if (WIFEXITED (status))
 		{
-			retval = WEXITSTATUS (retval);
-			syslog (LOG_NOTICE, _("Terminated (exit code: %d)"),
-			        retval);
-			retval = retval != 0;
+			val = WEXITSTATUS (status);
+			syslog (LOG_NOTICE, _("Terminated (exit code: %d)"), val);
+			if (val)
+				retval = 1;
 		}
 		else
-		if (WIFSIGNALED (retval))
+		if (WIFSIGNALED (status))
 		{
-			retval = WTERMSIG (retval);
+			val = WTERMSIG (status);
 			syslog (LOG_INFO, _("Child %d killed by signal %d (%s)"),
-			        (int)pid, retval, strsignal (retval));
+			        (int)pid, val, strsignal (val));
 			retval = 2;
+			/* TODO: exponential restart delay */
 		}
 	}
 	while (retval == 2);
 
-	if (retval)
-		syslog (LOG_INFO, _("Terminated with error(s)."));
-	else
-		syslog (LOG_INFO, _("Terminated with no error."));
-
 	miredo_conf_destroy (cnf);
+
+	syslog (LOG_INFO, gettext (retval
+		? N_("Terminated with error(s).")
+		: N_("Terminated with no error.")));
+
 	closelog ();
 	return -retval;
 }
