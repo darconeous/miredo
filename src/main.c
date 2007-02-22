@@ -378,6 +378,17 @@ init_security (const char *username)
 }
 
 
+static void init_locale (void)
+{
+	(void)br_init (NULL);
+	(void)setlocale (LC_ALL, "");
+	char *path = br_find_locale_dir (LOCALEDIR);
+	(void)bindtextdomain (PACKAGE, path);
+	free (path);
+	(void)textdomain (PACKAGE);
+}
+
+
 int miredo_main (int argc, char *argv[])
 {
 	const char *username = NULL, *conffile = NULL, *servername = NULL,
@@ -402,12 +413,7 @@ int miredo_main (int argc, char *argv[])
 		{ NULL,         no_argument,       NULL, '\0'}
 	};
 
-	(void)br_init (NULL);
-	(void)setlocale (LC_ALL, "");
-	char *path = br_find_locale_dir (LOCALEDIR);
-	(void)bindtextdomain (PACKAGE, path);
-	free (path);
-	(void)textdomain (PACKAGE);
+	init_locale ();
 
 #define ONETIME_SETTING( setting ) \
 	if (setting != NULL) \
@@ -468,6 +474,7 @@ int miredo_main (int argc, char *argv[])
 #endif
 
 	size_t str_len;
+	char *path;
 	if (conffile == NULL)
 	{
 		path = br_find_etc_dir (SYSCONFDIR);
@@ -524,10 +531,10 @@ int miredo_main (int argc, char *argv[])
 		pidfile = pidfile_buf;
 	}
 
-	if (miredo_diagnose ())
+	if (init_security (username))
 		return 1;
 
-	if (init_security (username))
+	if (miredo_diagnose ())
 		return 1;
 
 	/* Opens pidfile */
