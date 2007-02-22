@@ -319,7 +319,7 @@ void maintenance_thread (teredo_maintenance *m)
 			{
 				/* DNS resolution succeeded */
 				if (!is_ipv4_global_unicast (server_ip)
-				|| !is_ipv4_global_unicast (server_ip2))
+ 				 || !is_ipv4_global_unicast (server_ip2))
 					syslog (LOG_WARNING, _("Server has a non global IPv4 address. "
 					                       "It will most likely not work."));
 	
