@@ -36,9 +36,7 @@
 #include <unistd.h> // close()
 #include <fcntl.h>
 #include <sys/wait.h> // wait()
-#include <sys/select.h> // pselect()
 #include <signal.h> // sigemptyset()
-#include <compat/pselect.h>
 #include <syslog.h>
 #include <pthread.h>
 
