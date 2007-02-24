@@ -23,10 +23,12 @@
 # include <config.h>
 #endif
 
+#include <gettext.h>
 #include <string.h>
 #include <stdlib.h> /* exit() */
 #include <errno.h>
 #include <inttypes.h>
+#include <syslog.h>
 
 #include <sys/types.h>
 #include <unistd.h>
@@ -51,6 +53,9 @@ struct miredo_tunnel_settings
 	struct in6_addr addr;
 	uint16_t mtu;
 };
+
+const char* command_if_up;
+const char* command_if_down;
 
 
 int
@@ -123,6 +128,14 @@ miredo_privileged_process (struct tun6 *tunnel)
 			{
 				tun6_delRoute (tunnel, &in6addr_any, 0, +5);
 				tun6_delAddress (tunnel, &oldcfg.addr, 32);
+				if(command_if_down)
+				{
+					int ret;
+					syslog (LOG_DEBUG, _("Executing \"%s\"."), command_if_down);
+					if((ret=system(command_if_down))) {
+						syslog (LOG_NOTICE, _("\"%s\" returned error code %d."), command_if_down, ret);
+					}
+				}
 			}
 
 			/* Adds new addresses */
@@ -146,6 +159,16 @@ miredo_privileged_process (struct tun6 *tunnel)
 				if (tun6_addAddress (tunnel, &newcfg.addr, 32)
 				 || tun6_addRoute (tunnel, &in6addr_any, 0, +5))
 					res = -1;
+					if(command_if_up)
+				
+				if(command_if_up)
+				{
+					int ret;
+					syslog (LOG_DEBUG, _("Executing \"%s\"."), command_if_up);
+					if((ret=system(command_if_up))) {
+						syslog (LOG_NOTICE, _("\"%s\" returned error code %d."), command_if_up, ret);
+					}
+				}
 			}
 
 			/* Saves address */
