@@ -672,12 +672,9 @@ _iface_route (int reqfd, int id, bool add, const struct in6_addr *addr,
     	else if (errno == EEXIST)
 		syslog (LOG_NOTICE,
 "Miredo could not configure its network tunnel device properly.\n"
-"There is probably another tunnel with a conflicting route present,\n"
-"most likely left from a previous instance of Miredo (see also FreeBSD\n"
-"Problem Report kern/100080); that is a common bug on BSD kernels.\n"
-"Please cleanup your closed tunnel devices manually or reboot to fix\n"
-"this issue. You might also want to check if this issue has been dealt\n"
-"with in newer version of your BSD of choice.\n");
+"There is probably another tunnel with a conflicting route present\n"
+"(see also FreeBSD PR kern/100080).\n"
+"Please upgrade to FreeBSD 6.3 or more recent to fix this.\n");
 
 	(void)close (s);
 #else

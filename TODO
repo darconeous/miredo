@@ -52,9 +52,8 @@ Portability:
 (H) byte alignement tests on problematic platforms (not i386)
 (H) Solaris: libtun6 support
 (H) Solaris: tests & fixes
-(H) FreeBSD kernel support fix (PR: kern/100080)
-(H) NetBSD 4 kernel support fix (same problem as FreeBSD)
-(H) DragonFly kernel support fix
+(H) NetBSD 4 kernel tunnel routes fix
+(H) DragonFly kernel tunnel routes fix
 (H) OpenBSD kernel support correctness check
 (*) BSD: setsockopt SO_REUSEPORT if/where appropriate
 
