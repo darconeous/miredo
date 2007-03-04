@@ -65,21 +65,22 @@ Linux:
 well, including the 2.4 branch. However, there are known problems with
 the -experimental- IPv6 stack of these kernel releases; this is not
 specific to the usage of Miredo.
-
   Miredo requires the Universal TUNTAP driver (CONFIG_TUN) and IPv6
 (CONFIG_IPV6).
+
+  For proper source address selection (RFC3484 support), kernel version
+2.6.17.2 and GNU/libc 2.5 are required.
 
 FreeBSD:
 ---------
   Miredo works fine with FreeBSD 5.5 and up. You can use the net/miredo
-port. There is a known problem with the FreeBSD kernel: see Problem
-Report kern/100080. It should mostly affect Miredo in "relay" mode.
-  FreeBSD 4.11 is way too buggy to support Miredo. DO NOT USE IT.
+port. There is a known problem with the FreeBSD 6.2 and older; it
+should mostly affect Miredo in "relay" mode.
+  FreeBSD 4.11 is not supported.
 
 OpenBSD:
 ---------
-  OpenBSD 3.7 is supported. Older versions might also work, insofar as
-IPv6 is enabled.
+  OpenBSD might work. Version 3.7 was tested with older releases.
 
 NetBSD:
 --------
