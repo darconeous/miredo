@@ -106,11 +106,13 @@ drop_privileges (void)
 	}
 
 	// Definitely drops privileges
+/*
 	if (setuid (unpriv_uid))
 	{
 		syslog (LOG_ALERT, _("Error (%s): %s\n"), "setuid", strerror (errno));
 		return -1;
 	}
+*/
 
 #ifdef HAVE_LIBCAP
 	cap_t s = cap_init ();

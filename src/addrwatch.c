@@ -40,15 +40,54 @@
 #include "miredo.h"
 #include "addrwatch.h"
 
+#ifdef HAS_SYSTEMCONFIGURATION_FRAMEWORK
+#include <SystemConfiguration/SystemConfiguration.h>
+#endif
+
 struct miredo_addrwatch
 {
 	pthread_t thread;
 
 	int self_scope;
-	int if_inet6_fd;
 	int pipefd[2];
 	bool status;
+#ifdef HAS_SYSTEMCONFIGURATION_FRAMEWORK
+	SCDynamicStoreRef dynamic_store;
+	CFRunLoopSourceRef run_loop_source_ref;
+	CFRunLoopRef	run_loop;
+#else
+	int if_inet6_fd;
+#endif
+
 };
+
+#ifdef HAS_SYSTEMCONFIGURATION_FRAMEWORK
+static void miredoSCUpdate(SCDynamicStoreRef store, CFArrayRef changedKeys, void *info)
+{
+	miredo_addrwatch* me=(miredo_addrwatch*)info;
+	char found=0;
+	CFDictionaryRef plist;
+	plist=SCDynamicStoreCopyValue(store,CFSTR("State:/Network/Global/IPv6"));
+	if(plist) {
+		CFRelease(plist);
+		found=1;
+	} else {
+		found=0;
+	}
+	if(me->status!=found) {
+		if(found)
+			fprintf(stderr,"Native IPv6 connectivity obtained!\n");
+		else 
+			fprintf(stderr,"Native IPv6 connectivity lost!\n");
+		me->status=found;
+		while (write (me->pipefd[1], &found, 1) == 0);
+	}
+}
+
+static CFStringRef miredoSCDescribe(const void* info) {
+	return CFSTR("miredo");
+}
+#endif
 
 
 /**
@@ -57,6 +96,18 @@ struct miredo_addrwatch
 static LIBTEREDO_NORETURN void *addrwatch (void *opaque)
 {
 	struct miredo_addrwatch *data = (struct miredo_addrwatch *)opaque;
+
+#ifdef HAS_SYSTEMCONFIGURATION_FRAMEWORK
+	data->run_loop=CFRunLoopGetCurrent();
+	CFRunLoopAddSource(
+		data->run_loop,
+		data->run_loop_source_ref,
+		kCFRunLoopCommonModes
+	);
+	CFRunLoopRun();
+	fprintf(stderr,"warning: addrwatch exited!\n");
+#else
+
 	struct timespec deadline;
 
 	clockid_t clock_id = CLOCK_REALTIME;
@@ -71,6 +122,7 @@ static LIBTEREDO_NORETURN void *addrwatch (void *opaque)
 	{
 		int state;
 		pthread_setcancelstate (PTHREAD_CANCEL_DISABLE, &state);
+
 
 		if (lseek (data->if_inet6_fd, 0, SEEK_SET) == -1)
 			goto wait;
@@ -107,12 +159,12 @@ static LIBTEREDO_NORETURN void *addrwatch (void *opaque)
 			data->status = (found != 0);
 			while (write (data->pipefd[1], &found, 1) == 0);
 		}
-
 	wait:
 		pthread_setcancelstate (state, NULL);
 		deadline.tv_sec += 5;
 		clock_nanosleep (clock_id, TIMER_ABSTIME, &deadline, NULL);
 	}
+#endif
 	// dead code
 }
 
@@ -136,6 +188,60 @@ miredo_addrwatch *miredo_addrwatch_start (int self_scope)
 
 	memset (data, 0, sizeof (data));
 
+#ifdef HAS_SYSTEMCONFIGURATION_FRAMEWORK
+	fprintf(stderr,"Starting addrwatch...\n");
+	SCDynamicStoreContext context={
+		.version=0,
+		.info=(void*)data,
+		.copyDescription=miredoSCDescribe,
+	};
+
+	data->dynamic_store=SCDynamicStoreCreate(
+		NULL,
+		CFSTR("miredo"),
+		miredoSCUpdate,
+		&context
+	);
+	data->run_loop_source_ref=SCDynamicStoreCreateRunLoopSource ( 
+		NULL, 
+		data->dynamic_store, 
+		0
+	);
+	{
+		CFArrayRef keys;
+		keys=CFArrayCreateMutable(NULL,1,&kCFTypeArrayCallBacks);
+		CFArrayAppendValue(keys,CFSTR("State:/Network/Global/IPv6"));
+		if(!SCDynamicStoreSetNotificationKeys ( 
+			data->dynamic_store, 
+			keys, 
+			NULL
+		)) {
+			fprintf(stderr,"Unable to set notification keys!\n");
+		}
+		CFRelease(keys);
+	}
+
+	data->self_scope = self_scope;
+	{
+		CFDictionaryRef plist;
+		plist=SCDynamicStoreCopyValue(data->dynamic_store,CFSTR("State:/Network/Global/IPv6"));
+		if(plist) {
+			CFRelease(plist);
+			data->status =1;
+		} else {
+			data->status =0;
+		}
+	}
+	if (pipe (data->pipefd) == 0)
+	{
+		miredo_setup_nonblock_fd (data->pipefd[0]);
+		miredo_setup_fd (data->pipefd[1]);
+
+		if (pthread_create (&data->thread, NULL, addrwatch, data) == 0)
+			return data;
+	}
+	fprintf(stderr,"error: addrwatch start failed!\n");
+#else
 	int fd = open ("/proc/net/if_inet6", O_RDONLY);
 	if (fd != -1)
 	{
@@ -156,6 +262,7 @@ miredo_addrwatch *miredo_addrwatch_start (int self_scope)
 
 		(void)close (fd);
 	}
+#endif
 
 	return NULL;
 }
@@ -167,12 +274,21 @@ void miredo_addrwatch_stop (miredo_addrwatch *data)
 {
 	assert (data != NULL);
 
+#ifdef HAS_SYSTEMCONFIGURATION_FRAMEWORK
+	//CFRunLoopSourceContext context;
+	//CFRunLoopSourceGetContext(data->run_loop_source_ref,&context);
+	//if(context.cancel)context.cancel(context.info);
+	CFRunLoopStop(data->run_loop);
+	CFRelease(data->run_loop_source_ref);
+	CFRelease(data->dynamic_store);
+#else
 	(void)pthread_cancel (data->thread);
 	(void)pthread_join (data->thread, NULL);
 
 	(void)close (data->pipefd[1]);
 	(void)close (data->pipefd[0]);
 	(void)close (data->if_inet6_fd);
+#endif
 	free (data);
 }
 

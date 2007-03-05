@@ -420,8 +420,14 @@ void maintenance_thread (teredo_maintenance *m)
 			count = 0;
 
 			if (state == PROBE_SYMMETRIC)
-				c_state->addr.teredo.client_port = newaddr.teredo.client_port;
-
+			{
+				if (c_state->addr.teredo.client_port != newaddr.teredo.client_port)
+				{
+					syslog (LOG_WARNING,_("Symmetric NAT detected. IPv6 connectivity will be limited."));
+				}
+				newaddr.teredo.client_port = c_state->addr.teredo.client_port;
+			}
+			
 			if ((c_state->addr.teredo.client_port != newaddr.teredo.client_port)
 			 || (c_state->addr.teredo.client_ip != newaddr.teredo.client_ip))
 			{

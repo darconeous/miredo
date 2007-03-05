@@ -218,6 +218,11 @@ AS_IF([test "${enable_miredo_user}" != "root"], [
 # Defines for <config.h>
 AH_BOTTOM([#include "compat/fixups.h"])
 
+# These should only be added for apple platforms
+AC_DEFINE(HAS_SYSTEMCONFIGURATION_FRAMEWORK, 1,[Define to 1 if Apple's SystemConfiguration framework is availble.])
+CFLAGS="${CFLAGS} -framework SystemConfiguration"
+AC_DEFINE(HAS_COREFOUNDATION_FRAMEWORK, 1,[Define to 1 if Apple's CoreFoundation framework is availble.])
+CFLAGS="${CFLAGS} -framework CoreFoundation"
 
 # END
 AS_MESSAGE(writing results...)
