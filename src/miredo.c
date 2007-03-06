@@ -106,13 +106,11 @@ drop_privileges (void)
 	}
 
 	// Definitely drops privileges
-/*
 	if (setuid (unpriv_uid))
 	{
 		syslog (LOG_ALERT, _("Error (%s): %s\n"), "setuid", strerror (errno));
 		return -1;
 	}
-*/
 
 #ifdef HAVE_LIBCAP
 	cap_t s = cap_init ();
@@ -237,6 +235,11 @@ miredo (const char *confpath, const char *server_name, int pidfd)
 				break;
 
 			case 0:
+				signal(SIGINT,exit);
+				signal(SIGQUIT,exit);
+				signal(SIGTERM,exit);
+				signal(SIGPIPE,exit);
+				signal(SIGHUP,exit);
 				close (pidfd);
 				retval = miredo_run (cnf, server_name);
 				miredo_conf_destroy (cnf);
