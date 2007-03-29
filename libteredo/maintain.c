@@ -387,6 +387,14 @@ void maintenance_thread (teredo_maintenance *m)
 
 			if (count >= m->qualification_retries)
 			{
+				count = 0;
+				/* No response from server */
+				if (last_error != TERR_BLACKHOLE)
+				{
+					syslog (LOG_INFO, _("No reply from Teredo server"));
+					last_error = TERR_BLACKHOLE;
+				}
+
 				if (state == QUALIFIED)
 				{
 					syslog (LOG_NOTICE, _("Lost Teredo connectivity"));
@@ -395,13 +403,6 @@ void maintenance_thread (teredo_maintenance *m)
 					server_ip = 0;
 				}
 
-				count = 0;
-				/* No response from server */
-				if (last_error != TERR_BLACKHOLE)
-				{
-					syslog (LOG_INFO, _("No reply from Teredo server"));
-					last_error = TERR_BLACKHOLE;
-				}
 				/* Wait some time before retrying */
 				state = PROBE_RESTRICT;
 				delay = m->restart_delay;
