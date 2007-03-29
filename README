@@ -94,6 +94,11 @@ Darwin variants. On Mac OS X, you will have to install a third party
 tunneling driver; Miredo was tested with Mattis Nissler's tuntap from:
 http://www-user.rhrk.uni-kl.de/~nissler/tuntap/
 
+  Note that Mac OS X users should consider using Miredo-OSX from
+http://www.deepdarc.com/ which provides prebuilt OS X binaries of
+Miredo along with Nissler's tuntap, LibJudy and OS X specific additions
+and tweaks.
+
 DragonFly:
 -----------
   Miredo should work. It is in NetBSD's pkgsrc.

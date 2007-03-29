@@ -34,6 +34,7 @@ AC_CONFIG_HEADERS(config.h)
 AC_DEFINE_UNQUOTED(PACKAGE_CONFIGURE_INVOCATION, "$INVOCATION",
                 [Define to the command line used to invoke the configure script.])
 RDC_BUILD_HOSTNAME
+AC_CANONICAL_HOST
 
 
 # Checks for programs.
@@ -66,6 +67,19 @@ RDC_FUNC_SOCKET
 AC_SEARCH_LIBS(inet_ntop, [nsl])
 AC_SEARCH_LIBS(devname, [freebsd])
 AC_CHECK_LIB(resolv, res_init)
+
+# Oooh, evil platform-rather-than-feature test
+case "${host_os}" in
+	darwin*)
+		AC_DEFINE(HAVE_SYSTEMCONFIGURATION_FRAMEWORK, 1,
+		          [Define to 1 if Apple's SystemConfiguration framework is available.])
+		CFLAGS="${CFLAGS} -framework SystemConfiguration"
+		AC_DEFINE(HAVE_COREFOUNDATION_FRAMEWORK, 1,
+		          [Define to 1 if Apple's CoreFoundation framework is available.])
+		CFLAGS="${CFLAGS} -framework CoreFoundation"
+		;;
+esac
+
 
 # POSIX threads
 AC_ARG_VAR(PTHREAD_CFLAGS, [C compiler flags for POSIX threads])
