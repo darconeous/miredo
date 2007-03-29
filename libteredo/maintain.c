@@ -105,9 +105,8 @@ static int getipv4byname (const char *restrict name, uint32_t *restrict ipv4)
 		.ai_family = AF_INET,
 		.ai_socktype = SOCK_DGRAM
 	}, *res;
-	int val;
 
-	val = getaddrinfo (name, NULL, &hints, &res);
+	int val = getaddrinfo (name, NULL, &hints, &res);
 	if (val)
 		return val;
 
@@ -126,15 +125,7 @@ static int getipv4byname (const char *restrict name, uint32_t *restrict ipv4)
 static int resolveServerIP (const char *server, uint32_t *restrict ip,
                             const char *server2, uint32_t *restrict ip2)
 {
-	int val;
-
-	/* Connectivity might have been reconfigured (DHCP...), and our DNS
-	 * servers might no longer be those they were when the program started.
-	 * As such, we call res_init() to re-read /etc/resolv.conf.
-	 */
-	res_init ();
-
-	val = getipv4byname (server, ip);
+	int val = getipv4byname (server, ip);
 	if (val)
 		return val;
 
