@@ -138,6 +138,10 @@ static int resolveServerIP (const char *server, uint32_t *restrict ip,
 		 */
 		*ip2 = htonl (ntohl (*ip) + 1);
 
+	if (!is_ipv4_global_unicast (*ip) || !is_ipv4_global_unicast (*ip2))
+		syslog (LOG_WARNING, _("Server has a non global IPv4 address. "
+		                       "It will most likely not work."));
+
 	return 0;
 }
 
@@ -145,9 +149,9 @@ static int resolveServerIP (const char *server, uint32_t *restrict ip,
 /**
  * Checks and parses a received Router Advertisement.
  *
- * @return true if successful.
+ * @return 0 if successful.
  */
-static bool
+static int
 maintenance_recv (const teredo_packet *restrict packet, uint32_t server_ip,
                   uint8_t *restrict nonce, bool cone, uint16_t *restrict mtu,
                   union teredo_addr *restrict newaddr)
@@ -155,22 +159,22 @@ maintenance_recv (const teredo_packet *restrict packet, uint32_t server_ip,
 	assert (packet->auth_nonce != NULL);
 
 	if (memcmp (packet->auth_nonce, nonce, 8))
-		return false;
+		return EPERM;
 
 	/* TODO: fail instead of ignoring the packet? */
 	if (packet->auth_conf_byte)
 	{
 		syslog (LOG_ERR, _("Authentication with server failed."));
-		return false;
+		return EACCES;
 	}
 
 	if (teredo_parse_ra (packet, newaddr, cone, mtu)
 	/* TODO: try to work-around incorrect server IP */
 	 || (newaddr->teredo.server_ip != server_ip))
-		return false;
+		return EINVAL;
 
 	/* Valid router advertisement received! */
-	return true;
+	return 0;
 }
 
 
@@ -309,11 +313,6 @@ void maintenance_thread (teredo_maintenance *m)
 			else
 			{
 				/* DNS resolution succeeded */
-				if (!is_ipv4_global_unicast (server_ip)
- 				 || !is_ipv4_global_unicast (server_ip2))
-					syslog (LOG_WARNING, _("Server has a non global IPv4 address. "
-					                       "It will most likely not work."));
-	
 				/* Tells Teredo client about the new server's IP */
 				assert (!c_state->up);
 				c_state->addr.teredo.server_ip = server_ip;
@@ -351,22 +350,19 @@ void maintenance_thread (teredo_maintenance *m)
 		uint16_t mtu = 1280;
 
 		/* RECEIVE ROUTER ADVERTISEMENT */
-		for (;;)
+		do
 		{
 			val = wait_reply (m, &deadline);
 			if (val)
-				break; // time out
+				continue; // time out
 
 			/* check received packet */
-			bool ok;
-			ok = maintenance_recv (m->incoming, server_ip,
-			                       nonce, false, &mtu, &newaddr);
+			val = maintenance_recv (m->incoming, server_ip,
+			                        nonce, false, &mtu, &newaddr);
 			m->incoming = NULL;
-
 			pthread_cond_signal (&m->processed);
-			if (ok)
-				break;
 		}
+		while ((val != 0) && (val != ETIMEDOUT));
 
 		unsigned delay = 0;
 
