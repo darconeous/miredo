@@ -282,8 +282,7 @@ static int teredo_recv_inner (int fd, struct teredo_packet *p, int flags)
 
 
 /**
- * Receives and parses a Teredo packet from a socket.
- * Blocks if the socket is blocking, don't block if not.
+ * Receives and parses a Teredo packet from a socket. Never blocks.
  * Thread-safe, cancellation-safe, cancellation point.
  *
  * @param fd socket file descriptor
@@ -293,7 +292,7 @@ static int teredo_recv_inner (int fd, struct teredo_packet *p, int flags)
  * Errors might be caused by :
  *  - lower level network I/O,
  *  - malformatted packets,
- *  - no data pending while using a non-blocking socket.
+ *  - no data pending.
  */
 int teredo_recv (int fd, struct teredo_packet *p)
 {
@@ -301,9 +300,11 @@ int teredo_recv (int fd, struct teredo_packet *p)
 }
 
 
-#ifdef __FreeBSD__
+#if defined (__FreeBSD__) || defined (__APPLE__)
+# define HAVE_BROKEN_RECVFROM 1
 # include <sys/poll.h>
 #endif
+
 /**
  * Waits for, receives and parses a Teredo packet from a socket.
  * Thread-safe, cancellation-safe, cancellation point.
@@ -320,7 +321,7 @@ int teredo_recv (int fd, struct teredo_packet *p)
  */
 int teredo_wait_recv (int fd, struct teredo_packet *p)
 {
-#if defined (__FreeBSD__) || defined (__APPLE__)
+#ifdef HAVE_BROKEN_RECVFROM
 	// recvfrom() is not a cancellation point on FreeBSD 6.1...
 	struct pollfd ufd = { .fd = fd, .events = POLLIN };
 	if (poll (&ufd, 1, -1) == -1)
