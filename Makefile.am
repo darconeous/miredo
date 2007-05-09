@@ -68,6 +68,7 @@ dist-hook: stamp-svn
 distcheck-hook:
 	cd doc && $(MAKE) $(AM_MAKEFLAGS) distcheck-hook
 
+# ChangeLog
 stamp-svn:
 	@rev=$$(LANG=C svnversion "$(srcdir)" 2>/dev/null || echo exported) ; \
 	oldrev=$$(cat stamp-svn 2>/dev/null || true) ; \
@@ -87,4 +88,17 @@ ChangeLog:
 	$(MAKE) $(AM_MAKEFLAGS) stamp-svn
 	touch $@
 
-.PHONY: distcheck-hook stamp-svn
+# Test coverage
+lcov.info:
+	lcov --directory . --zerocounters
+	$(MAKE) $(AM_MAKEFLAGS) check
+	lcov --directory . --capture --output $@.tmp
+	lcov --remove $@.tmp '*test*' '/usr/include/*' --output $@
+	rm -f $@.tmp
+
+lcov-report: lcov.info
+	mkdir -p lcov
+	genhtml $< -o lcov
+
+.PHONY: distcheck-hook stamp-svn lcov.info
+

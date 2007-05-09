@@ -179,6 +179,20 @@ AS_IF([test "${use_Judy}" = "no"], [
 ])
 
 
+# Test coverage build
+AC_MSG_CHECKING([whether to build for test coverage])
+AC_ARG_ENABLE(coverage,
+	[AS_HELP_STRING(--enable-coverage,
+		[build for test coverage (default disabled)])],,
+	[enable_coverage="no"])
+AS_IF([test "${enable_coverage}" != "no"], [
+	CFLAGS="${CFLAGS} -g -O0 -fprofile-arcs -ftest-coverage"
+	LDFLAGS="${LDFLAGS} -lgcov"
+	AC_MSG_RESULT(yes)
+], [
+	AC_MSG_RESULT(no)
+])
+
 # Teredo client
 AC_MSG_CHECKING([whether to include Teredo client support])
 AC_ARG_ENABLE(teredo-client,
