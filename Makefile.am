@@ -21,7 +21,10 @@ ACLOCAL_AMFLAGS = -I m4
 SUBDIRS = po doc misc compat libteredo libtun6 src
 DIST_SUBDIRS = m4 $(SUBDIRS)
 noinst_HEADERS = include/gettext.h
-EXTRA_DIST = autogen.sh autopackage/default.apspec.in
+EXTRA_DIST = autogen.sh autopackage/default.apspec.in Doxyfile.in
+
+doc: Doxyfile
+	doxygen $<
 
 if CONF_SAMPLE
 # For user's convenience, we install miredo.conf
@@ -100,5 +103,5 @@ lcov-report: lcov.info
 	mkdir -p lcov
 	genhtml $< -o lcov
 
-.PHONY: distcheck-hook stamp-svn lcov.info
+.PHONY: distcheck-hook stamp-svn lcov.info doc
 
