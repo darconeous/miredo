@@ -44,17 +44,6 @@ typedef struct clock_data_t
 } clock_data_t;
 
 
-/**
- * Userland low-precision (1 Hz) clock
- *
- * This is way faster than calling time() for every packet transmitted or
- * received. The first implementation was using POSIX timers, but it might
- * be a bit overkill to spawn a thread every second to simply increment an
- * integer. Also, POSIX timers with thread event delivery has a terrible
- * portability at the time of writing (June 2006). Basically, recent
- * GNU/Linux have it, and that's about it... no uClibc support, only in
- * -current for FreeBSD...
- */
 static LIBTEREDO_NORETURN void *clock_thread (void *o)
 {
 	clock_data_t *context = (clock_data_t *)o;
@@ -95,11 +84,6 @@ unsigned long teredo_clock (void)
 static unsigned users = 0;
 static pthread_mutex_t user_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-/**
- * Starts the clock. Thread-safe.
- *
- * @return 0 in case of success, an errno in case of error.
- */
 int teredo_clock_create (void)
 {
 	int val = -1;

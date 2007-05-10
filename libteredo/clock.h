@@ -1,6 +1,17 @@
-/*
- * clock.h - Fast-lookup 1Hz clock declaration
+/**
+ * @file clock.h
+ * @brief libteredo internal low-precision (1 Hz) clock
+ *
+ * This is way faster than calling time() for every packet transmitted or
+ * received. The first implementation was using POSIX timers, but it might
+ * be a bit overkill to spawn a thread every second to simply increment an
+ * integer. Also, POSIX timers with thread event delivery has a terrible
+ * portability at the time of writing (June 2006). Basically, recent
+ * GNU/Linux have it, and that's about it... no uClibc support, only in
+ * -current for FreeBSD...
+ *
  * $Id$
+ *
  */
 
 /***********************************************************************
@@ -22,14 +33,33 @@
 #ifndef LIBTEREDO_CLOCK_H
 # define LIBTEREDO_CLOCK_H
 
+/**
+ * Low-precision clock time value
+ */
 typedef unsigned long teredo_clock_t;
 
 # ifdef __cplusplus
 extern "C" {
 # endif
 
-unsigned long teredo_clock (void);
+/**
+ * @return current clock value; undefined if the clock is not running.
+ */
+teredo_clock_t teredo_clock (void);
+
+/**
+ * Starts the clock. Thread-safe.
+ *
+ * @return 0 in case of success, an errno in case of error.
+ */
 int teredo_clock_create (void);
+
+
+/**
+ * Stops the clock. Thread-safe.
+ *
+ * @return nothing (always succeeds when defined).
+ */
 void teredo_clock_destroy (void);
 
 # ifdef __cplusplus

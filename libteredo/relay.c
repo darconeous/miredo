@@ -323,24 +323,7 @@ int teredo_encap (teredo_tunnel *restrict tunnel, teredo_peer *restrict peer,
 	                     data, len, ipv4, port) == (int)len) ? 0 : -1;
 }
 
-/**
- * Transmits a packet coming from the IPv6 Internet, toward a Teredo node
- * (as specified per paragraph 5.4.1). That's what the specification calls
- * “Packet transmission”.
- *
- * It is assumed that the IPv6 packet is valid (if not, it will be dropped by
- * the receiving Teredo peer). It is furthermore assumed that the packet is at
- * least 40 bytes long (room for the IPv6 header and that it is properly
- * aligned.
- *
- * The packet size should not exceed the MTU (1280 bytes by default).
- * In any case, sending will fail if the packets size exceeds 65507 bytes
- * (maximum size for a UDP packet's payload).
- *
- * Thread-safety: This function is thread-safe.
- *
- * @return 0 on success, -1 on error.
- */
+
 int teredo_transmit (teredo_tunnel *restrict tunnel,
                      const struct ip6_hdr *restrict packet, size_t length)
 {
@@ -857,23 +840,6 @@ static void teredo_dummy_state_down_cb (void *o)
 #endif
 
 
-/**
- * Creates a teredo_tunnel instance. teredo_preinit() must have been
- * called first.
- *
- * Thread-safety: This function is thread-safe.
- *
- * @param ipv4 IPv4 (network byte order) to bind to, or 0 if unspecified.
- * @param port UDP/IPv4 port number (network byte order) or 0 if unspecified.
- * Note that some campus firewall drop certain UDP ports (typically those used
- * by some P2P application); in that case, you should use a fixed port so that
- * the kernel does not select a possibly blocked port. Also note that some
- * severely broken NAT devices might fail if multiple NAT-ed computers use the
- * same source UDP port number at the same time, so avoid you should
- * paradoxically avoid querying a fixed port.
- *
- * @return NULL in case of failure.
- */
 teredo_tunnel *teredo_create (uint32_t ipv4, uint16_t port)
 {
 	teredo_tunnel *tunnel = (teredo_tunnel *)malloc (sizeof (*tunnel));
@@ -918,18 +884,6 @@ teredo_tunnel *teredo_create (uint32_t ipv4, uint16_t port)
 }
 
 
-/**
- * Releases all resources (sockets, memory chunks...) and terminates all
- * threads associated with a teredo_tunnel instance.
- *
- * Thread-safety: This function is thread-safe. However, you must obviously
- * not call it if any other thread (including the calling one) is still using
- * the specified tunnel in some way.
- *
- * @param t tunnel to be destroyed. No longer useable thereafter.
- *
- * @return nothing (always succeeds).
- */
 void teredo_destroy (teredo_tunnel *t)
 {
 	assert (t != NULL);
@@ -976,20 +930,7 @@ static LIBTEREDO_NORETURN void *teredo_recv_thread (void *t)
 	}
 }
 
-/**
- * Spawns a new thread to perform Teredo packet reception in the background.
- * The thread will be automatically terminated when the tunnel is destroyed.
- *
- * It is safe to call teredo_run_async multiple times for the same tunnel,
- * however all call will fail (safe) after the first succesful one.
- *
- * Thread-safety: teredo_run_async() is not re-entrant. Calling it from
- * multiple threads with the same teredo_tunnel objet simultanously is
- * undefined. It is safe to call teredo_run_async() from different threads
- * each with a different teredo_tunnel object.
- *
- * @return 0 on success, -1 on error.
- */
+
 int teredo_run_async (teredo_tunnel *t)
 {
 	assert (t != NULL);
@@ -1006,18 +947,6 @@ int teredo_run_async (teredo_tunnel *t)
 }
 
 
-/**
- * Receives one pending packet coming from the Teredo tunnel. If you
- * don't use teredo_run_async(), you have to call this function as
- * often as possible. It is up to you to find the correct tradeoff
- * between busy waiting on this function for better response time of
- * the Teredo tunnel, and a long delay to not waste too much CPU
- * cycles. You should really consider using teredo_run_async() instead!
- * libteredo will spawn some threads even if you don't call
- * teredo_run_async() anyway...
- *
- * Thread-safety: This function is thread-safe.
- */
 void teredo_run (teredo_tunnel *tunnel)
 {
 	assert (tunnel != NULL);
@@ -1031,18 +960,6 @@ void teredo_run (teredo_tunnel *tunnel)
 }
 
 
-/**
- * Overrides the Teredo prefix of a Teredo relay.
- * Currently ignored for Teredo client (but might later restrict accepted
- * Teredo prefix to the specified one).
- *
- * Thread-safety: This function is thread-safe.
- *
- * @param prefix Teredo 32-bits (network byte order) prefix.
- *
- * @return 0 on success, -1 if the prefix is invalid (in which case the
- * teredo_tunnel instance is not modified).
- */
 int teredo_set_prefix (teredo_tunnel *t, uint32_t prefix)
 {
 	assert (t != NULL);
@@ -1065,18 +982,6 @@ int teredo_set_prefix (teredo_tunnel *t, uint32_t prefix)
 }
 
 
-/**
- * Defines the cone flag of the Teredo tunnel.
- * This only works for Teredo relays.
- *
- * Thread-safety: This function is thread-safe.
- *
- * @param cone true to disable sending of direct Teredo bubble,
- *             false to enable it.
- *
- * @return 0 on success, -1 on error (in which case the teredo_tunnel
- * instance is not modified).
- */
 int teredo_set_cone_flag (teredo_tunnel *t, bool cone)
 {
 	assert (t != NULL);
@@ -1101,13 +1006,6 @@ int teredo_set_cone_flag (teredo_tunnel *t, bool cone)
 }
 
 
-/**
- * Enables Teredo relay mode (this is the default).
- *
- * Thread-safety: This function is thread-safe.
- *
- * @return 0 on success, -1 on error.
- */
 int teredo_set_relay_mode (teredo_tunnel *t)
 {
 	int retval;
@@ -1125,23 +1023,6 @@ int teredo_set_relay_mode (teredo_tunnel *t)
 }
 
 
-/**
- * Enables Teredo client mode for a teredo_tunnel and starts the Teredo
- * client maintenance procedure in a separate thread.
- *
- * NOTE: calling teredo_set_client_mode() multiple times on the same tunnel
- * is currently not supported, and will safely return an error. Future
- * versions might support this.
- *
- * Thread-safety: This function is thread-safe.
- *
- * @param s Teredo server's host name or “dotted quad” primary IPv4 address.
- * @param s2 Teredo server's secondary address (or host name), or NULL to
- * infer it from <s>.
- *
- * @return 0 on success, -1 in case of error.
- * In case of error, the teredo_tunnel instance is not modifed.
- */
 int teredo_set_client_mode (teredo_tunnel *restrict t,
                             const char *s, const char *s2)
 {
@@ -1172,9 +1053,6 @@ int teredo_set_client_mode (teredo_tunnel *restrict t,
 }
 
 
-/**
- * Thread-safety: FIXME.
- */
 void *teredo_set_privdata (teredo_tunnel *t, void *opaque)
 {
 	assert (t != NULL);
@@ -1217,19 +1095,6 @@ void teredo_set_icmpv6_callback (teredo_tunnel *restrict t,
 }
 
 
-/**
- * Registers callbacks to be called when the Teredo client maintenance
- * procedure detects that the tunnel becomes usable (or has got a new IPv6
- * address, or a new MTU), or unusable respectively.
- * These callbacks are ignored for a Teredo relay tunnel.
- *
- * Any packet sent when the relay/client is down will be ignored.
- * The callbacks function might be called from a separate thread.
- *
- * Thread-safety: This function is thread-safe.
- *
- * If a callback is set to NULL, it is ignored.
- */
 void teredo_set_state_cb (teredo_tunnel *restrict t, teredo_state_up_cb u,
                           teredo_state_down_cb d)
 {

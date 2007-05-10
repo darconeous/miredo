@@ -33,9 +33,6 @@
 #include "tunnel.h"
 
 
-/**
- * Does nothing (backward compatibility stub).
- */
 void teredo_set_cone_ignore (teredo_tunnel *t, bool ignore)
 {
 	assert (t != NULL);
