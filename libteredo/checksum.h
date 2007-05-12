@@ -1,5 +1,7 @@
-/*
- * checksum.h - ICMPv6 checksumming
+/**
+ * @file checksum.h
+ * @brief ICMPv6 checksumming
+ *
  * $Id$
  */
 
@@ -25,7 +27,7 @@
 # include <sys/types.h>
 # include <netinet/in.h>
 
-/*
+/**
  * Computes an ICMPv6 over IPv6 packet checksum.
  * Jumbo datagrams not supported (but you don't care, do you?).
  */

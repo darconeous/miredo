@@ -1,5 +1,7 @@
-/*
- * peerlist.h - Teredo relay internal peers list declaration
+/**
+ * @file peerlist.h
+ * @brief Teredo relay internal peers list declaration
+ *
  * $Id$
  */
 
@@ -93,14 +95,59 @@ struct in6_addr;
 extern "C" {
 # endif
 
+/**
+ * Creates an empty peer list.
+ *
+ * @param max maximum number of peers in the list
+ * @param expiration minimum delay (seconds) before a peer can be removed
+ * by the garbage collector. Must not be 0.
+ *
+ * @return NULL on error (see errno for actual problem).
+ */
 teredo_peerlist *teredo_list_create (unsigned max, unsigned expiration);
-void teredo_list_destroy (teredo_peerlist *l);
-void teredo_list_reset (teredo_peerlist *l, unsigned max);
 
+
+/**
+ * Destroys an existing unlocked list.
+ * @param list list to be destroyed
+ */
+void teredo_list_destroy (teredo_peerlist *list);
+
+
+/**
+ * Empties an existing unlocked list. Always succeeds.
+ *
+ * @param list list to be reset
+ * @param max new value for maximum number of items allowed.
+ */
+void teredo_list_reset (teredo_peerlist *list, unsigned max);
+
+
+/**
+ * Locks the list and looks up a peer in an unlocked list.
+ * On success, the list must be unlocked with teredo_list_release(), otherwise
+ * the next call to teredo_list_lookup will deadlock. Unlocking the list after
+ * a failure is not defined.
+ *
+ * @param list peers list
+ * @param addr IPv6 address of the peer to search for
+ * @param create if not NULL, the peer will be added to the list if it is not
+ * present already, and *create will be true on return. If @a create is not
+ * NULL but the peer was already present, *create will be false on return.
+ * *create is undefined on return in case of error.
+ *
+ * @return peer if found or created. NULL on error (when @a create is not
+ * NULL), or if the peer was not found (when @a create is NULL).
+ */
 teredo_peer *teredo_list_lookup (teredo_peerlist *restrict list,
                                  const struct in6_addr *restrict addr,
                                  bool *restrict create);
-void teredo_list_release (teredo_peerlist *l);
+
+/**
+ * Unlocks a list that was locked by teredo_list_lookup().
+ * @param list peers list
+ */
+void teredo_list_release (teredo_peerlist *list);
 
 # ifdef __cplusplus
 }

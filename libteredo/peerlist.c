@@ -251,15 +251,6 @@ static LIBTEREDO_NORETURN void *garbage_collector (void *data)
 }
 
 
-/**
- * Creates an empty peer list.
- *
- * @param max maximum number of peers in the list
- * @param expiration minimum delay (seconds) before a peer can be removed
- * by the garbage collector. Must not be 0.
- *
- * @return NULL on error (see errno for actual problem).
- */
 teredo_peerlist *teredo_list_create (unsigned max, unsigned expiration)
 {
 	/*printf ("Peer size: %u/%u bytes\n",sizeof (teredo_peer),
@@ -289,11 +280,7 @@ teredo_peerlist *teredo_list_create (unsigned max, unsigned expiration)
 	return l;
 }
 
-/**
- * Empties an existing unlocked list. Always succeeds.
- *
- * @param max new value for maximum number of items allowed.
- */
+
 void teredo_list_reset (teredo_peerlist *l, unsigned max)
 {
 	pthread_mutex_lock (&l->lock);
@@ -322,9 +309,7 @@ void teredo_list_reset (teredo_peerlist *l, unsigned max)
 #endif
 }
 
-/**
- * Destroys an existing unlocked list.
- */
+
 void teredo_list_destroy (teredo_peerlist *l)
 {
 	teredo_list_reset (l, 0);
@@ -336,20 +321,7 @@ void teredo_list_destroy (teredo_peerlist *l)
 	free (l);
 }
 
-/**
- * Locks the list and looks up a peer in an unlocked list.
- * On success, the list must be unlocked with teredo_list_release(), otherwise
- * the next call to teredo_list_lookup will deadlock. Unlocking the list after
- * a failure is not defined.
- *
- * @param create if not NULL, the peer will be added to the list if it is not
- * present already, and *create will be true on return. If create is not NULL
- * but the peer was already present, *create will be false on return.
- * *create is undefined on return in case of error.
- *
- * @return The peer if found or created. NULL on error (when create is not
- * NULL), or if the peer was not found (when create is NULL).
- */
+
 teredo_peer *teredo_list_lookup (teredo_peerlist *restrict list,
                                  const struct in6_addr *restrict addr,
                                  bool *restrict create)
@@ -477,9 +449,6 @@ teredo_peer *teredo_list_lookup (teredo_peerlist *restrict list,
 }
 
 
-/**
- * Unlocks a list that was locked by teredo_list_lookup().
- */
 void teredo_list_release (teredo_peerlist *l)
 {
 	pthread_mutex_unlock (&l->lock);

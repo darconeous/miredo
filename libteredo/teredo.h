@@ -1,5 +1,7 @@
-/*
- * teredo.h - Common Teredo protocol typedefs
+/**
+ * @file teredo.h
+ * @brief Common Teredo protocol typedefs
+ *
  * $Id$
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"

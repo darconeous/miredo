@@ -2,8 +2,13 @@
  * @file tunnel.h
  * @brief libteredo public C API
  *
- * @mainpage Libteredo is an implementation of the Teredo protocol for
- * unmanaged tunneling of IPv6 over UDO/IPv4 through NAT devices.
+ * @mainpage libteredo documentation
+ *
+ * Libteredo is an implementation of the Teredo protocol for
+ * unmanaged tunneling of IPv6 over UDP/IPv4 through NAT devices.
+ * Libteredo is primilarly used by the miredo daemon.
+ * 
+ * Refer to tunnel.h for the external API documentation.
  *
  * $Id$
  */

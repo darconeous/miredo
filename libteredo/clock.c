@@ -126,11 +126,6 @@ int teredo_clock_create (void)
 }
 
 
-/**
- * Stops the clock. Thread-safe.
- *
- * @return nothing (always succeeds when defined).
- */
 void teredo_clock_destroy (void)
 {
 	pthread_mutex_lock (&user_mutex);

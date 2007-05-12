@@ -1,5 +1,7 @@
-/*
- * v4global.h - Declarations for v4global.cpp
+/**
+ * @file v4global.h
+ * @brief Check whether an IPv4 address is global
+ *
  * $Id$
  */
 
@@ -25,6 +27,11 @@
 #ifdef __cplusplus
 extern "C"
 #endif
+
+/**
+ * Checks that ip is a global unicast IPv4 address
+ * (Values shoud maybe not be hardcoded that way).
+ */
 int is_ipv4_global_unicast (uint32_t ip);
 
 #endif /* ifndef MIREDO_V4GLOBAL_H */
