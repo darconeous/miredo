@@ -92,10 +92,8 @@ static int test_rs (void)
 	uint32_t ipv4 = htonl (0xc0000234);
 	uint16_t port = htons (12345);
 
-	puts ("HERE");
 	teredo_get_nonce (stamp, ipv4, port, nonce);
 	teredo_get_nonce (stamp, ipv4, port, buf);
-	puts ("THERE");
 
 	if (memcmp (buf, nonce, LIBTEREDO_NONCE_LEN))
 		return 1;
