@@ -39,14 +39,12 @@
 #include "tunnel.h"
 #include "security.h"
 
-int main (void)
+static const uint32_t stamp = 0x12345678;
+
+static int test_ping (void)
 {
 	struct in6_addr src, dst;
 	uint8_t hmac[LIBTEREDO_HMAC_LEN];
-	const uint32_t stamp = 0x12345678;
-
-	if (teredo_init_HMAC ())
-		return 1;
 
 	memcpy (&src, "\x20\x01\x00\x00\x8a\xc3\x9d\xdd"
 			"\x80\x00\xf2\x27\x75\x3c\x67\x74", 16);
@@ -83,6 +81,34 @@ int main (void)
 	 || (teredo_verify_pinghash (stamp + 31, &dst, &src, hmac) == 0)
 	 || (teredo_verify_pinghash (stamp - 1, &dst, &src, hmac) == 0))
 		return 1;
+
+	return 0;
+}
+
+
+static int test_rs (void)
+{
+	uint8_t nonce[LIBTEREDO_NONCE_LEN], buf[LIBTEREDO_NONCE_LEN];
+	uint32_t ipv4 = htonl (0xc0000234);
+	uint16_t port = htons (12345);
+
+	puts ("HERE");
+	teredo_get_nonce (stamp, ipv4, port, nonce);
+	teredo_get_nonce (stamp, ipv4, port, buf);
+	puts ("THERE");
+
+	if (memcmp (buf, nonce, LIBTEREDO_NONCE_LEN))
+		return 1;
+
+	return 0;
+}
+
+
+int main (void)
+{
+	assert (teredo_init_HMAC () == 0);
+	assert (test_ping () == 0);
+	assert (test_rs () == 0);
 
 	teredo_deinit_HMAC ();
 	return 0;
