@@ -40,6 +40,7 @@ static teredo_tunnel *tunnel;
 int main (void)
 {
 	int val;
+	void *pval;
 
 #ifdef MIREDO_TEREDO_CLIENT
 	val = teredo_startup (true);
@@ -53,8 +54,37 @@ int main (void)
 	val = teredo_startup (false);
 	assert (val == 0);
 
+	// 192.0.2.1 can never be assigned to any host
+	tunnel = teredo_create (htonl (0xC0000201), 0);
+	assert (tunnel == NULL);
+
 	tunnel = teredo_create (0, 0);
 	assert (tunnel != NULL);
+
+	val = teredo_set_relay_mode (tunnel);
+	assert (val == 0);
+
+	teredo_run (tunnel);
+	teredo_run (tunnel);
+
+	val = teredo_set_prefix (tunnel, htonl (0xff020000));
+	val = teredo_set_prefix (tunnel, htonl (TEREDO_PREFIX));
+	assert (val == 0);
+
+	val = teredo_set_cone_flag (tunnel, false);
+	assert (val == 0);
+	val = teredo_set_cone_flag (tunnel, true);
+	assert (val == 0);
+
+	pval = teredo_set_privdata (tunnel, tunnel);
+	assert (pval == NULL);
+	pval = teredo_get_privdata (tunnel);
+	assert (pval == tunnel);
+
+	teredo_set_recv_callback (tunnel, NULL);
+	teredo_set_icmpv6_callback (tunnel, NULL);
+	teredo_set_state_cb (tunnel, NULL, NULL);
+
 	teredo_destroy (tunnel);
 
 	teredo_cleanup (false);
