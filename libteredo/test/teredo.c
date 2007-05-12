@@ -75,6 +75,7 @@ int main (void)
 	assert (val == 0);
 	val = teredo_set_cone_flag (tunnel, true);
 	assert (val == 0);
+	teredo_set_cone_ignore (tunnel, true);
 
 	pval = teredo_set_privdata (tunnel, tunnel);
 	assert (pval == NULL);
