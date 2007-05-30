@@ -93,15 +93,20 @@ ChangeLog:
 
 # Test coverage
 lcov.info:
-	lcov --directory . --zerocounters
+	find -name '*.gcda' -delete
 	$(MAKE) $(AM_MAKEFLAGS) check
 	lcov --directory . --capture --output $@.tmp
-	lcov --remove $@.tmp '*test*' '/usr/include/*' --output $@
+	lcov --remove $@.tmp '*test*' '*include*' --output $@
 	rm -f $@.tmp
 
 lcov-report: lcov.info
+	rm -Rf lcov
 	mkdir -p lcov
 	genhtml $< -o lcov
 
-.PHONY: distcheck-hook stamp-svn lcov.info doc
+lcov:
+	rm -f lcov.info
+	$(MAKE) $(AM_MAKEFLAGS) lcov-report
+
+.PHONY: distcheck-hook stamp-svn lcov doc
 
