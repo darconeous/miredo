@@ -35,6 +35,7 @@ Security:
 ----------
 (?) full secure qualification support with user ID
 (H) code review
+(?) fix for CVE-2006-6264
 
 Packaging:
 -----------
