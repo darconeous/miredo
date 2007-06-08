@@ -37,10 +37,6 @@ Security:
 (H) code review
 (?) fix for CVE-2006-6264
 
-Packaging:
------------
-(H) MacOS X package (not sure if do-able though)
-
 Extension:
 -----------
 (?) support full symmetric NAT traversal
