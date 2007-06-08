@@ -251,13 +251,19 @@ cleanup_unlock (void *o)
 
 
 /*
- * NOTE:
- * We purposedly don't implement Teredo interval determination because
- * it makes NAT binding maintenance more brittle than it already is.
- * Interval determination is not required for compliance by the way.
+ * Implementation notes:
+ * - Optional Teredo interval determination procedure was never implemented.
+ *   It adds NAT binding maintenance brittleness in addition to implementation
+ *   complexity, and is not necessary for RFC4380 compliance.
+ *   Also STUN RFC3489bis deprecates this type of behavior.
+ * - NAT cone type probing was removed in Miredo version 0.9.5. Since then,
+ *   Miredo qualification state machine became explicitly incompliant with
+ *   RFC4380. However, this made the startup much faster in many cases (many
+ *   NATs are restricted or symmetric), and is in accordance with deprecation
+ *   of NAT type determination in STUN RFC3489bis.
  */
 
-/**
+/*
  * Teredo client maintenance procedure
  */
 static inline LIBTEREDO_NORETURN
@@ -485,21 +491,6 @@ static const unsigned QualificationRetries = 3;
 static const unsigned RefreshDelay = 30; // seconds
 static const unsigned RestartDelay = 100; // seconds
 
-/**
- * Creates and starts a Teredo client maintenance procedure thread.
- *
- * @param fd socket to send router solicitation with
- * @param cb status change notification callback
- * @param opaque data for <cb> callback
- * @param s1 primary server address/hostname
- * @param s2 secondary server address/hostname
- * @param q_sec qualification time out (seconds), 0 = default
- * @param q_retries qualification retries, 0 = default
- * @param refresh_sec qualification refresh interval (seconds), 0 = default
- * @param restart_sec qualification failure interval (seconds), 0 = default
- *
- * @return NULL on error.
- */
 teredo_maintenance *
 teredo_maintenance_start (int fd, teredo_state_cb cb, void *opaque,
                           const char *s1, const char *s2,
@@ -567,10 +558,7 @@ error:
 	return NULL;
 }
 
-/**
- * Stops and destroys a maintenance thread created by
- * teredo_maintenance_start()
- */
+
 void teredo_maintenance_stop (teredo_maintenance *m)
 {
 	pthread_cancel (m->thread);
@@ -588,12 +576,6 @@ void teredo_maintenance_stop (teredo_maintenance *m)
 }
 
 
-/**
- * Passes a Teredo packet to a maintenance thread for processing.
- * Thread-safe, not async-cancel safe.
- *
- * @return 0 if processed, -1 if not a valid router solicitation.
- */
 int teredo_maintenance_process (teredo_maintenance *restrict m,
                                 const teredo_packet *restrict packet)
 {
