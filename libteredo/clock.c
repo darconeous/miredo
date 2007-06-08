@@ -44,6 +44,8 @@ typedef struct clock_data_t
 } clock_data_t;
 
 
+/* TODO: stop the clock when it has not been used for a while to avoid useless
+ * wakeups? */
 static LIBTEREDO_NORETURN void *clock_thread (void *o)
 {
 	clock_data_t *context = (clock_data_t *)o;
