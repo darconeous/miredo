@@ -335,20 +335,6 @@ void maintenance_thread (teredo_maintenance *m)
 		uint32_t dst = (state == PROBE_SYMMETRIC) ? server_ip2 : server_ip;
 		teredo_get_nonce (deadline.tv_sec, dst, htons (IPPORT_TEREDO), nonce);
 
-		if (state == PROBE_RESTRICT)
-		{
-			/*
-			 * Send a cone probe with an incorrect nonce - so that we won't
-			 * process any would-be reply. This helps detects some symmetric
-			 * NATs that would otherwise be seen as restricted NATs.
-			 */
-			uint8_t bad_nonce[8];
-			for (unsigned i = 0; i < sizeof (nonce); i++)
-				bad_nonce[i] = nonce[i] ^ 0x96;
-
-			teredo_send_rs (m->fd, server_ip, bad_nonce, true);
-		}
-
 		teredo_send_rs (m->fd, dst, nonce, false);
 
 		int val = 0;
