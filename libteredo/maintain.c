@@ -427,6 +427,7 @@ teredo_maintenance_start (int fd, teredo_state_cb cb, void *opaque,
 
 	assert (s1 != NULL);
 	m->server = strdup (s1);
+	(void)s2;
 
 	m->qualification_delay = q_sec ?: QualificationDelay;
 	m->qualification_retries = q_retries ?: QualificationRetries;
