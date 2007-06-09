@@ -261,6 +261,9 @@ cleanup_unlock (void *o)
  *   RFC4380. However, this made the startup much faster in many cases (many
  *   NATs are restricted or symmetric), and is in accordance with deprecation
  *   of NAT type determination in STUN RFC3489bis.
+ * - NAT symmtric probing was removd in Miredo version 1.1.0, which deepens
+ *   the gap between Miredo and RFC4380. Still, this is fairly consistent with
+ *   RFC3489bis.
  */
 
 /*
@@ -275,15 +278,8 @@ void maintenance_thread (teredo_maintenance *m)
 	unsigned count = 0;
 	enum
 	{
-		QUALIFIED,
-		PROBE_RESTRICT,
-		PROBE_SYMMETRIC
-	} state = PROBE_RESTRICT;
-	enum
-	{
 		TERR_NONE,
-		TERR_BLACKHOLE,
-		TERR_SYMM
+		TERR_BLACKHOLE
 	} last_error = TERR_NONE;
 
 	pthread_mutex_lock (&m->inner);
@@ -294,8 +290,6 @@ void maintenance_thread (teredo_maintenance *m)
 	pthread_cleanup_push (cleanup_unlock, &m->inner);
 	for (;;)
 	{
-		assert (c_state->up == (state == QUALIFIED));
-
 		/* Resolve server IPv4 addresses */
 		while (server_ip == 0)
 		{
@@ -332,10 +326,9 @@ void maintenance_thread (teredo_maintenance *m)
 		while (!checkTimeDrift (&deadline));
 
 		uint8_t nonce[8];
-		uint32_t dst = (state == PROBE_SYMMETRIC) ? server_ip2 : server_ip;
-		teredo_get_nonce (deadline.tv_sec, dst, htons (IPPORT_TEREDO), nonce);
-
-		teredo_send_rs (m->fd, dst, nonce, false);
+		teredo_get_nonce (deadline.tv_sec, server_ip, htons (IPPORT_TEREDO),
+		                  nonce);
+		teredo_send_rs (m->fd, server_ip, nonce, false);
 
 		int val = 0;
 		union teredo_addr newaddr;
@@ -367,6 +360,7 @@ void maintenance_thread (teredo_maintenance *m)
 			if (count >= m->qualification_retries)
 			{
 				count = 0;
+
 				/* No response from server */
 				if (last_error != TERR_BLACKHOLE)
 				{
@@ -374,7 +368,7 @@ void maintenance_thread (teredo_maintenance *m)
 					last_error = TERR_BLACKHOLE;
 				}
 
-				if (state == QUALIFIED)
+				if (c_state->up)
 				{
 					syslog (LOG_NOTICE, _("Lost Teredo connectivity"));
 					c_state->up = false;
@@ -383,71 +377,29 @@ void maintenance_thread (teredo_maintenance *m)
 				}
 
 				/* Wait some time before retrying */
-				state = PROBE_RESTRICT;
 				delay = m->restart_delay;
 			}
 		}
 		else
 		/* RA received and parsed succesfully */
-		if (state == PROBE_RESTRICT)
-		{
-			state = PROBE_SYMMETRIC;
-			memcpy (&c_state->addr, &newaddr, sizeof (c_state->addr));
-			gettime (&deadline);
-		}
-		else
 		{
 			count = 0;
 
-			if ((c_state->addr.teredo.client_port != newaddr.teredo.client_port)
-			 || (c_state->addr.teredo.client_ip != newaddr.teredo.client_ip))
+			if ((!c_state->up)
+			 || memcmp (&c_state->addr, &newaddr, sizeof (c_state->addr))
+			 || (c_state->mtu != mtu))
 			{
-				if (state == PROBE_SYMMETRIC)
-				{
-					// Symmetric NAT failure
-					if (last_error != TERR_SYMM)
-					{
-						last_error = TERR_SYMM;
-						syslog (LOG_ERR,
-						        _("Unsupported symmetric NAT detected."));
-					}
-					delay = m->restart_delay; // Wait some time before retry
-				}
-				else
-				{
-					// External mapping changed! Reset everything.
-					c_state->up = false;
-					m->state.cb (c_state, m->state.opaque);
-					gettime (&deadline);
-				}
+				memcpy (&c_state->addr, &newaddr, sizeof (c_state->addr));
+				c_state->mtu = mtu;
+				c_state->up = true;
 
-				state = PROBE_RESTRICT;
+				syslog (LOG_NOTICE, _("New Teredo address/MTU"));
+				m->state.cb (c_state, m->state.opaque);
 			}
-			else
-			{
-				if (state != QUALIFIED)
-				{
-					syslog (LOG_INFO, _("Qualified (NAT type: %s)"),
-					        _("restricted"));
-					state = QUALIFIED;
-				}
 
-				if ((!c_state->up)
-				 || memcmp (&c_state->addr, &newaddr, sizeof (c_state->addr))
-				 || (c_state->mtu != mtu))
-				{
-					memcpy (&c_state->addr, &newaddr, sizeof (c_state->addr));
-					c_state->mtu = mtu;
-					c_state->up = true;
-
-					syslog (LOG_NOTICE, _("New Teredo address/MTU"));
-					m->state.cb (c_state, m->state.opaque);
-				}
-
-				/* Success: schedule next NAT binding maintenance */
-				last_error = TERR_NONE;
-				delay = m->refresh_delay;
-			}
+			/* Success: schedule next NAT binding maintenance */
+			last_error = TERR_NONE;
+			delay = m->refresh_delay;
 		}
 
 		/* WAIT UNTIL NEXT SOLICITATION */
