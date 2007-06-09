@@ -89,7 +89,6 @@ struct teredo_maintenance
 		void *opaque;
 	} state;
 	char *server;
-	char *server2;
 
 	unsigned qualification_delay;
 	unsigned qualification_retries;
@@ -425,6 +424,8 @@ teredo_maintenance_start (int fd, teredo_state_cb cb, void *opaque,
 	m->fd = fd;
 	m->state.cb = cb;
 	m->state.opaque = opaque;
+
+	assert (s1 != NULL);
 	m->server = strdup (s1);
 
 	m->qualification_delay = q_sec ?: QualificationDelay;
@@ -437,10 +438,6 @@ teredo_maintenance_start (int fd, teredo_state_cb cb, void *opaque,
 		free (m);
 		return NULL;
 	}
-
-	m->server2 = (s2 != NULL) ? strdup (s2) : NULL;
-	if ((s2 != NULL) != (m->server2 != NULL))
-		goto error;
 	else
 	{
 		pthread_condattr_t attr;
@@ -469,9 +466,6 @@ teredo_maintenance_start (int fd, teredo_state_cb cb, void *opaque,
 	pthread_mutex_destroy (&m->outer);
 	pthread_mutex_destroy (&m->inner);
 
-error:
-	if (m->server2 != NULL)
-		free (m->server2);
 	free (m->server);
 	free (m);
 	return NULL;
@@ -488,8 +482,6 @@ void teredo_maintenance_stop (teredo_maintenance *m)
 	pthread_mutex_destroy (&m->inner);
 	pthread_mutex_destroy (&m->outer);
 
-	if (m->server2 != NULL)
-		free (m->server2);
 	free (m->server);
 	free (m);
 }
