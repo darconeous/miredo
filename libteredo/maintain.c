@@ -98,6 +98,11 @@ struct teredo_maintenance
 };
 
 
+/**
+ * Resolves an IPv4 address (thread-safe).
+ *
+ * @return 0 on success, or an error value as defined for getaddrinfo().
+ */
 static int getipv4byname (const char *restrict name, uint32_t *restrict ipv4)
 {
 	struct addrinfo hints =
@@ -112,35 +117,6 @@ static int getipv4byname (const char *restrict name, uint32_t *restrict ipv4)
 
 	memcpy (ipv4, &((const struct sockaddr_in *)(res->ai_addr))->sin_addr, 4);
 	freeaddrinfo (res);
-
-	return 0;
-}
-
-
-/**
- * Resolve Teredo server addresses.
- *
- * @return 0 on success, or an error value as defined for getaddrinfo().
- */
-static int resolveServerIP (const char *server, uint32_t *restrict ip,
-                            const char *server2, uint32_t *restrict ip2)
-{
-	int val = getipv4byname (server, ip);
-	if (val)
-		return val;
-
-	if ((server2 == NULL) || getipv4byname (server2, ip2) || (ip2 == ip))
-		/*
-		 * NOTE:
-		 * While not specified anywhere, Windows XP/2003 seems to always
-		 * use the "next" IPv4 address as the secondary address.
-		 * We use as default, or as a replacement in case of error.
-		 */
-		*ip2 = htonl (ntohl (*ip) + 1);
-
-	if (!is_ipv4_global_unicast (*ip) || !is_ipv4_global_unicast (*ip2))
-		syslog (LOG_WARNING, _("Server has a non global IPv4 address. "
-		                       "It will most likely not work."));
 
 	return 0;
 }
@@ -274,7 +250,7 @@ void maintenance_thread (teredo_maintenance *m)
 {
 	struct timespec deadline = { 0, 0 };
 	teredo_state *c_state = &m->state.state;
-	uint32_t server_ip = 0, server_ip2 = 0;
+	uint32_t server_ip = 0;
 	unsigned count = 0;
 	enum
 	{
@@ -291,24 +267,24 @@ void maintenance_thread (teredo_maintenance *m)
 	for (;;)
 	{
 		/* Resolve server IPv4 addresses */
-		while (server_ip == 0)
+		for (;;)
 		{
 			/* FIXME: mutex kept while resolving - very bad */
-			int val = resolveServerIP (m->server, &server_ip,
-			                           m->server2, &server_ip2);
-
+			int val = getipv4byname (m->server, &server_ip);
 			gettime (&deadline);
-
+	
 			if (val)
 			{
 				/* DNS resolution failed */
 				syslog (LOG_ERR,
 				        _("Cannot resolve Teredo server address \"%s\": %s"),
 				        m->server, gai_strerror (val));
-
-				/* wait some time before next resolution attempt */
-				deadline.tv_sec += m->restart_delay;
-				wait_reply_ignore (m, &deadline);
+			}
+			else
+			if (!is_ipv4_global_unicast (server_ip))
+			{
+				syslog (LOG_ERR,
+				        _("Teredo server has a non global IPv4 address."));
 			}
 			else
 			{
@@ -317,7 +293,12 @@ void maintenance_thread (teredo_maintenance *m)
 				assert (!c_state->up);
 				c_state->addr.teredo.server_ip = server_ip;
 				m->state.cb (c_state, m->state.opaque);
+				break; /* Done! */
 			}
+
+			/* wait some time before next resolution attempt */
+			deadline.tv_sec += m->restart_delay;
+			wait_reply_ignore (m, &deadline);
 		}
 
 		/* SEND ROUTER SOLICATION */
