@@ -20,7 +20,6 @@ Important features & fixes:
 
 Not so important features:
 ---------------------------
-(*) some statistics
 (H) other localizations
 ( ) support for UPnP IGD to open an UDP port on supporting NATs
 ( ) support for (Apple) NAT-PMP
