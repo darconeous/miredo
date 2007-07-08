@@ -68,7 +68,7 @@ AC_SEARCH_LIBS(inet_ntop, [nsl])
 AC_SEARCH_LIBS(devname, [freebsd])
 AC_CHECK_LIB(resolv, res_init)
 
-# Oooh, evil platform-rather-than-feature test
+# Oooh, evil platform-rather-than-feature tests
 case "${host_os}" in
 	darwin*)
 		AC_DEFINE(HAVE_SYSTEMCONFIGURATION_FRAMEWORK, 1,
@@ -79,6 +79,18 @@ case "${host_os}" in
 		CFLAGS="${CFLAGS} -framework CoreFoundation"
 		;;
 esac
+
+AC_MSG_CHECKING([which hook scripts to use])
+case "${host_os}" in
+	*linux*)
+		hook_suffix=iproute
+		;;
+	*)
+		hook_suffix=bsd
+		;;
+esac
+AC_MSG_RESULT([${hook_suffix}])
+AC_SUBST(hook_suffix)
 
 
 # POSIX threads
