@@ -56,7 +56,7 @@ AM_INIT_AUTOMAKE
 # Checks for libraries.
 AS_MESSAGE([checking required libraries...])
 AM_BINRELOC
-AM_GNU_GETTEXT_VERSION([0.12.1])
+AM_GNU_GETTEXT_VERSION([0.16.1])
 AM_GNU_GETTEXT([external])
 
 LIBRT=""
