@@ -16,13 +16,22 @@
 # *  http://www.gnu.org/copyleft/gpl.html                               *
 # ***********************************************************************
 
-examples_DATA = miredo.conf miredo-server.conf isatapd.conf
-dist_noinst_DATA = miredo.conf-in miredo-server.conf-in isatapd.conf-in
-EXTRA_DATA = client-hook.iproute client-hook.bsd
+confdir = $(sysconfdir)/miredo
 
-MOSTLYCLEANFILES = $(examples_DATA)
+MOSTLYCLEANFILES = $(examples_DATA) $(conf_SCRIPTS)
+
+# Configuration files
+dist_noinst_DATA = miredo.conf-in miredo-server.conf-in isatapd.conf-in
+examples_DATA = miredo.conf miredo-server.conf isatapd.conf
 
 .conf-in.conf:
 	rm -f -- $@
 	sed -e 's,@sbindir\@,$(sbindir),g' < $< > $@
+
+# Hook scripts
+EXTRA_DATA = client-hook.iproute client-hook.bsd
+conf_SCRIPTS = client-hook
+
+client-hook: client-hook.$(hook_suffix)
+	cat $< > $@
 
