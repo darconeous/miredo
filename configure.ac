@@ -50,8 +50,7 @@ m4_defun([AC_PROG_CXX],[])
 m4_undefine([AC_PROG_F77])
 m4_defun([AC_PROG_F77],[])
 AC_PROG_LIBTOOL
-
-AM_INIT_AUTOMAKE([check-news dist-bzip2 no-dist-gzip no-exeext std-options])
+AM_INIT_AUTOMAKE
 
 
 # Checks for libraries.

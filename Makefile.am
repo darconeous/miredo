@@ -17,6 +17,13 @@
 # ***********************************************************************
 
 ACLOCAL_AMFLAGS = -I m4
+AUTOMAKE_OPTIONS = \
+	-Wall \
+	check-news \
+	std-options \
+	dist-bzip2 \
+	no-dist-gzip \
+	no-exeext
 
 SUBDIRS = po doc misc compat libteredo libtun6 src
 DIST_SUBDIRS = m4 $(SUBDIRS)
