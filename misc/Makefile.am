@@ -29,7 +29,7 @@ examples_DATA = miredo.conf miredo-server.conf isatapd.conf
 	sed -e 's,@sbindir\@,$(sbindir),g' < $< > $@
 
 # Hook scripts
-EXTRA_DATA = client-hook.iproute client-hook.bsd
+dist_noinst_SCRIPTS = client-hook.iproute client-hook.bsd
 conf_SCRIPTS = client-hook
 
 client-hook: client-hook.$(hook_suffix)
