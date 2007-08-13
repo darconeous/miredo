@@ -97,6 +97,21 @@ struct teredo_tunnel
 #endif
 #define ICMP_RATE_LIMIT_MS 100
 
+#ifndef NDEBUG
+# include <syslog.h>
+# include <stdarg.h>
+
+static inline void debug (const char *str, ...)
+{
+	va_list ap;
+	va_start (ap, str);
+	vsyslog (LOG_DEBUG, str, ap);
+	va_end (ap);
+}
+#else
+#define debug( ... ) (void)0
+#endif
+
 #if 0
 static unsigned QualificationRetries; // maintain.c
 static unsigned QualificationTimeOut; // maintain.c
@@ -408,16 +423,16 @@ int teredo_transmit (teredo_tunnel *restrict tunnel,
 	teredo_clock_t now = teredo_clock ();
 	struct teredo_peerlist *list = tunnel->list;
 
-//	syslog (LOG_DEBUG, "packet to be sent");
+	debug ("packet to be sent");
 	teredo_peer *p = teredo_list_lookup (list, &dst->ip6, &created);
 	if (p == NULL)
 		return -1; /* error */
 
 	if (!created)
 	{
-//		syslog (LOG_DEBUG, " peer is %strusted", p->trusted ? "" : "NOT ");
-//		syslog (LOG_DEBUG, " peer is %svalid", IsValid (p, now) ? "" : "NOT ");
-//		syslog (LOG_DEBUG, " pings = %u, bubbles = %u", p->pings, p->bubbles);
+		debug (" peer is %strusted", p->trusted ? "" : "NOT ");
+		debug (" peer is %svalid", IsValid (p, now) ? "" : "NOT ");
+		debug (" pings = %u, bubbles = %u", p->pings, p->bubbles);
 
 		/* Case 1 (paragraphs 5.2.4 & 5.4.1): trusted peer */
 		if (p->trusted && IsValid (p, now))
@@ -427,7 +442,7 @@ int teredo_transmit (teredo_tunnel *restrict tunnel,
  	else
 	{
  		p->trusted = p->bubbles = p->pings = 0;
-//		syslog (LOG_DEBUG, " peer unknown and created");
+		debug (" peer unknown, created");
 	}
 
 	// Unknown, untrusted, or too old peer
@@ -460,7 +475,7 @@ int teredo_transmit (teredo_tunnel *restrict tunnel,
 			teredo_send_unreach (tunnel, ICMP6_DST_UNREACH_ADDR,
 			                     packet, length);
 
-//		syslog (LOG_DEBUG, " ping peer returned %d", res);
+		debug (" peer: ping returned %d", res);
 		return 0;
 	}
 #endif
@@ -555,6 +570,7 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 	if (((ip6->ip6_vfc >> 4) != 6)
 	 || ((ntohs (ip6->ip6_plen) + sizeof (*ip6)) != length))
 		return; // malformatted IPv6 packet
+	debug ("packet received (%u bytes)", (unsigned)length);
 
 	teredo_state s;
 	pthread_rwlock_rdlock (&tunnel->state_lock);
@@ -671,8 +687,8 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 
 	if (p != NULL)
 	{
-//		syslog (LOG_DEBUG, " peer is %strusted", p->trusted ? "" : "NOT ");
-//		syslog (LOG_DEBUG, " pings = %u, bubbles = %u", p->pings, p->bubbles);
+		debug (" peer is %strusted", p->trusted ? "" : "NOT ");
+		debug (" pings = %u, bubbles = %u", p->pings, p->bubbles);
 
 		// Client case 1 (trusted node or (trusted) Teredo client):
 		if (p->trusted
@@ -700,8 +716,8 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 		}
 #endif /* ifdef MIREDO_TEREDO_CLIENT */
 	}
-//	else
-//		syslog (LOG_DEBUG, " unknown peer");
+	else
+		debug (" peer unknown");
 
 	/*
 	 * At this point, we have either a trusted mapping mismatch,
@@ -777,10 +793,10 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 				p->mapped_addr = 0;
 				p->trusted = p->bubbles = p->pings = 0;
 			}
-//			syslog (LOG_DEBUG, " peer created");
+			debug (" peer created");
 		}
 
-//		syslog (LOG_DEBUG, " packet queued pending Echo Reply");
+		debug (" packet queued (pending Echo Reply)");
 		teredo_enqueue_in (p, ip6, length,
 		                   packet->source_ipv4, packet->source_port);
 		TouchReceive (p, now);
@@ -791,7 +807,7 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 		if (res == 0)
 			SendPing (tunnel->fd, &s.addr, &ip6->ip6_src);
 
-// 		syslog (LOG_DEBUG, " ping peer returned %d", res);
+ 		debug (" peer: ping returned %d", res);
 		return;
 	}
 #endif /* ifdef MIREDO_TEREDO_CLIENT */
