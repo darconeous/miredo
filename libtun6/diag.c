@@ -85,9 +85,8 @@ int tun6_driver_diagnose (char *errbuf)
 		const char *specific;
 
 #if defined (__linux__)
-		specific = N_("You should run these commands to create it:\n"
-			"# mkdir -p /dev/net\n"
-			"# mknod /dev/net/tun c 10 200\n"
+		specific = N_("You should try to run this command to load it:\n"
+			"# modprobe tun\n"
 			"(you must be root to do that).\n");
 #elif defined (__APPLE__)
 		specific = N_("You can obtain a tunnel driver for the "
