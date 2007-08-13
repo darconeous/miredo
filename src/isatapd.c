@@ -226,7 +226,7 @@ static LIBTEREDO_NORETURN void *encap_thread (void *data)
 		{
 			struct ip6_hdr ip6;
 			/* well, we do not support Jumbo frames yet */
-			uint8_t fill[65495];
+			uint8_t fill[65535];
 		} buf;
 
 		ssize_t val = tun6_wait_recv (conf.tunnel, &buf.ip6, sizeof (buf));
