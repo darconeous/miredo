@@ -40,8 +40,6 @@
 #include <unistd.h>
 #include <errno.h> /* errno */
 #include <fcntl.h> /* O_RDONLY */
-#include <resolv.h> /* res_init() */
-#include <pthread.h>
 #ifdef HAVE_SYS_CAPABILITY_H
 # include <sys/capability.h>
 #endif
@@ -224,29 +222,6 @@ setuid_notice (void)
 #endif
 
 
-static void *dummy_thread (void *data)
-{
-	pause ();
-	return data;
-}
-
-static int check_threading (void)
-{
-	/* Hack to ensure that thread library is working:
-	 * - this avoids infinite crashes/restart loops on broken OSes
-	 * - this eases setting chroots (preloads libgcc_s on glibc)
-	 */
-	pthread_t dummyth;
-	errno = pthread_create (&dummyth, NULL, dummy_thread, NULL);
-	if (errno)
-		return error_errno ("pthread_create");
-
-	pthread_cancel (dummyth);
-	pthread_join (dummyth, NULL);
-	return 0;
-}
-
-
 /**
  * Initialize daemon context.
  */
@@ -277,18 +252,8 @@ init_security (const char *username)
 		return -1;
 	close (val);
 
-	/* Initialize libc resolver: 
-	 * - before clearenv() for LOCALDOMAIN
-	 * - before chroot() for /etc/resolv.conf
-	 * - after closefrom() just in case
-	 */
-	(void)res_init ();
-
 	/* Clears environment */
 	(void)clearenv ();
-
-	if (check_threading ())
-		return -1;
 
 #ifdef MIREDO_DEFAULT_USERNAME
 	/* Determines unpriviledged user */
@@ -296,18 +261,8 @@ init_security (const char *username)
 	struct passwd *pw = getpwnam (username);
 	if (pw == NULL)
 	{
-		fprintf (stderr, _("User \"%s\": %s\n"),
-				username, errno ? strerror (errno)
-					: _("User not found"));
-		fprintf (stderr,
-			_("Error: This program was asked to run in the\n"
-			"security context of system user \"%s\", but it\n"
-			"does not seem to exist on your system.\n"
-			"\n"
-			"Use command line option \"-u <username>\" to run\n"
-			"this program in the security context of another\n"
-			"user.\n"
-			), username);
+		fprintf (stderr, _("User \"%s\": %s\n"), username,
+		         errno ? strerror (errno) : _("User not found"));
 		return -1;
 	}
 
