@@ -194,7 +194,8 @@ teredo_parse_ra (const teredo_packet *restrict packet,
 	// Looks for a prefix information option
 	const struct nd_opt_hdr *hdr;
 	for (hdr = (const struct nd_opt_hdr *)(ra + 1); length >= 8;
-	     hdr += hdr->nd_opt_len)
+	     hdr = (const struct nd_opt_hdr *)
+	               (((const uint8_t *)hdr) + (hdr->nd_opt_len << 3)))
 	{
 		size_t optlen = (size_t)(hdr->nd_opt_len << 3);
 
