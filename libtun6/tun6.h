@@ -56,7 +56,6 @@
 #  define LIBTUN6_PURE
 # endif
 
-struct ip6_hdr;
 struct in6_addr;
 
 typedef struct tun6 tun6;
