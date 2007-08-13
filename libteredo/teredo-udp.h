@@ -49,7 +49,7 @@ typedef struct teredo_packet
 	uint8_t  auth_conf_byte;
 
 	/** (unaligned) IPv6 packet (header + payload) */
-	uint8_t *ip6;
+	struct ip6_hdr *ip6;
 	/** IPv6 packet byte size, possibly < 40 for invalid packets */
 	uint16_t ip6_len;
 
@@ -67,7 +67,7 @@ typedef struct teredo_packet
 	uint32_t orig_ipv4;
 
 	/** Internal buffer for UDP datagram reception */
-	uint8_t  buf[TEREDO_PACKET_SIZE];
+	uint8_t  buf[TEREDO_PACKET_SIZE+7];
 } teredo_packet;
 
 struct iovec;

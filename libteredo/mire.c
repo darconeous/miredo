@@ -47,7 +47,6 @@
 #include "debug.h"
 
 //#define MIRE_COUNTER 1
-//#define MIRE_NOALIGN 1
 
 #ifdef MIRE_COUNTER
 #include <signal.h>
@@ -85,30 +84,6 @@ process_icmpv6 (int fd, struct ip6_hdr *ip6, size_t plen,
 	if (hdr->icmp6_type != ICMP6_ECHO_REQUEST)
 		return;
 
-#ifndef MIRE_NOALIGN
-	struct
-	{
-		struct ip6_hdr   ip6;
-		struct icmp6_hdr icmp6;
-		uint8_t          data[plen - sizeof (struct icmp6_hdr)];
-	} reply;
-
-	reply.ip6.ip6_flow = htonl (6 << 28);
-	reply.ip6.ip6_plen = htons (plen);
-	reply.ip6.ip6_nxt = IPPROTO_ICMPV6;
-	reply.ip6.ip6_hlim = 255;
-	memcpy (&reply.ip6.ip6_src, &ip6->ip6_dst, sizeof (reply.ip6.ip6_src));
-	memcpy (&reply.ip6.ip6_dst, &ip6->ip6_src, sizeof (reply.ip6.ip6_dst));
-
-	reply.icmp6.icmp6_type = ICMP6_ECHO_REPLY;
-	reply.icmp6.icmp6_code = 0;
-	reply.icmp6.icmp6_cksum = 0;
-	memcpy (&reply.icmp6.icmp6_id, &hdr->icmp6_id, plen - 4);
-
-	reply.icmp6.icmp6_cksum = icmp6_checksum (&reply.ip6, &reply.icmp6);
-
-	teredo_send (fd, &reply, sizeof (*ip6) + plen, ipv4, port);
-#else
 	ip6->ip6_hlim = 255;
 
 	struct in6_addr buf;
@@ -122,12 +97,11 @@ process_icmpv6 (int fd, struct ip6_hdr *ip6, size_t plen,
 	hdr->icmp6_cksum = icmp6_checksum (ip6, hdr);
 
 	teredo_send (fd, ip6, sizeof (*ip6) + plen, ipv4, port);
-#endif
 }
 
 
 static void
-process_none (int fd, const uint8_t *ip6, size_t plen,
+process_none (int fd, const struct ip6_hdr *ip6, size_t plen,
               uint32_t ipv4, uint16_t port)
 {
 	if (plen != 0)
@@ -138,7 +112,7 @@ process_none (int fd, const uint8_t *ip6, size_t plen,
 
 
 static void
-process_unknown (int fd, const uint8_t *in, size_t plen,
+process_unknown (int fd, const struct ip6_hdr *in, size_t plen,
                  uint32_t ipv4, uint16_t port)
 {
 	plen += sizeof (struct ip6_hdr);
@@ -158,8 +132,8 @@ process_unknown (int fd, const uint8_t *in, size_t plen,
 	ip6.ip6_plen = htons (sizeof (struct icmp6_hdr) + plen);
 	ip6.ip6_nxt = IPPROTO_ICMPV6;
 	ip6.ip6_hlim = 255;
-	memcpy (&ip6.ip6_src, in + 8 + 16, sizeof (ip6.ip6_src));
-	memcpy (&ip6.ip6_dst, in + 8, sizeof (ip6.ip6_dst));
+	memcpy (&ip6.ip6_src, &in->ip6_dst, sizeof (ip6.ip6_src));
+	memcpy (&ip6.ip6_dst, &in->ip6_src, sizeof (ip6.ip6_dst));
 
 	icmp6.icmp6_type = ICMP6_PARAM_PROB;
 	icmp6.icmp6_code = ICMP6_PARAMPROB_NEXTHEADER;
@@ -186,9 +160,7 @@ recv_packet (int fd, teredo_packet *p)
 	if (teredo_wait_recv (fd, p))
 		return -1;
 
-	// Beware: the inner IPv6 packet might not be aligned
-	// so only single bytes shall be read
-	struct ip6_hdr *ip6 = (struct ip6_hdr *)p->ip6;
+	struct ip6_hdr *ip6 = p->ip6;
 	uint16_t plen;
 
 	// Check packet size
@@ -222,7 +194,7 @@ static LIBTEREDO_NORETURN void *server_thread (void *data)
 		if (plen == -1)
 			continue;
 
-		if (p.ip6[6] == IPPROTO_NONE)
+		if (p.ip6->ip6_nxt == IPPROTO_NONE)
 			process_none (fd, p.ip6, plen, p.source_ipv4, p.source_port);
 	}
 }
@@ -237,13 +209,12 @@ static LIBTEREDO_NORETURN int client_thread (int fd)
 		if (plen == -1)
 			continue;
 
-		switch (p.ip6[6] /*ip6_nxt*/)
+		switch (p.ip6->ip6_nxt)
 		{
 			// TODO: support routing and hop-by-hop headers?
 
 			case IPPROTO_ICMPV6:
-				/* Ugly unsafe cast here */
-				process_icmpv6 (fd, (struct ip6_hdr *)p.ip6, plen,
+				process_icmpv6 (fd, p.ip6, plen,
 				                p.source_ipv4, p.source_port);
 				break;
 

@@ -52,7 +52,7 @@
 
 int
 teredo_send_bubble (int fd, uint32_t ip, uint16_t port,
-                    const uint8_t *src, const uint8_t *dst)
+                    const struct in6_addr *src, const struct in6_addr *dst)
 {
 	if (is_ipv4_global_unicast (ip))
 	{
@@ -99,7 +99,7 @@ SendBubbleFromDst (int fd, const struct in6_addr *dst, bool indirect)
 
 int CheckBubble (const teredo_packet *packet)
 {
-	const struct ip6_hdr *ip6 = (const struct ip6_hdr *)packet->ip6;
+	const struct ip6_hdr *ip6 = packet->ip6;
 	const struct in6_addr *me = &ip6->ip6_dst, *it = &ip6->ip6_src;
 
 	uint8_t hash[8];
@@ -163,8 +163,7 @@ teredo_parse_ra (const teredo_packet *restrict packet,
 	if (packet->orig_ipv4 == 0)
 		return -1;
 
-	// Only read ip6_next (1 byte), so no need to align
-	const struct ip6_hdr *ip6 = (const struct ip6_hdr *)packet->ip6;
+	const struct ip6_hdr *ip6 = packet->ip6;
 	size_t length = packet->ip6_len;
 
 	length -= sizeof (*ip6);
@@ -177,9 +176,8 @@ teredo_parse_ra (const teredo_packet *restrict packet,
 
 	// Only read bytes, so no need to align
 	const struct nd_router_advert *ra =
-		(const struct nd_router_advert *)
-			(((const uint8_t *)ip6) + sizeof (struct ip6_hdr));
-	length -= sizeof (struct nd_router_advert);
+		(const struct nd_router_advert *)(ip6 + 1);
+	length -= sizeof (*ra);
 
 	if ((ra->nd_ra_type != ND_ROUTER_ADVERT)
 	 || (ra->nd_ra_code != 0)
@@ -196,8 +194,7 @@ teredo_parse_ra (const teredo_packet *restrict packet,
 	// Looks for a prefix information option
 	const struct nd_opt_hdr *hdr;
 	for (hdr = (const struct nd_opt_hdr *)(ra + 1); length >= 8;
-	     hdr = (const struct nd_opt_hdr *)
-				(((const uint8_t *)hdr) + (hdr->nd_opt_len << 3)))
+	     hdr += hdr->nd_opt_len)
 	{
 		size_t optlen = (size_t)(hdr->nd_opt_len << 3);
 
@@ -315,10 +312,9 @@ SendPing (int fd, const union teredo_addr *src, const struct in6_addr *dst)
 
 int CheckPing (const teredo_packet *packet)
 {
-	const struct ip6_hdr *ip6 = (const struct ip6_hdr *)packet->ip6;
+	const struct ip6_hdr *ip6 = packet->ip6;
 	size_t length = packet->ip6_len;
 
-	// Only read bytes, so no need to align
 	if ((ip6->ip6_nxt != IPPROTO_ICMPV6)
 	 || (length < (sizeof (*ip6) + sizeof (struct icmp6_hdr) + PING_PAYLOAD)))
 		return -1;

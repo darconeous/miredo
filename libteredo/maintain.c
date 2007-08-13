@@ -38,6 +38,7 @@
 #include <sys/types.h>
 #include <unistd.h> /* sysconf() */
 #include <netinet/in.h> /* struct in6_addr */
+#include <netinet/ip6.h> /* struct ip6_hdr */
 #include <netdb.h> /* getaddrinfo(), gai_strerror() */
 #include <syslog.h>
 #include <stdlib.h> /* malloc(), free() */
@@ -501,7 +502,7 @@ int teredo_maintenance_process (teredo_maintenance *restrict m,
 	if ((packet->source_port != htons (IPPORT_TEREDO))
 	    /* TODO: check for primary or secondary server address */
 	 || (packet->auth_nonce == NULL)
-	 || memcmp (packet->ip6 + 24, &teredo_restrict, 16))
+	 || memcmp (&packet->ip6->ip6_dst, &teredo_restrict, 16))
 		return -1;
 
 	pthread_mutex_lock (&m->outer);

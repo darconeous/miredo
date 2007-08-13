@@ -58,18 +58,19 @@ int SendBubbleFromDst (int fd, const struct in6_addr *dst, bool indirect);
  *
  * @param ip destination IPv4
  * @param port destination UDP port
- * @param src unaligned pointer to source IPv6 address
- * @param dst unaligned pointer to destination IPv6 address
+ * @param src pointer to source IPv6 address
+ * @param dst pointer to destination IPv6 address
  *
  * @return 0 on success, -1 on error.
  */
 int teredo_send_bubble (int fd, uint32_t ip, uint16_t port,
-                        const uint8_t *src, const uint8_t *dst);
+                        const struct in6_addr *src,
+                        const struct in6_addr *dst);
 
 static inline int teredo_reply_bubble (int fd, uint32_t ip, uint16_t port,
-                                       const uint8_t *req)
+                                       const struct ip6_hdr *req)
 {
-	return teredo_send_bubble (fd, ip, port, req + 8 + 16, req + 8);
+	return teredo_send_bubble (fd, ip, port, &req->ip6_dst, &req->ip6_src);
 }
 
 /**

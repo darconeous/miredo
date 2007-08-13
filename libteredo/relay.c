@@ -545,17 +545,15 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 	assert (tunnel != NULL);
 	assert (packet != NULL);
 
-	const uint8_t *buf = packet->ip6;
 	size_t length = packet->ip6_len;
-	struct ip6_hdr ip6;
+	struct ip6_hdr *ip6 = packet->ip6;
 
 	// Checks packet
-	if ((length < sizeof (ip6)) || (length > 65507))
+	if ((length < sizeof (*ip6)) || (length > 65507))
 		return; // invalid packet
 
-	memcpy (&ip6, buf, sizeof (ip6));
-	if (((ip6.ip6_vfc >> 4) != 6)
-	 || ((ntohs (ip6.ip6_plen) + sizeof (ip6)) != length))
+	if (((ip6->ip6_vfc >> 4) != 6)
+	 || ((ntohs (ip6->ip6_plen) + sizeof (*ip6)) != length))
 		return; // malformatted IPv6 packet
 
 	teredo_state s;
@@ -585,23 +583,23 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 			uint32_t ipv4 = packet->orig_ipv4;
 			uint16_t port = packet->orig_port;
 
-			if ((ipv4 == 0) && IsBubble (&ip6)
-			 && (IN6_TEREDO_PREFIX (&ip6.ip6_src) == s.addr.teredo.prefix))
+			if ((ipv4 == 0) && IsBubble (ip6)
+			 && (IN6_TEREDO_PREFIX (&ip6->ip6_src) == s.addr.teredo.prefix))
 			{
 				/*
 				 * Some servers do not insert an origin indication.
 				 * When the source IPv6 address is a Teredo address,
 				 * we can guess the mapping. Otherwise, we're stuck.
 				 */
-				ipv4 = IN6_TEREDO_IPV4 (&ip6.ip6_src);
-				port = IN6_TEREDO_PORT (&ip6.ip6_src);
+				ipv4 = IN6_TEREDO_IPV4 (&ip6->ip6_src);
+				port = IN6_TEREDO_PORT (&ip6->ip6_src);
 			}
 
 			if (ipv4)
 			{
 				/* TODO: record sending of bubble, create a peer, etc ? */
-				teredo_reply_bubble (tunnel->fd, ipv4, port, buf);
-				if (IsBubble (&ip6))
+				teredo_reply_bubble (tunnel->fd, ipv4, port, ip6);
+				if (IsBubble (ip6))
 					return; // don't pass bubble to kernel
 			}
 		}
@@ -631,13 +629,13 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 		 *
 		 * Only Linux defines s6_addr16, so we don't use it.
 		 */
-		if (ntohs ((*(uint16_t *)ip6.ip6_src.s6_addr) & 0xffc0) == 0xfe80)
+		if (ntohs ((*(uint16_t *)ip6->ip6_src.s6_addr) & 0xffc0) == 0xfe80)
 			return;
 	}
 	else
 #endif /* MIREDO_TEREDO_CLIENT */
 	/* Relays only accept packets from Teredo clients */
-	if (IN6_TEREDO_PREFIX (&ip6.ip6_src) != s.addr.teredo.prefix)
+	if (IN6_TEREDO_PREFIX (&ip6->ip6_src) != s.addr.teredo.prefix)
 		return;
 
 	/*
@@ -660,7 +658,7 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 	 * and update last reception date regardless of the destination.
 	 *
 	 */
-	if (ip6.ip6_dst.s6_addr[0] == 0xff)
+	if (ip6->ip6_dst.s6_addr[0] == 0xff)
 		return;
 
 	/* Actual packet reception, either as a relay or a client */
@@ -669,7 +667,7 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 
 	// Checks source IPv6 address / looks up peer in the list:
 	struct teredo_peerlist *list = tunnel->list;
-	teredo_peer *p = teredo_list_lookup (list, &ip6.ip6_src, NULL);
+	teredo_peer *p = teredo_list_lookup (list, &ip6->ip6_src, NULL);
 
 	if (p != NULL)
 	{
@@ -682,7 +680,7 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 		 && (packet->source_port == p->mapped_port))
 		{
 			teredo_predecap (tunnel, p, now);
-			tunnel->recv_cb (tunnel->opaque, buf, length);
+			tunnel->recv_cb (tunnel->opaque, ip6, length);
 			return;
 		}
 
@@ -709,17 +707,17 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 	 * At this point, we have either a trusted mapping mismatch,
 	 * an unlisted peer, or an un-trusted client peer.
 	 */
-	if (IN6_TEREDO_PREFIX (&ip6.ip6_src) == s.addr.teredo.prefix)
+	if (IN6_TEREDO_PREFIX (&ip6->ip6_src) == s.addr.teredo.prefix)
 	{
 		// Client case 3 (unknown or untrusted matching Teredo client):
-		if (IN6_MATCHES_TEREDO_CLIENT (&ip6.ip6_src, packet->source_ipv4,
+		if (IN6_MATCHES_TEREDO_CLIENT (&ip6->ip6_src, packet->source_ipv4,
 		                               packet->source_port)
 		// Extension: allow mismatch (i.e. clients behind symmetric NATs)
-		 || (IsBubble (&ip6) && (CheckBubble (packet) == 0)))
+		 || (IsBubble (ip6) && (CheckBubble (packet) == 0)))
 		{
 #ifdef MIREDO_TEREDO_CLIENT
 			if (IsClient (tunnel) && (p == NULL))
-				p = teredo_list_lookup (list, &ip6.ip6_src, &(bool){ false });
+				p = teredo_list_lookup (list, &ip6->ip6_src, &(bool){ false });
 #endif
 			/*
 			 * Relays are explicitly allowed to drop packets from
@@ -735,8 +733,8 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 			p->trusted = 1;
 			teredo_predecap (tunnel, p, now);
 
-			if (!IsBubble (&ip6)) // discard Teredo bubble
-				tunnel->recv_cb (tunnel->opaque, buf, length);
+			if (!IsBubble (ip6)) // discard Teredo bubble
+				tunnel->recv_cb (tunnel->opaque, ip6, length);
 			return;
 		}
 
@@ -745,7 +743,7 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 #ifdef MIREDO_TEREDO_CLIENT
 	else
 	{
-		assert (IN6_TEREDO_PREFIX (&ip6.ip6_src) != s.addr.teredo.prefix);
+		assert (IN6_TEREDO_PREFIX (&ip6->ip6_src) != s.addr.teredo.prefix);
 		assert (IsClient (tunnel));
 
 		// TODO: implement client cases 4 & 5 for local Teredo
@@ -763,7 +761,7 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 		if (p == NULL)
 		{
 			bool create;
-			p = teredo_list_lookup (list, &ip6.ip6_src, &create);
+			p = teredo_list_lookup (list, &ip6->ip6_src, &create);
 			if (p == NULL)
 				return; // memory error
 
@@ -783,7 +781,7 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 		}
 
 //		syslog (LOG_DEBUG, " packet queued pending Echo Reply");
-		teredo_enqueue_in (p, buf, length,
+		teredo_enqueue_in (p, ip6, length,
 		                   packet->source_ipv4, packet->source_port);
 		TouchReceive (p, now);
 
@@ -791,7 +789,7 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 		teredo_list_release (list);
 
 		if (res == 0)
-			SendPing (tunnel->fd, &s.addr, &ip6.ip6_src);
+			SendPing (tunnel->fd, &s.addr, &ip6->ip6_src);
 
 // 		syslog (LOG_DEBUG, " ping peer returned %d", res);
 		return;

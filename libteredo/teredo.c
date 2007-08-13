@@ -37,6 +37,7 @@
 #include <fcntl.h>
 #include <sys/socket.h>
 #include <errno.h>
+#include <assert.h>
 
 #ifndef SOL_IP
 # define SOL_IP IPPROTO_IP
@@ -182,7 +183,7 @@ static int teredo_recv_inner (int fd, struct teredo_packet *p, int flags)
 {
 	// Receive a UDP packet
 	struct sockaddr_in ad;
-	int length = recvfrom (fd, p->buf, sizeof (p->buf), flags,
+	int length = recvfrom (fd, p->buf, TEREDO_PACKET_SIZE, flags,
 	                       (struct sockaddr *)&ad,
 	                       &(socklen_t){ sizeof (ad) });
 
@@ -213,7 +214,7 @@ static int teredo_recv_inner (int fd, struct teredo_packet *p, int flags)
 		id_len = *ptr++;
 		au_len = *ptr++;
 
-		/* TODO: secure qualification */
+		/* NOTE: no support for secure qualification */
 		length -= id_len + au_len;
 		if (length < 0)
 			return -1;
@@ -224,6 +225,11 @@ static int teredo_recv_inner (int fd, struct teredo_packet *p, int flags)
 		p->auth_nonce = ptr;
 		ptr += 8;
 		p->auth_conf_byte = *ptr++;
+
+		/* Restore 64-bits alignment of IPv6 and ICMPv6 headers */
+		uint8_t *tgt = p->buf + ((ptr + 7 - p->buf) & ~7);
+		if (tgt != ptr)
+			memmove (tgt, ptr, length);
 	}
 
 	// Teredo Origin Indication
@@ -248,9 +254,9 @@ static int teredo_recv_inner (int fd, struct teredo_packet *p, int flags)
 		p->orig_ipv4 = ~addr;
 	}
 
-	/* length <= 65507 = sizeof(buf) */
+	assert (length <= 65507);
 	p->ip6_len = length;
-	p->ip6 = ptr;
+	p->ip6 = (struct ip6_hdr *)ptr;
 
 	return 0;
 }
