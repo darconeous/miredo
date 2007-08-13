@@ -117,7 +117,7 @@ static unsigned IcmpRateLimitMs;      // here
  */
 static void
 teredo_send_unreach (teredo_tunnel *restrict tunnel, uint8_t code,
-                     const void *restrict in, size_t len)
+                     const struct ip6_hdr *restrict in, size_t len)
 {
 	struct
 	{

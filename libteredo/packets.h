@@ -96,7 +96,6 @@ int teredo_send_rs (int fd, uint32_t server_ip,
  * modified.
  *
  * Assumptions:
- * - newaddr must be 4-bytes aligned (NOT necessarily the packet).
  * - newaddr->teredo.server_ip must be set to the server's expected IP by the
  *   caller.
  * - IPv6 header is valid (ie. version 6, plen matches packet's length, and
@@ -129,9 +128,6 @@ int SendPing (int fd, const union teredo_addr *src,
  * adequate IPv6 packet alignment. The ICMPv6 checksum is not set as they are
  * not enough information for its computation.
  *
- * It is assumed that the output buffer is properly aligned. The input
- * buffer does not need to be aligned.
- *
  * @param out output buffer
  * @param type ICMPv6 error type
  * @param code ICMPv6 error code
@@ -141,17 +137,15 @@ int SendPing (int fd, const union teredo_addr *src,
  * @return the actual size of the generated error message, or zero if no
  * ICMPv6 packet should be generated. Never fails.
  */
-int BuildICMPv6Error (struct icmp6_hdr *restrict out, uint8_t type,
-                      uint8_t code, const void *restrict in, size_t inlen);
+int BuildICMPv6Error (struct icmp6_hdr *restrict out,
+                      uint8_t type, uint8_t code,
+                      const struct ip6_hdr *restrict in, size_t inlen);
 
 # if 0
 /**
  * Builds an ICMPv6/IPv6 error message with specified type and code from an
  * IPv6 packet. The output buffer must be at least 1280 bytes long and have
  * adequate IPv6 packet alignment.
- *
- * It is assumed that the output buffer is properly aligned. The input
- * buffer does not need to be aligned.
  *
  * @param out output buffer
  * @param type ICMPv6 error type

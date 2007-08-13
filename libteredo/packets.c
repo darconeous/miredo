@@ -93,7 +93,7 @@ SendBubbleFromDst (int fd, const struct in6_addr *dst, bool indirect)
 		port = htons (IPPORT_TEREDO);
 	}
 
-	return teredo_send_bubble (fd, ip, port, src.s6_addr, dst->s6_addr);
+	return teredo_send_bubble (fd, ip, port, &src, dst);
 }
 
 
@@ -398,28 +398,27 @@ int CheckPing (const teredo_packet *packet)
 
 int
 BuildICMPv6Error (struct icmp6_hdr *restrict out, uint8_t type, uint8_t code,
-                  const void *restrict in, size_t inlen)
+                  const struct ip6_hdr *restrict in, size_t inlen)
 {
 	const struct in6_addr *p;
 
 	/* don't reply if the packet is too small */
-	if (inlen < sizeof (struct ip6_hdr))
+	if (inlen < sizeof (*in))
 		return 0;
 
 	/* don't reply to ICMPv6 error */
-	if ((((const struct ip6_hdr *)in)->ip6_nxt == IPPROTO_ICMPV6)
-	  && ((((const struct icmp6_hdr *)(((const struct ip6_hdr *)in) + 1))
-						->icmp6_type & 0x80) == 0))
+	if ((in->ip6_nxt == IPPROTO_ICMPV6)
+	  && ((((const struct icmp6_hdr *)(in + 1))->icmp6_type & 0x80) == 0))
 		return 0;
 
 	/* don't reply to multicast */
-	if (((const struct ip6_hdr *)in)->ip6_dst.s6_addr[0] == 0xff)
+	if (IN6_IS_ADDR_MULTICAST (&in->ip6_dst))
 		return 0;
 
-	p = &((const struct ip6_hdr *)in)->ip6_src;
+	p = &in->ip6_src;
 	/* don't reply to incorrect source address (multicast, undefined) */
-	if ((p->s6_addr[0] == 0xff) /* multicast */
-	 || (memcmp (p, &in6addr_any, sizeof (*p)) == 0))
+	if (IN6_IS_ADDR_MULTICAST (p) /* multicast */
+	 || IN6_IS_ADDR_UNSPECIFIED (p))
 		return 0;
 
 	out->icmp6_type = type;
@@ -432,7 +431,7 @@ BuildICMPv6Error (struct icmp6_hdr *restrict out, uint8_t type, uint8_t code,
 
 	memcpy (out + 1, in, inlen);
 
-	return sizeof (struct icmp6_hdr) + inlen;
+	return sizeof (*out) + inlen;
 }
 
 
