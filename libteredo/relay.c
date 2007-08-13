@@ -588,10 +588,16 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 	if (IsClient (tunnel))
 	{
 		if (teredo_maintenance_process (tunnel->maintenance, packet) == 0)
+		{
+			debug (" packet passed to maintenance procedure");
 			return;
+		}
 
 		if (!s.up)
+		{
+			debug (" packet dropped because tunnel down");
 			return; /* Not qualified -> do not accept incoming packets */
+		}
 
 		if ((packet->source_ipv4 == s.addr.teredo.server_ip)
 		 && (packet->source_port == htons (IPPORT_TEREDO)))
@@ -615,6 +621,7 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 			{
 				/* TODO: record sending of bubble, create a peer, etc ? */
 				teredo_reply_bubble (tunnel->fd, ipv4, port, ip6);
+				debug (" bubble sent");
 				if (IsBubble (ip6))
 					return; // don't pass bubble to kernel
 			}
@@ -677,6 +684,7 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 	if (ip6->ip6_dst.s6_addr[0] == 0xff)
 		return;
 
+	debug (" packet to be decapsulated");
 	/* Actual packet reception, either as a relay or a client */
 
 	teredo_clock_t now = teredo_clock ();
