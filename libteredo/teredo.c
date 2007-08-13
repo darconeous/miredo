@@ -229,7 +229,11 @@ static int teredo_recv_inner (int fd, struct teredo_packet *p, int flags)
 		/* Restore 64-bits alignment of IPv6 and ICMPv6 headers */
 		uint8_t *tgt = p->buf + ((ptr + 7 - p->buf) & ~7);
 		if (tgt != ptr)
+		{
 			memmove (tgt, ptr, length);
+			ptr = tgt;
+		}
+
 	}
 
 	// Teredo Origin Indication
