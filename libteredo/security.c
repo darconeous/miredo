@@ -221,6 +221,16 @@ teredo_verify_pinghash (uint32_t now, const struct in6_addr *src,
 	/* compare HMAC hash */
 	return memcmp (h1, hash, LIBTEREDO_HASH_LEN) ? -1 : 0;
 }
+
+
+uint16_t teredo_get_flbits (uint32_t timestamp)
+{
+	uint8_t buf[LIBTEREDO_HASH_LEN];
+
+	teredo_hash (NULL, 0, NULL, 0, buf, timestamp);
+	return (buf[0] << 8) | buf[1];
+}
+
 #endif /* MIREDO_TEREDO_CLIENT */
 
 

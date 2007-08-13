@@ -366,6 +366,14 @@ void maintenance_thread (teredo_maintenance *m)
 		{
 			count = 0;
 
+			/* 12-bits Teredo flags randomization */
+			newaddr.teredo.flags = c_state->addr.teredo.flags;
+			if (memcmp (&c_state->addr, &newaddr, sizeof (newaddr)))
+			{
+				uint16_t f = teredo_get_flbits (deadline.tv_sec);
+				newaddr.teredo.flags = f & htons (0x3cff);
+			}
+
 			if ((!c_state->up)
 			 || memcmp (&c_state->addr, &newaddr, sizeof (c_state->addr))
 			 || (c_state->mtu != mtu))

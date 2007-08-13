@@ -41,7 +41,7 @@ int teredo_verify_pinghash (uint32_t now, const struct in6_addr *src,
 
 void teredo_get_nonce (uint32_t timestamp, uint32_t ipv4, uint16_t port,
                        uint8_t *restrict nonce);
-
+uint16_t teredo_get_flbits (uint32_t timestamp);
 
 # ifdef __cplusplus
 }
