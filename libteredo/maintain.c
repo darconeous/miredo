@@ -267,7 +267,7 @@ void maintenance_thread (teredo_maintenance *m)
 	for (;;)
 	{
 		/* Resolve server IPv4 addresses */
-		for (;;)
+		while (server_ip == 0)
 		{
 			/* FIXME: mutex kept while resolving - very bad */
 			int val = getipv4byname (m->server, &server_ip);
