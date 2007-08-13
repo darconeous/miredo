@@ -38,7 +38,6 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 #include <sys/uio.h> // readv() & writev()
-#include <poll.h>
 #include <syslog.h>
 #include <errno.h>
 #include <netinet/in.h> // htons(), struct in6_addr
