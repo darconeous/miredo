@@ -345,10 +345,10 @@ static LIBTEREDO_NORETURN void *miredo_encap_thread (void *d)
 	for (;;)
 	{
 		/* Handle incoming data */
-		union
+		struct
 		{
 			struct ip6_hdr ip6;
-			uint8_t fill[65507];
+			uint8_t fill[65467];
 		} pbuf;
 
 		/* Forwards IPv6 packet to Teredo
