@@ -20,6 +20,7 @@ STABLE RELEASE 1.1.0 : Minor features enhancement
 # Minor specification conformance fixes to miredo-server.
 # Use a hook shell script for client interface configuration.
 # Remove (Linux-only) buggy and power-saving unfriendly "autoclient" mode.
+# Fix potential problems with pointer alignment and compiler optimization.
 
 ===========================================================================
 STABLE RELEASE 1.0.6 : Minor features enhancement
