@@ -46,5 +46,5 @@ case "$STATE" in
 		;;
 esac
 
-"$IP" -6 route flush cache
+"$IP" -6 route flush cache 2>/dev/null
 exit 0
