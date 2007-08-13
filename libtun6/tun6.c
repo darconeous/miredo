@@ -194,6 +194,10 @@ tun6 *tun6_create (const char *req_name)
 	{
 		syslog (LOG_ERR, _("Tunneling driver error (%s): %s"), "TUNSETIFF",
 		        strerror (errno));
+		if (errno == EBUSY)
+			syslog (LOG_INFO,
+			        _("Please make sure another instance of the program is "
+	        	          "not already running."));
 		goto error;
 	}
 

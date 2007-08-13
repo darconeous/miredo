@@ -500,8 +500,8 @@ int miredo_main (int argc, char *argv[])
 		         pidfile, strerror (errno));
 		if ((errno == EAGAIN) || (errno == EACCES))
 			fprintf (stderr, "%s\n",
-			         _("Make sure another instance of the program is not "
-			           "already running."));
+			         _("Please make sure another instance of the program is "
+				   "not already running."));
 		return -1;
 	}
 
