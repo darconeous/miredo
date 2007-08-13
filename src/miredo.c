@@ -198,7 +198,8 @@ miredo (const char *confpath, const char *server_name, int pidfd)
 		if (WIFEXITED (status))
 		{
 			val = WEXITSTATUS (status);
-			syslog (LOG_NOTICE, _("Terminated (exit code: %d)"), val);
+			syslog (LOG_NOTICE, _("Child %d exited (code: %d)"),
+			        (int)pid, val);
 			if (val)
 				retval = 1;
 		}

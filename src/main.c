@@ -498,7 +498,7 @@ int miredo_main (int argc, char *argv[])
 	{
 		fprintf (stderr, _("Cannot create PID file %s:\n %s\n"),
 		         pidfile, strerror (errno));
-		if (errno == EAGAIN)
+		if ((errno == EAGAIN) || (errno == EACCES))
 			fprintf (stderr, "%s\n",
 			         _("Make sure another instance of the program is not "
 			           "already running."));
