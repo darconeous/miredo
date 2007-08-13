@@ -21,6 +21,7 @@ STABLE RELEASE 1.1.0 : Minor features enhancement
 # Use a hook shell script for client interface configuration.
 # Remove (Linux-only) buggy and power-saving unfriendly "autoclient" mode.
 # Fix potential problems with pointer alignment and compiler optimization.
+# Add a bunch of debug messages to debug builds.
 
 ===========================================================================
 STABLE RELEASE 1.0.6 : Minor features enhancement
