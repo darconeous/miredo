@@ -31,9 +31,6 @@
 
 int main (void)
 {
-	int val = teredo_clock_create ();
-	assert (val == 0);
-
 	teredo_clock_t start = teredo_clock (), now;
 
 	do
@@ -45,6 +42,5 @@ int main (void)
 
 	assert (now > start);
 
-	teredo_clock_destroy ();
 	return 0;
 }
