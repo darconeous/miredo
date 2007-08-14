@@ -32,9 +32,9 @@ directives follows:
 .SH MODES
 
 .TP
-.BR "RelayType" " (" "client" "|" "relay" "|" "autoclient" ")"
+.BR "RelayType" " (" "client" "|" "autoclient" "|" "relay" "|" "cone" "|" "restricted" ")"
 Specifies what type of Teredo relay/client Miredo will serve as.
-There are four possible choices:
+There are three possible choices:
 
 .TP
 .BR "client" " mode (the default)"
@@ -60,12 +60,7 @@ tunneling interface has a default route with a higher metric (which is
 to say a lower priority) than the other network interfaces.
 
 .TP
-.BR "autoclient" " mode"
-.RB "In " "autoclient" " mode, " "Miredo" " acts as a "
-.IR "Teredo client" " provided there is no other IPv6-enabled network"
-interfaces. Whenever it detects the availability of global IPv6
-connectivity through another interface, it stops its Teredo tunnel.
-This mode is not implemented, and is equivalent to client mode.
+.BR "autoclient" " is currently an alias for " "client" " mode."
 
 .TP
 .BR "cone" " mode (" "relay" " also works)"
