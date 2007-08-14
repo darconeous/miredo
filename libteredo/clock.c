@@ -26,6 +26,7 @@
 #include <time.h>
 #include <assert.h>
 #include <limits.h>
+#include <stdbool.h>
 
 #include <sys/types.h>
 #include <sys/time.h>
@@ -37,10 +38,13 @@
 
 typedef struct clock_data_t
 {
-	unsigned long    value;
-	clockid_t        id;
-	pthread_rwlock_t lock;
-	pthread_t        thread;
+	pthread_mutex_t   lock;
+	pthread_cond_t    cond;
+
+	unsigned long     value;
+	clockid_t         id;
+	bool              present;
+	bool              active;
 } clock_data_t;
 
 
@@ -56,9 +60,15 @@ static LIBTEREDO_NORETURN void *clock_thread (void *o)
 		struct timespec ts;
 		clock_gettime (id, &ts);
 
-		pthread_rwlock_wrlock (&context->lock);
+		pthread_mutex_lock (&context->lock);
 		context->value = ts.tv_sec;
-		pthread_rwlock_unlock (&context->lock);
+
+		if (!context->active)
+			/* Avoid polling when the process is idling */
+			pthread_cond_wait (&context->cond, &context->lock);
+
+		context->active = false;
+		pthread_mutex_unlock (&context->lock);
 
 		ts.tv_sec++;
 		ts.tv_nsec = 0;
@@ -68,80 +78,64 @@ static LIBTEREDO_NORETURN void *clock_thread (void *o)
 }
 
 
-static clock_data_t data;
-
-
 unsigned long teredo_clock (void)
 {
-	clock_data_t *context = (clock_data_t *)&data;
+	static clock_data_t clk =
+	{
+		.lock = PTHREAD_MUTEX_INITIALIZER,
+		.cond = PTHREAD_COND_INITIALIZER,
+		.value = 0,
+		.id = CLOCK_REALTIME,
+		.present = false,
+		.active = false
+	};
 	unsigned long value;
 
-	pthread_rwlock_rdlock (&context->lock);
-	value = context->value;
-	pthread_rwlock_unlock (&context->lock);
+	pthread_mutex_lock (&clk.lock);
+	if (!clk.present)
+	{
+		pthread_t th;
+
+#if (_POSIX_CLOCK_SELECTION - 0 >= 0) && (_POSIX_MONOTONIC_CLOCK - 0 >= 0)
+		/* Run-time POSIX monotonic clock detection */
+		struct timespec res;
+		if (clock_getres (CLOCK_MONOTONIC, &res) == 0)
+			clk.id = CLOCK_MONOTONIC;
+#endif
+
+		if (pthread_create (&th, NULL, clock_thread, &clk) == 0)
+		{
+			pthread_detach (th);
+			clk.present = true;
+		}
+	}
+
+	if (!clk.active)
+	{
+		struct timespec ts;
+
+		clock_gettime (clk.id, &ts);
+		clk.value = ts.tv_sec;
+
+		clk.active = true;
+		pthread_cond_signal (&clk.cond);
+	}
+
+	value = clk.value;
+	pthread_mutex_unlock (&clk.lock);
+
 	return value;
 }
 
 
-static unsigned users = 0;
-static pthread_mutex_t user_mutex = PTHREAD_MUTEX_INITIALIZER;
-
 int teredo_clock_create (void)
 {
-	int val = -1;
-
-	pthread_mutex_lock (&user_mutex);
-
-	if (users == 0)
-	{
-		clock_data_t *ctx = (clock_data_t *)&data;
-		struct timespec ts;
-
-#if (_POSIX_CLOCK_SELECTION - 0 >= 0) && (_POSIX_MONOTONIC_CLOCK - 0 >= 0)
-		/* Run-time POSIX monotonic clock detection */
-		ctx->id = CLOCK_MONOTONIC;
-		if (clock_gettime (CLOCK_MONOTONIC, &ts))
-#endif
-		{
-			ctx->id = CLOCK_REALTIME;
-			clock_gettime (CLOCK_REALTIME, &ts);
-		}
-	
-		ctx->value = ts.tv_sec;
-	
-		val = pthread_rwlock_init (&ctx->lock, NULL);
-		if (val == 0)
-		{
-			val = pthread_create (&ctx->thread, NULL, clock_thread, ctx);
-			if (val == 0)
-				users = 1;
-			else
-				pthread_rwlock_destroy (&ctx->lock);
-		}
-	}
-	else
-	if (users < UINT_MAX)
-		users++;
-
-	pthread_mutex_unlock (&user_mutex);
-	return val;
+	return 0;
 }
 
 
 void teredo_clock_destroy (void)
 {
-	pthread_mutex_lock (&user_mutex);
-	assert (users > 0);
-
-	if (--users == 0)
-	{
-		clock_data_t *ctx = (clock_data_t *)&data;
-
-		pthread_cancel (ctx->thread);
-		pthread_join (ctx->thread, NULL);
-		pthread_rwlock_destroy (&ctx->lock);
-	}
-	pthread_mutex_unlock (&user_mutex);
 }
 
 
