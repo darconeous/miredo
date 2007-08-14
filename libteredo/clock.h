@@ -47,21 +47,6 @@ extern "C" {
  */
 teredo_clock_t teredo_clock (void);
 
-/**
- * Starts the clock. Thread-safe.
- *
- * @return 0 in case of success, an errno in case of error.
- */
-int teredo_clock_create (void);
-
-
-/**
- * Stops the clock. Thread-safe.
- *
- * @return nothing (always succeeds when defined).
- */
-void teredo_clock_destroy (void);
-
 # ifdef __cplusplus
 }
 # endif /* ifdef __cplusplus */

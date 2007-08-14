@@ -41,15 +41,13 @@ typedef struct clock_data_t
 	pthread_mutex_t   lock;
 	pthread_cond_t    cond;
 
-	unsigned long     value;
+	teredo_clock_t    value;
 	clockid_t         id;
 	bool              present;
 	bool              active;
 } clock_data_t;
 
 
-/* TODO: stop the clock when it has not been used for a while to avoid useless
- * wakeups? */
 static LIBTEREDO_NORETURN void *clock_thread (void *o)
 {
 	clock_data_t *context = (clock_data_t *)o;
@@ -89,7 +87,7 @@ unsigned long teredo_clock (void)
 		.present = false,
 		.active = false
 	};
-	unsigned long value;
+	teredo_clock_t value;
 
 	pthread_mutex_lock (&clk.lock);
 	if (!clk.present)
@@ -126,16 +124,3 @@ unsigned long teredo_clock (void)
 
 	return value;
 }
-
-
-int teredo_clock_create (void)
-{
-	return 0;
-}
-
-
-void teredo_clock_destroy (void)
-{
-}
-
-

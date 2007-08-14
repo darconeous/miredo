@@ -31,7 +31,7 @@
 #include <inttypes.h>
 #include "security.h"
 #include "tunnel.h"
-#include "clock.h"
+
 
 int teredo_startup (bool use_client)
 {
@@ -45,11 +45,7 @@ int teredo_startup (bool use_client)
 #endif
 
 	if (teredo_init_HMAC () == 0)
-	{
-		if (teredo_clock_create () == 0)
-			return 0;
-		teredo_deinit_HMAC ();
-	}
+		return 0;
 	return -1;
 }
 
@@ -61,6 +57,5 @@ void teredo_cleanup (bool use_client)
 	assert (!use_client);
 #endif
 
-	teredo_clock_destroy ();
 	teredo_deinit_HMAC ();
 }
