@@ -16,15 +16,25 @@ ChangeLog.
 ===========================================================================
 STABLE RELEASE 1.1.0 : Minor features enhancement
 
-# Restore "cone" RelayType to improve support for some (broken) NATs.
 # Add 12 bits of randomness to Teredo client address:
-  This makes Teredo addresses less predictible for supposedly enhanced
-  host security.
+  Teredo addresses are less predictible, which should enhance host
+  protection against network scanning.
+
+# Remove brittle and battery-unfriendly "autoclient" mode:
+  Proper default IPv6 source address selection (RFC3484) implementation
+  would address most of the use cases for this, as well as other issues.
+  If that is not sufficient, an external connection management system
+  is anyway needed to start/stop Miredo when appropriate.
+
+# Restore "cone" RelayType:
+  All relays should use it, as it improves support for some kinds of
+  (pretty broken but nevertheless deployed) NAT devices.
+
 # Minor specification conformance fixes to miredo-server.
 # Use a hook shell script for client interface configuration.
-# Remove (Linux-only) buggy and power-saving unfriendly "autoclient" mode.
-# Fix potential problems with pointer alignment and compiler optimization.
+# Fix potential problems with pointers alignment on some architectures.
 # Add a bunch of debug messages to debug builds.
+# Rewrite clock subsystem to avoid polling when idle (battery savings).
 
 ===========================================================================
 STABLE RELEASE 1.0.6 : Minor features enhancement
