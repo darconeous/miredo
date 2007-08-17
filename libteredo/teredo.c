@@ -79,7 +79,6 @@ int teredo_socket (uint32_t bind_ip, uint16_t port)
 		return -1; // failure
 
 	fcntl (fd, F_SETFD, FD_CLOEXEC);
-	setsockopt (fd, SOL_SOCKET, SO_REUSEADDR, &(int){ 1 }, sizeof (int));
 
 	if (bind (fd, (struct sockaddr *)&myaddr, sizeof (myaddr)))
 	{

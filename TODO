@@ -51,7 +51,6 @@ Portability:
 (H) NetBSD 4 kernel tunnel routes fix
 (H) DragonFly kernel tunnel routes fix
 (H) OpenBSD kernel support correctness check
-(*) BSD: setsockopt SO_REUSEPORT if/where appropriate
 
 Documentation & support:
 -------------------------
