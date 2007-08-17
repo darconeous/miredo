@@ -32,9 +32,9 @@ STABLE RELEASE 1.1.0 : Minor features enhancement
 
 # Minor specification conformance fixes to miredo-server.
 # Use a hook shell script for client interface configuration.
-# Fix potential problems with pointers alignment on some architectures.
 # Add a bunch of debug messages to debug builds.
 # Rewrite clock subsystem to avoid polling when idle (battery savings).
+# Some minor bug fixes.
 
 ===========================================================================
 STABLE RELEASE 1.0.6 : Minor features enhancement
