@@ -129,16 +129,17 @@ static int getipv4byname (const char *restrict name, uint32_t *restrict ipv4)
  */
 static int
 maintenance_recv (const teredo_packet *restrict packet, uint32_t server_ip,
-                  uint8_t *restrict nonce, bool cone, uint16_t *restrict mtu,
+                  const uint8_t *restrict nonce, bool cone,
+                  uint16_t *restrict mtu,
                   union teredo_addr *restrict newaddr)
 {
-	assert (packet->auth_nonce != NULL);
+	assert (packet->auth_present);
 
 	if (memcmp (packet->auth_nonce, nonce, 8))
 		return EPERM;
 
 	/* TODO: fail instead of ignoring the packet? */
-	if (packet->auth_conf_byte)
+	if (packet->auth_fail)
 	{
 		syslog (LOG_ERR, _("Authentication with server failed."));
 		return EACCES;
@@ -509,7 +510,7 @@ int teredo_maintenance_process (teredo_maintenance *restrict m,
 	 */
 	if ((packet->source_port != htons (IPPORT_TEREDO))
 	    /* TODO: check for primary or secondary server address */
-	 || (packet->auth_nonce == NULL)
+	 || !packet->auth_present
 	 || !IN6_ARE_ADDR_EQUAL (&packet->ip6->ip6_dst, &teredo_restrict))
 		return -1;
 

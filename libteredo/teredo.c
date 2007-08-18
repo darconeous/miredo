@@ -27,9 +27,12 @@
 #endif
 
 #include <string.h> // memcpy()
+#include <stdbool.h>
+#include <assert.h>
 
 #include <inttypes.h> /* for Mac OS X */
 #include <sys/types.h>
+#include <unistd.h>
 #include <sys/uio.h>
 #include <netinet/in.h>
 #include <netinet/ip6.h>
@@ -37,7 +40,6 @@
 #include <fcntl.h>
 #include <sys/socket.h>
 #include <errno.h>
-#include <assert.h>
 
 #ifndef SOL_IP
 # define SOL_IP IPPROTO_IP
@@ -191,8 +193,7 @@ static int teredo_recv_inner (int fd, struct teredo_packet *p, int flags)
 
 	uint8_t *ptr = p->buf;
 
-	p->auth_nonce = NULL;
-	p->auth_conf_byte = 0;
+	p->auth_present = false;
 	p->orig_ipv4 = 0;
 	p->orig_port = 0;
 
@@ -200,6 +201,8 @@ static int teredo_recv_inner (int fd, struct teredo_packet *p, int flags)
 	if ((ptr[0] == 0) && (ptr[1] == teredo_auth_hdr))
 	{
 		uint8_t id_len, au_len;
+
+		p->auth_present = true;
 
 		length -= 13;
 		if (length < 0)
@@ -216,11 +219,11 @@ static int teredo_recv_inner (int fd, struct teredo_packet *p, int flags)
 			return -1;
 		ptr += id_len + au_len;
 
-
 		/* Nonce + confirmation byte */
-		p->auth_nonce = ptr;
+		memcpy (p->auth_nonce, ptr, 8);
 		ptr += 8;
-		p->auth_conf_byte = *ptr++;
+		p->auth_fail = !!*ptr;
+		ptr ++;
 
 		/* Restore 64-bits alignment of IPv6 and ICMPv6 headers */
 		uint8_t *tgt = p->buf + ((ptr + 7 - p->buf) & ~7);
@@ -360,3 +363,8 @@ teredo_cksum (const void *src, const void *dst, uint8_t protocol,
 	return in_cksum (iov, 3 + n);
 }
 
+
+void teredo_close (int fd)
+{
+	(void)close (fd);
+}

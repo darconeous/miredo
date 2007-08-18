@@ -18,6 +18,7 @@ teredo_transmit
 teredo_cone
 teredo_restrict
 teredo_socket
+teredo_close
 teredo_recv
 teredo_wait_recv
 teredo_send

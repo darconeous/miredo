@@ -27,8 +27,6 @@
 #ifndef LIBTEREDO_TEREDO_UDP_H
 # define LIBTEREDO_TEREDO_UDP_H
 
-# include <unistd.h> /* close() -> teredo_close() */
-
 /** Maximum possible size of a Teredo packet */
 # define MAX_TEREDO_PACKET_SIZE 65507
 /** Maximum size of a Teredo packet with standard tunnel MTU */
@@ -43,11 +41,6 @@
  */
 typedef struct teredo_packet
 {
-	/** NULL if auth not present */
-	uint8_t *auth_nonce;
-	/** authentication header confirmation byte, 0 if nonce == NULL */
-	uint8_t  auth_conf_byte;
-
 	/** IPv6 packet (header + payload) */
 	struct ip6_hdr *ip6;
 	/** IPv6 packet byte size, possibly < 40 for invalid packets */
@@ -58,7 +51,6 @@ typedef struct teredo_packet
 
 	/** Source IPv4 address */
 	uint32_t source_ipv4;
-
 	/** Source UDP port */
 	uint16_t source_port;
 
@@ -66,6 +58,13 @@ typedef struct teredo_packet
 	uint16_t orig_port;
 	/** Origin indication IPv4 address, or 0 if absent */
 	uint32_t orig_ipv4;
+
+	/** Whether a authentication header is present at all */
+	bool     auth_present;
+	/** True if the confirmation byte is non-zero */
+	bool     auth_fail;
+	/** Authentication nonce, if present */
+	uint8_t  auth_nonce[8];
 
 	/** Internal buffer for UDP datagram reception */
 	uint8_t  buf[TEREDO_PACKET_SIZE+7];
@@ -156,6 +155,6 @@ uint16_t teredo_cksum (const void *src, const void *dst, uint8_t protocol,
  * Closes a Teredo socket opened with teredo_socket().
  * @param fd socket to be closed
  */
-# define teredo_close( fd ) close( fd )
+void teredo_close (int fd);
 
 #endif /* ifndef LIBTEREDO_TEREDO_UDP_H */
