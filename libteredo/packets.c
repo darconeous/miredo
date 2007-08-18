@@ -435,7 +435,8 @@ BuildICMPv6Error (struct icmp6_hdr *restrict out, uint8_t type, uint8_t code,
 #if 0
 int
 BuildIPv6Error (struct ip6_hdr *out, const struct in6_addr *src,
-                uint8_t type, uint8_t code, const void *in, uint16_t len)
+                uint8_t type, uint8_t code,
+                const struct ip6_hdr *in, size_t len)
 {
 	struct icmp6_hdr *h;
 
@@ -448,9 +449,8 @@ BuildIPv6Error (struct ip6_hdr *out, const struct in6_addr *src,
 	out->ip6_plen = htons (len);
 	out->ip6_nxt = IPPROTO_ICMPV6;
 	out->ip6_hlim = 255;
-	memcpy (&out->ip6_src, src, sizeof (out->ip6_src));
-	memcpy (&out->ip6_dst, &((const struct ip6_hdr *)in)->ip6_src,
-	        sizeof (out->ip6_dst));
+	out->ip6_src = *src;
+	out->ip6_dst = in->ip6_src;
 	
 	len += sizeof (struct ip6_hdr);
 
