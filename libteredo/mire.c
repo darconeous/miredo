@@ -25,7 +25,6 @@
 
 #include <inttypes.h>
 #include <stdio.h>
-#include <string.h>
 
 #include <sys/types.h>
 #include <sys/uio.h>
@@ -87,9 +86,9 @@ process_icmpv6 (int fd, struct ip6_hdr *ip6, size_t plen,
 	ip6->ip6_hlim = 255;
 
 	struct in6_addr buf;
-	memcpy (&buf, &ip6->ip6_dst, sizeof (buf));
-	memcpy (&ip6->ip6_dst, &ip6->ip6_src, sizeof (ip6->ip6_dst));
-	memcpy (&ip6->ip6_src, &buf, sizeof (ip6->ip6_src));
+	buf = ip6->ip6_dst;
+	ip6->ip6_dst = ip6->ip6_src;
+	ip6->ip6_src = buf;;
 
 	hdr->icmp6_type = ICMP6_ECHO_REPLY;
 	hdr->icmp6_code = 0;
@@ -132,8 +131,8 @@ process_unknown (int fd, const struct ip6_hdr *in, size_t plen,
 	ip6.ip6_plen = htons (sizeof (struct icmp6_hdr) + plen);
 	ip6.ip6_nxt = IPPROTO_ICMPV6;
 	ip6.ip6_hlim = 255;
-	memcpy (&ip6.ip6_src, &in->ip6_dst, sizeof (ip6.ip6_src));
-	memcpy (&ip6.ip6_dst, &in->ip6_src, sizeof (ip6.ip6_dst));
+	ip6.ip6_src = in->ip6_dst;
+	ip6.ip6_dst = in->ip6_src;
 
 	icmp6.icmp6_type = ICMP6_PARAM_PROB;
 	icmp6.icmp6_code = ICMP6_PARAMPROB_NEXTHEADER;
@@ -168,8 +167,7 @@ recv_packet (int fd, teredo_packet *p)
 		return -1;
 
 	// Check packet validity
-	memcpy (&plen, &ip6->ip6_plen, sizeof (plen));
-	plen = ntohs (plen);
+	plen = ntohs (ip6->ip6_plen);
 #ifdef MIRE_COUNTER
 	count_pkt++;
 	count_bytes += plen + 40;
