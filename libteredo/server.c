@@ -128,9 +128,8 @@ SendRA (const teredo_server *restrict s, const struct teredo_packet *p,
 	ra.ip6.ip6_plen = htons (sizeof (ra) - sizeof (ra.ip6));
 	ra.ip6.ip6_nxt = IPPROTO_ICMPV6;
 	ra.ip6.ip6_hlim = 255;
-
-	memcpy (&ra.ip6.ip6_src, &s->lladdr.ip6, sizeof (ra.ip6.ip6_src));
-	memcpy (&ra.ip6.ip6_dst, dest_ip6, sizeof (ra.ip6.ip6_dst));
+	ra.ip6.ip6_src = s->lladdr.ip6;
+	ra.ip6.ip6_dst = *dest_ip6;
 
 	// ICMPv6: Router Advertisement
 	ra.ra.nd_ra_type = ND_ROUTER_ADVERT;
@@ -180,19 +179,13 @@ teredo_forward_udp (int fd, const struct teredo_packet *packet,
 {
 	struct teredo_orig_ind orig;
 	struct iovec iov[2];
-	uint32_t dest_ipv4;
-	uint16_t dest_port;
 
 	/* extract the IPv4 destination directly from the Teredo IPv6 destination
 	   within the IPv6 header */
-	memcpy (&dest_ipv4, packet->ip6 + 24 + 12, 4);
-	dest_ipv4 = ~dest_ipv4;
-
+	uint32_t dest_ipv4 = IN6_TEREDO_IPV4 (&packet->ip6->ip6_dst);
+	uint16_t dest_port = IN6_TEREDO_PORT (&packet->ip6->ip6_dst);
 	if (!is_ipv4_global_unicast (dest_ipv4))
 		return 0; // ignore invalid client IP
-
-	memcpy (&dest_port, packet->ip6 + 24 + 10, 2);
-	dest_port = ~dest_port;
 
 	// Origin indication header
 	// if the Teredo server's address is ours
@@ -224,21 +217,20 @@ static bool
 teredo_send_ipv6 (const struct ip6_hdr *p, size_t len)
 {
 	struct sockaddr_in6 dst;
-	int tries, res;
 
 	memset (&dst, 0, sizeof (dst));
 	dst.sin6_family = AF_INET6;
 #ifdef HAVE_SA_LEN
 	dst.sin6_len = sizeof (dst);
 #endif
-	memcpy (&dst.sin6_addr, &p->ip6_dst, sizeof (dst.sin6_addr));
+	dst.sin6_addr = p->ip6_dst;
 
-	for (tries = 0; tries < 10; tries++)
+	for (int tries = 0; tries < 10; tries++)
 	{
-		res = sendto (raw_fd, p, len, 0,
-		              (struct sockaddr *)&dst, sizeof (dst));
+		ssize_t res = sendto (raw_fd, p, len, 0,
+		                      (struct sockaddr *)&dst, sizeof (dst));
 		if (res != -1)
-			return res == (int)len;
+			return res == (ssize_t)len;
 
 		switch (errno)
 		{
