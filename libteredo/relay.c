@@ -29,7 +29,6 @@
 #include <gettext.h>
 
 #include <stdbool.h>
-#include <string.h>
 #include <time.h>
 #include <stdlib.h> // malloc()
 #include <assert.h>
@@ -161,9 +160,7 @@ teredo_send_unreach (teredo_tunnel *restrict tunnel, uint8_t code,
 	pthread_mutex_unlock (&tunnel->ratelimit.lock);
 
 	len = BuildICMPv6Error (&buf.hdr, ICMP6_DST_UNREACH, code, in, len);
-	struct in6_addr dst;
-	memcpy (&dst, &((const struct ip6_hdr *)in)->ip6_src, sizeof (dst));
-	tunnel->icmpv6_cb (tunnel->opaque, &buf.hdr, len, &dst);
+	tunnel->icmpv6_cb (tunnel->opaque, &buf.hdr, len, &in->ip6_src);
 }
 
 #if 0
@@ -195,7 +192,7 @@ teredo_state_change (const teredo_state *state, void *self)
 
 	pthread_rwlock_wrlock (&tunnel->state_lock);
 	bool previously_up = tunnel->state.up;
-	memcpy (&tunnel->state, state, sizeof (tunnel->state));
+	tunnel->state = *state;
 
 	if (tunnel->state.up)
 	{
@@ -343,7 +340,7 @@ int teredo_transmit (teredo_tunnel *restrict tunnel,
 
 	teredo_state s;
 	pthread_rwlock_rdlock (&tunnel->state_lock);
-	memcpy (&s, &tunnel->state, sizeof (s));
+	s = tunnel->state;
 	/*
 	 * We can afford to use a slightly outdated state, but we cannot afford to
 	 * use an inconsistent state, hence this lock.
@@ -564,7 +561,7 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 
 	teredo_state s;
 	pthread_rwlock_rdlock (&tunnel->state_lock);
-	memcpy (&s, &tunnel->state, sizeof (s));
+	s = tunnel->state;
 	/*
 	 * We can afford to use a slightly outdated state, but we cannot afford to
 	 * use an inconsistent state, hence this lock. Also, we cannot call
