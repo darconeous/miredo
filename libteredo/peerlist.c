@@ -444,7 +444,7 @@ teredo_peer *teredo_list_lookup (teredo_peerlist *restrict list,
 #ifdef HAVE_LIBJUDY
 	*pp = p;
 #endif
-	memcpy (&p->key.ip6, addr, sizeof (struct in6_addr));
+	p->key.ip6 = *addr;
 	return &p->peer;
 }
 
