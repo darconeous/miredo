@@ -140,9 +140,8 @@ teredo_send_rs (int fd, uint32_t server_ip,
 	rs.ip6.ip6_plen = htons (sizeof (rs) - sizeof (rs.ip6));
 	rs.ip6.ip6_nxt = IPPROTO_ICMPV6;
 	rs.ip6.ip6_hlim = 255;
-	memcpy (&rs.ip6.ip6_src, cone ? &teredo_cone : &teredo_restrict,
-	        sizeof (rs.ip6.ip6_src));
-	memcpy (&rs.ip6.ip6_dst, &in6addr_allrouters, sizeof (rs.ip6.ip6_dst));
+	rs.ip6.ip6_src = cone ? teredo_cone : teredo_restrict;
+	rs.ip6.ip6_dst = in6addr_allrouters;
 
 	rs.rs.nd_rs_type = ND_ROUTER_SOLICIT;
 	rs.rs.nd_rs_code = 0;
@@ -168,8 +167,8 @@ teredo_parse_ra (const teredo_packet *restrict packet,
 
 	length -= sizeof (*ip6);
 
-	if (memcmp (&ip6->ip6_dst, cone ? &teredo_cone : &teredo_restrict,
-			sizeof (ip6->ip6_dst))
+	if (!IN6_ARE_ADDR_EQUAL (&ip6->ip6_dst,
+	                         cone ? &teredo_cone : &teredo_restrict)
 	 || (ip6->ip6_nxt != IPPROTO_ICMPV6)
 	 || (length < sizeof (struct nd_router_advert)))
 		return -1;
@@ -234,9 +233,7 @@ teredo_parse_ra (const teredo_packet *restrict packet,
 			/*if (optlen < sizeof (*mo)) -- not possible (optlen >= 8)
 				return -1;*/
 
-			memcpy (&net_mtu, &mo->nd_opt_mtu_mtu, sizeof (net_mtu));
-			net_mtu = ntohl (net_mtu);
-
+			net_mtu = ntohl (mo->nd_opt_mtu_mtu);
 			if ((net_mtu < 1280) || (net_mtu > 65535))
 				return -1; // invalid IPv6 MTU
 
@@ -290,8 +287,8 @@ SendPing (int fd, const union teredo_addr *src, const struct in6_addr *dst)
 	ping.ip6.ip6_plen = htons (sizeof (ping.icmp6) + PING_PAYLOAD);
 	ping.ip6.ip6_nxt = IPPROTO_ICMPV6;
 	ping.ip6.ip6_hlim = 128;
-	memcpy (&ping.ip6.ip6_src, src, sizeof (ping.ip6.ip6_src));
-	memcpy (&ping.ip6.ip6_dst, dst, sizeof (ping.ip6.ip6_dst));
+	ping.ip6.ip6_src = src->ip6;
+	ping.ip6.ip6_dst = *dst;
 	
 	ping.icmp6.icmp6_type = ICMP6_ECHO_REQUEST;
 	ping.icmp6.icmp6_code = 0;
@@ -344,14 +341,12 @@ int CheckPing (const teredo_packet *packet)
 		 || (ip6->ip6_nxt != IPPROTO_ICMPV6))
 			return -1;
 
-		uint16_t plen;
-		memcpy (&plen, &ip6->ip6_plen, sizeof (plen));
-		if (ntohs (plen) != (sizeof (*icmp6) + PING_PAYLOAD))
+		if (ntohs (ip6->ip6_plen) != (sizeof (*icmp6) + PING_PAYLOAD))
 			return -1; // not a ping from us
 
 		icmp6 = (const struct icmp6_hdr *)(ip6 + 1);
 
-		if (memcmp (&ip6->ip6_src, me, sizeof (*me))
+		if (!IN6_ARE_ADDR_EQUAL (&ip6->ip6_src, me)
 		 || (icmp6->icmp6_type != ICMP6_ECHO_REQUEST))
 			return -1;
 
@@ -377,7 +372,7 @@ int CheckPing (const teredo_packet *packet)
 		 * overkill, and might not even work properly depending on the cuplrit
 		 * firewall rules.
 		 */
-		if (memcmp (&ip6->ip6_dst, it, sizeof (*it)))
+		if (!IN6_ARE_ADDR_EQUAL (&ip6->ip6_dst, it))
 			return -1;
 
 		me = &ip6->ip6_src;
@@ -430,6 +425,7 @@ BuildICMPv6Error (struct icmp6_hdr *restrict out, uint8_t type, uint8_t code,
 	if (inlen > 1280 - (sizeof (struct ip6_hdr) + sizeof (struct icmp6_hdr)))
 		inlen = 1280 - (sizeof (struct ip6_hdr) + sizeof (struct icmp6_hdr));
 
+	/* TODO: use iovecs */
 	memcpy (out + 1, in, inlen);
 
 	return sizeof (*out) + inlen;
