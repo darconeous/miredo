@@ -105,49 +105,47 @@ static void logger (void *dummy, bool error, const char *fmt, va_list ap)
 extern int
 miredo (const char *confpath, const char *server_name, int pidfd)
 {
-	int facility = LOG_DAEMON, retval;
-	openlog (miredo_name, LOG_PID | LOG_PERROR, facility);
-
+	sigset_t set, exit_set, reload_set;
+	int retval;
 	miredo_conf *cnf = miredo_conf_create (logger, NULL);
+
 	if (cnf == NULL)
 		return -1;
 
-	sigset_t set, oldset;
 	sigemptyset (&set);
 
+	/* Exit signals */
 	sigaddset (&set, SIGINT);
 	sigaddset (&set, SIGQUIT);
 	sigaddset (&set, SIGTERM);
 	sigaddset (&set, SIGCHLD);
-	sigset_t exit_set = set;
+	exit_set = set;
 
+	/* Reload signal */
 	sigaddset (&set, SIGHUP);
-	sigset_t reload_set = set;
+	reload_set = set;
 
+	/* No-op signal */
 	sigaddset (&set, SIGPIPE);
 
-	pthread_sigmask (SIG_BLOCK, &set, &oldset);
+	pthread_sigmask (SIG_BLOCK, &set, NULL);
+
+	openlog (miredo_name, LOG_PID | LOG_PERROR, LOG_DAEMON);
 
 	do
 	{
+		int facility = LOG_DAEMON;
 		retval = 1;
 
 		if (!miredo_conf_read_file (cnf, confpath))
-		{
 			syslog (LOG_WARNING, _("Loading configuration from %s failed"),
 			        confpath);
-		}
 
-		int newfac = LOG_DAEMON;
-		miredo_conf_parse_syslog_facility (cnf, "SyslogFacility", &newfac);
+		miredo_conf_parse_syslog_facility (cnf, "SyslogFacility",
+		                                   &facility);
 
-		// Apply syslog facility change if needed
-		if (newfac != facility)
-		{
-			closelog ();
-			facility = newfac;
-			openlog (miredo_name, LOG_PID, facility);
-		}
+		closelog ();
+		openlog (miredo_name, LOG_PID | LOG_PERROR, facility);
 		syslog (LOG_INFO, _("Starting..."));
 
 		// Starts the main miredo process
@@ -173,44 +171,48 @@ miredo (const char *confpath, const char *server_name, int pidfd)
 		}
 
 		// Waits until the miredo process terminates
-		int val = 0, status;
-		while (sigwait (&set, &val) || !sigismember (&reload_set, val));
+		int signum;
+		do
+			sigwait (&set, &signum);
+		while (!sigismember (&reload_set, signum));
 
-		if (sigismember (&exit_set, val))
+		if (sigismember (&exit_set, signum))
 		{
 			syslog (LOG_NOTICE, _("Exiting on signal %d (%s)"),
-			        val, strsignal (val));
+			        signum, strsignal (signum));
 			retval = 0;
 		}
 		else
 		{
 			syslog (LOG_NOTICE,
 			        _("Reloading configuration on signal %d (%s)"),
-			        val, strsignal (val));
+			        signum, strsignal (signum));
 			retval = 2;
 		}
 
 		/* Terminate children (if not already done) */
-		if (val != SIGCHLD)
+		if (signum != SIGCHLD)
 			kill (pid, SIGTERM);
+
+		int status;
 		while (waitpid (pid, &status, 0) == -1);
 
 		if (WIFEXITED (status))
 		{
-			val = WEXITSTATUS (status);
+			status = WEXITSTATUS (status);
 			syslog (LOG_NOTICE, _("Child %d exited (code: %d)"),
-			        (int)pid, val);
-			if (val)
+			        (int)pid, status);
+			if (status)
 				retval = 1;
 		}
 		else
 		if (WIFSIGNALED (status))
 		{
-			val = WTERMSIG (status);
+			signum = WTERMSIG (status);
 			syslog (LOG_INFO, _("Child %d killed by signal %d (%s)"),
-			        (int)pid, val, strsignal (val));
+			        (int)pid, signum, strsignal (signum));
 			retval = 2;
-			/* TODO: exponential restart delay */
+			sleep (1);
 		}
 	}
 	while (retval == 2);
