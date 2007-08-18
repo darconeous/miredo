@@ -254,7 +254,6 @@ static int teredo_recv_inner (int fd, struct teredo_packet *p, int flags)
 		p->orig_ipv4 = ~addr;
 	}
 
-	assert (length <= 65507);
 	p->ip6_len = length;
 	p->ip6 = (struct ip6_hdr *)ptr;
 

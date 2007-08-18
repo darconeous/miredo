@@ -48,16 +48,17 @@ typedef struct teredo_packet
 	/** authentication header confirmation byte, 0 if nonce == NULL */
 	uint8_t  auth_conf_byte;
 
-	/** (unaligned) IPv6 packet (header + payload) */
+	/** IPv6 packet (header + payload) */
 	struct ip6_hdr *ip6;
 	/** IPv6 packet byte size, possibly < 40 for invalid packets */
-	uint16_t ip6_len;
+	size_t ip6_len;
 
 	/** @note IPv4 and UDP port numbers are always in network byte order */
 	/** @note Origin indication data is de-obfuscated */
 
 	/** Source IPv4 address */
 	uint32_t source_ipv4;
+
 	/** Source UDP port */
 	uint16_t source_port;
 
