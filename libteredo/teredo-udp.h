@@ -67,7 +67,11 @@ typedef struct teredo_packet
 	uint8_t  auth_nonce[8];
 
 	/** Internal buffer for UDP datagram reception */
-	uint8_t  buf[TEREDO_PACKET_SIZE+7];
+	union
+	{
+		uint64_t align[1];
+		uint8_t fill[TEREDO_PACKET_SIZE];
+	} buf;
 } teredo_packet;
 
 struct iovec;

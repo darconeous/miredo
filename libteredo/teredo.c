@@ -170,7 +170,7 @@ static int teredo_recv_inner (int fd, struct teredo_packet *p, int flags)
 	struct sockaddr_in ad;
 	struct iovec iov =
 	{
-		.iov_base = p->buf,
+		.iov_base = p->buf.fill,
 		.iov_len = TEREDO_PACKET_SIZE
 	};
 	struct msghdr msg =
@@ -191,7 +191,7 @@ static int teredo_recv_inner (int fd, struct teredo_packet *p, int flags)
 	p->source_ipv4 = ad.sin_addr.s_addr;
 	p->source_port = ad.sin_port;
 
-	uint8_t *ptr = p->buf;
+	uint8_t *ptr = p->buf.fill;
 
 	p->auth_present = false;
 	p->orig_ipv4 = 0;
@@ -223,16 +223,13 @@ static int teredo_recv_inner (int fd, struct teredo_packet *p, int flags)
 		memcpy (p->auth_nonce, ptr, 8);
 		ptr += 8;
 		p->auth_fail = !!*ptr;
-		ptr ++;
+		ptr++;
 
 		/* Restore 64-bits alignment of IPv6 and ICMPv6 headers */
-		uint8_t *tgt = p->buf + ((ptr + 7 - p->buf) & ~7);
-		if (tgt != ptr)
-		{
-			memmove (tgt, ptr, length);
-			ptr = tgt;
-		}
-
+		/* Per ISO/IEC 9899:TC2 §6.5.8.8: All pointers to members of the same
+		 * union object compare equal. */
+		memmove (p->buf.align, ptr, length);
+		ptr = p->buf.fill;
 	}
 
 	// Teredo Origin Indication
