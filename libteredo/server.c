@@ -53,6 +53,7 @@
 #include "teredo-udp.h"
 #include "checksum.h"
 #include "debug.h"
+#include "packets.h"
 
 static pthread_mutex_t raw_mutex = PTHREAD_MUTEX_INITIALIZER;
 static int raw_fd; // raw IPv6 socket
@@ -307,7 +308,7 @@ teredo_process_packet (const teredo_server *s, bool sec)
 	// NOTE: ptr is not aligned => read single bytes only
 
 	// Teredo server case number 2
-	if (((ip6->ip6_nxt != IPPROTO_NONE) || (ip6len > 0)) // neither a bubble...
+	if (!IsBubble (ip6) // neither a bubble...
 	 && (ip6->ip6_nxt != IPPROTO_ICMPV6)) // nor an ICMPv6 message
 		return -2; // packet not allowed through server
 
