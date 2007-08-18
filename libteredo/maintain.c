@@ -115,7 +115,7 @@ static int getipv4byname (const char *restrict name, uint32_t *restrict ipv4)
 	if (val)
 		return val;
 
-	memcpy (ipv4, &((const struct sockaddr_in *)(res->ai_addr))->sin_addr, 4);
+	*ipv4 = ((const struct sockaddr_in *)(res->ai_addr))->sin_addr.s_addr;
 	freeaddrinfo (res);
 
 	return 0;
@@ -212,7 +212,7 @@ checkTimeDrift (struct timespec *ts)
 	{
 		/* process stopped, CPU starved, or (ACPI, APM, etc) suspend */
 		syslog (LOG_WARNING, _("Too much time drift. Resynchronizing."));
-		memcpy (ts, &now, sizeof (*ts));
+		*ts = now;
 		return false;
 	}
 	return true;
@@ -368,17 +368,17 @@ void maintenance_thread (teredo_maintenance *m)
 
 			/* 12-bits Teredo flags randomization */
 			newaddr.teredo.flags = c_state->addr.teredo.flags;
-			if (memcmp (&c_state->addr, &newaddr, sizeof (newaddr)))
+			if (!IN6_ARE_ADDR_EQUAL (&c_state->addr, &newaddr))
 			{
 				uint16_t f = teredo_get_flbits (deadline.tv_sec);
 				newaddr.teredo.flags = f & htons (0x3cff);
 			}
 
 			if ((!c_state->up)
-			 || memcmp (&c_state->addr, &newaddr, sizeof (c_state->addr))
+			 || !IN6_ARE_ADDR_EQUAL (&c_state->addr, &newaddr)
 			 || (c_state->mtu != mtu))
 			{
-				memcpy (&c_state->addr, &newaddr, sizeof (c_state->addr));
+				c_state->addr = newaddr;
 				c_state->mtu = mtu;
 				c_state->up = true;
 
@@ -510,7 +510,7 @@ int teredo_maintenance_process (teredo_maintenance *restrict m,
 	if ((packet->source_port != htons (IPPORT_TEREDO))
 	    /* TODO: check for primary or secondary server address */
 	 || (packet->auth_nonce == NULL)
-	 || memcmp (&packet->ip6->ip6_dst, &teredo_restrict, 16))
+	 || !IN6_ARE_ADDR_EQUAL (&packet->ip6->ip6_dst, &teredo_restrict))
 		return -1;
 
 	pthread_mutex_lock (&m->outer);
