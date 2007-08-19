@@ -14,7 +14,7 @@ changes, run “miredo -h” to get help. For detailled internal changes, see
 ChangeLog.
 
 ===========================================================================
-STABLE RELEASE 1.1.0 : Minor features enhancement
+TEST RELEASE 1.1.0 : Minor features enhancement
 
 # Add 12 bits of randomness to Teredo client address:
   Teredo addresses are less predictible, which should enhance host
