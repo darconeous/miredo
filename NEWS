@@ -14,7 +14,11 @@ changes, run “miredo -h” to get help. For detailled internal changes, see
 ChangeLog.
 
 ===========================================================================
-TEST RELEASE 1.1.0 : Minor features enhancement
+TEST RELEASE 1.1.0 : Major features enhancement
+
+# Remove NAT type determination:
+  Miredo now runs behind any type of NAT. However, connectivity might
+  be severely degraded behind the worst devices, such as symmetric NATs.
 
 # Add 12 bits of randomness to Teredo client address:
   Teredo addresses are less predictible, which should enhance host
