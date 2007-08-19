@@ -24,9 +24,10 @@
 #endif
 
 #include <time.h>
-#include <assert.h>
-#include <limits.h>
+#include <signal.h>
 #include <stdbool.h>
+#include <string.h>
+#include <limits.h> // DELAYTIMER_MAX
 
 #include <sys/types.h>
 #include <sys/time.h>
@@ -38,41 +39,33 @@
 
 typedef struct clock_data_t
 {
-	pthread_mutex_t   lock;
-	pthread_cond_t    cond;
-
+	timer_t           handle;
 	teredo_clock_t    value;
-	clockid_t         id;
-	bool              present;
 	bool              active;
 } clock_data_t;
 
 
-static LIBTEREDO_NORETURN void *clock_thread (void *o)
+static void clock_tick (union sigval val)
 {
-	clock_data_t *context = (clock_data_t *)o;
-	clockid_t id = context->id;
+	clock_data_t *context = (clock_data_t *)(val.sival_ptr);
 
-	for (;;)
-	{
-		struct timespec ts;
-		clock_gettime (id, &ts);
+	int orun = timer_getoverrun (context->handle);
+	context->value += 1 + orun;
 
-		pthread_mutex_lock (&context->lock);
-		context->value = ts.tv_sec;
-
-		if (!context->active)
-			/* Avoid polling when the process is idling */
-			pthread_cond_wait (&context->cond, &context->lock);
-
+	if (orun == DELAYTIMER_MAX)
+		/* We have a big problem, let next caller fix it */
 		context->active = false;
-		pthread_mutex_unlock (&context->lock);
 
-		ts.tv_sec++;
-		ts.tv_nsec = 0;
-
-		clock_nanosleep (id, TIMER_ABSTIME, &ts, NULL);
+	if (!context->active)
+	{
+		struct itimerspec it =
+		{
+			.it_value = { .tv_sec = 0, .tv_nsec = 0 },
+		};
+		timer_settime (context->handle, 0, &it, NULL);
 	}
+
+	context->active = false;
 }
 
 
@@ -80,47 +73,57 @@ unsigned long teredo_clock (void)
 {
 	static clock_data_t clk =
 	{
-		.lock = PTHREAD_MUTEX_INITIALIZER,
-		.cond = PTHREAD_COND_INITIALIZER,
 		.value = 0,
-		.id = CLOCK_REALTIME,
-		.present = false,
 		.active = false
 	};
+	static struct
+	{
+		pthread_mutex_t lock;
+		clockid_t       id;
+		bool            present;
+	} priv = { PTHREAD_MUTEX_INITIALIZER, CLOCK_REALTIME, false };
+
 	teredo_clock_t value;
 
-	pthread_mutex_lock (&clk.lock);
-	if (!clk.present)
+	pthread_mutex_lock (&priv.lock);
+	if (!priv.present)
 	{
-		pthread_t th;
+		struct sigevent ev;
+
+		memset (&ev, 0, sizeof (ev));
+		ev.sigev_notify = SIGEV_THREAD;
+		ev.sigev_value.sival_ptr = &clk;
+		ev.sigev_notify_function = clock_tick;
 
 #if (_POSIX_CLOCK_SELECTION - 0 >= 0) && (_POSIX_MONOTONIC_CLOCK - 0 >= 0)
 		/* Run-time POSIX monotonic clock detection */
 		struct timespec res;
 		if (clock_getres (CLOCK_MONOTONIC, &res) == 0)
-			clk.id = CLOCK_MONOTONIC;
+			priv.id = CLOCK_MONOTONIC;
 #endif
 
-		if (pthread_create (&th, NULL, clock_thread, &clk) == 0)
-		{
-			pthread_detach (th);
-			clk.present = true;
-		}
+		if (timer_create (priv.id, &ev, &clk.handle) == 0)
+			priv.present = true;
 	}
 
 	if (!clk.active)
 	{
-		struct timespec ts;
+		struct itimerspec it;
 
-		clock_gettime (clk.id, &ts);
-		clk.value = ts.tv_sec;
+		clock_gettime (priv.id, &it.it_value);
+		clk.value = it.it_value.tv_sec;
+
+		it.it_value.tv_sec++;
+		it.it_value.tv_nsec = 0;
+		it.it_interval.tv_sec = 1;
+		it.it_interval.tv_nsec = 0;
 
 		clk.active = true;
-		pthread_cond_signal (&clk.cond);
+		timer_settime (clk.handle, TIMER_ABSTIME, &it, NULL);
 	}
 
 	value = clk.value;
-	pthread_mutex_unlock (&clk.lock);
+	pthread_mutex_unlock (&priv.lock);
 
 	return value;
 }
