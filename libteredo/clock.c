@@ -113,13 +113,16 @@ unsigned long teredo_clock (void)
 		clock_gettime (priv.id, &it.it_value);
 		clk.value = it.it_value.tv_sec;
 
-		it.it_value.tv_sec++;
-		it.it_value.tv_nsec = 0;
-		it.it_interval.tv_sec = 1;
-		it.it_interval.tv_nsec = 0;
+		if (priv.present)
+		{
+			it.it_value.tv_sec++;
+			it.it_value.tv_nsec = 0;
+			it.it_interval.tv_sec = 1;
+			it.it_interval.tv_nsec = 0;
 
-		clk.active = true;
-		timer_settime (clk.handle, TIMER_ABSTIME, &it, NULL);
+			clk.active = true;
+			timer_settime (clk.handle, TIMER_ABSTIME, &it, NULL);
+		}
 	}
 
 	value = clk.value;
