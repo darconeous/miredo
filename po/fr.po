@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: miredo 0.8.1\n"
 "Report-Msgid-Bugs-To: miredo-devel_no_bulk_mail@remlab.net\n"
-"POT-Creation-Date: 2007-08-14 20:01+0300\n"
+"POT-Creation-Date: 2007-08-19 14:36+0300\n"
 "PO-Revision-Date: 2006-03-20 15:36+0100\n"
 "Last-Translator: Rémi Denis-Courmont <rdenis (at) simphalempin (dot) com>\n"
 "Language-Team: N/A\n"
@@ -16,55 +16,55 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: libteredo/server.c:410 libteredo/server.c:464 src/isatapd.c:72
+#: libteredo/server.c:403 libteredo/server.c:457 src/isatapd.c:72
 #, c-format
 msgid "Raw IPv6 socket not working: %s"
 msgstr "Socket IPv6 brute (« raw ») non disponible : %s"
 
-#: libteredo/server.c:472
+#: libteredo/server.c:465
 msgid ""
 "Teredo server UDP socket error: Server IPv4 addresses must be global unicast."
 msgstr ""
 "Erreur de socket UDP de serveur Teredo : l’adresse IPv4 de serveur doit être "
 "globale unicast."
 
-#: libteredo/server.c:505 libteredo/server.c:516 libteredo/maintain.c:471
+#: libteredo/server.c:498 libteredo/server.c:509 libteredo/maintain.c:472
 #: libtun6/tun6.c:628 src/main.c:143 src/main.c:511 src/miredo.c:70
-#: src/miredo.c:78 src/miredo.c:159
+#: src/miredo.c:78 src/miredo.c:157
 #, c-format
 msgid "Error (%s): %s\n"
 msgstr "Erreur (%s) : %s\n"
 
-#: libteredo/packets.c:221
+#: libteredo/packets.c:220
 msgid "Multiple Teredo prefixes received"
 msgstr "Plusieurs préfixes Teredo reçus"
 
-#: libteredo/maintain.c:143
+#: libteredo/maintain.c:144
 msgid "Authentication with server failed."
 msgstr "Authentification refusée par le serveur."
 
-#: libteredo/maintain.c:214
+#: libteredo/maintain.c:215
 msgid "Too much time drift. Resynchronizing."
 msgstr "Décalage temporel trop important. Re-synchronisation."
 
-#: libteredo/maintain.c:280
+#: libteredo/maintain.c:281
 #, c-format
 msgid "Cannot resolve Teredo server address \"%s\": %s"
 msgstr "Impossible de déterminer l’adresse du serveur Teredo « %s » : %s"
 
-#: libteredo/maintain.c:287
+#: libteredo/maintain.c:288
 msgid "Teredo server has a non global IPv4 address."
 msgstr "Le serveur a une adresse IPv4 non globale."
 
-#: libteredo/maintain.c:348
+#: libteredo/maintain.c:349
 msgid "No reply from Teredo server"
 msgstr "Pas de réponse du serveur Teredo"
 
-#: libteredo/maintain.c:354
+#: libteredo/maintain.c:355
 msgid "Lost Teredo connectivity"
 msgstr "Connectivité Teredo perdue"
 
-#: libteredo/maintain.c:385
+#: libteredo/maintain.c:386
 msgid "New Teredo address/MTU"
 msgstr "Nouvelle adresse/MTU Teredo"
 
@@ -211,12 +211,12 @@ msgstr ""
 "Impossible de créer le fichier de PID %s :\n"
 " %s\n"
 
-#: src/miredo.c:137
+#: src/miredo.c:141
 #, c-format
 msgid "Loading configuration from %s failed"
 msgstr "Échec du chargement de la configuration depuis %s"
 
-#: src/miredo.c:151
+#: src/miredo.c:149
 msgid "Starting..."
 msgstr "Démarrage..."
 
@@ -230,21 +230,21 @@ msgstr "Arrêt suite au signal %d (%s)"
 msgid "Reloading configuration on signal %d (%s)"
 msgstr "Rechargement de la configuration suite au signal %d (%s)"
 
-#: src/miredo.c:201
+#: src/miredo.c:203
 #, c-format
 msgid "Child %d exited (code: %d)"
 msgstr "Fils %d terminé (code de retour : %d)"
 
-#: src/miredo.c:210
+#: src/miredo.c:212
 #, c-format
 msgid "Child %d killed by signal %d (%s)"
 msgstr "Fils %d tué par le signal %d (%s)"
 
-#: src/miredo.c:221
+#: src/miredo.c:223
 msgid "Terminated with error(s)."
 msgstr "Terminé avec une/des erreur(s)."
 
-#: src/miredo.c:222
+#: src/miredo.c:224
 msgid "Terminated with no error."
 msgstr "Terminé sans erreur."
 

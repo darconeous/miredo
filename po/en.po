@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: miredo 0.8.1\n"
 "Report-Msgid-Bugs-To: miredo-devel_no_bulk_mail@remlab.net\n"
-"POT-Creation-Date: 2007-08-14 20:01+0300\n"
+"POT-Creation-Date: 2007-08-19 14:36+0300\n"
 "PO-Revision-Date: 2005-03-10 14:32+0100\n"
 "Last-Translator: Rémi Denis-Courmont <rdenis (at) simphalempin (dot) com>\n"
 "Language-Team: N/A\n"
@@ -16,53 +16,53 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: libteredo/server.c:410 libteredo/server.c:464 src/isatapd.c:72
+#: libteredo/server.c:403 libteredo/server.c:457 src/isatapd.c:72
 #, c-format
 msgid "Raw IPv6 socket not working: %s"
 msgstr ""
 
-#: libteredo/server.c:472
+#: libteredo/server.c:465
 msgid ""
 "Teredo server UDP socket error: Server IPv4 addresses must be global unicast."
 msgstr ""
 
-#: libteredo/server.c:505 libteredo/server.c:516 libteredo/maintain.c:471
+#: libteredo/server.c:498 libteredo/server.c:509 libteredo/maintain.c:472
 #: libtun6/tun6.c:628 src/main.c:143 src/main.c:511 src/miredo.c:70
-#: src/miredo.c:78 src/miredo.c:159
+#: src/miredo.c:78 src/miredo.c:157
 #, c-format
 msgid "Error (%s): %s\n"
 msgstr ""
 
-#: libteredo/packets.c:221
+#: libteredo/packets.c:220
 msgid "Multiple Teredo prefixes received"
 msgstr ""
 
-#: libteredo/maintain.c:143
+#: libteredo/maintain.c:144
 msgid "Authentication with server failed."
 msgstr ""
 
-#: libteredo/maintain.c:214
+#: libteredo/maintain.c:215
 msgid "Too much time drift. Resynchronizing."
 msgstr ""
 
-#: libteredo/maintain.c:280
+#: libteredo/maintain.c:281
 #, c-format
 msgid "Cannot resolve Teredo server address \"%s\": %s"
 msgstr "Cannot resolve Teredo server address “%s”: %s"
 
-#: libteredo/maintain.c:287
+#: libteredo/maintain.c:288
 msgid "Teredo server has a non global IPv4 address."
 msgstr ""
 
-#: libteredo/maintain.c:348
+#: libteredo/maintain.c:349
 msgid "No reply from Teredo server"
 msgstr ""
 
-#: libteredo/maintain.c:354
+#: libteredo/maintain.c:355
 msgid "Lost Teredo connectivity"
 msgstr ""
 
-#: libteredo/maintain.c:385
+#: libteredo/maintain.c:386
 msgid "New Teredo address/MTU"
 msgstr ""
 
@@ -189,12 +189,12 @@ msgid ""
 " %s\n"
 msgstr ""
 
-#: src/miredo.c:137
+#: src/miredo.c:141
 #, c-format
 msgid "Loading configuration from %s failed"
 msgstr ""
 
-#: src/miredo.c:151
+#: src/miredo.c:149
 msgid "Starting..."
 msgstr ""
 
@@ -208,21 +208,21 @@ msgstr ""
 msgid "Reloading configuration on signal %d (%s)"
 msgstr ""
 
-#: src/miredo.c:201
+#: src/miredo.c:203
 #, c-format
 msgid "Child %d exited (code: %d)"
 msgstr ""
 
-#: src/miredo.c:210
+#: src/miredo.c:212
 #, c-format
 msgid "Child %d killed by signal %d (%s)"
 msgstr ""
 
-#: src/miredo.c:221
+#: src/miredo.c:223
 msgid "Terminated with error(s)."
 msgstr ""
 
-#: src/miredo.c:222
+#: src/miredo.c:224
 msgid "Terminated with no error."
 msgstr ""
 
