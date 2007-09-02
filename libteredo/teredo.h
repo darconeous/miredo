@@ -127,37 +127,12 @@ enum
 	teredo_auth_hdr
 };
 
-struct teredo_hdr_common
-{
-	uint8_t zero;
-	uint8_t code;
-};
-
 struct teredo_orig_ind /* code == 1 */
 {
-	struct teredo_hdr_common hdr;
+	uint8_t  orig_zero;
+	uint8_t  orig_code;
 	uint16_t orig_port; /* obfuscated port number in network byte order */
 	uint32_t orig_addr; /* obfuscated IPv4 address in network byte order */
-};
-
-struct teredo_auth_hdr
-{
-	struct teredo_hdr_common hdr;
-	uint8_t id_len;
-	uint8_t au_len;
-	/* client id and auth value follows */
-};
-
-/* 
- * Minimal Teredo auth header
- * BIG FAT WARNING:
- * This structure will probably break alignement in your Teredo packets.
- */
-struct teredo_simple_auth
-{
-	struct teredo_auth_hdr hdr;
-	uint8_t nonce[8];
-	uint8_t confirmation;
 };
 
 #endif /* ifndef MIREDO_INCLUDE_TEREDO_H */

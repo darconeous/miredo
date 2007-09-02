@@ -119,22 +119,22 @@ int
 teredo_send_rs (int fd, uint32_t server_ip,
                 const unsigned char *nonce, bool cone)
 {
-	struct teredo_simple_auth auth;
+	uint8_t auth[13] = { 0, 1 };
 	struct
 	{
 		struct ip6_hdr ip6;
 		struct nd_router_solicit rs;
 	} rs;
-	struct iovec iov[2] = { { &auth, 13 }, { &rs, sizeof (rs) } };
+	struct iovec iov[] =
+	{
+		{ auth, 13 },
+		{ &rs, sizeof (rs) }
+	};
 
 	// Authentication header
 	// TODO: secure qualification
 
-	auth.hdr.hdr.zero = 0;
-	auth.hdr.hdr.code = teredo_auth_hdr;
-	auth.hdr.id_len = auth.hdr.au_len = 0;
-	memcpy (auth.nonce, nonce, 8);
-	auth.confirmation = 0;
+	memcpy (auth + 4, nonce, 8);
 
 	rs.ip6.ip6_flow = htonl (0x60000000);
 	rs.ip6.ip6_plen = htons (sizeof (rs) - sizeof (rs.ip6));
@@ -149,8 +149,8 @@ teredo_send_rs (int fd, uint32_t server_ip,
 	rs.rs.nd_rs_cksum = cone ? htons (0x125d) : htons (0x7d37);
 	rs.rs.nd_rs_reserved = 0;
 
-	return teredo_sendv (fd, iov, 2, server_ip, htons (IPPORT_TEREDO)) > 0
-			? 0 : -1;
+	return (teredo_sendv (fd, iov, sizeof (iov) / sizeof (iov[0]),
+	                      server_ip, htons (IPPORT_TEREDO)) > 0) ? 0 : -1;
 }
 
 

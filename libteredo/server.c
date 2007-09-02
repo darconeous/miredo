@@ -80,8 +80,7 @@ SendRA (const teredo_server *restrict s, const struct teredo_packet *p,
 {
 	const uint8_t *nonce;
 	union teredo_addr *addr;
-	struct iovec iov[3];
-	struct teredo_simple_auth auth;
+	uint8_t auth[13] = { 0, 1 };
 	struct teredo_orig_ind orig;
 	struct
 	{
@@ -90,40 +89,30 @@ SendRA (const teredo_server *restrict s, const struct teredo_packet *p,
 		struct nd_opt_prefix_info pi;
 		struct nd_opt_mtu         mtu;
 	} ra;
+	struct iovec iov[] =
+	{
+		{ auth, 13 },
+		{ &orig, 8 },
+		{ &ra, sizeof (ra) }
+	};
 
 	// Authentification header
 	// TODO: support for secure qualification
-	iov[0].iov_base = &auth;
-
 	nonce = p->auth_nonce;
 	if (nonce != NULL)
-	{
-		//memset (&auth, 0, sizeof (auth));
-		auth.hdr.hdr.zero = 0;
-		auth.hdr.hdr.code = teredo_auth_hdr;
-		auth.hdr.id_len = auth.hdr.au_len = 0;
-		memcpy (&auth.nonce, nonce, 8);
-		auth.confirmation = 0;
-
-		iov[0].iov_len = 13;
-	}
+		memcpy (auth + 4, nonce, 8);
 	else
 		iov[0].iov_len = 0;
 
 	// Origin indication header
 	//memset (&orig, 0, sizeof (orig));
-	iov[1].iov_base = &orig;
-	iov[1].iov_len = 8;
-	orig.hdr.zero = 0;
-	orig.hdr.code = teredo_orig_ind;
+	orig.orig_zero = 0;
+	orig.orig_code = teredo_orig_ind;
 	orig.orig_port = ~p->source_port; // obfuscate
 	orig.orig_addr = ~p->source_ipv4; // obfuscate
 
 	// IPv6 header
 	memset (&ra, 0, sizeof (ra));
-	iov[2].iov_base = &ra;
-	iov[2].iov_len = sizeof (ra);
-
 	ra.ip6.ip6_flow = htonl (0x60000000);
 	ra.ip6.ip6_plen = htons (sizeof (ra) - sizeof (ra.ip6));
 	ra.ip6.ip6_nxt = IPPROTO_ICMPV6;
@@ -195,8 +184,8 @@ teredo_forward_udp (int fd, const struct teredo_packet *packet,
 	if (insert_orig)
 	{
 		iov[0].iov_len = sizeof (orig);
-		orig.hdr.zero = 0;
-		orig.hdr.code = teredo_orig_ind;
+		orig.orig_zero = 0;
+		orig.orig_code = teredo_orig_ind;
 		orig.orig_port = ~packet->source_port; // obfuscate
 		orig.orig_addr = ~packet->source_ipv4; // obfuscate
 	}
