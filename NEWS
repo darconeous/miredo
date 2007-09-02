@@ -14,6 +14,11 @@ changes, run “miredo -h” to get help. For detailled internal changes, see
 ChangeLog.
 
 ===========================================================================
+TEST RELEASE 1.1.1 : Minor bug fixes
+
+# Fix fatal padding mistake on old ABI ARM achitecture.
+
+===========================================================================
 TEST RELEASE 1.1.0 : Major features enhancement
 
 # Remove NAT type determination:
