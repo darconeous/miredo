@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: miredo 0.8.1\n"
 "Report-Msgid-Bugs-To: miredo-devel_no_bulk_mail@remlab.net\n"
-"POT-Creation-Date: 2007-08-19 14:36+0300\n"
+"POT-Creation-Date: 2007-09-02 22:38+0300\n"
 "PO-Revision-Date: 2006-03-20 15:36+0100\n"
 "Last-Translator: Rémi Denis-Courmont <rdenis (at) simphalempin (dot) com>\n"
 "Language-Team: N/A\n"
@@ -16,19 +16,19 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: libteredo/server.c:403 libteredo/server.c:457 src/isatapd.c:72
+#: libteredo/server.c:392 libteredo/server.c:446 src/isatapd.c:72
 #, c-format
 msgid "Raw IPv6 socket not working: %s"
 msgstr "Socket IPv6 brute (« raw ») non disponible : %s"
 
-#: libteredo/server.c:465
+#: libteredo/server.c:454
 msgid ""
 "Teredo server UDP socket error: Server IPv4 addresses must be global unicast."
 msgstr ""
 "Erreur de socket UDP de serveur Teredo : l’adresse IPv4 de serveur doit être "
 "globale unicast."
 
-#: libteredo/server.c:498 libteredo/server.c:509 libteredo/maintain.c:472
+#: libteredo/server.c:487 libteredo/server.c:498 libteredo/maintain.c:472
 #: libtun6/tun6.c:628 src/main.c:143 src/main.c:511 src/miredo.c:70
 #: src/miredo.c:78 src/miredo.c:157
 #, c-format
