@@ -428,16 +428,14 @@ int miredo_main (int argc, char *argv[])
 		return error_extra (username);
 #endif
 
-	size_t str_len;
-	char *path;
+	size_t str_len = 0;
+	char *path = NULL;
 	if (conffile == NULL)
 	{
 		path = br_find_etc_dir (SYSCONFDIR);
 		str_len = strlen (path) + strlen (miredo_name)
 		                        + sizeof ("/miredo/.conf");
 	}
-	else
-		str_len = 0;
 
 	char conffile_buf[str_len];
 	if (conffile == NULL)
