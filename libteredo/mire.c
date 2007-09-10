@@ -266,10 +266,10 @@ int main(int argc, char *argv[])
 	int socks[2] = { -1, -1 }, retval = -1;
 	pthread_t thserv;
 
-	socks[0] = teredo_socket (0, htons (3544));
+	socks[0] = teredo_socket (0, htons (IPPORT_TEREDO));
 	if (socks[0] != -1)
 	{
-		socks[1] = teredo_socket (0, htons (3545));
+		socks[1] = teredo_socket (0, htons (IPPORT_TEREDO + 1));
 		if (socks[1] != -1)
 		{
 			errno = pthread_create (&thserv, NULL, server_thread, socks);

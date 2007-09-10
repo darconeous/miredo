@@ -333,7 +333,7 @@ accept:
 	/* Security fix: Prevent infinite local UDP packet loops */
 	if (((packet.source_ipv4 == s->server_ip)
 	  || (packet.source_ipv4 == s->server_ip2))
-	 && (packet.source_port == htons (3544)))
+	 && (packet.source_port == htons (IPPORT_TEREDO)))
 		return -2;
 
 	if (IN6_ARE_ADDR_EQUAL (&in6addr_allrouters, &ip6->ip6_dst)
