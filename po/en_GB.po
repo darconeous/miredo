@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: miredo 0.8.1\n"
 "Report-Msgid-Bugs-To: miredo-devel_no_bulk_mail@remlab.net\n"
-"POT-Creation-Date: 2007-09-02 22:38+0300\n"
+"POT-Creation-Date: 2007-09-13 20:38+0300\n"
 "PO-Revision-Date: 2006-03-20 15:39+0100\n"
 "Last-Translator: Rémi Denis-Courmont <rdenis (at) simphalempin (dot) com>\n"
 "Language-Team: N/A\n"
@@ -26,8 +26,8 @@ msgid ""
 "Teredo server UDP socket error: Server IPv4 addresses must be global unicast."
 msgstr ""
 
-#: libteredo/server.c:487 libteredo/server.c:498 libteredo/maintain.c:472
-#: libtun6/tun6.c:628 src/main.c:143 src/main.c:511 src/miredo.c:70
+#: libteredo/server.c:487 libteredo/server.c:498 libteredo/maintain.c:473
+#: libtun6/tun6.c:628 src/main.c:143 src/main.c:509 src/miredo.c:70
 #: src/miredo.c:78 src/miredo.c:157
 #, c-format
 msgid "Error (%s): %s\n"
@@ -62,7 +62,7 @@ msgstr ""
 msgid "Lost Teredo connectivity"
 msgstr ""
 
-#: libteredo/maintain.c:386
+#: libteredo/maintain.c:387
 msgid "New Teredo address/MTU"
 msgstr ""
 
@@ -72,7 +72,7 @@ msgstr ""
 msgid "Tunneling driver error (%s): %s"
 msgstr "Tunnelling driver error (%s): %s"
 
-#: libtun6/tun6.c:199 src/main.c:503
+#: libtun6/tun6.c:199 src/main.c:501
 msgid ""
 "Please make sure another instance of the program is not already running."
 msgstr ""
@@ -195,12 +195,12 @@ msgstr ""
 msgid "SetUID to root: %s\n"
 msgstr ""
 
-#: src/main.c:454
+#: src/main.c:452
 #, c-format
 msgid "Reading configuration from %s: %s\n"
 msgstr ""
 
-#: src/main.c:499
+#: src/main.c:497
 #, c-format
 msgid ""
 "Cannot create PID file %s:\n"
