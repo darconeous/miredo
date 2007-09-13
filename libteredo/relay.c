@@ -96,21 +96,6 @@ struct teredo_tunnel
 #endif
 #define ICMP_RATE_LIMIT_MS 100
 
-#ifndef NDEBUG
-# include <syslog.h>
-# include <stdarg.h>
-
-static inline void debug (const char *str, ...)
-{
-	va_list ap;
-	va_start (ap, str);
-	vsyslog (LOG_DEBUG, str, ap);
-	va_end (ap);
-}
-#else
-#define debug( ... ) (void)0
-#endif
-
 #if 0
 static unsigned QualificationRetries; // maintain.c
 static unsigned QualificationTimeOut; // maintain.c
