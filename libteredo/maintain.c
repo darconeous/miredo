@@ -372,7 +372,8 @@ void maintenance_thread (teredo_maintenance *m)
 			if (!IN6_ARE_ADDR_EQUAL (&c_state->addr, &newaddr))
 			{
 				uint16_t f = teredo_get_flbits (deadline.tv_sec);
-				newaddr.teredo.flags = f & htons (0x3cff);
+				newaddr.teredo.flags =
+					f & htons (TEREDO_RANDOM_MASK);
 			}
 
 			if ((!c_state->up)
