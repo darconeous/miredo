@@ -1,6 +1,6 @@
 RELEASE NOTES for Miredo
-stable release version 1.1.1
-=============================
+test release version 1.1.2
+===========================
 $Id$
 
   This is a stable release. There are no known outstanding issues. We
@@ -12,6 +12,11 @@ fixes are included.
 informations on this program, see README. For syntax details and
 changes, run “miredo -h” to get help. For detailled internal changes, see
 ChangeLog.
+
+===========================================================================
+TEST RELEASE 1.1.2 : Minor bug fixes
+
+# Fix filtering error within miredo-server (regression from 1.1.0).
 
 ===========================================================================
 TEST RELEASE 1.1.1 : Minor bug fixes
