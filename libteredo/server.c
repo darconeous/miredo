@@ -350,7 +350,7 @@ accept:
 	}
 
 	/* Servers must not forward packets with non-global destination */
-	if (!IN6_IS_ADDR_GLOBAL (&ip6->ip6_src))
+	if (!IN6_IS_ADDR_GLOBAL (&ip6->ip6_dst))
 		return -2;
 
 	/*
