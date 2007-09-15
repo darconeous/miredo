@@ -291,7 +291,7 @@ static LIBTEREDO_NORETURN void *decap_thread (void *data)
 		ssize_t val = recv (conf.fd, &buf, sizeof (buf), 0);
 
 		if ((val < (ssize_t)sizeof (struct ip))
-		 || (ntohs (buf.ip4.ip_len) != val))
+		 || ((ssize_t)ntohs (buf.ip4.ip_len) != val))
 			continue;
 
 		val -= buf.ip4.ip_hl << 2;
