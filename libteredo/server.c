@@ -298,18 +298,16 @@ teredo_process_packet (const teredo_server *s, bool sec)
 
 	// Check IPv6 packet (Teredo server case number 1)
 	const struct ip6_hdr *ip6 = packet.ip6;
-	size_t ip6len = packet.ip6_len;
-	if (ip6len < sizeof (*ip6))
+	if (packet.ip6_len < sizeof (*ip6))
      	{
 		debug_error_header (&packet.source_ipv4, NULL, NULL);
-		debug ("Packet too small: %d bytes", ip6len);
+		debug ("Packet too small: %d bytes", packet.ip6_len);
 		return -2; // too small
 	}
 
-	ip6len -= sizeof (*ip6);
-
+	size_t plen = ntohs (ip6->ip6_plen);
 	if (((ip6->ip6_vfc >> 4) != 6)
-	 || (ntohs (ip6->ip6_plen) != ip6len))
+	 || ((sizeof (*ip6) + plen) > packet.ip6_len))
      	{
 		debug_error_header (&packet.source_ipv4, NULL, NULL);
 		debug ("Not an IPv6 packet: Version %d", ip6->ip6_vfc >> 4);
@@ -343,7 +341,7 @@ teredo_process_packet (const teredo_server *s, bool sec)
 	if (IN6_IS_ADDR_LINKLOCAL (&ip6->ip6_src)
 	 && IN6_ARE_ADDR_EQUAL (&in6addr_allrouters, &ip6->ip6_dst)
 	 && (ip6->ip6_nxt == IPPROTO_ICMPV6)
-	 && (ip6len >= sizeof (struct nd_router_solicit))
+	 && (plen >= sizeof (struct nd_router_solicit))
 	 && (((const struct icmp6_hdr *)(ip6 + 1))->icmp6_type == ND_ROUTER_SOLICIT))
 		goto accept;
 
@@ -390,7 +388,7 @@ accept:
 		const struct icmp6_hdr *icmp = (const struct icmp6_hdr *)(ip6 + 1);
 
 		if ((ip6->ip6_nxt == IPPROTO_ICMPV6)
-		 && (ip6len >= sizeof (struct nd_router_solicit))
+		 && (plen >= sizeof (struct nd_router_solicit))
 		 && (icmp->icmp6_type == ND_ROUTER_SOLICIT))
 			return SendRA (s, &packet, &ip6->ip6_src, sec) ? 1 : -1;
 		if(ip6->ip6_nxt == IPPROTO_ICMPV6)
@@ -431,16 +429,17 @@ accept:
 	 * hand, this is too small to hold application-layer packets such as
 	 * G711 VoIPv6 packets (220 bytes, if I remember correctly).
 	 */
-	if ((ip6->ip6_nxt != IPPROTO_NONE) && (ntohs (ip6->ip6_plen) > 88))
+	if ((ip6->ip6_nxt != IPPROTO_NONE) && (plen > 88))
      	{
 		debug_error_header (&packet.source_ipv4,
 		                    &ip6->ip6_src, &ip6->ip6_dst);
-		debug("ICMPv6 too large (%d bytes)", ntohs(ip6->ip6_plen));
+		debug ("ICMPv6 too large (%u bytes)", (unsigned)plen);
 		return -2;
 	}
 
 	if (IN6_TEREDO_PREFIX (&ip6->ip6_dst) != myprefix)
-		return teredo_send_ipv6 (packet.ip6, packet.ip6_len) ? 2 : -1;
+		return teredo_send_ipv6 (packet.ip6,
+		                         sizeof (*ip6) + plen) ? 2 : -1;
 
 	// Forwards packet over Teredo (destination is a Teredo IPv6 address)
 	return teredo_forward_udp (s->fd_primary, &packet,
