@@ -164,7 +164,7 @@ recv_packet (int fd, teredo_packet *p)
 	uint16_t plen;
 
 	// Check packet size
-	if ((p->ip6_len < sizeof (*ip6)) || (p->ip6_len > 1280))
+	if (p->ip6_len < sizeof (*ip6))
 		return -1;
 
 	// Check packet validity
@@ -175,7 +175,7 @@ recv_packet (int fd, teredo_packet *p)
 #endif
 
 	if (((ip6->ip6_vfc >> 4) != 6)
-	 || ((plen + sizeof (*ip6)) != p->ip6_len))
+	 || ((plen + sizeof (*ip6)) > p->ip6_len))
 		return -1;
 
 	return plen;
