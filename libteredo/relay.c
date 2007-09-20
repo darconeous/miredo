@@ -39,6 +39,7 @@
 #include <netinet/in.h>
 #include <netinet/ip6.h> // struct ip6_hdr
 #include <netinet/icmp6.h> // ICMP6_DST_UNREACH_*
+#include <arpa/inet.h> // inet_ntop()
 #include <pthread.h>
 
 #include "teredo.h"
@@ -318,6 +319,9 @@ int teredo_transmit (teredo_tunnel *restrict tunnel,
 
 	const union teredo_addr *dst =
 		(const union teredo_addr *)&packet->ip6_dst;
+#ifndef NDEBUG
+   	char b[INET6_ADDRSTRLEN];
+#endif
 
 	/* Drops multicast destination, we cannot handle these */
 	if (dst->ip6.s6_addr[0] == 0xff)
@@ -364,6 +368,8 @@ int teredo_transmit (teredo_tunnel *restrict tunnel,
 		{
 			// Teredo relays only routes toward Teredo clients.
 			// The routing table must be misconfigured.
+			debug ("Unacceptable destination: %s",
+			       inet_ntop (AF_INET6, &dst->ip6.s6_addr, b, sizeof b));
 			teredo_send_unreach (tunnel, ICMP6_DST_UNREACH_ADDR,
 			                     packet, length);
 			return 0;
@@ -388,24 +394,24 @@ int teredo_transmit (teredo_tunnel *restrict tunnel,
 		 */
 		uint32_t peer_server = IN6_TEREDO_SERVER (dst);
 		if (!is_ipv4_global_unicast (peer_server) || (peer_server == 0))
+	     	{
+			char b[INET_ADDRSTRLEN];
+			debug ("Non global server address: %s",
+			       inet_ntop (AF_INET, &peer_server, b, sizeof b));
 			return 0;
+		}
 	}
 
 	bool created;
 	teredo_clock_t now = teredo_clock ();
 	struct teredo_peerlist *list = tunnel->list;
 
-	debug ("packet to be sent");
 	teredo_peer *p = teredo_list_lookup (list, &dst->ip6, &created);
 	if (p == NULL)
 		return -1; /* error */
 
 	if (!created)
 	{
-		debug (" peer is %strusted", p->trusted ? "" : "NOT ");
-		debug (" peer is %svalid", IsValid (p, now) ? "" : "NOT ");
-		debug (" pings = %u, bubbles = %u", p->pings, p->bubbles);
-
 		/* Case 1 (paragraphs 5.2.4 & 5.4.1): trusted peer */
 		if (p->trusted && IsValid (p, now))
 			/* Already known -valid- peer */
@@ -414,8 +420,13 @@ int teredo_transmit (teredo_tunnel *restrict tunnel,
  	else
 	{
  		p->trusted = p->bubbles = p->pings = 0;
-		debug (" peer unknown, created");
 	}
+
+	debug ("Connecting %s: %strusted, %svalid, %u pings, %u bubbles",
+	       inet_ntop(AF_INET, &p->mapped_addr, b, sizeof (b)),
+	       p->trusted       ? "" : "NOT ",
+	       IsValid (p, now) ? "" : "NOT ",
+	       p->pings, p->bubbles);
 
 	// Unknown, untrusted, or too old peer
 	// (thereafter refered to as simply "untrusted")
@@ -447,7 +458,8 @@ int teredo_transmit (teredo_tunnel *restrict tunnel,
 			teredo_send_unreach (tunnel, ICMP6_DST_UNREACH_ADDR,
 			                     packet, length);
 
-		debug (" peer: ping returned %d", res);
+		debug ("%s: ping returned %d",
+		       inet_ntop (AF_INET6, &dst->ip6, b, sizeof (b)), res);
 		return 0;
 	}
 #endif
@@ -532,17 +544,25 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 	assert (tunnel != NULL);
 	assert (packet != NULL);
 
+#ifndef NDEBUG
+	char b[INET6_ADDRSTRLEN];
+#endif
 	size_t length = packet->ip6_len;
 	struct ip6_hdr *ip6 = packet->ip6;
 
 	// Checks packet
 	if ((length < sizeof (*ip6)) || (length > 65507))
+     	{
+		debug ("Packet size invalid: %u bytes.", (unsigned)length);
 		return; // invalid packet
+	}
 
 	if (((ip6->ip6_vfc >> 4) != 6)
 	 || ((ntohs (ip6->ip6_plen) + sizeof (*ip6)) != length))
+     	{
+	   	debug ("Received malformed IPv6 packet.");
 		return; // malformatted IPv6 packet
-	debug ("packet received (%u bytes)", (unsigned)length);
+	}
 
 	teredo_state s;
 	pthread_rwlock_rdlock (&tunnel->state_lock);
@@ -631,7 +651,11 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 #endif /* MIREDO_TEREDO_CLIENT */
 	/* Relays only accept packets from Teredo clients */
 	if (IN6_TEREDO_PREFIX (&ip6->ip6_src) != s.addr.teredo.prefix)
+	{
+		debug ("Source %s is not a teredo address.",
+		       inet_ntop (AF_INET6, &ip6->ip6_src.s6_addr, b, sizeof b));
 		return;
+	}
 
 	/*
 	 * NOTE:
@@ -654,9 +678,12 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 	 *
 	 */
 	if (ip6->ip6_dst.s6_addr[0] == 0xff)
+     	{
+		debug ("Multicast destination %s not supported.",
+		       inet_ntop (AF_INET6, &ip6->ip6_dst.s6_addr, b, sizeof b));
 		return;
+	}
 
-	debug (" packet to be decapsulated");
 	/* Actual packet reception, either as a relay or a client */
 
 	teredo_clock_t now = teredo_clock ();
@@ -667,8 +694,6 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 
 	if (p != NULL)
 	{
-		debug (" peer is %strusted", p->trusted ? "" : "NOT ");
-		debug (" pings = %u, bubbles = %u", p->pings, p->bubbles);
 
 		// Client case 1 (trusted node or (trusted) Teredo client):
 		if (p->trusted
@@ -696,8 +721,6 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 		}
 #endif /* ifdef MIREDO_TEREDO_CLIENT */
 	}
-	else
-		debug (" peer unknown");
 
 	/*
 	 * At this point, we have either a trusted mapping mismatch,
@@ -723,7 +746,12 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 			 * packets would make it easier to DoS the peer list.
 			 */
 			if (p == NULL)
+		     	{
+				debug ("No peer for %s found. Dropping packet.",
+				       inet_ntop (AF_INET6, &ip6->ip6_src.s6_addr, b,
+				                  sizeof b));
 				return; // list not locked (p = NULL)
+			}
 
 			SetMappingFromPacket (p, packet);
 			p->trusted = 1;
@@ -759,7 +787,10 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 			bool create;
 			p = teredo_list_lookup (list, &ip6->ip6_src, &create);
 			if (p == NULL)
+		     	{
+				debug ("Out of memory.");
 				return; // memory error
+			}
 
 			/*
 			 * We have to check "create": there is a race condition whereby
@@ -773,10 +804,8 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 				p->mapped_addr = 0;
 				p->trusted = p->bubbles = p->pings = 0;
 			}
-			debug (" peer created");
 		}
 
-		debug (" packet queued (pending Echo Reply)");
 		teredo_enqueue_in (p, ip6, length,
 		                   packet->source_ipv4, packet->source_port);
 		TouchReceive (p, now);
@@ -787,11 +816,11 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 		if (res == 0)
 			SendPing (tunnel->fd, &s.addr, &ip6->ip6_src);
 
- 		debug (" peer: ping returned %d", res);
 		return;
 	}
 #endif /* ifdef MIREDO_TEREDO_CLIENT */
 
+	debug ("Dropping packet.");
 	// Rejected packet
 	if (p != NULL)
 		teredo_list_release (list);
