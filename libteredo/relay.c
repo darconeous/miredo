@@ -547,18 +547,19 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 #ifndef NDEBUG
 	char b[INET6_ADDRSTRLEN];
 #endif
-	size_t length = packet->ip6_len;
 	struct ip6_hdr *ip6 = packet->ip6;
 
 	// Checks packet
-	if ((length < sizeof (*ip6)) || (length > 65507))
+	if (packet->ip6_len < sizeof (*ip6))
      	{
-		debug ("Packet size invalid: %u bytes.", (unsigned)length);
+		debug ("Packet size invalid: %u bytes.",
+		       (unsigned)packet->ip6_len);
 		return; // invalid packet
 	}
 
+	size_t length = sizeof (*ip6) + ntohs (ip6->ip6_plen);
 	if (((ip6->ip6_vfc >> 4) != 6)
-	 || ((ntohs (ip6->ip6_plen) + sizeof (*ip6)) != length))
+	 || (length > packet->ip6_len))
      	{
 	   	debug ("Received malformed IPv6 packet.");
 		return; // malformatted IPv6 packet
