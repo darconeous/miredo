@@ -21,6 +21,10 @@ TABLE=teredo
 # (possible values: 1-32765, lowest number is highest priority):
 PRIO=32765
 
+# MTU for the tunnel interface
+# (default: specified by the Teredo server, or 1280)
+#MTU=1400
+
 if ! test -x "$IP"; then
 	echo "$0: iproute2 is required! Please install it." >&2
 	exit 1
@@ -34,6 +38,7 @@ test "$OLD_ADDRESS" && \
 "$IP" -6 address flush dev "$IFACE" 2>/dev/null
 
 "$IP" -6 link set dev "$IFACE" "$STATE"
+test "$MTU" && "$IP" link set dev "$IFACE" mtu "$MTU"
 
 case "$STATE" in
 	up)
