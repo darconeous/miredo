@@ -14,6 +14,12 @@ changes, run “miredo -h” to get help. For detailled internal changes, see
 ChangeLog.
 
 ===========================================================================
+STABLE RELEASE 1.1.3 : Minor feature enhancement
+
+# Better debug messages.
+# Allow GNU General Public License version 3 (and would be later).
+
+===========================================================================
 TEST RELEASE 1.1.2 : Minor bug fixes
 
 # Fix filtering error within miredo-server (regression from 1.1.0).
