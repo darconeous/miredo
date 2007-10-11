@@ -166,29 +166,24 @@ AC_SUBST(LIBCAP)
 # Judy
 AC_ARG_WITH(Judy,
 	    [AS_HELP_STRING(--with-Judy,
-	    		    [use Judy dynamic arrays (default automatic)])])
-use_Judy=no
+	    		    [use Judy dynamic arrays (default enabled)])],,
+	    [with_Judy=yes])
 LIBJUDY=""
 AS_IF([test "${with_Judy}" != "no"], [
 	AC_CHECK_HEADERS([Judy.h], [
 		AC_CHECK_LIB(Judy, JudyHSIns, [
-			use_Judy=yes
 			LIBJUDY="-lJudy"
 			AC_DEFINE(HAVE_LIBJUDY, 1,
 				  [Define to 1 if you the `Judy' library (-lJudy).])
-		], [
-			AS_IF([test "${with_Judy}"], [
-				AC_MSG_ERROR([Judy requested while not available])
-			])
 		])
 	])
+	AS_IF([test "x${LIBJUDY}" = "x"], [
+		AC_MSG_WARN([If you don't care about scalability, re-run configure with '--without-Judy'.])
+		AC_MSG_ERROR([Required Judy dynamic arrays library missing.])
+	])
+
 ])
 AC_SUBST(LIBJUDY)
-AC_MSG_CHECKING([whether to use Judy dynamic arrays])
-AC_MSG_RESULT([${use_Judy}])
-AS_IF([test "${use_Judy}" = "no"], [
-	AC_MSG_WARN([Miredo is considerably less scalable without libJudy!])
-])
 
 
 # Test coverage build
@@ -204,6 +199,7 @@ AS_IF([test "${enable_coverage}" != "no"], [
 ], [
 	AC_MSG_RESULT(no)
 ])
+
 
 # Teredo client
 AC_MSG_CHECKING([whether to include Teredo client support])
