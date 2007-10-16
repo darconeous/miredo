@@ -71,7 +71,7 @@ union teredo_addr
 
 /* Non-standard flags (taken from draft-ietf-ngtrans-shipworm-07) */
 #define TEREDO_FLAG_RANDOM	0x4000
-#define TEREDO_RANDOM_MASK	0xc3ff
+#define TEREDO_RANDOM_MASK	0x3cff
 
 #define ip6_teredo( ip6 ) (((union teredo_addr *)ip6)->teredo)
 
