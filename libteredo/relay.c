@@ -396,9 +396,11 @@ int teredo_transmit (teredo_tunnel *restrict tunnel,
 		uint32_t peer_server = IN6_TEREDO_SERVER (dst);
 		if (!is_ipv4_global_unicast (peer_server) || (peer_server == 0))
 	     	{
+#ifndef NDEBUG
 			char b[INET_ADDRSTRLEN];
 			debug ("Non global server address: %s",
 			       inet_ntop (AF_INET, &peer_server, b, sizeof b));
+#endif
 			return 0;
 		}
 	}

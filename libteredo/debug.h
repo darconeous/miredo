@@ -23,6 +23,12 @@
 #ifndef LIBTEREDO_COMMON_H
 # define LIBTEREDO_COMMON_H
 
+# ifdef __GNUC__
+#  define LIBTEREDO_NORETURN __attribute__ ((noreturn))
+# else
+#  define LIBTEREDO_NORETURN
+# endif
+
 # ifndef NDEBUG
 #  include <syslog.h>
 #  include <stdarg.h>
@@ -34,12 +40,6 @@ static inline void debug (const char *str, ...)
 	vsyslog (LOG_DEBUG, str, ap);
 	va_end (ap);
 }
-
-#  ifdef __GNUC__
-#   define LIBTEREDO_NORETURN __attribute__ ((noreturn))
-#  else
-#   define LIBTEREDO_NORETURN
-#  endif
 
 #  ifdef __linux__
 #   include <errno.h>
