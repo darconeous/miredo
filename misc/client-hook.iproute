@@ -15,7 +15,10 @@ METRIC=1029
 
 # Linux routing table ID
 # (possible values: 1-252 from /etc/iproute/rt_tables):
-#TABLE=teredo
+TABLE="$TEREDO"
+if ! grep "$TABLE" /etc/iproute/rt_tables >/dev/null 2>&1; then
+	unset TABLE
+fi
 
 # Linux routing rule priority
 # (possible values: 1-32765, lowest number is highest priority):
