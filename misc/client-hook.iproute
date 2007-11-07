@@ -15,10 +15,7 @@ METRIC=1029
 
 # Linux routing table ID
 # (possible values: 1-252 from /etc/iproute/rt_tables):
-TABLE="$TEREDO"
-if ! grep "$TABLE" /etc/iproute/rt_tables >/dev/null 2>&1; then
-	unset TABLE
-fi
+TABLE="teredo"
 
 # Linux routing rule priority
 # (possible values: 1-32765, lowest number is highest priority):
@@ -31,6 +28,11 @@ PRIO=32765
 if ! test -x "$IP"; then
 	echo "$0: iproute2 is required! Please install it." >&2
 	exit 1
+fi
+
+# If the source routing table is not configured, ignore it.
+if ! "$IP" route show table "$TABLE" >/dev/null 2>&1; then
+	unset TABLE
 fi
 
 if test "$OLD_ADDRESS" && test "$TABLE"; then
