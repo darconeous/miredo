@@ -1,4 +1,4 @@
-#!/bin/sh
+#! /bin/sh
 #
 # Miredo client hook script for Linux/iproute2
 # Copyright © 2007 Rémi Denis-Courmont.
@@ -15,7 +15,7 @@ METRIC=1029
 
 # Linux routing table ID
 # (possible values: 1-252 from /etc/iproute/rt_tables):
-TABLE=teredo
+#TABLE=teredo
 
 # Linux routing rule priority
 # (possible values: 1-32765, lowest number is highest priority):
@@ -30,15 +30,19 @@ if ! test -x "$IP"; then
 	exit 1
 fi
 
-test "$OLD_ADDRESS" && \
-"$IP" -6 rule del from "$OLD_ADDRESS" prio "$PRIO" table "$TABLE" 2>/dev/null
+if test "$OLD_ADDRESS" && test "$TABLE"; then
+	"$IP" -6 rule del from "$OLD_ADDRESS" \
+		prio "$PRIO" table "$TABLE" 2>/dev/null
+fi
 
 "$IP" -6 route flush table "$TABLE" 2>/dev/null
 "$IP" -6 route flush dev "$IFACE" 2>/dev/null
 "$IP" -6 address flush dev "$IFACE" 2>/dev/null
 
 "$IP" -6 link set dev "$IFACE" "$STATE"
-test "$MTU" && "$IP" link set dev "$IFACE" mtu "$MTU"
+if test "$MTU"; then
+	"$IP" link set dev "$IFACE" mtu "$MTU"
+fi
 
 case "$STATE" in
 	up)
@@ -46,9 +50,11 @@ case "$STATE" in
 		"$IP" -6 address add "${ADDRESS}/32" dev "$IFACE"
 		"$IP" -6 route add default dev "$IFACE" metric "$METRIC"
 
-		"$IP" -6 route add default dev "$IFACE" table "$TABLE"
-		"$IP" -6 rule add from "$ADDRESS" prio "$PRIO" table "$TABLE"
-		;;
+		if test "$TABLE"; then
+			"$IP" -6 route add default dev "$IFACE" table "$TABLE"
+			"$IP" -6 rule add from "$ADDRESS" \
+				prio "$PRIO" table "$TABLE"
+		fi
 esac
 
 "$IP" -6 route flush cache 2>/dev/null
