@@ -7,7 +7,7 @@
 # $Id$
 
 # Linux iproute2 path:
-IP="$(which ip)"
+IP="/sbin/ip"
 
 # Linux default route default metric is 1024
 # (we put 1029 so that Teredo is used as a last resort):
