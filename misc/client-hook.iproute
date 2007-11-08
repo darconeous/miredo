@@ -62,5 +62,8 @@ case "$STATE" in
 		fi
 esac
 
-"$IP" -6 route flush cache 2>/dev/null
+# This should be required when changing policy routing rules, but it
+# seems to confuse certain kernels into removing our default route!
+#"$IP" -6 route flush cache 2>/dev/null
+
 exit 0
