@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: miredo 0.8.1\n"
 "Report-Msgid-Bugs-To: miredo-devel_no_bulk_mail@remlab.net\n"
-"POT-Creation-Date: 2007-10-16 19:32+0300\n"
+"POT-Creation-Date: 2007-11-08 18:51+0200\n"
 "PO-Revision-Date: 2006-03-20 15:39+0100\n"
 "Last-Translator: Rémi Denis-Courmont <rdenis (at) simphalempin (dot) com>\n"
 "Language-Team: N/A\n"
@@ -26,7 +26,7 @@ msgid ""
 "Teredo server UDP socket error: Server IPv4 addresses must be global unicast."
 msgstr ""
 
-#: libteredo/server.c:556 libteredo/server.c:567 libteredo/maintain.c:474
+#: libteredo/server.c:556 libteredo/server.c:567 libteredo/maintain.c:467
 #: libtun6/tun6.c:629 src/main.c:144 src/main.c:510 src/miredo.c:71
 #: src/miredo.c:79 src/miredo.c:158
 #, c-format
@@ -41,28 +41,28 @@ msgstr ""
 msgid "Authentication with server failed."
 msgstr ""
 
-#: libteredo/maintain.c:216
+#: libteredo/maintain.c:209
 msgid "Too much time drift. Resynchronizing."
 msgstr "Too much time drift. Resynchronising."
 
-#: libteredo/maintain.c:282
+#: libteredo/maintain.c:275
 #, c-format
 msgid "Cannot resolve Teredo server address \"%s\": %s"
 msgstr "Cannot resolve Teredo server address “%s”: %s"
 
-#: libteredo/maintain.c:289
+#: libteredo/maintain.c:282
 msgid "Teredo server has a non global IPv4 address."
 msgstr ""
 
-#: libteredo/maintain.c:350
+#: libteredo/maintain.c:343
 msgid "No reply from Teredo server"
 msgstr ""
 
-#: libteredo/maintain.c:356
+#: libteredo/maintain.c:349
 msgid "Lost Teredo connectivity"
 msgstr ""
 
-#: libteredo/maintain.c:388
+#: libteredo/maintain.c:381
 msgid "New Teredo address/MTU"
 msgstr ""
 
