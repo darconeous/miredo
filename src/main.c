@@ -524,8 +524,8 @@ int miredo_main (int argc, char *argv[])
 	 */
 	c = miredo (conffile, servername, fd);
 
-	close_pidfile (fd);
 	(void)unlink (pidfile);
+	close_pidfile (fd);
 
 	return c ? 1 : 0;
 }
