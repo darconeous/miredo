@@ -202,17 +202,6 @@ write_pid (int fd)
 }
 
 
-static int
-close_pidfile (int fd)
-{
-	if (lockf (fd, F_ULOCK, 0))
-		return -1;
-	if (close (fd))
-		return -1;
-	return 0;
-}
-
-
 #ifdef MIREDO_DEFAULT_USERNAME
 static void
 setuid_notice (void)
@@ -525,7 +514,7 @@ int miredo_main (int argc, char *argv[])
 	c = miredo (conffile, servername, fd);
 
 	(void)unlink (pidfile);
-	close_pidfile (fd);
+	close (fd);
 
 	return c ? 1 : 0;
 }
