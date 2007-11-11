@@ -153,23 +153,29 @@ error_errno (const char *str)
 # define O_NOFOLLOW 0
 #endif
 static int
-open_pidfile (const char *path)
+create_pidfile (const char *path)
 {
 	int fd;
 
 	fd = open (path, O_WRONLY|O_CREAT|O_NOFOLLOW, 0644);
 	if (fd != -1)
 	{
+		char buf[20]; // enough for > 2^64
 		struct stat s;
+
+		snprintf (buf, sizeof (buf), "%d", (int)getpid ());
+		buf[sizeof (buf) - 1] = '\0';
 
 		fcntl (fd, F_SETFD, fcntl (fd, F_GETFD) | FD_CLOEXEC);
 		errno = 0;
 
-		/* We only check the lock. The actual locking occurs
-		 * after (possibly) calling daemon(). */
+		/* Locks the PID file */
 		if ((fstat (fd, &s) == 0)
 		 && S_ISREG (s.st_mode)
-		 && (lockf (fd, F_TEST, 0) == 0))
+		 && (lockf (fd, F_TLOCK, 0) == 0)
+		 && (ftruncate (fd, 0) == 0)
+		 && (write (fd, buf, strlen (buf)) == (ssize_t)strlen (buf))
+		 && (fdatasync (fd) == 0))
 			return fd;
 
 		if (errno == 0) /* !S_ISREG */
@@ -177,28 +183,8 @@ open_pidfile (const char *path)
 
 		(void)close (fd);
 	}
+
 	return -1;
-}
-
-
-static int
-write_pid (int fd)
-{
-	char buf[20]; // enough for > 2^64
-
-	/* Actually lock the file */
-	if (lockf (fd, F_TLOCK, 0))
-		return -1;
-
-	(void)snprintf (buf, sizeof (buf), "%d", (int)getpid ());
-	buf[sizeof (buf) - 1] = '\0';
-	size_t len = strlen (buf);
-
-	if (ftruncate (fd, 0)
-	 || (write (fd, buf, len) != (ssize_t)len)
-	 || fdatasync (fd))
-		return -1;
-	return 0;
 }
 
 
@@ -222,8 +208,8 @@ init_security (const char *username)
 {
 	int val;
 
-	/* Sets sensible umask */
 	(void)umask (022);
+	(void)chdir ("/");
 
 	/*
 	 * We close all file handles, except 0, 1 and 2.
@@ -482,8 +468,38 @@ int miredo_main (int argc, char *argv[])
 	if (miredo_diagnose ())
 		return 1;
 
+	int pipes[2];
+	if (pipe (pipes))
+		pipes[0] = pipes[1] = -1;
+
+	if (!flags.foreground)
+	{
+		pid_t pid = fork ();
+
+		switch (pid)
+		{
+			case -1:
+				fprintf (stderr, _("Error (%s): %s\n"), "fork", strerror (errno));
+				return 1;
+
+			case 0:
+				break;
+
+			default:
+			{
+				close (pipes[1]);
+				if (read (pipes[0], &c, sizeof (c)) != sizeof (c))
+					c = 1;
+
+				close (pipes[0]);
+				return c;
+			}
+		}
+	}
+	close (pipes[0]);
+
 	/* Opens pidfile */
-	int fd = open_pidfile (pidfile);
+	int fd = create_pidfile (pidfile);
 	if (fd == -1)
 	{
 		fprintf (stderr, _("Cannot create PID file %s:\n %s\n"),
@@ -492,21 +508,21 @@ int miredo_main (int argc, char *argv[])
 			fprintf (stderr, "%s\n",
 			         _("Please make sure another instance of the program is "
 				   "not already running."));
-		return -1;
+		exit (1);
 	}
 
 	/* Detaches */
-	if (!flags.foreground && daemon (0, 0))
+	if (!flags.foreground)
 	{
-		fprintf (stderr, _("Error (%s): %s\n"), "daemon", strerror (errno));
-		return -1;
-	}
+		setsid ();
+		freopen ("/dev/null", "r", stdin);
+		freopen ("/dev/null", "w", stdout);
+		freopen ("/dev/null", "w", stderr);
 
-	if (write_pid (fd))
-	{
-		close (fd);
-		return -1;
+		c = 0;
+		write (pipes[1], &c, sizeof (c));
 	}
+	close (pipes[1]);
 
 	/*
 	 * Run
@@ -516,6 +532,6 @@ int miredo_main (int argc, char *argv[])
 	(void)unlink (pidfile);
 	close (fd);
 
-	return c ? 1 : 0;
+	exit (c ? 1 : 0);
 }
 
