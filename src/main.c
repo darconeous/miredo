@@ -162,11 +162,13 @@ open_pidfile (const char *path)
 	{
 		struct stat s;
 
+		fcntl (fd, F_SETFD, fcntl (fd, F_GETFD) | FD_CLOEXEC);
 		errno = 0;
+
 		/* We only check the lock. The actual locking occurs
 		 * after (possibly) calling daemon(). */
 		if ((fstat (fd, &s) == 0)
-		 && S_ISREG(s.st_mode)
+		 && S_ISREG (s.st_mode)
 		 && (lockf (fd, F_TEST, 0) == 0))
 			return fd;
 
