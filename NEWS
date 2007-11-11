@@ -1,5 +1,5 @@
 RELEASE NOTES for Miredo
-stable release version 1.1.4
+stable release version 1.1.5
 =============================
 $Id$
 
@@ -14,10 +14,15 @@ changes, run “miredo -h” to get help. For detailled internal changes, see
 ChangeLog.
 
 ===========================================================================
+STABLE RELEASE 1.1.5 : Minor bug fixes
+
+# Fix SIGHUP signal handling.
+
+===========================================================================
 STABLE RELEASE 1.1.4 : Minor bug fixes
 
-# Fixes client-hook script problems with Fedora.
-# Fixes unlikely race condition in Teredo maintenance procedure setup.
+# Fix client-hook script problems with Fedora.
+# Fix unlikely race condition in Teredo maintenance procedure setup.
 
 ===========================================================================
 STABLE RELEASE 1.1.3 : Major bug fixes, minor feature enhancement

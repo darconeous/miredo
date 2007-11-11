@@ -119,7 +119,6 @@ miredo (const char *confpath, const char *server_name, int pidfd)
 	sigaddset (&set, SIGINT);
 	sigaddset (&set, SIGQUIT);
 	sigaddset (&set, SIGTERM);
-	sigaddset (&set, SIGCHLD);
 	exit_set = set;
 
 	/* Reload signal */
@@ -127,6 +126,7 @@ miredo (const char *confpath, const char *server_name, int pidfd)
 	reload_set = set;
 
 	/* No-op signal */
+	sigaddset (&set, SIGCHLD);
 	sigaddset (&set, SIGPIPE);
 
 	pthread_sigmask (SIG_BLOCK, &set, NULL);
@@ -172,31 +172,34 @@ miredo (const char *confpath, const char *server_name, int pidfd)
 		}
 
 		// Waits until the miredo process terminates
-		int signum;
-		do
-			sigwait (&set, &signum);
-		while (!sigismember (&reload_set, signum));
+		int status;
 
-		if (sigismember (&exit_set, signum))
+		while (waitpid (pid, &status, WNOHANG) != pid)
 		{
-			syslog (LOG_NOTICE, _("Exiting on signal %d (%s)"),
-			        signum, strsignal (signum));
-			retval = 0;
-		}
-		else
-		{
-			syslog (LOG_NOTICE,
-			        _("Reloading configuration on signal %d (%s)"),
-			        signum, strsignal (signum));
-			retval = 2;
-		}
+			int signum;
 
-		/* Terminate children (if not already done) */
-		if (signum != SIGCHLD)
+			if (sigwait (&set, &signum))
+				continue;
+			if (!sigismember (&reload_set, signum))
+				continue;
+
+			/* Request children termination */
 			kill (pid, SIGTERM);
 
-		int status;
-		while (waitpid (pid, &status, 0) == -1);
+			if (sigismember (&exit_set, signum))
+			{
+				syslog (LOG_NOTICE, _("Exiting on signal %d (%s)"),
+				        signum, strsignal (signum));
+				retval = 0;
+			}
+			else
+			{
+				syslog (LOG_NOTICE,
+				        _("Reloading configuration on signal %d (%s)"),
+				        signum, strsignal (signum));
+				retval = 2;
+			}
+		}
 
 		if (WIFEXITED (status))
 		{
@@ -209,9 +212,9 @@ miredo (const char *confpath, const char *server_name, int pidfd)
 		else
 		if (WIFSIGNALED (status))
 		{
-			signum = WTERMSIG (status);
+			status = WTERMSIG (status);
 			syslog (LOG_INFO, _("Child %d killed by signal %d (%s)"),
-			        (int)pid, signum, strsignal (signum));
+			        (int)pid, status, strsignal (status));
 			retval = 2;
 			sleep (1);
 		}
