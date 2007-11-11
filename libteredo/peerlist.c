@@ -305,7 +305,7 @@ void teredo_list_reset (teredo_peerlist *l, unsigned max)
 
 #ifdef HAVE_LIBJUDY
 	// destroy the old array that was detached before unlocking
-	Word_t Rc_word;
+	intptr_t Rc_word;
 	JHSFA (Rc_word, array);
 #endif
 }
