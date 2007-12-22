@@ -113,7 +113,7 @@ int teredo_send_rs (int fd, uint32_t server_ip,
  *   the full packet is at least 40 bytes long).
  *
  * @param packet Teredo packet to be checked
- * @param newaddr upon entry, see assumptions, upon succesful return, the
+ * @param newaddr upon entry, see assumptions; upon succesful return, the
  * infered Teredo client address. In other words, the caller must set the
  * server IPv4 part, this function will set the 32 bits Teredo prefix, the
  * Teredo flags, mapped port and mapped IPv4 parts.
