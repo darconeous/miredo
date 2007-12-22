@@ -106,17 +106,13 @@ int teredo_send_rs (int fd, uint32_t server_ip,
  * be returned at mtu. If not, the value pointed to by mtu will not be
  * modified.
  *
- * Assumptions:
- * - newaddr->teredo.server_ip must be set to the server's expected IP by the
- *   caller.
- * - IPv6 header is valid (ie. version 6, plen matches packet's length, and
- *   the full packet is at least 40 bytes long).
+ * Assumption:
+ * The IPv6 header is valid (ie. version 6, plen matches packet's length, and
+ * the full packet is at least 40 bytes long).
  *
  * @param packet Teredo packet to be checked
- * @param newaddr upon entry, see assumptions; upon succesful return, the
- * infered Teredo client address. In other words, the caller must set the
- * server IPv4 part, this function will set the 32 bits Teredo prefix, the
- * Teredo flags, mapped port and mapped IPv4 parts.
+ * @param newaddr upon succesful return, the  inferred Teredo client address
+ * (_not_ including any randomized flags).
  * @param cone whether the RA should be a reply to “cone” RS
  * @param mtu [out] MTU parameter found in the RA, not modified if the RA
  * had no MTU option. Undefined on error.
