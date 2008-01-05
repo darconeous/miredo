@@ -87,27 +87,20 @@ union teredo_addr
 	(ip6_teredo (ip6)->client_ip ^ 0xffffffff)
 #define IN6_TEREDO_PORT( ip6 ) \
 	(ip6_teredo (ip6)->client_port ^ 0xffff)
+#define IN6_TEREDO_FLAGS( ip6 ) \
+	(ip6_teredo (ip6)->flags)
 
 #define IN6_MATCHES_TEREDO_CLIENT( ip6, ip4, port ) \
-	in6_matches_teredo_client (ip6_teredo (ip6), ip4, port)
+	in6_matches_teredo_client (ip6, ip4, port)
 
 #define IN6_MATCHES_TEREDO_SYMMETRIC( ip6, ip4, port ) \
-	in6_matches_teredo_symmetric (ip6_teredo (ip6), ip4, port)
+	in6_matches_teredo_symmetric (ip6, ip4, port)
 
 static inline int
-in6_matches_teredo_client (const union teredo_addr *ip6,
+in6_matches_teredo_client (const struct in6_addr *ip6,
                            uint32_t ip, uint16_t port)
 {
 	return (ip == IN6_TEREDO_IPV4 (ip6)) && (port == IN6_TEREDO_PORT (ip6));
-}
-
-static inline int
-in6_matches_teredo_symmetric (const union teredo_addr *ip6,
-                              uint32_t ip, uint16_t port)
-{
-	return (ip == IN6_TEREDO_IPV4 (ip6))
-	    && ((port == IN6_TEREDO_PORT (ip6)
-	     || (ip6->teredo.flags & TEREDO_RANDOM_MASK)));
 }
 
 /*
