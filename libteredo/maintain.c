@@ -363,7 +363,7 @@ void maintenance_thread (teredo_maintenance *m)
 
 			/* 12-bits Teredo flags randomization */
 			newaddr.teredo.flags = c_state->addr.teredo.flags;
-			if (!IN6_ARE_ADDR_EQUAL (&c_state->addr, &newaddr))
+			if (!IN6_ARE_ADDR_EQUAL (&c_state->addr, &newaddr.ip6))
 			{
 				uint16_t f = teredo_get_flbits (deadline.tv_sec);
 				newaddr.teredo.flags =
@@ -371,7 +371,7 @@ void maintenance_thread (teredo_maintenance *m)
 			}
 
 			if ((!c_state->up)
-			 || !IN6_ARE_ADDR_EQUAL (&c_state->addr, &newaddr)
+			 || !IN6_ARE_ADDR_EQUAL (&c_state->addr, &newaddr.ip6)
 			 || (c_state->mtu != mtu))
 			{
 				c_state->addr = newaddr;
