@@ -141,10 +141,10 @@ AC_CHECK_TYPE([clockid_t],, [
 
 # Checks for library functions.
 AS_MESSAGE([checking library functions...])
-AC_CHECK_FUNCS([devname_r pthread_condattr_setclock])
 RDC_REPLACE_FUNC_GETOPT_LONG
 LIBS_save="$LIBS"
 LIBS="$LIBRT $LIBS"
+AC_CHECK_FUNCS([devname_r pthread_condattr_setclock timer_create])
 AC_REPLACE_FUNCS([clearenv closefrom strlcpy clock_gettime clock_nanosleep fdatasync])
 LIBS="$LIBS_save"
 

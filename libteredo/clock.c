@@ -38,6 +38,7 @@
 #include "clock.h"
 #include "debug.h"
 
+#ifdef HAVE_TIMER_CREATE
 typedef struct clock_data_t
 {
 	timer_t           handle;
@@ -131,3 +132,13 @@ unsigned long teredo_clock (void)
 
 	return value;
 }
+#else
+unsigned long teredo_clock (void)
+{
+	struct timespec ts;
+
+	clock_gettime (CLOCK_REALTIME, &ts);
+	return ts.tv_sec;
+}
+#endif
+
