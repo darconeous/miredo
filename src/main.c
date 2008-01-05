@@ -209,7 +209,8 @@ init_security (const char *username)
 	int val;
 
 	(void)umask (022);
-	(void)chdir ("/");
+	if (chdir ("/"))
+		return -1;
 
 	/*
 	 * We close all file handles, except 0, 1 and 2.
@@ -514,13 +515,14 @@ int miredo_main (int argc, char *argv[])
 	/* Detaches */
 	if (!flags.foreground)
 	{
-		setsid ();
-		freopen ("/dev/null", "r", stdin);
-		freopen ("/dev/null", "w", stdout);
-		freopen ("/dev/null", "w", stderr);
-
 		c = 0;
-		write (pipes[1], &c, sizeof (c));
+
+		setsid ();
+		if (freopen ("/dev/null", "r", stdin) == NULL
+		 || freopen ("/dev/null", "w", stdout) == NULL
+		 || freopen ("/dev/null", "w", stderr) == NULL
+		 || (write (pipes[1], &c, sizeof (c)) <= 0))
+			exit (1);
 	}
 	close (pipes[1]);
 
