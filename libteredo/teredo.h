@@ -93,9 +93,6 @@ union teredo_addr
 #define IN6_MATCHES_TEREDO_CLIENT( ip6, ip4, port ) \
 	in6_matches_teredo_client (ip6, ip4, port)
 
-#define IN6_MATCHES_TEREDO_SYMMETRIC( ip6, ip4, port ) \
-	in6_matches_teredo_symmetric (ip6, ip4, port)
-
 static inline int
 in6_matches_teredo_client (const struct in6_addr *ip6,
                            uint32_t ip, uint16_t port)
