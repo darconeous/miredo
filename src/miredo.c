@@ -103,7 +103,7 @@ static void logger (void *dummy, bool error, const char *fmt, va_list ap)
 }
 
 
-static void dummy_handler (int signum)
+static LIBTEREDO_NORETURN void dummy_handler (int signum)
 {
 	(void)signum;
 	abort (); /* never happens */
