@@ -33,14 +33,14 @@ fi
 # If the source routing table is not configured, ignore it.
 if ! "$IP" route show table "$TABLE" >/dev/null 2>&1; then
 	unset TABLE
+else
+	if test "$OLD_ADDRESS"; then
+		"$IP" -6 rule del from "$OLD_ADDRESS" \
+			prio "$PRIO" table "$TABLE" 2>/dev/null
+	fi
+	"$IP" -6 route flush table "$TABLE" 2>/dev/null
 fi
 
-if test "$OLD_ADDRESS" && test "$TABLE"; then
-	"$IP" -6 rule del from "$OLD_ADDRESS" \
-		prio "$PRIO" table "$TABLE" 2>/dev/null
-fi
-
-"$IP" -6 route flush table "$TABLE" 2>/dev/null
 "$IP" -6 route flush dev "$IFACE" 2>/dev/null
 "$IP" -6 address flush dev "$IFACE" 2>/dev/null
 
