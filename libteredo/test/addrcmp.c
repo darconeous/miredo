@@ -35,7 +35,7 @@
 
 int main (void)
 {
-	union teredo_addr a1;
+	struct in6_addr a1;
 
 	memcpy (&a1, "\x20\x01\x00\x00\xc0\x00\x02\x01"
 	             "\x80\x00\xcf\xc6\x3f\xff\xfd\x74", 16);
