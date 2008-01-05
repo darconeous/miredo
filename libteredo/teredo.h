@@ -116,7 +116,7 @@ in6_matches_teredo_symmetric (const union teredo_addr *ip6,
  * except the multicast range (ff00::/8).
  */
 #define is_valid_teredo_prefix( prefix ) \
-	((prefix & 0xff000000) != 0xff000000)
+	(((prefix) & 0xff000000) != 0xff000000)
 
 /*
  * Teredo headers
