@@ -73,27 +73,26 @@ union teredo_addr
 #define TEREDO_FLAG_RANDOM	0x4000
 #define TEREDO_RANDOM_MASK	0x3cff
 
-#define ip6_teredo( ip6 ) (((union teredo_addr *)ip6)->teredo)
+#define ip6_teredo( ip6 ) (&((const union teredo_addr *)(ip6))->teredo)
 
 /* NOTE: these macros expect 4-byte aligned addresses structs */
 #define IN6_IS_TEREDO_ADDR_CONE( ip6 ) \
-	(((const union teredo_addr *)(ip6))->teredo.flags \
-	& htons (TEREDO_FLAG_CONE))
+	(ip6_teredo (ip6)->flags & htons (TEREDO_FLAG_CONE))
 
 #define IN6_TEREDO_PREFIX( ip6 ) \
-	(((const union teredo_addr *)ip6)->teredo.prefix)
+	(ip6_teredo (ip6)->prefix)
 #define IN6_TEREDO_SERVER( ip6 ) \
-	(((const union teredo_addr *)ip6)->teredo.server_ip)
+	(ip6_teredo (ip6)->server_ip)
 #define IN6_TEREDO_IPV4( ip6 ) \
-	(((const union teredo_addr *)ip6)->teredo.client_ip ^ 0xffffffff)
+	(ip6_teredo (ip6)->client_ip ^ 0xffffffff)
 #define IN6_TEREDO_PORT( ip6 ) \
-	(((const union teredo_addr *)ip6)->teredo.client_port ^ 0xffff)
+	(ip6_teredo (ip6)->client_port ^ 0xffff)
 
 #define IN6_MATCHES_TEREDO_CLIENT( ip6, ip4, port ) \
-	in6_matches_teredo_client ((const union teredo_addr *)ip6, ip4, port)
+	in6_matches_teredo_client (ip6_teredo (ip6), ip4, port)
 
 #define IN6_MATCHES_TEREDO_SYMMETRIC( ip6, ip4, port ) \
-	in6_matches_teredo_symmetric ((const union teredo_addr *)ip6, ip4, port)
+	in6_matches_teredo_symmetric (ip6_teredo (ip6), ip4, port)
 
 static inline int
 in6_matches_teredo_client (const union teredo_addr *ip6,
