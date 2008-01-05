@@ -75,8 +75,14 @@ static int run_script (void)
 			return -1;
 
 		case 0:
+		{
+			sigset_t emptyset;
+			sigemptyset (&emptyset);
+			pthread_sigmask (SIG_SETMASK, &emptyset, NULL);
+
 			execl (script_path, script_path, (char *)NULL);
 			exit (1);
+		}
 	}
 
 	int res;
