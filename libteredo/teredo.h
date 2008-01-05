@@ -97,7 +97,8 @@ static inline int
 in6_matches_teredo_client (const struct in6_addr *ip6,
                            uint32_t ip, uint16_t port)
 {
-	return (ip == IN6_TEREDO_IPV4 (ip6)) && (port == IN6_TEREDO_PORT (ip6));
+	return !((ip ^ IN6_TEREDO_IPV4 (ip6))
+	      || (port ^ IN6_TEREDO_PORT (ip6)));
 }
 
 /*
