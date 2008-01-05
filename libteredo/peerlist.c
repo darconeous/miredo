@@ -362,12 +362,12 @@ teredo_peer *teredo_list_lookup (teredo_peerlist *restrict list,
 	p = NULL;
 
 	for (p = list->recent; p != NULL; p = p->next)
-		if (IN6_ARE_ADDR_EQUAL (&p->key, addr))
+		if (IN6_ARE_ADDR_EQUAL (&p->key.ip6, addr))
 			break;
 
 	if (p == NULL)
 		for (p = list->old; p != NULL; p = p->next)
-			if (IN6_ARE_ADDR_EQUAL (&p->key, addr))
+			if (IN6_ARE_ADDR_EQUAL (&p->key.ip6, addr))
 				break;
 #endif
 
