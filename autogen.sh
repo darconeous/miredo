@@ -34,7 +34,8 @@ echo "Autoreconf in $PWD ..."
 autoreconf -sfi
 unlink po/Makevars.template
 
-for d in /usr /usr/local /opt/gettext /usr/pkg "$HOME"; do
+for d in /usr /usr/local /opt/gettext /opt/local/share/gettext \
+		/usr/pkg "$HOME"; do
 	if test -f "$d/share/gettext/gettext.h" ; then
 		ln -sf "$d/share/gettext/gettext.h" include/gettext.h
 	fi
