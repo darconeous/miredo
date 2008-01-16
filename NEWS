@@ -17,7 +17,7 @@ ChangeLog.
 STABLE RELEASE 1.1.5 : Minor bug fixes
 
 # Fix SIGHUP signal handling.
-# Fix MacOS X compilation.
+# Fix compiling on MacOS X and/or without libJudy.
 
 ===========================================================================
 STABLE RELEASE 1.1.4 : Minor bug fixes
