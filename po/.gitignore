@@ -1,0 +1,7 @@
+*.header
+*.gmo
+*.sed
+*.sin
+Makefile.in.in
+POTFILES
+Rules-quot
