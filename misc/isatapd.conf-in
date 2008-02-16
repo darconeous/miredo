@@ -1,7 +1,6 @@
 #! @sbindir@/isatapd -f -c
 #
 # Sample configuration file for ISATAPd
-# $Id$
 
 # Please refer to the isatapd.conf(5) man page for details.
 

@@ -1,8 +1,6 @@
 /**
  * @file peerlist.h
  * @brief Teredo relay internal peers list declaration
- *
- * $Id$
  */
 
 /***********************************************************************

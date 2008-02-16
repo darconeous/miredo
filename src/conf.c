@@ -1,6 +1,5 @@
 /*
  * conf.c - Configuration text file parsing definition
- * $Id$
  */
 
 /***********************************************************************

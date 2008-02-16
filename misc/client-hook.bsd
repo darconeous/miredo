@@ -2,7 +2,6 @@
 #
 # Miredo client hook script for BSD
 # Untested and incomplete FIXME FIXME FIXME
-# $Id$
 
 IFCONFIG=/sbin/ifconfig
 ROUTE=/sbin/route

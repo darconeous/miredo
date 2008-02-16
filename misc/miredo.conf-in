@@ -1,7 +1,6 @@
 #! @sbindir@/miredo -f -c
 #
 # Sample configuration file for Miredo
-# $Id$
 
 # Please refer to the miredo.conf(5) man page for details.
 

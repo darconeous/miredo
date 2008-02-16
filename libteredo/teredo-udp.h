@@ -2,8 +2,6 @@
  * @file teredo-udp.h
  * @brief Low-level Teredo packets handling
  *
- * $Id$
- *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information
  */

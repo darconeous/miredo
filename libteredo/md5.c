@@ -1,6 +1,5 @@
 /*
  * md5.c - MD5 hash
- * $Id$
  *
  * Modified by Rémi Denis-Courmont for use with Miredo.
  */

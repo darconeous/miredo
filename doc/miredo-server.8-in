@@ -91,7 +91,5 @@ miredo-server.conf(5), miredo(8), ipv6(7)
 .SH AUTHOR
 R\[char233]mi Denis-Courmont <rdenis at simphalempin.com>
 
-$Id$
-
 http://www.remlab.net/miredo/
 

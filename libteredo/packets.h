@@ -1,8 +1,6 @@
 /**
  * @file packets.h
  * @brief helpers to send Teredo packets
- *
- * $Id$
  */
 
 /***********************************************************************

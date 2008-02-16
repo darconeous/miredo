@@ -1,6 +1,5 @@
 /*
  * relayd.c - Miredo: binding between libtun6 and libteredo
- * $Id$
  */
 
 /***********************************************************************

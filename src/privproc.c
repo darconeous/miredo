@@ -1,6 +1,5 @@
 /*
  * privproc.c - Privileged process and IPC for Miredo
- * $Id$
  */
 
 /***********************************************************************

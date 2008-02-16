@@ -1,7 +1,6 @@
 /*
  * main.c - Unix Teredo server & relay implementation
  *          command line handling and core functions
- * $Id$
  */
 
 /***********************************************************************

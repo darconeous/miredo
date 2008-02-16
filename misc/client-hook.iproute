@@ -3,8 +3,6 @@
 # Miredo client hook script for Linux/iproute2
 # Copyright © 2007 Rémi Denis-Courmont.
 # Distributed under the terms of the GNU General Public License version 2.
-#
-# $Id$
 
 # Linux iproute2 path:
 IP="/sbin/ip"

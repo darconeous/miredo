@@ -1,8 +1,6 @@
 /**
  * @file maintain.h
  * @brief Teredo client qualification & maintenance
- *
- * $Id$
  */
 
 /***********************************************************************

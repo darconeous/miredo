@@ -1,6 +1,5 @@
 /*
  * serverd.c - Teredo server implementation daemon
- * $Id$
  */
 
 /***********************************************************************

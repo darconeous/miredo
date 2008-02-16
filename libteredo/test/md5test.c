@@ -1,6 +1,5 @@
 /*
  * md5test.c - MD5 hash unit test
- * $Id$
  *
  * Modified by Rémi Denis-Courmont for use with Miredo.
  */

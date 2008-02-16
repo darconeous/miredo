@@ -1,6 +1,5 @@
 /*
  * relay.c - Teredo relay core
- * $Id: relay.c 1699 2006-08-16 18:51:08Z remi $
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information

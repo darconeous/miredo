@@ -1,6 +1,5 @@
 /*
  * maintain.c - Teredo client qualification & maintenance
- * $Id$
  *
  * See "Teredo: Tunneling IPv6 over UDP through NATs"
  * for more information

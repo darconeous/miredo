@@ -1,6 +1,5 @@
 /*
  * peerlist.c - Teredo relay internal peers list manipulation
- * $Id$
  */
 
 /***********************************************************************

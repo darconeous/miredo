@@ -9,8 +9,6 @@
  * Libteredo is primilarly used by the miredo daemon.
  * 
  * Refer to tunnel.h for the external API documentation.
- *
- * $Id$
  */
 
 /***********************************************************************

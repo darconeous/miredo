@@ -1,6 +1,5 @@
 /*
  * Various fixes for obsolete, or plain broken, C libraries.
- * $Id$
  */
 
 /***********************************************************************

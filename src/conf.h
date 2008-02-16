@@ -1,6 +1,5 @@
 /*
  * conf.h - Configuration text file parsing declaration
- * $Id$
  */
 
 /***********************************************************************
