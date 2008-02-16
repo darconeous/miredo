@@ -20,8 +20,8 @@ dnl *  along with this program; if not, you can get it from:              *
 dnl *  http://www.gnu.org/copyleft/gpl.html                               *
 dnl ***********************************************************************
 
-AC_COPYRIGHT([Copyright (C) 2004-2007 Remi Denis-Courmont])
-AC_INIT(miredo, 1.1.5, miredo-devel_no_bulk_mail@remlab.net)
+AC_COPYRIGHT([Copyright (C) 2004-2008 Remi Denis-Courmont])
+AC_INIT(miredo, 1.1.6, miredo-devel_no_bulk_mail@remlab.net)
 AC_PREREQ(2.59c)
 INVOCATION="$0 $ac_configure_args"
 
