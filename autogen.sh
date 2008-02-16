@@ -1,9 +1,8 @@
-#!/bin/sh
-# SVN package rebuild script
-# $Id$
+#! /bin/sh
+# GIT package rebuild script
 #
 # ***********************************************************************
-# *  Copyright © 2002-2005 Rémi Denis-Courmont.                         *
+# *  Copyright © 2002-2008 Rémi Denis-Courmont.                         *
 # *  This program is free software; you can redistribute and/or modify  *
 # *  it under the terms of the GNU General Public License as published  *
 # *  by the Free Software Foundation; version 2 of the license.         *
@@ -34,6 +33,7 @@ echo "Autoreconf in $PWD ..."
 autoreconf -sfi
 unlink po/Makevars.template
 
+mkdir -p include/
 for d in /usr /usr/local /opt/gettext /opt/local/share/gettext \
 		/usr/pkg "$HOME"; do
 	if test -f "$d/share/gettext/gettext.h" ; then
