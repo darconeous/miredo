@@ -68,36 +68,18 @@ install-data-hook:
 	@echo "  $(conf) and run miredo (as root)."
 endif
 
-# Safe automatic ChangeLog update
-DISTCLEANFILES = stamp-svn
-
-distclean-local:
-	test "$(top_srcdir)" = "$(top_builddir)" || rm -f ChangeLog
-
-dist-hook: stamp-svn
+DISTCLEANFILES = ChangeLog
 
 distcheck-hook:
 	cd doc && $(MAKE) $(AM_MAKEFLAGS) distcheck-hook
 
 # ChangeLog
-stamp-svn:
-	@rev=$$(LANG=C svnversion "$(srcdir)" 2>/dev/null || echo exported) ; \
-	oldrev=$$(cat stamp-svn 2>/dev/null || true) ; \
-	if test "$$rev" != "$$oldrev"; then \
-		echo "New SVN revision is $$rev." ; \
-		if test "$$rev" != "exported"; then \
-			echo -n "Rebuilding ChangeLog... " ; \
-			LANG=C svn -v --non-interactive log "$(srcdir)" > ChangeLog.tmp || exit $$? ; \
-			cat "$(srcdir)/ChangeLog.old" >> ChangeLog.tmp ; \
-			mv -f ChangeLog.tmp ChangeLog || exit $$? ; \
-			echo "OK" ; \
-		fi ; \
-		echo "$$rev" > $@ ; \
-	fi
+ChangeLog: ChangeLog.old
+	test -d "$(srcdir)/.git"
+	rm -f -- ChangeLog
+	(cd "$(srcdir)" && git log && cat ChangeLog.old) > ChangeLog
 
-ChangeLog:
-	$(MAKE) $(AM_MAKEFLAGS) stamp-svn
-	touch $@
+.PHONY: ChangeLog
 
 # Test coverage
 lcov.info:
