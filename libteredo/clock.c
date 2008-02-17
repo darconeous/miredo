@@ -53,9 +53,11 @@ static void clock_tick (union sigval val)
 	int orun = timer_getoverrun (context->handle);
 	context->value += 1 + orun;
 
+#ifdef DELAYTIMER_MAX
 	if (orun == DELAYTIMER_MAX)
 		/* We have a big problem, let next caller fix it */
 		context->active = false;
+#endif
 
 	if (!context->active)
 	{
