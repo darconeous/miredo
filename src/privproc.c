@@ -35,6 +35,8 @@
 #include <sys/wait.h> /* waitpid() */
 #include <arpa/inet.h> /* inet_ntop() */
 #include <net/if.h> /* if_indextoname() */
+#include <signal.h> /* sigemptyset() */
+#include <pthread.h> /* pthread_sigmask() */
 #ifndef IFNAMESIZE
 # define IFNAMESIZE IFNAMSIZ
 #endif
