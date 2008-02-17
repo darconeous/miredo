@@ -13,7 +13,7 @@
 .\" *  along with this program; if not, you can get it from:              *
 .\" *  http://www.gnu.org/copyleft/gpl.html                               *
 .\" ***********************************************************************
-.TH "MIREDO-CHECKCONF" "8" "$Date$" "miredo" "System Manager's Manual"
+.TH "MIREDO-CHECKCONF" "8" "February 2008" "miredo" "System Manager's Manual"
 .SH NAME
 miredo-checkconf \- Miredo configuration file syntax checking tool
 .SH SYNOPSIS
