@@ -34,5 +34,6 @@ dist_noinst_SCRIPTS = client-hook.iproute client-hook.bsd
 conf_SCRIPTS = client-hook
 
 client-hook: client-hook.$(hook_suffix)
-	cat $< > $@
+	cat $(srcdir)/client-hook.$(hook_suffix) > client-hook.tmp
+	mv -f -- client-hook.tmp client-hook
 
