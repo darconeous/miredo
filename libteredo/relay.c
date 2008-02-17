@@ -55,6 +55,9 @@
 # include "security.h"
 #endif
 #include "debug.h"
+#ifndef NDEBUG
+# include <sys/socket.h>
+#endif
 
 struct teredo_tunnel
 {

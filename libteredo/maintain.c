@@ -37,6 +37,7 @@
 
 #include <sys/types.h>
 #include <unistd.h> /* sysconf() */
+#include <sys/socket.h> /* AF_INET */
 #include <netinet/in.h> /* struct in6_addr */
 #include <netinet/ip6.h> /* struct ip6_hdr */
 #include <netdb.h> /* getaddrinfo(), gai_strerror() */
