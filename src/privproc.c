@@ -37,6 +37,7 @@
 #include <net/if.h> /* if_indextoname() */
 #include <signal.h> /* sigemptyset() */
 #include <pthread.h> /* pthread_sigmask() */
+#include <netinet/in.h> /* needed by teredo.h */
 #ifndef IFNAMESIZE
 # define IFNAMESIZE IFNAMSIZ
 #endif
