@@ -74,10 +74,14 @@ distcheck-hook:
 	cd doc && $(MAKE) $(AM_MAKEFLAGS) distcheck-hook
 
 # ChangeLog
-ChangeLog: ChangeLog.old
-	test -d "$(srcdir)/.git"
-	rm -f -- ChangeLog
-	(cd "$(srcdir)" && git log && cat ChangeLog.old) > ChangeLog
+ChangeLog:
+	printf "" > ChangeLog
+	if test -d "$(srcdir)/.git"; then \
+		(cd "$(srcdir)" && git log) >> ChangeLog ; \
+	fi
+	if test -f "$(srcdir)/ChangeLog.old"; then \
+		cat "$(srcdir)/ChangeLog.old" >> ChangeLog ; \
+	fi
 
 .PHONY: ChangeLog
 
