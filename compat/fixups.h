@@ -87,3 +87,7 @@ EXTERN int clock_nanosleep (clockid_t id, int flags,
 # undef _POSIX_CLOCK_SELECTION
 # define _POSIX_CLOCK_SELECTION (-1)
 #endif
+
+#ifndef HAVE_FDATASYNC
+EXTERN int fdatasync (int fd);
+#endif
