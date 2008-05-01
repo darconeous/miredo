@@ -242,8 +242,8 @@ miredo_up_callback (void *data, const struct in6_addr *addr, uint16_t mtu)
 
 	syslog (LOG_NOTICE, _("Teredo pseudo-tunnel started"));
 	if (inet_ntop (AF_INET6, addr, str, sizeof (str)) != NULL)
-		syslog (LOG_INFO, _(" (address: %s, MTU: %u)"),
-		        str, (unsigned)mtu);
+		syslog (LOG_INFO, _(" (address: %s, MTU: %"PRIu16")"),
+		        str, mtu);
 
 	assert (data != NULL);
 

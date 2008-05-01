@@ -184,7 +184,7 @@ miredo_privileged_process (unsigned ifindex,
 			           lladdr, sizeof (lladdr));
 			setenv ("LLADDRESS", lladdr, 1);
 
-			snprintf (intbuf, sizeof (intbuf), "%u", (unsigned)cfg.mtu);
+			snprintf (intbuf, sizeof (intbuf), "%"PRIu16, cfg.mtu);
 			setenv ("MTU", intbuf, 1);
 		}
 		else
