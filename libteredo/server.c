@@ -433,7 +433,7 @@ accept:
      	{
 		debug_error_header (&packet.source_ipv4,
 		                    &ip6->ip6_src, &ip6->ip6_dst);
-		debug ("ICMPv6 too large (%u bytes)", (unsigned)plen);
+		debug ("ICMPv6 too large (%zu bytes)", plen);
 		return -2;
 	}
 

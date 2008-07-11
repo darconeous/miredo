@@ -557,8 +557,7 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 	// Checks packet
 	if (packet->ip6_len < sizeof (*ip6))
      	{
-		debug ("Packet size invalid: %u bytes.",
-		       (unsigned)packet->ip6_len);
+		debug ("Packet size invalid: %zu bytes.", packet->ip6_len);
 		return; // invalid packet
 	}
 
