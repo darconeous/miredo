@@ -201,6 +201,8 @@ static void listitem_recdestroy (teredo_listitem *entry)
 }
 
 
+#include <sched.h>
+
 /**
  * Peer list garbage collector entry point.
  *
@@ -243,10 +245,12 @@ static LIBTEREDO_NORETURN void *garbage_collector (void *data)
 		pthread_mutex_unlock (&l->lock);
 
 		// Perform possibly expensive memory release without the lock
+		sched_yield ();
 		listitem_recdestroy (old);
 
 		/* cancel-unsafe section ends */
 		pthread_setcancelstate (state, NULL);
+		sched_yield ();
 	}
 }
 
