@@ -232,7 +232,7 @@ cleanup_unlock (void *o)
  *   RFC4380. However, this made the startup much faster in many cases (many
  *   NATs are restricted or symmetric), and is in accordance with deprecation
  *   of NAT type determination in STUN RFC3489bis.
- * - NAT symmtric probing was removd in Miredo version 1.1.0, which deepens
+ * - NAT symmetric probing was removed in Miredo version 1.1.0, which deepens
  *   the gap between Miredo and RFC4380. Still, this is fairly consistent with
  *   RFC3489bis.
  */

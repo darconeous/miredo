@@ -336,7 +336,7 @@ int teredo_transmit (teredo_tunnel *restrict tunnel,
 	/*
 	 * We can afford to use a slightly outdated state, but we cannot afford to
 	 * use an inconsistent state, hence this lock.
-	*/
+	 */
 	pthread_rwlock_unlock (&tunnel->state_lock);
 
 #ifdef MIREDO_TEREDO_CLIENT
