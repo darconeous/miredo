@@ -4,7 +4,7 @@ dnl based on earlier configure.ac from tcpreen by the same author
 dnl Process this file with GNU Autoconf to produce a configure script
 
 dnl ***********************************************************************
-dnl *  Copyright © 2004-2007 Rémi Denis-Courmont.                         *
+dnl *  Copyright © 2004-2008 Rémi Denis-Courmont.                         *
 dnl *  This program is free software; you can redistribute and/or modify  *
 dnl *  it under the terms of the GNU General Public License as published  *
 dnl *  by the Free Software Foundation; version 2 of the license, or (at  *
@@ -46,11 +46,8 @@ AC_USE_SYSTEM_EXTENSIONS
 AC_DEFINE(_APPLE_C_SOURCE, 1, [Define to fix pthread_cancel() on Mac OS X.])
 
 dnl Work-around for libtool bug (from Darren Salt)
-m4_undefine([AC_PROG_CXX])
-m4_defun([AC_PROG_CXX],[])
-m4_undefine([AC_PROG_F77])
-m4_defun([AC_PROG_F77],[])
-AC_PROG_LIBTOOL
+LT_PREREQ([2.2.0])
+LT_INIT
 AM_INIT_AUTOMAKE
 
 
