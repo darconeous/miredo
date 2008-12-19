@@ -33,6 +33,6 @@ extern char **environ;
 
 int clearenv (void)
 {
-	environ = NULL;
+	environ[0] = NULL;
 	return 0;
 }
