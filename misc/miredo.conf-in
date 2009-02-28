@@ -24,6 +24,9 @@ InterfaceName	teredo
 #      teredo.remlab.net is an experimental service for testing only.      #
 # Please use another server for production and/or large scale deployments. #
 #**************************************************************************#
+#ServerAddress teredo.ipv6.microsoft.com
+#ServerAddress teredo.ginzado.ne.jp
+#ServerAddress teredo.iks-jena.de
 ServerAddress teredo.remlab.net
 #ServerAddress2 teredo2.remlab.net
 
