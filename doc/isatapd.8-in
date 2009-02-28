@@ -159,7 +159,7 @@ The process-id file.
 isatapd.conf(5), ipv6(7), radvd(8), rdisc6(8)
 
 .SH AUTHOR
-R\[char233]mi Denis-Courmont <rdenis at simphalempin.com>
+R\[char233]mi Denis-Courmont <remi at remlab dot net>
 
 http://www.remlab.net/miredo/
 
