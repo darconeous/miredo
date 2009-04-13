@@ -1,38 +1,38 @@
 # Miredo American English localization.
-# Copyright © 2004-2006 Rémi Denis-Courmont
+# Copyright © 2004-2009 Rémi Denis-Courmont
 # This file is distributed under the same license as the miredo package.
-# Rémi Denis-Courmont <rdenis@simphalempin.com>, 2004.
+# Rémi Denis-Courmont <remi@remlab.net>, 2004.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: miredo 0.8.1\n"
 "Report-Msgid-Bugs-To: miredo-devel_no_bulk_mail@remlab.net\n"
-"POT-Creation-Date: 2008-01-16 19:04+0200\n"
-"PO-Revision-Date: 2005-03-10 14:32+0100\n"
-"Last-Translator: Rémi Denis-Courmont <rdenis (at) simphalempin (dot) com>\n"
+"POT-Creation-Date: 2009-04-13 12:27+0300\n"
+"PO-Revision-Date: 2009-04-13 11:36+0200\n"
+"Last-Translator: Rémi Denis-Courmont <remi (at) remlab (dot) net>\n"
 "Language-Team: N/A\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: libteredo/server.c:461 libteredo/server.c:515 src/isatapd.c:73
+#: libteredo/server.c:460 libteredo/server.c:514
 #, c-format
 msgid "Raw IPv6 socket not working: %s"
 msgstr ""
 
-#: libteredo/server.c:523
+#: libteredo/server.c:522
 msgid ""
 "Teredo server UDP socket error: Server IPv4 addresses must be global unicast."
 msgstr ""
 
-#: libteredo/server.c:556 libteredo/server.c:567 libteredo/maintain.c:467
-#: libtun6/tun6.c:629 src/main.c:144 src/main.c:483 src/miredo.c:71
-#: src/miredo.c:79 src/miredo.c:171
+#: libteredo/server.c:555 libteredo/server.c:566 libteredo/maintain.c:465
+#: libtun6/tun6.c:628 src/main.c:143 src/main.c:482 src/miredo.c:70
+#: src/miredo.c:78 src/miredo.c:170
 #, c-format
 msgid "Error (%s): %s\n"
 msgstr ""
 
-#: libteredo/packets.c:219
+#: libteredo/packets.c:218
 msgid "Multiple Teredo prefixes received"
 msgstr ""
 
@@ -44,49 +44,49 @@ msgstr ""
 msgid "Too much time drift. Resynchronizing."
 msgstr ""
 
-#: libteredo/maintain.c:275
+#: libteredo/maintain.c:273
 #, c-format
 msgid "Cannot resolve Teredo server address \"%s\": %s"
 msgstr "Cannot resolve Teredo server address “%s”: %s"
 
-#: libteredo/maintain.c:282
+#: libteredo/maintain.c:280
 msgid "Teredo server has a non global IPv4 address."
 msgstr ""
 
-#: libteredo/maintain.c:343
+#: libteredo/maintain.c:341
 msgid "No reply from Teredo server"
 msgstr ""
 
-#: libteredo/maintain.c:349
+#: libteredo/maintain.c:347
 msgid "Lost Teredo connectivity"
 msgstr ""
 
-#: libteredo/maintain.c:381
+#: libteredo/maintain.c:379
 msgid "New Teredo address/MTU"
 msgstr ""
 
-#: libtun6/tun6.c:186 libtun6/tun6.c:196 libtun6/tun6.c:239 libtun6/tun6.c:259
-#: libtun6/tun6.c:273 libtun6/tun6.c:287 libtun6/tun6.c:301 libtun6/tun6.c:323
+#: libtun6/tun6.c:185 libtun6/tun6.c:195 libtun6/tun6.c:238 libtun6/tun6.c:258
+#: libtun6/tun6.c:272 libtun6/tun6.c:286 libtun6/tun6.c:300 libtun6/tun6.c:322
 #, c-format
 msgid "Tunneling driver error (%s): %s"
 msgstr ""
 
-#: libtun6/tun6.c:200 src/main.c:510
+#: libtun6/tun6.c:199 src/main.c:509
 msgid ""
 "Please make sure another instance of the program is not already running."
 msgstr ""
 
-#: libtun6/tun6.c:345
+#: libtun6/tun6.c:344
 #, c-format
 msgid "%s tunneling interface creation failure"
 msgstr ""
 
-#: src/main.c:67
+#: src/main.c:66
 #, c-format
 msgid "Try \"%s -h | more\" for more information.\n"
 msgstr "Try “%s -h | more” for more information.\n"
 
-#: src/main.c:77
+#: src/main.c:76
 #, c-format
 msgid ""
 "Usage: %s [OPTIONS] [SERVER_NAME]\n"
@@ -100,23 +100,23 @@ msgid ""
 "  -V, --version    display program version and exit\n"
 msgstr ""
 
-#: src/main.c:96
+#: src/main.c:95
 #, c-format
 msgid ""
 "Miredo: Teredo IPv6 tunneling software %s (%s)\n"
 " built %s on %s (%s)\n"
 msgstr ""
 
-#: src/main.c:100
+#: src/main.c:99
 #, c-format
 msgid "Configured with: %s\n"
 msgstr ""
 
-#: src/main.c:101
+#: src/main.c:100
 msgid "Written by Remi Denis-Courmont.\n"
 msgstr "Written by Rémi Denis-Courmont.\n"
 
-#: src/main.c:103
+#: src/main.c:102
 #, c-format
 msgid ""
 "Copyright (C) 2004-%u Remi Denis-Courmont\n"
@@ -129,7 +129,7 @@ msgstr ""
 "There is NO warranty; not even for MERCHANTABILITY or\n"
 "FITNESS FOR A PARTICULAR PURPOSE.\n"
 
-#: src/main.c:115
+#: src/main.c:114
 #, c-format
 msgid ""
 "Duplicate parameter \"%s\" for option -%c\n"
@@ -138,94 +138,94 @@ msgstr ""
 "Duplicate parameter “%s” for option -%c\n"
 "would override previous value “%s”.\n"
 
-#: src/main.c:127
+#: src/main.c:126
 #, c-format
 msgid "Invalid number (or capacity exceeded) \"%s\" for option -%c\n"
 msgstr "Invalid number (or capacity exceeded) “%s” for option -%c\n"
 
-#: src/main.c:136
+#: src/main.c:135
 #, c-format
 msgid "%s: unexpected extra parameter\n"
 msgstr ""
 
-#: src/main.c:196
+#: src/main.c:195
 msgid ""
 "That is usually an indication that you are trying to start\n"
 "the program as an user with insufficient system privileges.\n"
 "This program should normally be started by root.\n"
 msgstr ""
 
-#: src/main.c:243
+#: src/main.c:242
 #, c-format
 msgid "User \"%s\": %s\n"
 msgstr "User “%s”: %s\n"
 
-#: src/main.c:244
+#: src/main.c:243
 msgid "User not found"
 msgstr ""
 
-#: src/main.c:250
+#: src/main.c:249
 msgid ""
 "Error: This program is not supposed to keep root\n"
 "privileges. That is potentially very dangerous\n"
 "(all the more as it has never been externally audited).\n"
 msgstr ""
 
-#: src/main.c:261
+#: src/main.c:260
 #, c-format
 msgid "SetUID to root: %s\n"
 msgstr ""
 
-#: src/main.c:431
+#: src/main.c:430
 #, c-format
 msgid "Reading configuration from %s: %s\n"
 msgstr ""
 
-#: src/main.c:506
+#: src/main.c:505
 #, c-format
 msgid ""
 "Cannot create PID file %s:\n"
 " %s\n"
 msgstr ""
 
-#: src/miredo.c:155
+#: src/miredo.c:154
 #, c-format
 msgid "Loading configuration from %s failed"
 msgstr ""
 
-#: src/miredo.c:163
+#: src/miredo.c:162
 msgid "Starting..."
 msgstr ""
 
-#: src/miredo.c:204
+#: src/miredo.c:203
 #, c-format
 msgid "Exiting on signal %d (%s)"
 msgstr ""
 
-#: src/miredo.c:211
+#: src/miredo.c:210
 #, c-format
 msgid "Reloading configuration on signal %d (%s)"
 msgstr ""
 
-#: src/miredo.c:220
+#: src/miredo.c:219
 #, c-format
 msgid "Child %d exited (code: %d)"
 msgstr ""
 
-#: src/miredo.c:229
+#: src/miredo.c:228
 #, c-format
 msgid "Child %d killed by signal %d (%s)"
 msgstr ""
 
-#: src/miredo.c:240
+#: src/miredo.c:239
 msgid "Terminated with error(s)."
 msgstr ""
 
-#: src/miredo.c:241
+#: src/miredo.c:240
 msgid "Terminated with no error."
 msgstr ""
 
-#: src/relayd.c:178
+#: src/relayd.c:177
 #, c-format
 msgid ""
 "Using deprecated \"restricted\" relay type which is STRONGLY DISCOURAGED (at "
@@ -234,116 +234,115 @@ msgstr ""
 "Using deprecated “restricted” relay type which is STRONGLY DISCOURAGED (at "
 "line %u)."
 
-#: src/relayd.c:188 src/checkconf.c:82
+#: src/relayd.c:187 src/checkconf.c:81
 #, c-format
 msgid "Invalid relay type \"%s\" at line %u"
 msgstr "Invalid relay type “%s” at line %u"
 
-#: src/relayd.c:244
+#: src/relayd.c:243
 msgid "Teredo pseudo-tunnel started"
 msgstr ""
 
-#: src/relayd.c:246
+#: src/relayd.c:245
 #, c-format
-msgid " (address: %s, MTU: %u)"
+msgid " (address: %s, MTU: %<PRIu16>)"
 msgstr ""
 
-#: src/relayd.c:265
+#: src/relayd.c:264
 msgid "Teredo pseudo-tunnel stopped"
 msgstr ""
 
-#: src/relayd.c:406 src/relayd.c:426 src/relayd.c:443 src/relayd.c:457
-#: src/relayd.c:481 src/serverd.c:95 src/serverd.c:103 src/serverd.c:121
-#: src/isatapd.c:372 src/isatapd.c:381 src/isatapd.c:393 src/checkconf.c:150
+#: src/relayd.c:405 src/relayd.c:425 src/relayd.c:442 src/relayd.c:456
+#: src/relayd.c:480 src/serverd.c:94 src/serverd.c:102 src/serverd.c:120
+#: src/checkconf.c:149
 msgid "Fatal configuration error"
 msgstr ""
 
-#: src/relayd.c:425 src/serverd.c:102 src/checkconf.c:104
+#: src/relayd.c:424 src/serverd.c:101 src/checkconf.c:103
 msgid "Server address not specified"
 msgstr ""
 
-#: src/relayd.c:442 src/checkconf.c:108
+#: src/relayd.c:441 src/checkconf.c:107
 msgid "Unsupported Teredo client mode"
 msgstr ""
 
-#: src/relayd.c:508 src/relayd.c:514 src/relayd.c:541 src/isatapd.c:424
-#: src/isatapd.c:450
+#: src/relayd.c:507 src/relayd.c:513 src/relayd.c:540
 #, c-format
 msgid "Miredo setup failure: %s"
 msgstr ""
 
-#: src/relayd.c:509 src/isatapd.c:425
+#: src/relayd.c:508
 msgid "Cannot create IPv6 tunnel"
 msgstr ""
 
-#: src/relayd.c:515 src/relayd.c:542
+#: src/relayd.c:514 src/relayd.c:541
 msgid "libteredo cannot be initialized"
 msgstr ""
 
-#: src/serverd.c:85
+#: src/serverd.c:84
 #, c-format
 msgid "Invalid server hostname \"%s\": %s"
 msgstr "Invalid server host name “%s”: %s"
 
-#: src/serverd.c:158
+#: src/serverd.c:157
 msgid "Teredo server fatal error"
 msgstr ""
 
-#: src/serverd.c:159
+#: src/serverd.c:158
 msgid "Make sure another instance of the program is not already running."
 msgstr ""
 
-#: src/conf.c:141
+#: src/conf.c:140
 #, c-format
 msgid "Superfluous directive %s at line %u"
 msgstr ""
 
-#: src/conf.c:197
+#: src/conf.c:196
 #, c-format
 msgid "Error (%s): %s"
 msgstr ""
 
-#: src/conf.c:250
+#: src/conf.c:249
 #, c-format
 msgid "Skipped overly long line %u"
 msgstr ""
 
-#: src/conf.c:267
+#: src/conf.c:266
 #, c-format
 msgid "Ignoring line %u: %s"
 msgstr ""
 
-#: src/conf.c:275
+#: src/conf.c:274
 #, c-format
 msgid "Error reading configuration file: %s"
 msgstr ""
 
-#: src/conf.c:299
+#: src/conf.c:298
 #, c-format
 msgid "Error opening configuration file %s: %s"
 msgstr ""
 
-#: src/conf.c:327
+#: src/conf.c:326
 #, c-format
 msgid "Invalid integer value \"%s\" for %s: %s"
 msgstr "Invalid integer value “%s” for %s: %s"
 
-#: src/conf.c:383
+#: src/conf.c:382
 #, c-format
 msgid "Invalid boolean value \"%s\" for %s"
 msgstr "Invalid Boolean value “%s” for %s"
 
-#: src/conf.c:426 src/conf.c:457
+#: src/conf.c:425 src/conf.c:456
 #, c-format
 msgid "Invalid hostname \"%s\" at line %u: %s"
 msgstr "Invalid host name “%s” at line %u: %s"
 
-#: src/conf.c:483
+#: src/conf.c:482
 #, c-format
 msgid "Invalid Teredo IPv6 prefix: %x::/32"
 msgstr ""
 
-#: src/conf.c:567
+#: src/conf.c:566
 #, c-format
 msgid "Unknown syslog facility \"%s\" at line %u"
 msgstr "Unknown syslog facility “%s” at line %u"
