@@ -538,7 +538,7 @@ teredo_server *teredo_server_create (uint32_t ip1, uint32_t ip2)
 		s->lladdr.teredo.prefix = htonl (0xfe800000);
 		//s->lladdr.teredo.server_ip = 0;
 		s->lladdr.teredo.flags = htons (TEREDO_FLAG_CONE);
-		s->lladdr.teredo.client_port = htons (IPPORT_TEREDO);
+		s->lladdr.teredo.client_port = ~htons (IPPORT_TEREDO);
 		s->lladdr.teredo.client_ip = ~s->server_ip;
 
 		fd = s->fd_primary = teredo_socket (ip1, htons (IPPORT_TEREDO));
