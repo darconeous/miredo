@@ -1,7 +1,7 @@
 # Makefile.am - src/ directory Makefile for miredo
 
 # ***********************************************************************
-# *  Copyright © 2004-2006 Rémi Denis-Courmont.                         *
+# *  Copyright © 2004-2009 Rémi Denis-Courmont.                         *
 # *  This program is free software; you can redistribute and/or modify  *
 # *  it under the terms of the GNU General Public License as published  *
 # *  by the Free Software Foundation; version 2 of the license, or (at  *
@@ -30,7 +30,7 @@ AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir) -D_REENTRANT \
 	-DLOCALEDIR=\"$(localedir)\" -DSYSCONFDIR=\"$(sysconfdir)\" \
 	-DLOCALSTATEDIR=\"$(localstatedir)\"
 
-sbin_PROGRAMS = miredo miredo-server miredo-checkconf isatapd
+sbin_PROGRAMS = miredo miredo-server miredo-checkconf
 noinst_LTLIBRARIES = libmiredo.la
 TESTS =
 
@@ -63,10 +63,6 @@ miredo_server_LDADD = ../libteredo/libteredo-server.la libmiredo.la $(LIBINTL)
 # miredo-checkconf
 miredo_checkconf_SOURCES = checkconf.c
 miredo_checkconf_LDADD = libmiredo.la $(LIBINTL)
-
-# isatapd
-isatapd_SOURCES = isatapd.c
-isatapd_LDADD = ../libtun6/libtun6.la libmiredo.la $(LIBINTL)
 
 install-exec-local:
 	$(install_sh) -d "$(DESTDIR)$(localstatedir)/run"

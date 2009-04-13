@@ -1,7 +1,7 @@
 # Makefile.am - doc Makefile for miredo
 
 # ***********************************************************************
-# *  Copyright © 2004-2006 Rémi Denis-Courmont.                         *
+# *  Copyright © 2004-2009 Rémi Denis-Courmont.                         *
 # *  This program is free software; you can redistribute and/or modify  *
 # *  it under the terms of the GNU General Public License as published  *
 # *  by the Free Software Foundation; version 2 of the license, or (at  *
@@ -18,10 +18,10 @@
 # ***********************************************************************
 
 man1_MANS = teredo-mire.1
-man5_MANS = miredo.conf.5 miredo-server.conf.5 isatapd.conf.5
-man8_MANS = miredo.8 miredo-server.8 miredo-checkconf.8 isatapd.8
+man5_MANS = miredo.conf.5 miredo-server.conf.5
+man8_MANS = miredo.8 miredo-server.8 miredo-checkconf.8
 SOURCES_MAN = $(man1_MANS) $(man5_MANS) \
-	miredo.8-in miredo-server.8-in miredo-checkconf.8-in isatapd.8-in
+	miredo.8-in miredo-server.8-in miredo-checkconf.8-in
 
 EXTRA_DIST = $(SOURCES_MAN)
 CLEANFILES = $(man8_MANS)

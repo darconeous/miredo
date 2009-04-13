@@ -3,7 +3,7 @@
  */
 
 /***********************************************************************
- *  Copyright © 2004-2007 Rémi Denis-Courmont.                         *
+ *  Copyright © 2004-2009 Rémi Denis-Courmont.                         *
  *  This program is free software; you can redistribute and/or modify  *
  *  it under the terms of the GNU General Public License as published  *
  *  by the Free Software Foundation; version 2 of the license, or (at  *
@@ -314,8 +314,8 @@ tun6 *tun6_create (const char *req_name)
 #else
 			syslog (LOG_DEBUG,
 "Tunnel interface renaming is not supported on your operating system.\n"
-"To run miredo or isatapd properly, you need to remove the\n"
-"InterfaceName directive from their respective configuration file.\n");
+"To run miredo properly, you need to remove the InterfaceName directive\n"
+"from its configuration file.\n");
 			errno = ENOSYS;
 #endif
 			{

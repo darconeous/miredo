@@ -7,6 +7,5 @@ src/main.c
 src/miredo.c
 src/relayd.c
 src/serverd.c
-src/isatapd.c
 src/conf.c
 src/checkconf.c
