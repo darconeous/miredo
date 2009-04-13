@@ -100,6 +100,9 @@ int teredo_socket (uint32_t bind_ip, uint16_t port)
 #ifdef IP_RECVERR
 	setsockopt (fd, SOL_IP, IP_RECVERR, &(int){ 1 }, sizeof (int));
 #endif
+#ifdef IP_PKTINFO
+	setsockopt (fd, SOL_IP, IP_PKTINFO, &(int) { 1 }, sizeof (int));
+#endif
 
 	/*
 	 * Teredo multicast packets always have a TTL of 1.
@@ -168,6 +171,7 @@ int teredo_send (int fd, const void *packet, size_t plen,
 static int teredo_recv_inner (int fd, struct teredo_packet *p, int flags)
 {
 	struct sockaddr_in ad;
+	char cbuf[CMSG_SPACE (sizeof (struct in_pktinfo))];
 	struct iovec iov =
 	{
 		.iov_base = p->buf.fill,
@@ -178,7 +182,9 @@ static int teredo_recv_inner (int fd, struct teredo_packet *p, int flags)
 		.msg_iov = &iov,
 		.msg_iovlen = 1,
 		.msg_name = &ad,
-		.msg_namelen = sizeof (ad)
+		.msg_namelen = sizeof (ad),
+		.msg_control = cbuf,
+		.msg_controllen = sizeof (cbuf),
 	};
 
 	// Receive a UDP packet
@@ -190,6 +196,21 @@ static int teredo_recv_inner (int fd, struct teredo_packet *p, int flags)
 
 	p->source_ipv4 = ad.sin_addr.s_addr;
 	p->source_port = ad.sin_port;
+
+	// Internal outer destination IPv4 address
+	// (mostly useful for funky multi-homed hosts)
+	for (struct cmsghdr *cmsg = CMSG_FIRSTHDR (&msg);
+	     cmsg != NULL;
+	     cmsg = CMSG_NXTHDR (&msg, cmsg))
+	{
+		if ((cmsg->cmsg_level == IPPROTO_IP)
+		 && (cmsg->cmsg_type == IP_PKTINFO))
+		{
+			const struct in_pktinfo *nfo =
+				(struct in_pktinfo *)CMSG_DATA (cmsg);
+			p->dest_ipv4 = nfo->ipi_addr.s_addr;
+		}
+	}
 
 	uint8_t *ptr = p->buf.fill;
 

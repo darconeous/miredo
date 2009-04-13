@@ -57,6 +57,8 @@ typedef struct teredo_packet
 	uint16_t orig_port;
 	/** Origin indication IPv4 address, or 0 if absent */
 	uint32_t orig_ipv4;
+	/** Destination IPv4 address */
+	uint32_t dest_ipv4;
 
 	/** Whether a authentication header is present at all */
 	bool     auth_present;
