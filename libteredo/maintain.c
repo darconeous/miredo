@@ -227,11 +227,9 @@ cleanup_unlock (void *o)
  *   It adds NAT binding maintenance brittleness in addition to implementation
  *   complexity, and is not necessary for RFC4380 compliance.
  *   Also STUN RFC3489bis deprecates this type of behavior.
- * - NAT cone type probing was removed in Miredo version 0.9.5. Since then,
- *   Miredo qualification state machine became explicitly incompliant with
- *   RFC4380. However, this made the startup much faster in many cases (many
- *   NATs are restricted or symmetric), and is in accordance with deprecation
- *   of NAT type determination in STUN RFC3489bis.
+ * - NAT cone type probing was removed in Miredo version 0.9.5. This violated
+ *   RFC4380. Since then, draft-krishnan-v6ops-teredo-update has nevertheless
+ *   confirmed that the cone type should be dropped.
  * - NAT symmetric probing was removed in Miredo version 1.1.0, which deepens
  *   the gap between Miredo and RFC4380. Still, this is fairly consistent with
  *   RFC3489bis.
