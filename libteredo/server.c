@@ -530,7 +530,7 @@ teredo_server *teredo_server_create (uint32_t ip1, uint32_t ip2)
 	{
 		int fd;
 
-		memset (s, 0, sizeof (s));
+		memset (s, 0, sizeof (*s));
 		s->server_ip = ip1;
 		s->server_ip2 = ip2;
 		s->prefix = htonl (TEREDO_PREFIX);
