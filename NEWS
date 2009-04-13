@@ -18,7 +18,8 @@ STABLE RELEASE 1.1.6 : Minor bug fixes
 # Fix compiling on FreeBSD.
 # Incomplete ISATAP support removed.
   In the mean time, proper support was added within the Linux kernel.
-# Fix minor server DNS name resolution error handling.
+# Fix client error handling when resolving server name.
+# Fix server link-local address, compatibility with Vista clients.
 
 ===========================================================================
 STABLE RELEASE 1.1.5 : Minor bug fixes
