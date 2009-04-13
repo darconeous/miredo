@@ -31,11 +31,3 @@
 
 #include <inttypes.h>
 #include "tunnel.h"
-
-
-void teredo_set_cone_ignore (teredo_tunnel *t, bool ignore)
-{
-	assert (t != NULL);
-	(void)t;
-	(void)ignore;
-}

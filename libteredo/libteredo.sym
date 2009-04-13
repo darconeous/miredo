@@ -6,7 +6,6 @@ teredo_get_privdata
 teredo_set_client_mode
 teredo_set_relay_mode
 teredo_set_cone_flag
-teredo_set_cone_ignore
 teredo_set_icmpv6_callback
 teredo_set_prefix
 teredo_set_privdata
