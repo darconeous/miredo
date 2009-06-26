@@ -493,8 +493,7 @@ plen_to_sin6 (unsigned plen, struct sockaddr_in6 *sin6)
 {
 	memset (sin6, 0, sizeof (struct sockaddr_in6));
 
-	/* NetBSD kernel strangeness:
-	 sin6->sin6_family = AF_INET6;*/
+	sin6->sin6_family = AF_INET6;
 # ifdef HAVE_SA_LEN
 	sin6->sin6_len = sizeof (struct sockaddr_in6);
 # endif
