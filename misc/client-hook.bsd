@@ -18,16 +18,12 @@ fi
 
 "$IFCONFIG" "$IFACE" "$STATE"
 
-# FIXME: untested, certainly syntaxically incorrect
-"$ROUTE" flush dev "$IFACE" 2>/dev/null
-"$IFCONFIG" "$IFACE" flush 2>/dev/null
-
 case "$STATE" in
 	up)
-		# FIXME: untested, most likly syntaxically incorrect
-		"$IFCONFIG" "$IFACE" add "${LLADDRESS}/64"
-		"$IFCONFIG" "$IFACE" add "${ADDRESS}/32"
-		"$ROUTE" -inet6 add default dev "$IFACE" metric "$METRIC"
+		"$IFCONFIG" "$IFACE" inet6 "${LLADDRESS}/64"
+		"$IFCONFIG" "$IFACE" inet6 "${ADDRESS}/128"
+		"$ROUTE" delete -inet6 default
+		"$ROUTE" add -inet6 default -iface "$IFACE"
 		;;
 esac
 
