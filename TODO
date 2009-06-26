@@ -16,6 +16,7 @@ Important features & fixes:
 (*) do something in case of DoS against the peers list
 ( ) fixed TODOs and FIXMEs in source code
 (*) local Teredo discovery
+( ) strerror() thread safety
 
 Not so important features:
 ---------------------------
