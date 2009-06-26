@@ -24,10 +24,10 @@ fi
 
 case "$STATE" in
 	up)
-		# FIXME: untested, most likely syntaxically incorrect
-		"$IFCONFIG" "$IFACE" inet6 add "${LLADDRESS}/64"
-		"$IFCONFIG" "$IFACE" inet6 add "${ADDRESS}/32"
-		"$ROUTE" add -inet6 default "${LLADDRESS}%${IFACE}"
+		# FIXME: untested, most likly syntaxically incorrect
+		"$IFCONFIG" "$IFACE" add "${LLADDRESS}/64"
+		"$IFCONFIG" "$IFACE" add "${ADDRESS}/32"
+		"$ROUTE" -inet6 add default dev "$IFACE" metric "$METRIC"
 		;;
 esac
 
