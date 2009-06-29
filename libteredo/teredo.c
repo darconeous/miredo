@@ -171,7 +171,9 @@ int teredo_send (int fd, const void *packet, size_t plen,
 static int teredo_recv_inner (int fd, struct teredo_packet *p, int flags)
 {
 	struct sockaddr_in ad;
+#ifdef IP_PKTINFO
 	char cbuf[CMSG_SPACE (sizeof (struct in_pktinfo))];
+#endif
 	struct iovec iov =
 	{
 		.iov_base = p->buf.fill,
@@ -183,8 +185,10 @@ static int teredo_recv_inner (int fd, struct teredo_packet *p, int flags)
 		.msg_iovlen = 1,
 		.msg_name = &ad,
 		.msg_namelen = sizeof (ad),
+#ifdef IP_PKTINFO
 		.msg_control = cbuf,
 		.msg_controllen = sizeof (cbuf),
+#endif
 	};
 
 	// Receive a UDP packet
@@ -197,6 +201,7 @@ static int teredo_recv_inner (int fd, struct teredo_packet *p, int flags)
 	p->source_ipv4 = ad.sin_addr.s_addr;
 	p->source_port = ad.sin_port;
 
+#ifdef IP_PKTINFO
 	// Internal outer destination IPv4 address
 	// (mostly useful for funky multi-homed hosts)
 	for (struct cmsghdr *cmsg = CMSG_FIRSTHDR (&msg);
@@ -211,6 +216,7 @@ static int teredo_recv_inner (int fd, struct teredo_packet *p, int flags)
 			p->dest_ipv4 = nfo->ipi_addr.s_addr;
 		}
 	}
+#endif
 
 	uint8_t *ptr = p->buf.fill;
 
