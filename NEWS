@@ -1,5 +1,5 @@
 RELEASE NOTES for Miredo
-stable release version 1.1.6
+stable release version 1.1.7
 =============================
 
   This is a stable release. There are no known outstanding issues. We
@@ -11,6 +11,13 @@ fixes are included.
 informations on this program, see README. For syntax details and
 changes, run “miredo -h” to get help. For detailled internal changes, see
 ChangeLog.
+
+===========================================================================
+STABLE RELEASE 1.1.7 : Major bug fixes
+
+# Fix crash in client more (regression from 1.1.6).
+# Thread-safety fixes (with regards to sigaction and strerror).
+# Fix client hook script for FreeBSD
 
 ===========================================================================
 STABLE RELEASE 1.1.6 : Minor bug fixes
