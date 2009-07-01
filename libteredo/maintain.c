@@ -463,8 +463,8 @@ teredo_maintenance_start (int fd, teredo_state_cb cb, void *opaque,
 	if (err == 0)
 		return m;
 
-	syslog (LOG_ALERT, _("Error (%s): %s\n"), "pthread_create",
-	        strerror (err));
+	errno = err;
+	syslog (LOG_ALERT, _("Error (%s): %m"), "pthread_create");
 
 	pthread_cond_destroy (&m->processed);
 	pthread_cond_destroy (&m->received);
