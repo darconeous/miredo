@@ -183,8 +183,7 @@ tun6 *tun6_create (const char *req_name)
 	int fd = open (tundev, O_RDWR);
 	if (fd == -1)
 	{
-		syslog (LOG_ERR, _("Tunneling driver error (%s): %s"), tundev,
-		        strerror (errno));
+		syslog (LOG_ERR, _("Tunneling driver error (%s): %m"), tundev);
 		(void)close (reqfd);
 		free (t);
 		return NULL;
@@ -193,8 +192,7 @@ tun6 *tun6_create (const char *req_name)
 	// Allocates the tunneling virtual network interface
 	if (ioctl (fd, TUNSETIFF, (void *)&req))
 	{
-		syslog (LOG_ERR, _("Tunneling driver error (%s): %s"), "TUNSETIFF",
-		        strerror (errno));
+		syslog (LOG_ERR, _("Tunneling driver error (%s): %m"), "TUNSETIFF");
 		if (errno == EBUSY)
 			syslog (LOG_INFO,
 			        _("Please make sure another instance of the program is "
@@ -236,8 +234,7 @@ tun6 *tun6_create (const char *req_name)
 
 	if (fd == -1)
 	{
-		syslog (LOG_ERR, _("Tunneling driver error (%s): %s"), "/dev/tun*",
-		        strerror (errno));
+		syslog (LOG_ERR, _("Tunneling driver error (%s): %m"), "/dev/tun*");
 		goto error;
 	}
 	else
@@ -256,8 +253,8 @@ tun6 *tun6_create (const char *req_name)
 	int id = if_nametoindex (t->orig_name);
 	if (id == 0)
 	{
-		syslog (LOG_ERR, _("Tunneling driver error (%s): %s"),
-		        t->orig_name, strerror (errno));
+		syslog (LOG_ERR, _("Tunneling driver error (%s): %m"),
+		        t->orig_name);
 		goto error;
 	}
 
@@ -270,8 +267,8 @@ tun6 *tun6_create (const char *req_name)
 	/* Enables TUNSIFHEAD */
 	if (ioctl (fd, TUNSIFHEAD, &(int){ 1 }))
 	{
-		syslog (LOG_ERR, _("Tunneling driver error (%s): %s"),
-		        "TUNSIFHEAD", strerror (errno));
+		syslog (LOG_ERR, _("Tunneling driver error (%s): %m"),
+		        "TUNSIFHEAD");
 #  if defined (__APPLE__)
 		if (errno == EINVAL)
 			syslog (LOG_NOTICE,
@@ -284,8 +281,8 @@ tun6 *tun6_create (const char *req_name)
 	/* Disables TUNSLMODE (deprecated opposite of TUNSIFHEAD) */
 	if (ioctl (fd, TUNSLMODE, &(int){ 0 }))
 	{
-		syslog (LOG_ERR, _("Tunneling driver error (%s): %s"),
-		        "TUNSLMODE", strerror (errno));
+		syslog (LOG_ERR, _("Tunneling driver error (%s): %m"),
+		        "TUNSLMODE");
 		goto error;
 	}
 #endif
@@ -298,8 +295,8 @@ tun6 *tun6_create (const char *req_name)
 
 		if (if_indextoname (id, req.ifr_name) == NULL)
 		{
-			syslog (LOG_ERR, _("Tunneling driver error (%s): %s"),
-			        "if_indextoname", strerror (errno));
+			syslog (LOG_ERR, _("Tunneling driver error (%s): %m"),
+			        "if_indextoname");
 			goto error;
 		}
 		else
@@ -320,8 +317,8 @@ tun6 *tun6_create (const char *req_name)
 			errno = ENOSYS;
 #endif
 			{
-				syslog (LOG_ERR, _("Tunneling driver error (%s): %s"),
-				        "SIOCSIFNAME", strerror (errno));
+				syslog (LOG_ERR, _("Tunneling driver error (%s): %m"),
+				        "SIOCSIFNAME");
 				goto error;
 			}
 		}
@@ -625,8 +622,7 @@ _iface_route (int reqfd, int id, bool add, const struct in6_addr *addr,
 	int s = socket (AF_ROUTE, SOCK_RAW, AF_INET6);
 	if (s == -1)
 	{
-		syslog (LOG_ERR, _("Error (%s): %s\n"), "socket (AF_ROUTE)",
-		        strerror (errno));
+		syslog (LOG_ERR, _("Error (%s): %m"), "socket (AF_ROUTE)");
 		return -1;
 	}
 
@@ -699,7 +695,7 @@ _iface_route (int reqfd, int id, bool add, const struct in6_addr *addr,
 "(see also FreeBSD PR kern/100080).\n"
 "Please upgrade to FreeBSD 6.3 or more recent to fix this.\n");
 	else syslog (LOG_NOTICE,
-"Creating a route erorr: %s\n", strerror (errno));
+"Creating a route erorr: %m");
 
 	(void)close (s);
 #else
