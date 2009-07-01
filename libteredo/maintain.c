@@ -291,6 +291,7 @@ void maintenance_thread (teredo_maintenance *m)
 
 			/* wait some time before next resolution attempt */
 			deadline.tv_sec += m->restart_delay;
+			server_ip = 0;
 			wait_reply_ignore (m, &deadline);
 		}
 
