@@ -35,7 +35,7 @@
 #include <stdarg.h>
 
 #include <pthread.h> // pthread_sigmask()
-#include <signal.h> // sigaction()
+#include <signal.h>
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -102,22 +102,10 @@ static void logger (void *dummy, bool error, const char *fmt, va_list ap)
 }
 
 
-static LIBTEREDO_NORETURN void dummy_handler (int signum)
-{
-	(void)signum;
-	abort (); /* never happens */
-}
-
-
 extern int
 miredo (const char *confpath, const char *server_name, int pidfd)
 {
 	sigset_t set, exit_set, reload_set;
-	struct sigaction act =
-	{
-		.sa_handler = dummy_handler,
-		.sa_flags = SA_NOCLDSTOP,
-	};
 	int retval;
 	miredo_conf *cnf = miredo_conf_create (logger, NULL);
 
@@ -141,7 +129,6 @@ miredo (const char *confpath, const char *server_name, int pidfd)
 	sigaddset (&set, SIGPIPE);
 
 	pthread_sigmask (SIG_BLOCK, &set, NULL);
-	sigaction (SIGCHLD, &act, NULL);
 
 	openlog (miredo_name, LOG_PID | LOG_PERROR, LOG_DAEMON);
 
