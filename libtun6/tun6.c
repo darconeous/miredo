@@ -660,8 +660,9 @@ _iface_route (int reqfd, int id, bool add, const struct in6_addr *addr,
 	struct ifaddrs *ifap, *ifa;
 	struct sockaddr_dl *sdl = NULL;
 
-	if (getifaddrs(&ifap)) {
-		syslog (LOG_ERR, "getifaddrs erorr\n");
+	if (getifaddrs(&ifap))
+	{
+		syslog (LOG_ERR, _("Error (%s): %m"), "getifaddrs");
 		return -1;
 	}
 	for (ifa = ifap; ifa; ifa = ifa->ifa_next) {
@@ -673,7 +674,7 @@ _iface_route (int reqfd, int id, bool add, const struct in6_addr *addr,
 			sdl = (struct sockaddr_dl *)ifa->ifa_addr;
 	}
 	if (sdl == NULL) {
-		syslog (LOG_ERR, "no sdl found\n");
+		syslog (LOG_ERR, "no sdl found");
 		freeifaddrs(ifap);
 		return -1;
 	}
@@ -694,8 +695,8 @@ _iface_route (int reqfd, int id, bool add, const struct in6_addr *addr,
 "There is probably another tunnel with a conflicting route present\n"
 "(see also FreeBSD PR kern/100080).\n"
 "Please upgrade to FreeBSD 6.3 or more recent to fix this.\n");
-	else syslog (LOG_NOTICE,
-"Creating a route erorr: %m");
+	else
+		syslog (LOG_NOTICE, "Error creating a route: %m");
 
 	(void)close (s);
 #else
