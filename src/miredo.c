@@ -172,13 +172,11 @@ miredo (const char *confpath, const char *server_name, int pidfd)
 
 		// Waits until the miredo process terminates
 		int status;
-
-		while (waitpid (pid, &status, WNOHANG) != pid)
+		do
 		{
 			int signum;
 
-			if (sigwait (&set, &signum))
-				continue;
+			sigwait (&set, &signum);
 			if (!sigismember (&reload_set, signum))
 				continue;
 
@@ -199,6 +197,7 @@ miredo (const char *confpath, const char *server_name, int pidfd)
 				retval = 2;
 			}
 		}
+		while (waitpid (pid, &status, WNOHANG) != pid);
 
 		if (WIFEXITED (status))
 		{
