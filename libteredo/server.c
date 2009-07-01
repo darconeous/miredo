@@ -457,6 +457,7 @@ int teredo_server_check (char *errmsg, size_t len)
 		return 0;
 	}
 
+	/* FIXME: not thread-safe (OK but ugly) */
 	snprintf (errmsg, len, _("Raw IPv6 socket not working: %s"),
 	          strerror (errno));
 	return -1;
@@ -511,8 +512,7 @@ teredo_server *teredo_server_create (uint32_t ip1, uint32_t ip2)
 
 	if (raw_fd == -1)
 	{
-		syslog (LOG_ERR, _("Raw IPv6 socket not working: %s"),
-		        strerror (errno));
+		syslog (LOG_ERR, _("Raw IPv6 socket not working: %m"));
 		return NULL;
 	}
 
@@ -552,8 +552,7 @@ teredo_server *teredo_server_create (uint32_t ip1, uint32_t ip2)
 				char str[INET_ADDRSTRLEN];
 
 				inet_ntop (AF_INET, &ip2, str, sizeof (str));
-				syslog (LOG_ERR, _("Error (%s): %s\n"), str,
-				        strerror (errno));
+				syslog (LOG_ERR, _("Error (%s): %m"), str);
 			}
 
 			teredo_close (s->fd_primary);
@@ -563,8 +562,7 @@ teredo_server *teredo_server_create (uint32_t ip1, uint32_t ip2)
 			char str[INET_ADDRSTRLEN];
 
 			inet_ntop (AF_INET, &ip1, str, sizeof (str));
-			syslog (LOG_ERR, _("Error (%s): %s\n"), str,
-			        strerror (errno));
+			syslog (LOG_ERR, _("Error (%s): %m"), str);
 		}
 
 		free (s);
