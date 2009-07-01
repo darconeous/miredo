@@ -30,7 +30,7 @@
 #include <stdlib.h> // free()
 #include <stdio.h> // fputs()
 #include <sys/types.h>
-#include <string.h> // strerror()
+#include <string.h> // strcasecmp()
 #include <errno.h>
 #include <unistd.h> // close()
 #include <fcntl.h>

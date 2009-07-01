@@ -67,15 +67,14 @@ drop_privileges (void)
 	if ((miredo_chrootdir != NULL)
 	 && (chroot (miredo_chrootdir) || chdir ("/")))
 	{
-		syslog (LOG_ALERT, _("Error (%s): %s\n"),
-				"chroot", strerror (errno));
+		syslog (LOG_ALERT, _("Error (%s): %m"), "chroot");
 		return -1;
 	}
 
 	// Definitely drops privileges
 	if (setuid (unpriv_uid))
 	{
-		syslog (LOG_ALERT, _("Error (%s): %s\n"), "setuid", strerror (errno));
+		syslog (LOG_ALERT, _("Error (%s): %m"), "setuid");
 		return -1;
 	}
 
@@ -154,8 +153,7 @@ miredo (const char *confpath, const char *server_name, int pidfd)
 		switch (pid)
 		{
 			case -1:
-				syslog (LOG_ALERT, _("Error (%s): %s\n"), "fork",
-				        strerror (errno));
+				syslog (LOG_ALERT, _("Error (%s): %m"), "fork");
 				continue;
 
 			case 0:
