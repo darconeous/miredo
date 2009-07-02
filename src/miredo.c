@@ -168,34 +168,31 @@ miredo (const char *confpath, const char *server_name, int pidfd)
 				miredo_conf_clear (cnf, 0);
 		}
 
-		// Waits until the miredo process terminates
-		int status;
+		int status, signum;
+
 		do
-		{
-			int signum;
-
 			sigwait (&set, &signum);
-			if (!sigismember (&reload_set, signum))
-				continue;
+		while (!sigismember (&reload_set, signum));
 
-			/* Request children termination */
-			kill (pid, SIGTERM);
+		/* Request children termination */
+		kill (pid, SIGTERM);
 
-			if (sigismember (&exit_set, signum))
-			{
-				syslog (LOG_NOTICE, _("Exiting on signal %d (%s)"),
-				        signum, strsignal (signum));
-				retval = 0;
-			}
-			else
-			{
-				syslog (LOG_NOTICE,
-				        _("Reloading configuration on signal %d (%s)"),
-				        signum, strsignal (signum));
-				retval = 2;
-			}
+		if (sigismember (&exit_set, signum))
+		{
+			syslog (LOG_NOTICE, _("Exiting on signal %d (%s)"),
+			        signum, strsignal (signum));
+			retval = 0;
 		}
-		while (waitpid (pid, &status, WNOHANG) != pid);
+		else
+		{
+			syslog (LOG_NOTICE,
+			        _("Reloading configuration on signal %d (%s)"),
+			        signum, strsignal (signum));
+			retval = 2;
+		}
+
+		// Waits until the miredo process terminates
+		while (waitpid (pid, &status, 0) != pid);
 
 		if (WIFEXITED (status))
 		{
