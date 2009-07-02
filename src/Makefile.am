@@ -28,9 +28,12 @@ LIBCAP = @LIBCAP@
 
 AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir) -D_REENTRANT \
 	-DLOCALEDIR=\"$(localedir)\" -DSYSCONFDIR=\"$(sysconfdir)\" \
-	-DLOCALSTATEDIR=\"$(localstatedir)\"
+	-DLOCALSTATEDIR=\"$(localstatedir)\" \
+	-DPKGLIBDIR=\"$(pkglibdir)\"
 
 sbin_PROGRAMS = miredo miredo-server miredo-checkconf
+pkglib_PROGRAMS =
+EXTRA_PROGRAMS = privproc
 noinst_LTLIBRARIES = libmiredo.la
 TESTS =
 
@@ -49,12 +52,16 @@ libmiredo_la_LDFLAGS = -no-undefined -static
 
 # miredo
 miredo_SOURCES = relayd.c
-if TEREDO_CLIENT
-miredo_SOURCES += privproc.c privproc.h
-TESTS += miredo-checkconf
-endif
 miredo_LDADD = ../libtun6/libtun6.la ../libteredo/libteredo.la libmiredo.la \
 		@LIBRT@ $(LIBINTL)
+
+# privproc
+miredo_privproc_SOURCES = privproc.c privproc.h
+miredo_privproc_LDADD = ../libteredo/libteredo.la $(LIBCAP)
+if TEREDO_CLIENT
+pkglib_PROGRAMS += miredo-privproc
+TESTS += miredo-checkconf
+endif
 
 # miredo-server
 miredo_server_SOURCES = serverd.c

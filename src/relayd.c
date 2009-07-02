@@ -215,8 +215,10 @@ create_dynamic_tunnel (const char *ifname, int *pfd)
 	miredo_setup_fd (fd[0]);
 	miredo_setup_fd (fd[1]);
 
-	/* FIXME: we leak all heap-allocated settings in the child process */
-	unsigned ifindex = tun6_getId (tunnel);
+	char ifindex[2 * sizeof (unsigned) + 1];
+	snprintf (ifindex, sizeof (ifindex), "%X", tun6_getId (tunnel));
+
+	static const char path[] = PKGLIBDIR"/miredo-privproc";
 	switch (fork ())
 	{
 		case -1:
@@ -225,9 +227,8 @@ create_dynamic_tunnel (const char *ifname, int *pfd)
 			goto error;
 
 		case 0:
-			close (fd[1]);
-			tun6_destroy (tunnel);
-			miredo_privileged_process (ifindex, fd[0]);
+			if (dup2 (fd[0], 0) == 0 && dup2 (fd[0], 1) == 1)
+				execl (path, path, ifindex, (char *)NULL);
 			exit (1);
 	}
 	close (fd[0]);

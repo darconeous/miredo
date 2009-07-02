@@ -19,23 +19,13 @@
  *  http://www.gnu.org/copyleft/gpl.html                               *
  ***********************************************************************/
 
-#ifndef __MIREDO_PRIVPROC_H
-# define __MIREDO_PRIVPROC_H
+#ifndef MIREDO_PRIVPROC_H
+# define MIREDO_PRIVPROC_H
 
 struct miredo_tunnel_settings
 {
 	struct in6_addr addr;
 	uint16_t mtu;
 };
-
-# ifdef __cplusplus
-extern "C" {
-# endif
-
-void miredo_privileged_process (unsigned ifindex, int fd);
-
-# ifdef __cplusplus
-}
-# endif
 
 #endif

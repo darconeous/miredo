@@ -71,7 +71,8 @@ static int run_script (void)
 			sigemptyset (&emptyset);
 			pthread_sigmask (SIG_SETMASK, &emptyset, NULL);
 
-			execl (script_path, script_path, (char *)NULL);
+			if (dup2 (2, 0) == 0 && dup2 (2, 1) == 1)
+				execl (script_path, script_path, (char *)NULL);
 			exit (1);
 		}
 	}
@@ -86,8 +87,15 @@ static int run_script (void)
 }
 
 
-void miredo_privileged_process (unsigned ifindex, int fd)
+int main (int argc, char *argv[])
 {
+	if (argc != 2)
+		exit (1);
+
+	unsigned ifindex = strtoul (argv[1], NULL, 0x10);
+	if (ifindex == 0)
+		exit (1);
+
 	char intbuf[21];
 	if ((size_t)snprintf (intbuf, sizeof (intbuf), "%u", ifindex)
 	             >= sizeof (intbuf))
@@ -126,7 +134,7 @@ void miredo_privileged_process (unsigned ifindex, int fd)
 		int res = -1;
 
 		/* Waits until new (changed) settings arrive */
-		if (recv (fd, &cfg, sizeof (cfg), 0) != sizeof (cfg))
+		if (read (0, &cfg, sizeof (cfg)) != sizeof (cfg))
 			break;
 
 		/* Sanity checks */
@@ -168,7 +176,7 @@ void miredo_privileged_process (unsigned ifindex, int fd)
 
 		/* Notify main process of completion */
 	error:
-		if (send (fd, &res, sizeof (res), 0) != sizeof (res))
+		if (write (1, &res, sizeof (res)) != sizeof (res))
 			break;
 
 		/* Prepend "OLD_" to variables names for next script invocation */
@@ -187,8 +195,6 @@ void miredo_privileged_process (unsigned ifindex, int fd)
 			unsetenv ("OLD_MTU");
 		}
 	}
-
-	close (fd);
 
 	/* Run script for the last time */
 	char iface[IFNAMESIZE];
