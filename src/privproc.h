@@ -22,18 +22,17 @@
 #ifndef __MIREDO_PRIVPROC_H
 # define __MIREDO_PRIVPROC_H
 
-struct in6_addr;
-struct tun6;
+struct miredo_tunnel_settings
+{
+	struct in6_addr addr;
+	uint16_t mtu;
+};
 
 # ifdef __cplusplus
 extern "C" {
 # endif
 
-int
-miredo_privileged_process (unsigned ifindex, void (*) (void *), void *);
-
-int
-miredo_configure_tunnel (int fd, const struct in6_addr *addr, unsigned mtu);
+void miredo_privileged_process (unsigned ifindex, int fd);
 
 # ifdef __cplusplus
 }

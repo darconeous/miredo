@@ -44,22 +44,11 @@
 #ifdef HAVE_SYS_CAPABILITY_H
 # include <sys/capability.h>
 #endif
-#ifndef AF_LOCAL
-# define AF_LOCAL AF_UNIX
-#endif
 
-#include <libtun6/tun6.h>
 #include <libteredo/teredo.h>
 
 #include "miredo.h"
 #include "privproc.h"
-
-struct miredo_tunnel_settings
-{
-	struct in6_addr addr;
-	uint16_t mtu;
-};
-
 
 static const char script_path[] = SYSCONFDIR"/miredo/client-hook";
 
@@ -97,39 +86,12 @@ static int run_script (void)
 }
 
 
-int
-miredo_privileged_process (unsigned ifindex,
-                           void (*clean_cb) (void *), void *opaque)
+void miredo_privileged_process (unsigned ifindex, int fd)
 {
 	char intbuf[21];
 	if ((size_t)snprintf (intbuf, sizeof (intbuf), "%u", ifindex)
 	             >= sizeof (intbuf))
-		return -1;
-
-	int fd[2];
-	if (socketpair (AF_LOCAL, SOCK_SEQPACKET, 0, fd)
-	 && socketpair (AF_LOCAL, SOCK_DGRAM, 0, fd))
-		return -1;
-
-	miredo_setup_fd (fd[0]);
-	miredo_setup_fd (fd[1]);
-
-	switch (fork ())
-	{
-		case -1:
-			close (fd[0]);
-			close (fd[1]);
-			return -1;
-
-		case 0:
-			clean_cb (opaque);
-			close (fd[1]);
-			break;
-
-		default:
-			close (fd[0]);
-			return fd[1];
-	}
+		exit (1);
 
 #ifdef HAVE_LIBCAP
 	{
@@ -164,7 +126,7 @@ miredo_privileged_process (unsigned ifindex,
 		int res = -1;
 
 		/* Waits until new (changed) settings arrive */
-		if (recv (fd[0], &cfg, sizeof (cfg), 0) != sizeof (cfg))
+		if (recv (fd, &cfg, sizeof (cfg), 0) != sizeof (cfg))
 			break;
 
 		/* Sanity checks */
@@ -206,7 +168,7 @@ miredo_privileged_process (unsigned ifindex,
 
 		/* Notify main process of completion */
 	error:
-		if (send (fd[0], &res, sizeof (res), 0) != sizeof (res))
+		if (send (fd, &res, sizeof (res), 0) != sizeof (res))
 			break;
 
 		/* Prepend "OLD_" to variables names for next script invocation */
@@ -226,7 +188,7 @@ miredo_privileged_process (unsigned ifindex,
 		}
 	}
 
-	close (fd[0]);
+	close (fd);
 
 	/* Run script for the last time */
 	char iface[IFNAMESIZE];
@@ -242,28 +204,4 @@ miredo_privileged_process (unsigned ifindex,
 	}
 
 	exit (0);
-}
-
-
-int
-miredo_configure_tunnel (int fd, const struct in6_addr *addr, unsigned mtu)
-{
-	struct miredo_tunnel_settings s;
-	int res;
-
-	if (mtu > 65535)
-	{
-		errno = EINVAL;
-		return -1;
-	}
-
-	memset (&s, 0, sizeof (s));
-	memcpy (&s.addr, addr, sizeof (s.addr));
-	s.mtu = (uint16_t)mtu;
-
-	if ((send (fd, &s, sizeof (s), 0) != sizeof (s))
-	 || (recv (fd, &res, sizeof (res), 0) != sizeof (res)))
-		return -1;
-
-	return res;
 }

@@ -54,6 +54,9 @@
 #ifndef SOL_ICMPV6
 # define SOL_ICMPV6 IPPROTO_ICMPV6
 #endif
+#ifndef PF_LOCAL
+# define PF_LOCAL PF_UNIX
+#endif
 
 #include <libtun6/tun6.h>
 
@@ -195,28 +198,66 @@ ParseRelayType (miredo_conf *conf, const char *name, int *type)
 
 
 #ifdef MIREDO_TEREDO_CLIENT
-static void privproc_clean (void *tunnel)
-{
-	tun6_destroy ((tun6 *)tunnel);
-}
-
 static tun6 *
-create_dynamic_tunnel (const char *ifname, int *fd)
+create_dynamic_tunnel (const char *ifname, int *pfd)
 {
 	tun6 *tunnel = tun6_create (ifname);
 	if (tunnel == NULL)
 		return NULL;
 
+	int fd[2];
+	if (socketpair (PF_LOCAL, SOCK_SEQPACKET, 0, fd)
+	 && socketpair (PF_LOCAL, SOCK_DGRAM, 0, fd))
+		goto error;
+
+	miredo_setup_fd (fd[0]);
+	miredo_setup_fd (fd[1]);
+
 	/* FIXME: we leak all heap-allocated settings in the child process */
-	int res = miredo_privileged_process (tun6_getId (tunnel),
-	                                     privproc_clean, tunnel);
-	if (res == -1)
+	unsigned ifindex = tun6_getId (tunnel);
+	switch (fork ())
 	{
-		tun6_destroy (tunnel);
-		return NULL;
+		case -1:
+			close (fd[0]);
+			close (fd[1]);
+			goto error;
+
+		case 0:
+			close (fd[1]);
+			tun6_destroy (tunnel);
+			miredo_privileged_process (ifindex, fd[0]);
+			exit (1);
 	}
-	*fd = res;
+	close (fd[0]);
+	*pfd = fd[1];
 	return tunnel;
+error:
+	tun6_destroy (tunnel);
+	return NULL;
+}
+
+
+static int
+configure_tunnel (int fd, const struct in6_addr *addr, unsigned mtu)
+{
+	struct miredo_tunnel_settings s;
+	int res;
+
+	if (mtu > 65535)
+	{
+		errno = EINVAL;
+		return -1;
+	}
+
+	memset (&s, 0, sizeof (s));
+	memcpy (&s.addr, addr, sizeof (s.addr));
+	s.mtu = (uint16_t)mtu;
+
+	if ((send (fd, &s, sizeof (s), 0) != sizeof (s))
+	 || (recv (fd, &res, sizeof (res), 0) != sizeof (res)))
+		return -1;
+
+	return res;
 }
 
 
@@ -247,7 +288,7 @@ miredo_up_callback (void *data, const struct in6_addr *addr, uint16_t mtu)
 
 	assert (data != NULL);
 
-	miredo_configure_tunnel (((miredo_tunnel *)data)->priv_fd, addr, mtu);
+	configure_tunnel (((miredo_tunnel *)data)->priv_fd, addr, mtu);
 }
 
 
@@ -259,7 +300,7 @@ miredo_down_callback (void *data)
 {
 	assert (data != NULL);
 
-	miredo_configure_tunnel (((miredo_tunnel *)data)->priv_fd, &in6addr_any,
+	configure_tunnel (((miredo_tunnel *)data)->priv_fd, &in6addr_any,
 	                         1280);
 	syslog (LOG_NOTICE, _("Teredo pseudo-tunnel stopped"));
 }
