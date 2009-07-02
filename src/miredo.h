@@ -42,8 +42,6 @@ int miredo_main (int argc, char *argv[]);
 int miredo_version (void);
 int miredo (const char *conffile, const char *server_name, int pidfd);
 int drop_privileges (void);
-void miredo_setup_fd (int fd);
-void miredo_setup_nonblock_fd (int fd);
 
 # ifdef __cplusplus
 }

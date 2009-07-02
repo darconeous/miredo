@@ -67,6 +67,8 @@
 #include "miredo.h"
 #include "conf.h"
 
+static void miredo_setup_fd (int fd);
+static void miredo_setup_nonblock_fd (int fd);
 
 static int relay_diagnose (void)
 {
@@ -593,13 +595,13 @@ relay_run (miredo_conf *conf, const char *server_name)
 }
 
 
-extern void miredo_setup_fd (int fd)
+static void miredo_setup_fd (int fd)
 {
 	(void) fcntl (fd, F_SETFD, FD_CLOEXEC);
 }
 
 
-extern void miredo_setup_nonblock_fd (int fd)
+static void miredo_setup_nonblock_fd (int fd)
 {
 	int flags = fcntl (fd, F_GETFL);
 	if (flags == -1)
