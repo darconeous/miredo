@@ -1,23 +1,28 @@
 # Miredo English/British English localisation.
-# Copyright © 2004-2006 Rémi Denis-Courmont
+# Copyright © 2004-2009 Rémi Denis-Courmont
 # This file is distributed under the same licence as the miredo package.
 # Rémi Denis-Courmont <remi@remlab.net>, 2004.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: miredo 1.1.6\n"
+"Project-Id-Version: miredo 1.1.7\n"
 "Report-Msgid-Bugs-To: miredo-devel_no_bulk_mail@remlab.net\n"
-"POT-Creation-Date: 2009-04-13 12:27+0300\n"
-"PO-Revision-Date: 2009-04-13 11:35+0200\n"
+"POT-Creation-Date: 2009-07-04 23:03+0300\n"
+"PO-Revision-Date: 2009-07-04 23:06+0300\n"
 "Last-Translator: Rémi Denis-Courmont <remi (at) remlab (dot) net>\n"
 "Language-Team: N/A\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: libteredo/server.c:460 libteredo/server.c:514
+#: libteredo/server.c:461
 #, c-format
 msgid "Raw IPv6 socket not working: %s"
+msgstr ""
+
+#: libteredo/server.c:515
+#, c-format
+msgid "Raw IPv6 socket not working: %m"
 msgstr ""
 
 #: libteredo/server.c:522
@@ -25,11 +30,11 @@ msgid ""
 "Teredo server UDP socket error: Server IPv4 addresses must be global unicast."
 msgstr ""
 
-#: libteredo/server.c:555 libteredo/server.c:566 libteredo/maintain.c:465
-#: libtun6/tun6.c:628 src/main.c:143 src/main.c:482 src/miredo.c:70
-#: src/miredo.c:78 src/miredo.c:170
+#: libteredo/server.c:555 libteredo/server.c:565 libteredo/maintain.c:467
+#: libtun6/tun6.c:625 libtun6/tun6.c:665 src/miredo.c:70 src/miredo.c:77
+#: src/miredo.c:156
 #, c-format
-msgid "Error (%s): %s\n"
+msgid "Error (%s): %m"
 msgstr ""
 
 #: libteredo/packets.c:218
@@ -53,34 +58,89 @@ msgstr "Cannot resolve Teredo server address “%s”: %s"
 msgid "Teredo server has a non global IPv4 address."
 msgstr ""
 
-#: libteredo/maintain.c:341
+#: libteredo/maintain.c:342
 msgid "No reply from Teredo server"
 msgstr ""
 
-#: libteredo/maintain.c:347
+#: libteredo/maintain.c:348
 msgid "Lost Teredo connectivity"
 msgstr ""
 
-#: libteredo/maintain.c:379
+#: libteredo/maintain.c:380
 msgid "New Teredo address/MTU"
 msgstr ""
 
-#: libtun6/tun6.c:185 libtun6/tun6.c:195 libtun6/tun6.c:238 libtun6/tun6.c:258
-#: libtun6/tun6.c:272 libtun6/tun6.c:286 libtun6/tun6.c:300 libtun6/tun6.c:322
+#: libtun6/tun6.c:186 libtun6/tun6.c:195 libtun6/tun6.c:237 libtun6/tun6.c:256
+#: libtun6/tun6.c:270 libtun6/tun6.c:284 libtun6/tun6.c:298 libtun6/tun6.c:320
 #, c-format
-msgid "Tunneling driver error (%s): %s"
-msgstr "Tunnelling driver error (%s): %s"
+msgid "Tunneling driver error (%s): %m"
+msgstr "Tunnelling driver error (%s): %m"
 
-#: libtun6/tun6.c:199 src/main.c:509
+#: libtun6/tun6.c:198 src/main.c:509
 msgid ""
 "Please make sure another instance of the program is not already running."
 msgstr ""
 "Please make sure another instance of the programme is not already running."
 
-#: libtun6/tun6.c:344
+#: libtun6/tun6.c:342
 #, c-format
 msgid "%s tunneling interface creation failure"
 msgstr "%s tunnelling interface creation failure"
+
+#: libtun6/diag.c:88
+msgid ""
+"You might try to run this command to load it:\n"
+"$ modprobe tun\n"
+"(you must be root to do that).\n"
+msgstr ""
+
+#: libtun6/diag.c:92 libtun6/diag.c:121
+msgid ""
+"You can obtain a tunnel driver for the Darwin kernel (Mac OS X) from:\n"
+"http://www-user.rhrk.uni-kl.de/~nissler/tuntap/\n"
+msgstr ""
+
+#: libtun6/diag.c:96
+msgid ""
+"You might try to run this command to load it:\n"
+"$ kldload if_tun\n"
+"(you must be root to do that).\n"
+msgstr ""
+
+#: libtun6/diag.c:104
+#, c-format
+msgid ""
+"Error: %s character device not found or unavailable.\n"
+"%s"
+msgstr ""
+
+#: libtun6/diag.c:117
+msgid ""
+"Make sure your Linux kernel includes the \"Universal TUNTAP driver\"\n"
+"(CONFIG_TUN option), possibly as a module.\n"
+msgstr ""
+"Make sure your Linux kernel includes the “Universal TUNTAP driver”\n"
+"(CONFIG_TUN option), possibly as a module.\n"
+
+#: libtun6/diag.c:129
+#, c-format
+msgid ""
+"Error: your operating system does not seem to provide a network tunneling\n"
+"device driver, which is required.\n"
+"%s"
+msgstr ""
+"Error: your operating system does not seem to provide a network tunnelling\n"
+"device driver, which is required.\n"
+"%s"
+
+#: libtun6/diag.c:141
+#, c-format
+msgid ""
+"Error: cannot open device file %s (%s)\n"
+"IPv6 tunneling will not work.\n"
+msgstr ""
+"Error: cannot open device file %s (%s)\n"
+"IPv6 tunnelling will not work.\n"
 
 #: src/main.c:66
 #, c-format
@@ -160,6 +220,11 @@ msgstr "Invalid number (or capacity exceeded) “%s” for option -%c\n"
 msgid "%s: unexpected extra parameter\n"
 msgstr ""
 
+#: src/main.c:143 src/main.c:482
+#, c-format
+msgid "Error (%s): %s\n"
+msgstr ""
+
 #: src/main.c:195
 msgid ""
 "That is usually an indication that you are trying to start\n"
@@ -206,44 +271,44 @@ msgid ""
 " %s\n"
 msgstr ""
 
-#: src/miredo.c:154
+#: src/miredo.c:140
 #, c-format
 msgid "Loading configuration from %s failed"
 msgstr ""
 
-#: src/miredo.c:162
+#: src/miredo.c:148
 msgid "Starting..."
 msgstr ""
 
-#: src/miredo.c:203
+#: src/miredo.c:182
 #, c-format
 msgid "Exiting on signal %d (%s)"
 msgstr ""
 
-#: src/miredo.c:210
+#: src/miredo.c:189
 #, c-format
 msgid "Reloading configuration on signal %d (%s)"
 msgstr ""
 
-#: src/miredo.c:219
+#: src/miredo.c:200
 #, c-format
 msgid "Child %d exited (code: %d)"
 msgstr ""
 
-#: src/miredo.c:228
+#: src/miredo.c:209
 #, c-format
 msgid "Child %d killed by signal %d (%s)"
 msgstr ""
 
-#: src/miredo.c:239
+#: src/miredo.c:220
 msgid "Terminated with error(s)."
 msgstr ""
 
-#: src/miredo.c:240
+#: src/miredo.c:221
 msgid "Terminated with no error."
 msgstr ""
 
-#: src/relayd.c:177
+#: src/relayd.c:182
 #, c-format
 msgid ""
 "Using deprecated \"restricted\" relay type which is STRONGLY DISCOURAGED (at "
@@ -252,48 +317,48 @@ msgstr ""
 "Using deprecated “restricted” relay type which is STRONGLY DISCOURAGED (at "
 "line %u)."
 
-#: src/relayd.c:187 src/checkconf.c:81
+#: src/relayd.c:192 src/checkconf.c:81
 #, c-format
 msgid "Invalid relay type \"%s\" at line %u"
 msgstr "Invalid relay type “%s” at line %u"
 
-#: src/relayd.c:243
+#: src/relayd.c:287
 msgid "Teredo pseudo-tunnel started"
 msgstr ""
 
-#: src/relayd.c:245
+#: src/relayd.c:289
 #, c-format
 msgid " (address: %s, MTU: %<PRIu16>)"
 msgstr ""
 
-#: src/relayd.c:264
+#: src/relayd.c:308
 msgid "Teredo pseudo-tunnel stopped"
 msgstr ""
 
-#: src/relayd.c:405 src/relayd.c:425 src/relayd.c:442 src/relayd.c:456
-#: src/relayd.c:480 src/serverd.c:94 src/serverd.c:102 src/serverd.c:120
+#: src/relayd.c:449 src/relayd.c:469 src/relayd.c:486 src/relayd.c:500
+#: src/relayd.c:524 src/serverd.c:94 src/serverd.c:102 src/serverd.c:120
 #: src/checkconf.c:149
 msgid "Fatal configuration error"
 msgstr ""
 
-#: src/relayd.c:424 src/serverd.c:101 src/checkconf.c:103
+#: src/relayd.c:468 src/serverd.c:101 src/checkconf.c:103
 msgid "Server address not specified"
 msgstr ""
 
-#: src/relayd.c:441 src/checkconf.c:107
+#: src/relayd.c:485 src/checkconf.c:107
 msgid "Unsupported Teredo client mode"
 msgstr ""
 
-#: src/relayd.c:507 src/relayd.c:513 src/relayd.c:540
+#: src/relayd.c:551 src/relayd.c:557 src/relayd.c:584
 #, c-format
 msgid "Miredo setup failure: %s"
 msgstr ""
 
-#: src/relayd.c:508
+#: src/relayd.c:552
 msgid "Cannot create IPv6 tunnel"
 msgstr ""
 
-#: src/relayd.c:514 src/relayd.c:541
+#: src/relayd.c:558 src/relayd.c:585
 msgid "libteredo cannot be initialized"
 msgstr "libteredo cannot be initialised"
 
@@ -381,28 +446,3 @@ msgstr "Unknown syslog facility “%s” at line %u"
 #~ "Use command line option “-u <user name>” to run\n"
 #~ "this programme in the security context of another\n"
 #~ "user.\n"
-
-#~ msgid ""
-#~ "Make sure your Linux kernel includes the \"Universal TUNTAP driver\"\n"
-#~ "(CONFIG_TUN option), possibly as a module.\n"
-#~ msgstr ""
-#~ "Make sure your Linux kernel includes the “Universal TUNTAP driver”\n"
-#~ "(CONFIG_TUN option), possibly as a module.\n"
-
-#~ msgid ""
-#~ "Error: your operating system does not seem to provide a network "
-#~ "tunneling\n"
-#~ "device driver, which is required.\n"
-#~ "%s"
-#~ msgstr ""
-#~ "Error: your operating system does not seem to provide a network "
-#~ "tunnelling\n"
-#~ "device driver, which is required.\n"
-#~ "%s"
-
-#~ msgid ""
-#~ "Error: cannot open device file %s (%s)\n"
-#~ "IPv6 tunneling will not work.\n"
-#~ msgstr ""
-#~ "Error: cannot open device file %s (%s)\n"
-#~ "IPv6 tunnelling will not work.\n"
