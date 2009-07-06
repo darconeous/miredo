@@ -134,7 +134,7 @@ int main (int argc, char *argv[])
 		int res = -1;
 
 		/* Waits until new (changed) settings arrive */
-		if (read (0, &cfg, sizeof (cfg)) != sizeof (cfg))
+		if (recv (0, &cfg, sizeof (cfg), MSG_WAITALL) != sizeof (cfg))
 			break;
 
 		/* Sanity checks */
@@ -176,7 +176,7 @@ int main (int argc, char *argv[])
 
 		/* Notify main process of completion */
 	error:
-		if (write (1, &res, sizeof (res)) != sizeof (res))
+		if (send (1, &res, sizeof (res), MSG_NOSIGNAL) != sizeof (res))
 			break;
 
 		/* Prepend "OLD_" to variables names for next script invocation */

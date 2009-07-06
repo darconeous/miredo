@@ -208,8 +208,7 @@ create_dynamic_tunnel (const char *ifname, int *pfd)
 		return NULL;
 
 	int fd[2];
-	if (socketpair (PF_LOCAL, SOCK_SEQPACKET, 0, fd)
-	 && socketpair (PF_LOCAL, SOCK_DGRAM, 0, fd))
+	if (socketpair (PF_LOCAL, SOCK_STREAM, 0, fd))
 		goto error;
 
 	miredo_setup_fd (fd[0]);
@@ -256,8 +255,8 @@ configure_tunnel (int fd, const struct in6_addr *addr, unsigned mtu)
 	memcpy (&s.addr, addr, sizeof (s.addr));
 	s.mtu = (uint16_t)mtu;
 
-	if ((send (fd, &s, sizeof (s), 0) != sizeof (s))
-	 || (recv (fd, &res, sizeof (res), 0) != sizeof (res)))
+	if ((send (fd, &s, sizeof (s), MSG_NOSIGNAL) != sizeof (s))
+	 || (recv (fd, &res, sizeof (res), MSG_WAITALL) != sizeof (res)))
 		return -1;
 
 	return res;
