@@ -28,6 +28,9 @@ if ! test -x "$IP"; then
 	exit 1
 fi
 
+# Nothing to do with destroy event
+if test "$STATE" = "destroy"; then exit 0; fi
+
 # If the source routing table is not configured, ignore it.
 if ! "$IP" route show table "$TABLE" >/dev/null 2>&1; then
 	unset TABLE
