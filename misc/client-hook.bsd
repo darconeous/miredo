@@ -30,7 +30,7 @@ case "$STATE" in
 		"$IFCONFIG" "$IFACE" destroy
 esac
 
-# TODO: MacOS X should probably gets its fork of the script
+# TODO: MacOS X should probably get its fork of the script
 # MacOS X DNS resolver must be reloaded when IPv6 availability changes
 #/sbin/killall -HUP something
 
