@@ -15,15 +15,19 @@ if ! test -x "$ROUTE"; then
         exit 1
 fi
 
-"$IFCONFIG" "$IFACE" "$STATE"
-
 case "$STATE" in
 	up)
+		"$IFCONFIG" "$IFACE" up
 		"$IFCONFIG" "$IFACE" inet6 "${LLADDRESS}/64"
 		"$IFCONFIG" "$IFACE" inet6 "${ADDRESS}/128"
 		"$ROUTE" delete -inet6 default
 		"$ROUTE" add -inet6 default -iface "$IFACE"
 		;;
+	down)
+		"$IFCONFIG" "$IFACE" down
+		;;
+	destroy)
+		"$IFCONFIG" "$IFACE" destroy
 esac
 
 # TODO: MacOS X should probably gets its fork of the script
