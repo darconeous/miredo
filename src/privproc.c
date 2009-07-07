@@ -196,7 +196,7 @@ int main (int argc, char *argv[])
 		}
 	}
 
-	/* Run script for the last time */
+	/* Run scripts for the last time */
 	char iface[IFNAMESIZE];
 	if (if_indextoname (ifindex, iface) != NULL)
 	{
@@ -205,7 +205,9 @@ int main (int argc, char *argv[])
 		unsetenv ("LLADDRESS");
 		unsetenv ("MTU");
 		setenv ("IFACE", iface, 1);
+		run_script ();
 
+		setenv ("STATE", "destroy", 1);
 		run_script ();
 	}
 
