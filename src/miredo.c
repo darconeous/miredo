@@ -171,7 +171,9 @@ miredo (const char *confpath, const char *server_name, int pidfd)
 		int status, signum;
 
 		do
-			sigwait (&set, &signum);
+		{
+			while (sigwait (&set, &signum));
+		}
 		while (!sigismember (&reload_set, signum));
 
 		/* Request children termination */
