@@ -66,17 +66,45 @@ int tun6_driver_diagnose (char *errbuf)
 
 #if defined (__linux__)
 	const char tundev[] = "/dev/net/tun";
-#else
-	const char tundev[] = "/dev/tun0";
-#endif
 
 	fd = open (tundev, O_RDWR);
-	if (fd >= 0)
+	if (fd != -1)
 	{
 		(void)close (fd);
-		snprintf (errbuf, LIBTUN6_ERRBUF_SIZE - 1,
+		snprintf (errbuf, LIBTUN6_ERRBUF_SIZE,
 		          "%s tunneling driver found.", os_driver);
-		errbuf[LIBTUN6_ERRBUF_SIZE - 1] = '\0';
+		return 0;
+	}
+
+	switch (errno)
+	{
+		case ENOENT:
+			snprintf (errbuf, LIBTUN6_ERRBUF_SIZE,
+			          _("Error: %s character device "
+			            "not found or unavailable.\n%s"), tundev,
+			          _("You might try to run this command to load it:\n"
+			            "$ modprobe tun\n"
+			            "(you must be root to do that).\n"));
+			return -1;
+		case ENXIO:
+		case ENODEV: /* Linux returns ENODEV instead of ENXIO */
+			snprintf (errbuf, LIBTUN6_ERRBUF_SIZE,
+			          _("Error: your operating system does not "
+			            "seem to provide a network tunneling\n"
+			            "device driver, which is required.\n%s"),
+			          _("Make sure your Linux kernel includes "
+			            "the \"Universal TUNTAP driver\"\n"
+			            "(CONFIG_TUN option), possibly as a module.\n"));
+			return -1;
+	}
+#else
+	const char tundev[] = "/dev/tun0";
+	struct stat st;
+
+	if (stat (tundev, &st) == 0)
+	{
+		snprintf (errbuf, LIBTUN6_ERRBUF_SIZE,
+		          "%s tunneling driver found.", os_driver);
 		return 0;
 	}
 
@@ -84,63 +112,31 @@ int tun6_driver_diagnose (char *errbuf)
 	{
 		const char *specific;
 
-#if defined (__linux__)
-		specific = N_("You might try to run this command to load it:\n"
-			"$ modprobe tun\n"
-			"(you must be root to do that).\n");
-#elif defined (__APPLE__)
+# if defined (__APPLE__)
 		specific = N_("You can obtain a tunnel driver for the "
 			"Darwin kernel (Mac OS X) from:\n"
 			"http://www-user.rhrk.uni-kl.de/~nissler/tuntap/\n");
-#elif defined (__FreeBSD__) || defined (__FreeBSD_kernel__)
+# elif defined (__FreeBSD__) || defined (__FreeBSD_kernel__)
 		specific = N_("You might try to run this command to load it:\n"
 			"$ kldload if_tun\n"
 			"(you must be root to do that).\n");
-#else
+# else
 		specific = NULL;
-#endif
+# endif
 
-		snprintf (errbuf, LIBTUN6_ERRBUF_SIZE - 1,
+		snprintf (errbuf, LIBTUN6_ERRBUF_SIZE,
 			_("Error: %s character device "
 			"not found or unavailable.\n%s"), tundev,
 			specific != NULL ? dgettext (PACKAGE_NAME, specific) : "");
-		errbuf[LIBTUN6_ERRBUF_SIZE - 1] = '\0';
 		return -1;
 	}
-	else
-	/* Linux returns ENODEV instead of ENXIO */
-	if ((errno == ENXIO) || (errno == ENODEV))
-	{
-		const char *specific;
-
-#if defined (__linux__)
-		specific = N_("Make sure your Linux kernel includes "
-			"the \"Universal TUNTAP driver\"\n"
-			"(CONFIG_TUN option), possibly as a module.\n");
-#elif defined (__APPLE__)
-		specific = N_("You can obtain a tunnel driver for the "
-			"Darwin kernel (Mac OS X) from:\n"
-			"http://www-user.rhrk.uni-kl.de/~nissler/tuntap/\n");
-#else
-		specific = NULL;
 #endif
-
-		snprintf (errbuf, LIBTUN6_ERRBUF_SIZE - 1,
-			_("Error: your operating system does not "
-			"seem to provide a network tunneling\n"
-			"device driver, which is required.\n%s"),
-			specific != NULL ? gettext (specific) : "");
-		errbuf[LIBTUN6_ERRBUF_SIZE - 1] = '\0';
-		return -1;
-	}
 
 	/* FIXME: use strerror_l() instead? */
 	char buf[256]; /* Hopefully big enough... :-/ */
 	strerror_r (errno, buf, sizeof (buf));
-	snprintf (errbuf, LIBTUN6_ERRBUF_SIZE - 1,
+	snprintf (errbuf, LIBTUN6_ERRBUF_SIZE,
 		_("Error: cannot open device file %s (%s)\n"
 		"IPv6 tunneling will not work.\n"), tundev, buf);
-	errbuf[LIBTUN6_ERRBUF_SIZE - 1] = '\0';
 	return -1;
 }
-
