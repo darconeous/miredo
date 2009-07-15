@@ -44,6 +44,9 @@
 #ifdef HAVE_SYS_CAPABILITY_H
 # include <sys/capability.h>
 #endif
+#ifndef MSG_NOSIGNAL
+# define MSG_NOSIGNAL 0 /* Uho */
+#endif
 
 #include <libteredo/teredo.h>
 
