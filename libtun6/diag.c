@@ -98,6 +98,9 @@ int tun6_driver_diagnose (char *errbuf)
 			return -1;
 	}
 #else
+#if 1	/* BSD creates a tunnel even on stat() - skip diagnostics */
+	return 0;
+#else
 	const char tundev[] = "/dev/tun0";
 	struct stat st;
 
@@ -130,6 +133,7 @@ int tun6_driver_diagnose (char *errbuf)
 			specific != NULL ? dgettext (PACKAGE_NAME, specific) : "");
 		return -1;
 	}
+#endif
 #endif
 
 	/* FIXME: use strerror_l() instead? */
