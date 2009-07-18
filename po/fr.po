@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: miredo 1.1.7\n"
 "Report-Msgid-Bugs-To: miredo-devel_no_bulk_mail@remlab.net\n"
-"POT-Creation-Date: 2009-07-04 23:03+0300\n"
+"POT-Creation-Date: 2009-07-18 19:11+0300\n"
 "PO-Revision-Date: 2009-07-04 23:06+0300\n"
 "Last-Translator: Rémi Denis-Courmont <remi (at) remlab (dot) net>\n"
 "Language-Team: N/A\n"
@@ -88,7 +88,16 @@ msgstr "Veuillez vérifier que le programme n’est pas déjà en fonctionnement
 msgid "%s tunneling interface creation failure"
 msgstr "Échec de création de l’interface de tunneling %s"
 
-#: libtun6/diag.c:88
+#: libtun6/diag.c:83 libtun6/diag.c:131
+#, c-format
+msgid ""
+"Error: %s character device not found or unavailable.\n"
+"%s"
+msgstr ""
+"Erreur : périphérique %s non trouvé ou non disponible.\n"
+"%s"
+
+#: libtun6/diag.c:85
 msgid ""
 "You might try to run this command to load it:\n"
 "$ modprobe tun\n"
@@ -98,42 +107,7 @@ msgstr ""
 "# modprobe tun\n"
 "(vous devez être root pour cela).\n"
 
-#: libtun6/diag.c:92 libtun6/diag.c:121
-msgid ""
-"You can obtain a tunnel driver for the Darwin kernel (Mac OS X) from:\n"
-"http://www-user.rhrk.uni-kl.de/~nissler/tuntap/\n"
-msgstr ""
-"Vous pouvez obtenir un pilote de tunnel pour le noyau Darwin (Mac OS X) à :\n"
-"http://www-user.rhrk.uni-kl.de/~nissler/tuntap/\n"
-
-#: libtun6/diag.c:96
-msgid ""
-"You might try to run this command to load it:\n"
-"$ kldload if_tun\n"
-"(you must be root to do that).\n"
-msgstr ""
-"Vous devriez exécuter ces commande pour le créer :\n"
-"# kldload if_tun\n"
-"(vous devez être root pour cela).\n"
-
-#: libtun6/diag.c:104
-#, c-format
-msgid ""
-"Error: %s character device not found or unavailable.\n"
-"%s"
-msgstr ""
-"Erreur : périphérique %s non trouvé ou non disponible.\n"
-"%s"
-
-#: libtun6/diag.c:117
-msgid ""
-"Make sure your Linux kernel includes the \"Universal TUNTAP driver\"\n"
-"(CONFIG_TUN option), possibly as a module.\n"
-msgstr ""
-"Vérifiez que votre noyau Linux comporte « l’Universal TUNTAP driver »\n"
-"(option CONFIG_TUN), éventuellement sous forme de module.\n"
-
-#: libtun6/diag.c:129
+#: libtun6/diag.c:92
 #, c-format
 msgid ""
 "Error: your operating system does not seem to provide a network tunneling\n"
@@ -144,7 +118,33 @@ msgstr ""
 "périphérique de tunnel réseau, ce qui est indispensable.\n"
 "%s"
 
-#: libtun6/diag.c:141
+#: libtun6/diag.c:95
+msgid ""
+"Make sure your Linux kernel includes the \"Universal TUNTAP driver\"\n"
+"(CONFIG_TUN option), possibly as a module.\n"
+msgstr ""
+"Vérifiez que votre noyau Linux comporte « l’Universal TUNTAP driver »\n"
+"(option CONFIG_TUN), éventuellement sous forme de module.\n"
+
+#: libtun6/diag.c:119
+msgid ""
+"You can obtain a tunnel driver for the Darwin kernel (Mac OS X) from:\n"
+"http://www-user.rhrk.uni-kl.de/~nissler/tuntap/\n"
+msgstr ""
+"Vous pouvez obtenir un pilote de tunnel pour le noyau Darwin (Mac OS X) à :\n"
+"http://www-user.rhrk.uni-kl.de/~nissler/tuntap/\n"
+
+#: libtun6/diag.c:123
+msgid ""
+"You might try to run this command to load it:\n"
+"$ kldload if_tun\n"
+"(you must be root to do that).\n"
+msgstr ""
+"Vous devriez exécuter ces commande pour le créer :\n"
+"# kldload if_tun\n"
+"(vous devez être root pour cela).\n"
+
+#: libtun6/diag.c:143
 #, c-format
 msgid ""
 "Error: cannot open device file %s (%s)\n"
@@ -294,31 +294,31 @@ msgstr "Échec du chargement de la configuration depuis %s"
 msgid "Starting..."
 msgstr "Démarrage..."
 
-#: src/miredo.c:182
+#: src/miredo.c:184
 #, c-format
 msgid "Exiting on signal %d (%s)"
 msgstr "Arrêt suite au signal %d (%s)"
 
-#: src/miredo.c:189
+#: src/miredo.c:191
 #, c-format
 msgid "Reloading configuration on signal %d (%s)"
 msgstr "Rechargement de la configuration suite au signal %d (%s)"
 
-#: src/miredo.c:200
+#: src/miredo.c:202
 #, c-format
 msgid "Child %d exited (code: %d)"
 msgstr "Fils %d terminé (code de retour : %d)"
 
-#: src/miredo.c:209
+#: src/miredo.c:211
 #, c-format
 msgid "Child %d killed by signal %d (%s)"
 msgstr "Fils %d tué par le signal %d (%s)"
 
-#: src/miredo.c:220
+#: src/miredo.c:222
 msgid "Terminated with error(s)."
 msgstr "Terminé avec une/des erreur(s)."
 
-#: src/miredo.c:221
+#: src/miredo.c:223
 msgid "Terminated with no error."
 msgstr "Terminé sans erreur."
 
@@ -336,43 +336,43 @@ msgstr ""
 msgid "Invalid relay type \"%s\" at line %u"
 msgstr "Type de relais invalide « %s » à la ligne %u"
 
-#: src/relayd.c:287
+#: src/relayd.c:286
 msgid "Teredo pseudo-tunnel started"
 msgstr "Pseudo-tunnel Teredo démarré"
 
-#: src/relayd.c:289
+#: src/relayd.c:288
 #, c-format
 msgid " (address: %s, MTU: %<PRIu16>)"
 msgstr " (adresse : %s, MTU : %<PRIu16>)"
 
-#: src/relayd.c:308
+#: src/relayd.c:307
 msgid "Teredo pseudo-tunnel stopped"
 msgstr "Pseudo-tunnel Teredo arrêté"
 
-#: src/relayd.c:449 src/relayd.c:469 src/relayd.c:486 src/relayd.c:500
-#: src/relayd.c:524 src/serverd.c:94 src/serverd.c:102 src/serverd.c:120
+#: src/relayd.c:448 src/relayd.c:468 src/relayd.c:485 src/relayd.c:499
+#: src/relayd.c:523 src/serverd.c:94 src/serverd.c:102 src/serverd.c:120
 #: src/checkconf.c:149
 msgid "Fatal configuration error"
 msgstr "Erreur fatale de configuration"
 
-#: src/relayd.c:468 src/serverd.c:101 src/checkconf.c:103
+#: src/relayd.c:467 src/serverd.c:101 src/checkconf.c:103
 msgid "Server address not specified"
 msgstr "Adresse du serveur non indiquée"
 
-#: src/relayd.c:485 src/checkconf.c:107
+#: src/relayd.c:484 src/checkconf.c:107
 msgid "Unsupported Teredo client mode"
 msgstr "Mode client Teredo non supporté"
 
-#: src/relayd.c:551 src/relayd.c:557 src/relayd.c:584
+#: src/relayd.c:550 src/relayd.c:556 src/relayd.c:583
 #, c-format
 msgid "Miredo setup failure: %s"
 msgstr "Échec du démarrage de Miredo : %s"
 
-#: src/relayd.c:552
+#: src/relayd.c:551
 msgid "Cannot create IPv6 tunnel"
 msgstr "Impossible de créer le tunnel IPv6"
 
-#: src/relayd.c:558 src/relayd.c:585
+#: src/relayd.c:557 src/relayd.c:584
 msgid "libteredo cannot be initialized"
 msgstr "Impossible d’initialiser libteredo"
 
