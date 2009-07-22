@@ -136,6 +136,7 @@ int tun6_driver_diagnose (char *errbuf)
 #endif
 #endif
 
+#ifdef __linux__
 	/* FIXME: use strerror_l() instead? */
 	char buf[256]; /* Hopefully big enough... :-/ */
 	strerror_r (errno, buf, sizeof (buf));
@@ -143,4 +144,5 @@ int tun6_driver_diagnose (char *errbuf)
 		_("Error: cannot open device file %s (%s)\n"
 		"IPv6 tunneling will not work.\n"), tundev, buf);
 	return -1;
+#endif
 }
