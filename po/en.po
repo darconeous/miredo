@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: miredo 0.8.1\n"
 "Report-Msgid-Bugs-To: miredo-devel_no_bulk_mail@remlab.net\n"
-"POT-Creation-Date: 2009-07-18 19:11+0300\n"
+"POT-Creation-Date: 2009-08-08 19:22+0300\n"
 "PO-Revision-Date: 2009-04-13 11:36+0200\n"
 "Last-Translator: Rémi Denis-Courmont <remi (at) remlab (dot) net>\n"
 "Language-Team: N/A\n"
@@ -129,7 +129,7 @@ msgid ""
 "(you must be root to do that).\n"
 msgstr ""
 
-#: libtun6/diag.c:143
+#: libtun6/diag.c:144
 #, c-format
 msgid ""
 "Error: cannot open device file %s (%s)\n"
