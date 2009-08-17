@@ -200,6 +200,7 @@ static int teredo_recv_inner (int fd, struct teredo_packet *p, int flags)
 
 	p->source_ipv4 = ad.sin_addr.s_addr;
 	p->source_port = ad.sin_port;
+	p->dest_ipv4 = 0;
 
 #ifdef IP_PKTINFO
 	// Internal outer destination IPv4 address
