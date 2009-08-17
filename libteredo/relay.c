@@ -194,6 +194,12 @@ teredo_state_change (const teredo_state *state, void *self)
 		teredo_list_reset (tunnel->list, MAX_PEERS);
 		tunnel->up_cb (tunnel->opaque,
 		               &tunnel->state.addr.ip6, tunnel->state.mtu);
+
+#ifndef NDEBUG
+		char b[INET_ADDRSTRLEN];
+		debug ("Internal IPv4 address: %s",
+		       inet_ntop (AF_INET, &tunnel->state.ipv4, b, sizeof (b)));
+#endif
 	}
 	else
 	if (previously_up)
