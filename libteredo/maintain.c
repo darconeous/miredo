@@ -131,8 +131,7 @@ static int getipv4byname (const char *restrict name, uint32_t *restrict ipv4)
 static int
 maintenance_recv (const teredo_packet *restrict packet, uint32_t server_ip,
                   const uint8_t *restrict nonce, bool cone,
-                  uint16_t *restrict mtu,
-                  union teredo_addr *restrict newaddr)
+                  teredo_state *restrict state)
 {
 	assert (packet->auth_present);
 
@@ -146,12 +145,13 @@ maintenance_recv (const teredo_packet *restrict packet, uint32_t server_ip,
 		return EACCES;
 	}
 
-	if (teredo_parse_ra (packet, newaddr, cone, mtu)
+	if (teredo_parse_ra (packet, &state->addr, cone, &state->mtu)
 	/* TODO: try to work-around incorrect server IP */
-	 || (newaddr->teredo.server_ip != server_ip))
+	 || (state->addr.teredo.server_ip != server_ip))
 		return EINVAL;
 
 	/* Valid router advertisement received! */
+	state->ipv4 = packet->dest_ipv4;
 	return 0;
 }
 
@@ -306,8 +306,9 @@ void maintenance_thread (teredo_maintenance *m)
 		teredo_send_rs (m->fd, server_ip, nonce, false);
 
 		int val = 0;
-		union teredo_addr newaddr;
-		uint16_t mtu = 1280;
+		teredo_state newst;
+		newst.mtu = 1280;
+		newst.up = true;
 
 		/* RECEIVE ROUTER ADVERTISEMENT */
 		do
@@ -318,7 +319,7 @@ void maintenance_thread (teredo_maintenance *m)
 
 			/* check received packet */
 			val = maintenance_recv (m->incoming, server_ip,
-			                        nonce, false, &mtu, &newaddr);
+			                        nonce, false, &newst);
 			m->incoming = NULL;
 			pthread_cond_signal (&m->processed);
 		}
@@ -361,21 +362,19 @@ void maintenance_thread (teredo_maintenance *m)
 			count = 0;
 
 			/* 12-bits Teredo flags randomization */
-			newaddr.teredo.flags = c_state->addr.teredo.flags;
-			if (!IN6_ARE_ADDR_EQUAL (&c_state->addr.ip6, &newaddr.ip6))
+			newst.addr.teredo.flags = c_state->addr.teredo.flags;
+			if (!IN6_ARE_ADDR_EQUAL (&c_state->addr.ip6, &newst.addr.ip6))
 			{
 				uint16_t f = teredo_get_flbits (deadline.tv_sec);
-				newaddr.teredo.flags =
+				newst.addr.teredo.flags =
 					f & htons (TEREDO_RANDOM_MASK);
 			}
 
 			if ((!c_state->up)
-			 || !IN6_ARE_ADDR_EQUAL (&c_state->addr.ip6, &newaddr.ip6)
-			 || (c_state->mtu != mtu))
+			 || !IN6_ARE_ADDR_EQUAL (&c_state->addr.ip6, &newst.addr.ip6)
+			 || (c_state->mtu != newst.mtu))
 			{
-				c_state->addr = newaddr;
-				c_state->mtu = mtu;
-				c_state->up = true;
+				memcpy(c_state, &newst, sizeof (*c_state));
 
 				syslog (LOG_NOTICE, _("New Teredo address/MTU"));
 				m->state.cb (c_state, m->state.opaque);
