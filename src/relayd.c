@@ -228,6 +228,9 @@ create_dynamic_tunnel (const char *ifname, int *pfd)
 		case 0:
 			if (dup2 (fd[0], 0) == 0 && dup2 (fd[0], 1) == 1)
 				execl (path, path, ifindex, (char *)NULL);
+
+			syslog (LOG_ERR, _("Could not execute %s: %s"),
+			        path, strerror(errno));
 			exit (1);
 	}
 	close (fd[0]);

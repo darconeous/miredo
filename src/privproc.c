@@ -28,6 +28,7 @@
 #include <errno.h>
 #include <inttypes.h>
 #include <stdio.h>
+#include <syslog.h>
 
 #include <sys/types.h>
 #include <unistd.h>
@@ -76,6 +77,9 @@ static int run_script (void)
 
 			if (dup2 (2, 0) == 0 && dup2 (2, 1) == 1)
 				execl (script_path, script_path, (char *)NULL);
+
+			syslog (LOG_ERR, "Could not execute %s: %s",
+			        script_path, strerror (errno));
 			exit (1);
 		}
 	}
@@ -92,6 +96,8 @@ static int run_script (void)
 
 int main (int argc, char *argv[])
 {
+	openlog ("miredo-privproc", LOG_PID | LOG_PERROR, LOG_DAEMON);
+
 	if (argc != 2)
 		exit (1);
 
