@@ -434,7 +434,8 @@ int teredo_transmit (teredo_tunnel *restrict tunnel,
 	}
 
 	debug ("Connecting %s: %strusted, %svalid, %u pings, %u bubbles",
-	       inet_ntop(AF_INET, &p->mapped_addr, b, sizeof (b)),
+	       created ? "<unknown>" : inet_ntop(AF_INET, &p->mapped_addr,
+	                                         b, sizeof (b)),
 	       p->trusted       ? "" : "NOT ",
 	       IsValid (p, now) ? "" : "NOT ",
 	       p->pings, p->bubbles);
