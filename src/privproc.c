@@ -81,8 +81,8 @@ static int run_script (void)
 			if (dup2 (2, 0) == 0 && dup2 (2, 1) == 1)
 				execl (script_path, script_path, (char *)NULL);
 
-			syslog (LOG_ERR, "Could not execute %s: %s",
-			        script_path, strerror (errno));
+			syslog (LOG_ERR, "Could not execute %s: %m",
+			        script_path);
 			exit (1);
 		}
 	}
