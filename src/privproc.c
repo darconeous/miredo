@@ -48,6 +48,9 @@
 #ifndef MSG_NOSIGNAL
 # define MSG_NOSIGNAL 0 /* Uho */
 #endif
+#ifndef LOG_PERROR
+# define LOG_PERROR 0
+#endif
 
 #include <libteredo/teredo.h>
 
