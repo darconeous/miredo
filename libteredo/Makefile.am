@@ -44,7 +44,7 @@ libteredo_la_SOURCES =	init.c relay.c security.c security.h md5.c md5.h \
 			packets.c packets.h peerlist.c peerlist.h \
 			clock.c clock.h iothread.c iothread.h stub.c
 if TEREDO_CLIENT
-libteredo_la_SOURCES += maintain.c maintain.h
+libteredo_la_SOURCES += maintain.c maintain.h discovery.c discovery.h
 endif
 libteredo_la_DEPENDENCIES = libteredo.sym $(LIBADD)
 libteredo_la_LIBADD = @LIBJUDY@ @LIBRT@ $(LTLIBINTL) $(LIBADD)

@@ -54,6 +54,7 @@
 #include "iothread.h"
 #ifdef MIREDO_TEREDO_CLIENT
 # include "security.h"
+# include "discovery.h"
 #endif
 #include "debug.h"
 #ifndef NDEBUG
@@ -66,6 +67,7 @@ struct teredo_tunnel
 	void *opaque;
 #ifdef MIREDO_TEREDO_CLIENT
 	struct teredo_maintenance *maintenance;
+	struct teredo_discovery *discovery;
 	
 	teredo_state_up_cb up_cb;
 	teredo_state_down_cb down_cb;
@@ -171,6 +173,8 @@ TeredoRelay::EmitICMPv6Error (const void *packet, size_t length,
 
 
 #ifdef MIREDO_TEREDO_CLIENT
+static LIBTEREDO_NORETURN void *teredo_recv_thread (void *opaque, int fd);
+
 static void
 teredo_state_change (const teredo_state *state, void *self)
 {
@@ -182,6 +186,9 @@ teredo_state_change (const teredo_state *state, void *self)
 
 	if (tunnel->state.up)
 	{
+		if (tunnel->discovery)
+			teredo_discovery_stop (tunnel->discovery);
+
 		/*
 		 * NOTE: we get an hold on both state and peer list locks here.
 		 * As such, in any case, attempting to acquire the state lock while
@@ -197,6 +204,11 @@ teredo_state_change (const teredo_state *state, void *self)
 		debug ("Internal IPv4 address: %s",
 		       inet_ntop (AF_INET, &tunnel->state.ipv4, b, sizeof (b)));
 #endif
+
+		teredo_discovery *d;
+		d = teredo_discovery_start (tunnel->fd, &tunnel->state.addr.ip6,
+		                            teredo_recv_thread, tunnel);
+		tunnel->discovery = d;
 	}
 	else
 	if (previously_up)
@@ -929,6 +941,9 @@ void teredo_destroy (teredo_tunnel *t)
 	 * we need not lock anyting in teredo_destroy(). */
 	if (t->maintenance != NULL)
 		teredo_maintenance_stop (t->maintenance);
+
+	if (t->discovery != NULL)
+		teredo_discovery_stop (t->discovery);
 #endif
 
 	if (t->recv != NULL)
