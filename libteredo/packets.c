@@ -51,27 +51,34 @@
 
 
 int
+teredo_send_bubble_anyway (int fd, uint32_t ip, uint16_t port,
+                           const struct in6_addr *src,
+                           const struct in6_addr *dst)
+{
+	static const uint8_t head[] =
+		"\x60\x00\x00\x00" /* flow */
+		"\x00\x00" /* plen = 0 */
+		"\x3b" /* nxt = IPPROTO_NONE */
+		"\x00" /* hlim = 0 */;
+	struct iovec iov[3] =
+	{
+		{ (void *)head, 8 },
+		{ (void *)src, 16 },
+		{ (void *)dst, 16 }
+	};
+
+	return teredo_sendv (fd, iov, 3, ip, port) == 40 ? 0 : -1;
+}
+
+
+int
 teredo_send_bubble (int fd, uint32_t ip, uint16_t port,
                     const struct in6_addr *src, const struct in6_addr *dst)
 {
 	if (is_ipv4_global_unicast (ip))
-	{
-		static const uint8_t head[] =
-			"\x60\x00\x00\x00" /* flow */
-			"\x00\x00" /* plen = 0 */
-			"\x3b" /* nxt = IPPROTO_NONE */
-			"\x00" /* hlim = 0 */;
-		struct iovec iov[3] =
-		{
-			{ (void *)head, 8 },
-			{ (void *)src, 16 },
-			{ (void *)dst, 16 }
-		};
-
-		return teredo_sendv (fd, iov, 3, ip, port) == 40 ? 0 : -1;
-	}
-
-	return 0;
+		return teredo_send_bubble_anyway(fd, ip, port, src, dst);
+	else
+		return 0; /* FIXME: really ? */
 }
 
 

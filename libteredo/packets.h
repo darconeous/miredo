@@ -76,6 +76,22 @@ int teredo_send_bubble (int fd, uint32_t ip, uint16_t port,
                         const struct in6_addr *src,
                         const struct in6_addr *dst);
 
+/**
+ * Sends a Teredo bubble.
+ *
+ * This version does not check that @p ip is a global unicast address.
+ *
+ * @param ip destination IPv4
+ * @param port destination UDP port
+ * @param src pointer to source IPv6 address
+ * @param dst pointer to destination IPv6 address
+ *
+ * @return 0 on success, -1 on error.
+ */
+int teredo_send_bubble_anyway (int fd, uint32_t ip, uint16_t port,
+                               const struct in6_addr *src,
+                               const struct in6_addr *dst);
+
 static inline int teredo_reply_bubble (int fd, uint32_t ip, uint16_t port,
                                        const struct ip6_hdr *req)
 {
