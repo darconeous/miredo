@@ -208,7 +208,7 @@ teredo_state_change (const teredo_state *state, void *self)
 	/*
 	 * NOTE: the lock is retained until here to ensure notifications remain
 	 * properly ordered. Unfortunately, we cannot be re-entrant from within
-	* up_cb/down_cb.
+	 * up_cb/down_cb.
 	 */
 	pthread_rwlock_unlock (&tunnel->state_lock);
 }

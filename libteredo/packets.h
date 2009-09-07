@@ -42,7 +42,7 @@ int CheckBubble (const teredo_packet *packet);
 
 
 /**
- * Returs true if the packet whose header is passed as a parameter looks
+ * Returns true if the packet whose header is passed as a parameter looks
  * like a Teredo bubble.
  */
 static inline bool IsBubble (const struct ip6_hdr *hdr)
