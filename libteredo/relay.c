@@ -6,7 +6,7 @@
  */
 
 /***********************************************************************
- *  Copyright © 2004-2007 Rémi Denis-Courmont.                         *
+ *  Copyright © 2004-2009 Rémi Denis-Courmont and contributors.        *
  *  This program is free software; you can redistribute and/or modify  *
  *  it under the terms of the GNU General Public License as published  *
  *  by the Free Software Foundation; version 2 of the license, or (at  *
@@ -484,11 +484,35 @@ int teredo_transmit (teredo_tunnel *restrict tunnel,
 		       inet_ntop (AF_INET6, &dst->ip6, b, sizeof (b)), res);
 		return 0;
 	}
+
+	/* Client case 3: untrusted local peer */
+	if (p->local && IsValid (p, now))
+	{
+		teredo_enqueue_out (p, packet, length);
+
+		int res = CountBubble (p, now);
+		uint32_t addr = p->mapped_addr;
+		uint16_t port = p->mapped_port;
+
+		teredo_list_release (list);
+
+		if (res == 0)
+		{
+			teredo_send_bubble_anyway (tunnel->fd, addr, port,
+			                           &s.addr.ip6, &dst->ip6);
+			SendDiscoveryBubble (tunnel->discovery, tunnel->fd);
+		}
+
+		if (res == -1)
+			// TODO: blacklist as a local peer ?
+			teredo_send_unreach (tunnel, ICMP6_DST_UNREACH_ADDR,
+			                     packet, length);
+
+		return 0;
+	}
 #endif
 
 	// Untrusted Teredo client
-
-	/* Client case 3: TODO: implement local discovery */
 
 	if (created)
 		/* Unknown Teredo clients */
@@ -689,8 +713,9 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 	 * is served by them (i.e. egress filtering from Teredo to native IPv6).
 	 * The IPv6 stack firewall should be used to that end.
 	 *
-	 * Multicast destinations are not supposed to occur, not even for hole
-	 * punching. We drop them as a precautionary measure.
+	 * With the exception of local client discovery bubbles, multicast
+	 * destinations are not supposed to occur, not even for hole punching.
+	 * We drop them as a precautionary measure.
 	 *
 	 * We purposedly don't drop packets on the basis of link-local destination
 	 * as it breaks hole punching: we send Teredo bubbles with a link-local
@@ -700,6 +725,9 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 	 *
 	 */
 	if (ip6->ip6_dst.s6_addr[0] == 0xff)
+#ifdef MIREDO_TEREDO_CLIENT
+	if (!(IsClient (tunnel) && IsDiscoveryBubble (packet)))
+#endif
      	{
 		debug ("Multicast destination %s not supported.",
 		       inet_ntop (AF_INET6, &ip6->ip6_dst.s6_addr, b, sizeof b));
@@ -713,6 +741,55 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 	// Checks source IPv6 address / looks up peer in the list:
 	struct teredo_peerlist *list = tunnel->list;
 	teredo_peer *p = teredo_list_lookup (list, &ip6->ip6_src, NULL);
+
+#ifdef MIREDO_TEREDO_CLIENT
+	/*
+	 * Client case 4 (local discovery bubble)
+	 *
+	 * NOTE: In addition to their announcement role, local discovery
+	 * bubbles are used in a way similar to indirect bubbles: when
+	 * transmitting to an untrusted local peer, a client sends both a
+	 * direct unicast bubble and a local discovery bubble, then waits for
+	 * the unicast reply we send below. (client tx case 3 and rx case 5)
+	 *
+	 * So we must check discovery bubbles right now, before case 1 gets a
+	 * chance to discard them, otherwise a trusted local peer will never
+	 * get a chance to trust us as well.
+	 */
+	if (IsClient (tunnel) && IsDiscoveryBubble (packet)
+	 && IN6_TEREDO_PREFIX (&ip6->ip6_src) == s.addr.teredo.prefix)
+	{
+		if (p == NULL)
+		{
+			p = teredo_list_lookup (list, &ip6->ip6_src, &(bool){ false });
+			if (p == NULL) {
+				debug ("Out of memory.");
+				return; // memory error
+			}
+			p->trusted = 0;
+			p->local = 0;
+		}
+
+		/* reset the number of bubbles when a peer becomes local */
+		if (!p->local)
+			p->bubbles = 0;
+
+		SetMappingFromPacket (p, packet);
+		p->local = 1;
+		TouchReceive (p, now);
+		teredo_list_release (list);
+
+		if (CountBubble (p, now) != 0)
+			return;
+
+		debug ("Replying to discovery bubble");
+		teredo_send_bubble_anyway (tunnel->fd,
+					   packet->source_ipv4,
+					   packet->source_port,
+					   &s.addr.ip6, &ip6->ip6_src);
+		return;
+	}
+#endif
 
 	if (p != NULL)
 	{
@@ -753,6 +830,12 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 		// Client case 3 (unknown or untrusted matching Teredo client):
 		if (IN6_MATCHES_TEREDO_CLIENT (&ip6->ip6_src, packet->source_ipv4,
 		                               packet->source_port)
+#ifdef MIREDO_TEREDO_CLIENT
+		// Client case 5 (untrusted local peer)
+		 || (p != NULL && p->local
+		     && (packet->source_ipv4 == p->mapped_addr)
+		     && (packet->source_port == p->mapped_port))
+#endif
 		// Extension: allow mismatch (i.e. clients behind symmetric NATs)
 		 || (IsBubble (ip6) && (CheckBubble (packet) == 0)))
 		{
@@ -760,6 +843,10 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 			if (IsClient (tunnel) && (p == NULL))
 			{
 				p = teredo_list_lookup (list, &ip6->ip6_src, &(bool){ false });
+				if (p == NULL) {
+					debug ("Out of memory.");
+					return; // memory error
+				}
 				p->local = 0;
 			}
 #endif
@@ -786,8 +873,6 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 				tunnel->recv_cb (tunnel->opaque, ip6, length);
 			return;
 		}
-
-		// TODO: local Teredo
 	}
 #ifdef MIREDO_TEREDO_CLIENT
 	else
@@ -795,8 +880,6 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 		assert (IN6_TEREDO_PREFIX (&ip6->ip6_src) != s.addr.teredo.prefix);
 		assert (IsClient (tunnel));
 
-		// TODO: implement client cases 4 & 5 for local Teredo
-	
 		/*
 		 * Default: Client case 6:
 		 * (unknown non-Teredo node or Tereco client with incorrect mapping):
