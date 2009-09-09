@@ -34,12 +34,13 @@ typedef struct teredo_peer
 	size_t queue_left;
 	teredo_clock_t last_rx;
 	teredo_clock_t last_tx;
+	teredo_clock_t last_ping;
 	uint32_t mapped_addr;
 	uint16_t mapped_port;
 	unsigned trusted:1;
+	unsigned local:1;
 	unsigned bubbles:3;
 	unsigned pings:3;
-	unsigned last_ping:9;
 } teredo_peer;
 
 
@@ -82,7 +83,7 @@ static inline void TouchTransmit (teredo_peer *peer, teredo_clock_t now)
 static inline
 bool IsValid (const teredo_peer *peer, teredo_clock_t now)
 {
-	return (now - peer->last_rx) <= 30;
+	return (now - peer->last_rx) <= (peer->local ? 600 : 30);
 }
 
 

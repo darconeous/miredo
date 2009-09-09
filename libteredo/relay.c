@@ -237,7 +237,7 @@ static int CountPing (teredo_peer *peer, teredo_clock_t now)
 		res = -1;
 	// test must be separated by at least 2 seconds
 	else
-	if (((now - peer->last_ping) & 0x1ff) <= 2)
+	if (now - peer->last_ping <= 2)
 		res = 1;
 	else
 		res = 0; // can test again!
@@ -439,12 +439,13 @@ int teredo_transmit (teredo_tunnel *restrict tunnel,
 	}
  	else
 	{
- 		p->trusted = p->bubbles = p->pings = 0;
+		p->trusted = p->local = p->bubbles = p->pings = 0;
 	}
 
-	debug ("Connecting %s: %strusted, %svalid, %u pings, %u bubbles",
+	debug ("Connecting %s: %s%strusted, %svalid, %u pings, %u bubbles",
 	       created ? "<unknown>" : inet_ntop(AF_INET, &p->mapped_addr,
 	                                         b, sizeof (b)),
+	       !p->local        ? "" : "LOCAL, ",
 	       p->trusted       ? "" : "NOT ",
 	       IsValid (p, now) ? "" : "NOT ",
 	       p->pings, p->bubbles);
@@ -757,7 +758,10 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 		{
 #ifdef MIREDO_TEREDO_CLIENT
 			if (IsClient (tunnel) && (p == NULL))
+			{
 				p = teredo_list_lookup (list, &ip6->ip6_src, &(bool){ false });
+				p->local = 0;
+			}
 #endif
 			/*
 			 * Relays are explicitly allowed to drop packets from
@@ -823,7 +827,8 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 			{
 				p->mapped_port = 0;
 				p->mapped_addr = 0;
-				p->trusted = p->bubbles = p->pings = 0;
+				p->trusted = p->local = 0;
+				p->bubbles = p->pings = 0;
 			}
 		}
 
@@ -1079,6 +1084,17 @@ int teredo_set_client_mode (teredo_tunnel *restrict t,
 		pthread_rwlock_unlock (&t->state_lock);
 		return -1;
 	}
+
+	/* expand the list's expiration time to handle local peers */
+	teredo_peerlist *newlist = teredo_list_create (MAX_PEERS, 600);
+	if (newlist == NULL)
+	{
+		debug ("Could not create new list for client mode.");
+		pthread_rwlock_unlock (&t->state_lock);
+		return -1;
+	}
+	teredo_list_destroy (t->list);
+	t->list = newlist;
 
 	struct teredo_maintenance *m;
 	m = teredo_maintenance_start (t->fd, teredo_state_change, t, s, s2,
