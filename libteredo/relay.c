@@ -51,6 +51,7 @@
 #include "maintain.h"
 #include "clock.h"
 #include "peerlist.h"
+#include "iothread.h"
 #ifdef MIREDO_TEREDO_CLIENT
 # include "security.h"
 #endif
@@ -84,11 +85,7 @@ struct teredo_tunnel
 	} ratelimit;
 
 	// Asynchronous packet reception
-	struct
-	{
-		pthread_t thread;
-		bool running;
-	} recv;
+	teredo_iothread *recv;
 
 	int fd;
 };
@@ -934,11 +931,8 @@ void teredo_destroy (teredo_tunnel *t)
 		teredo_maintenance_stop (t->maintenance);
 #endif
 
-	if (t->recv.running)
-	{
-		pthread_cancel (t->recv.thread);
-		pthread_join (t->recv.thread, NULL);
-	}
+	if (t->recv != NULL)
+		teredo_iothread_stop (t->recv, false);
 
 	teredo_list_destroy (t->list);
 	pthread_rwlock_destroy (&t->state_lock);
@@ -948,7 +942,7 @@ void teredo_destroy (teredo_tunnel *t)
 }
 
 
-static LIBTEREDO_NORETURN void *teredo_recv_thread (void *t)
+static LIBTEREDO_NORETURN void *teredo_recv_thread (void *t, int fd)
 {
 	teredo_tunnel *tunnel = (teredo_tunnel *)t;
 
@@ -956,7 +950,7 @@ static LIBTEREDO_NORETURN void *teredo_recv_thread (void *t)
 	{
 		struct teredo_packet packet;
 
-		if (teredo_wait_recv (tunnel->fd, &packet) == 0)
+		if (teredo_wait_recv (fd, &packet) == 0)
 		{
 			pthread_setcancelstate (PTHREAD_CANCEL_DISABLE, NULL);
 			teredo_run_inner (tunnel, &packet);
@@ -971,13 +965,13 @@ int teredo_run_async (teredo_tunnel *t)
 	assert (t != NULL);
 
 	/* already running */
-	if (t->recv.running)
+	if (t->recv)
 		return -1;
 
-	if (pthread_create (&t->recv.thread, NULL, teredo_recv_thread, t))
+	t->recv = teredo_iothread_start (teredo_recv_thread, t, t->fd);
+	if (t->recv == NULL)
 		return -1;
 
-	t->recv.running = true;
 	return 0;
 }
 
