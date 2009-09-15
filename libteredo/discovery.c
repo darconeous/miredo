@@ -51,7 +51,11 @@
 
 struct teredo_discovery
 {
-	uint32_t *ifaddrs;
+	struct teredo_discovery_interface
+	{
+		uint32_t addr;
+		uint32_t mask;
+	} *ifaces;
 	struct in6_addr src;
 	teredo_iothread *recv;
 	teredo_iothread *send;
@@ -62,16 +66,28 @@ static const struct in6_addr in6addr_allnodes =
 { { { 0xff, 0x02, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x1 } } };
 
 
+bool is_ipv4_discovered (teredo_discovery *d, uint32_t ip)
+{
+	int i;
+
+	for (i = 0; d->ifaces[i].addr; i++)
+		if (((ip ^ d->ifaces[i].addr) & d->ifaces[i].mask) == 0)
+			return true;
+
+	return false;
+}
+
+
 void SendDiscoveryBubble (teredo_discovery *d, int fd)
 {
 	struct ip_mreqn mreq;
 	int i, r;
 
-	for (i = 0; d->ifaddrs[i]; i++)
+	for (i = 0; d->ifaces[i].addr; i++)
 	{
 		memset (&mreq, 0, sizeof mreq);
 		mreq.imr_multiaddr.s_addr = htonl (TEREDO_DISCOVERY_IPV4);
-		mreq.imr_address.s_addr = d->ifaddrs[i];
+		mreq.imr_address.s_addr = d->ifaces[i].addr;
 		r = setsockopt(fd, IPPROTO_IP, IP_MULTICAST_IF,
 		                   &mreq, sizeof mreq);
 		if (r < 0)
@@ -156,13 +172,14 @@ teredo_discovery_start (int fd, const struct in6_addr *src,
 		return NULL;
 	}
 
-	d->ifaddrs = NULL;
+	d->ifaces = NULL;
 	ifno = 0;
 
 	for (ifa = ifaddrs; ifa; ifa = ifa->ifa_next)
 	{
-		uint32_t *list = d->ifaddrs;
+		struct teredo_discovery_interface *list = d->ifaces;
 		struct sockaddr_in *sa = (struct sockaddr_in *) ifa->ifa_addr;
+		struct sockaddr_in *ma = (struct sockaddr_in *) ifa->ifa_netmask;
 
 		if (!ifa->ifa_addr || ifa->ifa_addr->sa_family != AF_INET)
 			continue;
@@ -171,26 +188,28 @@ teredo_discovery_start (int fd, const struct in6_addr *src,
 		if (is_ipv4_global_unicast (sa->sin_addr.s_addr))
 			continue;
 
-		list = realloc (list, (ifno + 2) * sizeof (uint32_t));
+		list = realloc (list, (ifno + 2) * sizeof (*d->ifaces));
 		if(list == NULL)
 		{
 			debug ("Out of memory.");
 			break; // memory error
 		}
 
-		d->ifaddrs = list;
-		d->ifaddrs[ifno++] = sa->sin_addr.s_addr;
+		d->ifaces = list;
+		d->ifaces[ifno].addr = sa->sin_addr.s_addr;
+		d->ifaces[ifno].mask = ma->sin_addr.s_addr;
+		ifno++;
 	}
 
 	freeifaddrs(ifaddrs);
 
-	if (d->ifaddrs == NULL)
+	if (d->ifaces == NULL)
 	{
 		debug ("No suitable interfaces found for local discovery");
 		free (d);
 		return NULL;
 	}
-	d->ifaddrs[ifno] = 0;
+	d->ifaces[ifno].addr = 0;
 
 	/* Setup the multicast-receiving socket */
 
@@ -198,13 +217,13 @@ teredo_discovery_start (int fd, const struct in6_addr *src,
 	if (sk < 0)
 	{
 		debug ("Could not create the local discovery socket");
-		free (d->ifaddrs);
+		free (d->ifaces);
 		free (d);
 		return NULL;
 	}
 
-	for (ifno = 0; d->ifaddrs[ifno]; ifno++)
-		teredo_discovery_joinmcast (sk, d->ifaddrs[ifno]);
+	for (ifno = 0; d->ifaces[ifno].addr; ifno++)
+		teredo_discovery_joinmcast (sk, d->ifaces[ifno].addr);
 
 	d->recv = teredo_iothread_start (proc, opaque, sk);
 
@@ -226,7 +245,7 @@ void teredo_discovery_stop (teredo_discovery *d)
 	if (d->recv)
 		teredo_iothread_stop (d->recv, true);
 
-	free (d->ifaddrs);
+	free (d->ifaces);
 	free (d);
 }
 

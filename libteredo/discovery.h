@@ -33,6 +33,14 @@ extern "C" {
 # endif
 
 /**
+ * Tests whether a given IPv4 address belongs to one of the local networks
+ * a given discovery object operates on.
+ *
+ * @param ip IPv4 address to test.
+ */
+bool is_ipv4_discovered (teredo_discovery *d, uint32_t ip);
+
+/**
  * Sends a discovery bubble.
  *
  * @param fd socket to send the bubble from.

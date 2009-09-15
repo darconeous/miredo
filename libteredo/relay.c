@@ -613,9 +613,18 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 		return; // malformatted IPv6 packet
 	}
 
-	teredo_state s;
 	pthread_rwlock_rdlock (&tunnel->state_lock);
+
+	teredo_state s;
 	s = tunnel->state;
+
+#ifdef MIREDO_TEREDO_CLIENT
+	bool localsrc = false;
+	if (tunnel->discovery)
+		localsrc = is_ipv4_discovered (tunnel->discovery,
+		                               packet->source_ipv4);
+#endif
+
 	/*
 	 * We can afford to use a slightly outdated state, but we cannot afford to
 	 * use an inconsistent state, hence this lock. Also, we cannot call
@@ -729,7 +738,7 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 	 */
 	if (ip6->ip6_dst.s6_addr[0] == 0xff)
 #ifdef MIREDO_TEREDO_CLIENT
-	if (!(IsClient (tunnel) && IsDiscoveryBubble (packet)))
+	if (!(localsrc && IsDiscoveryBubble (packet)))
 #endif
      	{
 		debug ("Multicast destination %s not supported.",
@@ -759,7 +768,7 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 	 * chance to discard them, otherwise a trusted local peer will never
 	 * get a chance to trust us as well.
 	 */
-	if (IsClient (tunnel) && IsDiscoveryBubble (packet)
+	if (localsrc && IsDiscoveryBubble (packet)
 	 && IN6_TEREDO_PREFIX (&ip6->ip6_src) == s.addr.teredo.prefix)
 	{
 		if (p == NULL)
