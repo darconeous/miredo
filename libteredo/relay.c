@@ -878,6 +878,8 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 		 || (p != NULL && p->local
 		     && (packet->source_ipv4 == p->mapped_addr)
 		     && (packet->source_port == p->mapped_port))
+		// Extension: packet from unknown local peer (faster discovery)
+		 || (p == NULL && islocal)
 #endif
 		// Extension: allow mismatch (i.e. clients behind symmetric NATs)
 		 || (IsBubble (ip6) && (CheckBubble (packet) == 0)))
@@ -890,7 +892,7 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 					debug ("Out of memory.");
 					return; // memory error
 				}
-				p->local = 0;
+				p->local = islocal;
 			}
 #endif
 			/*
