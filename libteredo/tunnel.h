@@ -12,7 +12,7 @@
  */
 
 /***********************************************************************
- *  Copyright © 2004-2006 Rémi Denis-Courmont.                         *
+ *  Copyright © 2004-2009 Rémi Denis-Courmont and contributors.        *
  *  This program is free software; you can redistribute and/or modify  *
  *  it under the terms of the GNU General Public License as published  *
  *  by the Free Software Foundation; version 2 of the license, or (at  *
@@ -32,6 +32,7 @@
 # define LIBTEREDO_TUNNEL_H
 
 # include <stdbool.h>
+# include <regex.h>
 
 # ifdef __cplusplus
 extern "C" {
@@ -210,6 +211,49 @@ int teredo_set_relay_mode (teredo_tunnel *t);
  */
 int teredo_set_client_mode (teredo_tunnel *restrict t, const char *s1,
                             const char *s2);
+
+/**
+ * Parameters for the local client discovery procedure.
+ */
+typedef struct teredo_discovery_params
+{
+	/**
+	 * Specifies whether the network interfaces with a global address
+	 * should be considered for local discovery.
+	 */
+	bool forced;
+
+	/**
+	 * Regular expression for network interface filtering.
+	 * If this is a non-@c NULL pointer to a @c regex_t object (initialized
+	 * with regcomp()), only the network interfaces whose names match this
+	 * regex will be considered for local discovery.
+	 */
+	regex_t *ifname_re;
+
+	/**
+	 * Netmask (in network byte order) for comparing the mapped external
+	 * IPv4 address of the local clients with our own.
+	 */
+	uint32_t netmask;
+
+} teredo_discovery_params;
+
+/**
+ * Enables the Teredo local client discovery procedure.
+ * teredo_set_client_mode() must have been called for the given tunnel prior to
+ * invoking this function.
+ *
+ * @param t Tereo tunnel instance
+ * @param p local discovery parameters
+ *
+ * Thread-safety: This function is thread-safe.
+ *
+ * @return 0 on success, -1 in case of error.
+ * In case of error, the teredo_tunnel instance is not modifed.
+ */
+int teredo_set_discovery_params (teredo_tunnel *restrict t,
+                                 const teredo_discovery_params *p);
 
 /**
  * Sets the private data pointer of a Teredo tunnel instance.

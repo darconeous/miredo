@@ -57,15 +57,15 @@ bool IsDiscoveryBubble (const teredo_packet *restrict packet);
  * A list of interfaces suitable for the exchange of multicast local discovery
  * bubbles will be assembled for later use by SendDiscoveryBubble().
  *
+ * @param params local discovery configuration parameters.
  * @param fd socket used for sending the discovery bubbles.
  * @param src source Teredo IPv6 address for the discovery bubbles.
  * @param proc IO procedure to use for receiving multicast traffic
  * @param opaque pointer passed to @p proc
- *
- * TODO: a way of configuring which network interfaces to use.
  */
 teredo_discovery *
-teredo_discovery_start (int fd, const struct in6_addr *src,
+teredo_discovery_start (const teredo_discovery_params *params,
+                        int fd, const struct in6_addr *src,
                         teredo_iothread_proc proc, void *opaque);
 
 /**

@@ -1,5 +1,5 @@
 .\" ***********************************************************************
-.\" *  Copyright © 2004-2006 Rémi Denis-Courmont.                         *
+.\" *  Copyright © 2004-2009 Rémi Denis-Courmont and contributors.        *
 .\" *  This program is free software; you can redistribute and/or modify  *
 .\" *  it under the terms of the GNU General Public License as published  *
 .\" *  by the Free Software Foundation; version 2 of the license.         *
@@ -115,6 +115,51 @@ the command line when starting miredo either, the program will fail.
 Miredo assumes that the secondary Teredo server address equals the
 primary server address plus one. If that is not the case, this
 directive must be used.
+
+.TP
+.BI "LocalDiscovery " "mode"
+Determines whether the local client discovery procedure is performed.
+Local discovery works by sending multicast packets
+on the local network interfaces at regular intervals,
+announcing a client's Teredo address.
+
+.RI "If " "mode" " is " "\fBenabled" " (the default),"
+all the multicast-capable network interfaces with a local IPv4 address
+will be considered for the exchange of local discovery packets.
+.RI "If " "mode" " is " "\fBforced" ,
+interfaces with a global address will be considered as well.
+.RB "A value of " "disabled" " will turn off local discovery completely."
+
+.TP
+.BI "DiscoveryInterfaces " "regex"
+Restricts the network interfaces considered for local discovery
+to those whose names match the given regular expression.
+.IR "regex" " is a POSIX extended regular expression;"
+it is not anchored so be careful to include
+.BR "^" " and " "$" " if this is what you mean."
+
+.RI "For instance, on Linux, a " "regex" " of " "\fB^eth[0-9]"
+will restrict local discovery to operate
+on the regular ethernet interfaces only.
+You may specify a list of interfaces using the branch operator,
+.RB "as in " "^(eth0|eth1|ppp0)$" .
+See regex(7) for more information about regular expressions.
+
+.TP
+.BI "DiscoveryNetmask " "netmask"
+Specifies which Teredo addresses are accepted from local peers.
+An IPv6 Teredo address embeds a client's external IPv4 address.
+When receiving announcements from the local networks,
+Miredo compares this external address with its own.
+.RI "The " "netmask" " parameter, written in dotted-quad IPv4 notation,"
+specifies which bits of the address should match.
+
+.RB "A value of " "255.255.255.255" " (the default)"
+will restrict the accepted local peers to those with the
+exact same external IPv4 address as ours,
+and silently ignore announcements from other clients.
+.RB "On the other hand, if " "\fInetmask" " is " "0.0.0.0" ,
+any local client will be accepted, regardless of its external address.
 
 .SH RELAY OPTIONS
 .RI "The following directives are only available in " "relay" " mode."

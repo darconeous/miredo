@@ -71,6 +71,7 @@ struct teredo_tunnel
 	
 	teredo_state_up_cb up_cb;
 	teredo_state_down_cb down_cb;
+	const teredo_discovery_params *disc_params;
 #endif
 	teredo_recv_cb recv_cb;
 	teredo_icmpv6_cb icmpv6_cb;
@@ -187,7 +188,10 @@ teredo_state_change (const teredo_state *state, void *self)
 	if (tunnel->state.up)
 	{
 		if (tunnel->discovery)
+		{
 			teredo_discovery_stop (tunnel->discovery);
+			tunnel->discovery = NULL;
+		}
 
 		/*
 		 * NOTE: we get an hold on both state and peer list locks here.
@@ -205,13 +209,19 @@ teredo_state_change (const teredo_state *state, void *self)
 		       inet_ntop (AF_INET, &tunnel->state.ipv4, b, sizeof (b)));
 #endif
 
-		teredo_discovery *d;
-		d = teredo_discovery_start (tunnel->fd, &tunnel->state.addr.ip6,
-		                            teredo_recv_thread, tunnel);
-		tunnel->discovery = d;
+		if (tunnel->disc_params)
+		{
+			teredo_discovery *d;
+			d = teredo_discovery_start (tunnel->disc_params,
+			                            tunnel->fd,
+						    &tunnel->state.addr.ip6,
+						    teredo_recv_thread, tunnel);
+			tunnel->discovery = d;
+		}
 	}
 	else
 	if (previously_up)
+		/* FIXME: stop discovery? */
 		tunnel->down_cb (tunnel->opaque);
 
 	/*
@@ -502,7 +512,8 @@ int teredo_transmit (teredo_tunnel *restrict tunnel,
 			                           &s.addr.ip6, &dst->ip6);
 
 			pthread_rwlock_rdlock (&tunnel->state_lock);
-			SendDiscoveryBubble (tunnel->discovery, tunnel->fd);
+			if (tunnel->discovery)
+				SendDiscoveryBubble (tunnel->discovery, tunnel->fd);
 			pthread_rwlock_unlock (&tunnel->state_lock);
 		}
 
@@ -561,6 +572,34 @@ int teredo_transmit (teredo_tunnel *restrict tunnel,
 }
 
 
+#ifdef MIREDO_TEREDO_CLIENT
+/**
+ * Checks whether a given packet qualifies as a local one.
+ * Must be called with the state lock held.
+ */
+static bool
+teredo_islocal (teredo_tunnel *restrict tunnel,
+                const struct teredo_packet *restrict packet)
+{
+	if (!tunnel->disc_params || !tunnel->discovery)
+		return false; // local discovery disabled
+
+	union teredo_addr our = tunnel->state.addr;
+	if (IN6_TEREDO_PREFIX (&packet->ip6->ip6_src) != our.teredo.prefix)
+		return false; // not a teredo address
+
+	uint32_t client_ip = IN6_TEREDO_IPV4 (&packet->ip6->ip6_src);
+	if ((client_ip ^ ~our.teredo.client_ip) & tunnel->disc_params->netmask)
+		return false; // non-matching mapped IPv4
+
+	if (!is_ipv4_discovered (tunnel->discovery, packet->source_ipv4))
+		return false; // non-matching source IPv4
+
+	return true;
+}
+#endif
+
+
 static
 void teredo_predecap (teredo_tunnel *restrict tunnel,
                       teredo_peer *restrict peer, teredo_clock_t now)
@@ -614,17 +653,10 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 	}
 
 	pthread_rwlock_rdlock (&tunnel->state_lock);
-
-	teredo_state s;
-	s = tunnel->state;
-
+	teredo_state s = tunnel->state;
 #ifdef MIREDO_TEREDO_CLIENT
-	bool localsrc = false;
-	if (tunnel->discovery)
-		localsrc = is_ipv4_discovered (tunnel->discovery,
-		                               packet->source_ipv4);
+	bool islocal = teredo_islocal (tunnel, packet);
 #endif
-
 	/*
 	 * We can afford to use a slightly outdated state, but we cannot afford to
 	 * use an inconsistent state, hence this lock. Also, we cannot call
@@ -738,7 +770,7 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 	 */
 	if (ip6->ip6_dst.s6_addr[0] == 0xff)
 #ifdef MIREDO_TEREDO_CLIENT
-	if (!(localsrc && IsDiscoveryBubble (packet)))
+	if (!(islocal && IsDiscoveryBubble (packet)))
 #endif
      	{
 		debug ("Multicast destination %s not supported.",
@@ -768,8 +800,7 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 	 * chance to discard them, otherwise a trusted local peer will never
 	 * get a chance to trust us as well.
 	 */
-	if (localsrc && IsDiscoveryBubble (packet)
-	 && IN6_TEREDO_PREFIX (&ip6->ip6_src) == s.addr.teredo.prefix)
+	if (islocal && IsDiscoveryBubble (packet))
 	{
 		if (p == NULL)
 		{
@@ -1205,6 +1236,23 @@ int teredo_set_client_mode (teredo_tunnel *restrict t,
 	(void)s2;
 #endif
 	return -1;
+}
+
+
+int teredo_set_discovery_params (teredo_tunnel *restrict t,
+                                 const teredo_discovery_params *p)
+{
+#ifdef MIREDO_TEREDO_CLIENT
+	pthread_rwlock_wrlock (&t->state_lock);
+	assert (t != NULL && IsClient(t));
+	t->disc_params = p;
+	pthread_rwlock_unlock (&t->state_lock);
+	return 0;
+#else
+	(void)t;
+	(void)p;
+	return -1;
+#endif
 }
 
 

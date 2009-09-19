@@ -46,6 +46,7 @@
 #include "clock.h"
 #include "debug.h"
 #include "iothread.h"
+#include "tunnel.h"
 #include "discovery.h"
 
 
@@ -150,7 +151,8 @@ static void teredo_discovery_joinmcast(int sk, uint32_t ifaddr)
 
 
 teredo_discovery *
-teredo_discovery_start (int fd, const struct in6_addr *src,
+teredo_discovery_start (const teredo_discovery_params *params,
+                        int fd, const struct in6_addr *src,
                         teredo_iothread_proc proc, void *opaque)
 {
 	struct ifaddrs *ifaddrs, *ifa;
@@ -185,7 +187,12 @@ teredo_discovery_start (int fd, const struct in6_addr *src,
 			continue;
 		if (!(ifa->ifa_flags & IFF_MULTICAST))
 			continue;
-		if (is_ipv4_global_unicast (sa->sin_addr.s_addr))
+
+		if (!params->forced
+		 && is_ipv4_global_unicast (sa->sin_addr.s_addr))
+			continue;
+		if (params->ifname_re
+		 && regexec(params->ifname_re, ifa->ifa_name, 0, NULL, 0) != 0)
 			continue;
 
 		list = realloc (list, (ifno + 2) * sizeof (*d->ifaces));
