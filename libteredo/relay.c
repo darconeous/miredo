@@ -500,7 +500,10 @@ int teredo_transmit (teredo_tunnel *restrict tunnel,
 		{
 			teredo_send_bubble_anyway (tunnel->fd, addr, port,
 			                           &s.addr.ip6, &dst->ip6);
+
+			pthread_rwlock_rdlock (&tunnel->state_lock);
 			SendDiscoveryBubble (tunnel->discovery, tunnel->fd);
+			pthread_rwlock_unlock (&tunnel->state_lock);
 		}
 
 		if (res == -1)
