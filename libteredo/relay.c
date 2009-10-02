@@ -747,37 +747,6 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 		return;
 	}
 
-	/*
-	 * NOTE:
-	 * Clients are supposed to check that the destination is their Teredo IPv6
-	 * address; this is done by the IPv6 stack. When IPv6 forwarding is enabled,
-	 * Teredo clients behave like Teredo non-host-specific relays.
-	 *
-	 * Teredo relays are advised to accept only packets whose IPv6 destination
-	 * is served by them (i.e. egress filtering from Teredo to native IPv6).
-	 * The IPv6 stack firewall should be used to that end.
-	 *
-	 * With the exception of local client discovery bubbles, multicast
-	 * destinations are not supposed to occur, not even for hole punching.
-	 * We drop them as a precautionary measure.
-	 *
-	 * We purposedly don't drop packets on the basis of link-local destination
-	 * as it breaks hole punching: we send Teredo bubbles with a link-local
-	 * source, and get replies with a link-local destination. Indeed, the
-	 * specification specifies that relays MUST look up the peer in the list
-	 * and update last reception date regardless of the destination.
-	 *
-	 */
-	if (ip6->ip6_dst.s6_addr[0] == 0xff)
-#ifdef MIREDO_TEREDO_CLIENT
-	if (!(islocal && IsDiscoveryBubble (packet)))
-#endif
-     	{
-		debug ("Multicast destination %s not supported.",
-		       inet_ntop (AF_INET6, &ip6->ip6_dst.s6_addr, b, sizeof b));
-		return;
-	}
-
 	/* Actual packet reception, either as a relay or a client */
 
 	teredo_clock_t now = teredo_clock ();
@@ -833,6 +802,36 @@ teredo_run_inner (teredo_tunnel *restrict tunnel,
 		return;
 	}
 #endif
+
+	/*
+	 * NOTE:
+	 * Clients are supposed to check that the destination is their Teredo IPv6
+	 * address; this is done by the IPv6 stack. When IPv6 forwarding is enabled,
+	 * Teredo clients behave like Teredo non-host-specific relays.
+	 *
+	 * Teredo relays are advised to accept only packets whose IPv6 destination
+	 * is served by them (i.e. egress filtering from Teredo to native IPv6).
+	 * The IPv6 stack firewall should be used to that end.
+	 *
+	 * With the exception of local client discovery bubbles, multicast
+	 * destinations are not supposed to occur, not even for hole punching.
+	 * We drop them as a precautionary measure.
+	 *
+	 * We purposedly don't drop packets on the basis of link-local destination
+	 * as it breaks hole punching: we send Teredo bubbles with a link-local
+	 * source, and get replies with a link-local destination. Indeed, the
+	 * specification specifies that relays MUST look up the peer in the list
+	 * and update last reception date regardless of the destination.
+	 *
+	 */
+	if (ip6->ip6_dst.s6_addr[0] == 0xff)
+	{
+		if (p != NULL)
+			teredo_list_release (list);
+		debug ("Multicast destination %s not supported.",
+		       inet_ntop (AF_INET6, &ip6->ip6_dst.s6_addr, b, sizeof b));
+		return;
+	}
 
 	if (p != NULL)
 	{
