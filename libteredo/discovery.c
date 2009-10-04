@@ -52,6 +52,7 @@
 
 struct teredo_discovery
 {
+	int refcnt;
 	struct teredo_discovery_interface
 	{
 		uint32_t addr;
@@ -164,6 +165,8 @@ teredo_discovery_start (const teredo_discovery_params *params,
 		return NULL;
 	}
 
+	d->refcnt = 1;
+
 	/* Get a list of the suitable interfaces */
 
 	r = getifaddrs(&ifaddrs);
@@ -245,15 +248,43 @@ teredo_discovery_start (const teredo_discovery_params *params,
 }
 
 
-void teredo_discovery_stop (teredo_discovery *d)
+struct teredo_discovery *teredo_discovery_grab (teredo_discovery *d)
 {
-	if (d->send)
-		teredo_iothread_stop (d->send, false);
-	if (d->recv)
-		teredo_iothread_stop (d->recv, true);
+	assert (d->refcnt);
+
+	d->refcnt++;
+	return d;
+}
+
+
+void teredo_discovery_release (teredo_discovery *d)
+{
+	assert (d->refcnt);
+
+	if (--d->refcnt)
+		return;
+
+	assert (d->send == NULL); // ie. teredo_discovery_stop() has been called
+	assert (d->recv == NULL);
 
 	free (d->ifaces);
 	free (d);
 }
 
+
+void teredo_discovery_stop (teredo_discovery *d)
+{
+	if (d->send)
+	{
+		teredo_iothread_stop (d->send, false);
+		d->send = NULL;
+	}
+	if (d->recv)
+	{
+		teredo_iothread_stop (d->recv, true);
+		d->recv = NULL;
+	}
+
+	teredo_discovery_release(d);
+}
 

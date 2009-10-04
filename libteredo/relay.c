@@ -512,9 +512,15 @@ int teredo_transmit (teredo_tunnel *restrict tunnel,
 			                           &s.addr.ip6, &dst->ip6);
 
 			pthread_rwlock_rdlock (&tunnel->state_lock);
+			teredo_discovery *d = NULL;
 			if (tunnel->discovery)
-				SendDiscoveryBubble (tunnel->discovery, tunnel->fd);
+				d = teredo_discovery_grab (tunnel->discovery);
 			pthread_rwlock_unlock (&tunnel->state_lock);
+
+			if (d != NULL)
+				SendDiscoveryBubble (d, tunnel->fd);
+
+			teredo_discovery_release (d);
 		}
 
 		if (res == -1)

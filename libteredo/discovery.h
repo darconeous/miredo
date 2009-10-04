@@ -69,6 +69,22 @@ teredo_discovery_start (const teredo_discovery_params *params,
                         teredo_iothread_proc proc, void *opaque);
 
 /**
+ * Protects a @c teredo_discovery object from destruction until
+ * teredo_discovery_release() is called.
+ *
+ * @param d the discovery object to grab
+ * @return @c d
+ */
+struct teredo_discovery *teredo_discovery_grab (teredo_discovery *d);
+
+/**
+ * Release a previously grabbed @c teredo_discovery object.
+ * A reference counter is used: this function must be called exactly as many
+ * times as teredo_discovery_grab() has been used.
+ */
+void teredo_discovery_release (teredo_discovery *d);
+
+/**
  * Stops and destroys discovery threads created by teredo_discovery_start().
  *
  * @param d non-NULL pointer from teredo_discovery_start().
