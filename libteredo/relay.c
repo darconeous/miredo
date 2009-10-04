@@ -581,7 +581,7 @@ int teredo_transmit (teredo_tunnel *restrict tunnel,
 #ifdef MIREDO_TEREDO_CLIENT
 /**
  * Checks whether a given packet qualifies as a local one.
- * Must be called with the state lock held.
+ * Must be called with the state lock held for reading.
  */
 static bool
 teredo_islocal (teredo_tunnel *restrict tunnel,
