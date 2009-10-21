@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: miredo 1.1.7\n"
 "Report-Msgid-Bugs-To: miredo-devel_no_bulk_mail@remlab.net\n"
-"POT-Creation-Date: 2009-08-08 19:22+0300\n"
+"POT-Creation-Date: 2009-10-21 21:34+0300\n"
 "PO-Revision-Date: 2009-07-04 23:06+0300\n"
 "Last-Translator: Rémi Denis-Courmont <remi (at) remlab (dot) net>\n"
 "Language-Team: N/A\n"
@@ -32,9 +32,9 @@ msgstr ""
 "Erreur de socket UDP de serveur Teredo : l’adresse IPv4 de serveur doit être "
 "globale unicast."
 
-#: libteredo/server.c:555 libteredo/server.c:565 libteredo/maintain.c:467
+#: libteredo/server.c:555 libteredo/server.c:565 libteredo/maintain.c:466
 #: libtun6/tun6.c:625 libtun6/tun6.c:665 src/miredo.c:70 src/miredo.c:77
-#: src/miredo.c:156
+#: src/miredo.c:155
 #, c-format
 msgid "Error (%s): %m"
 msgstr "Erreur (%s) : %m"
@@ -43,7 +43,7 @@ msgstr "Erreur (%s) : %m"
 msgid "Multiple Teredo prefixes received"
 msgstr "Plusieurs préfixes Teredo reçus"
 
-#: libteredo/maintain.c:145
+#: libteredo/maintain.c:144
 msgid "Authentication with server failed."
 msgstr "Authentification refusée par le serveur."
 
@@ -60,15 +60,15 @@ msgstr "Impossible de déterminer l’adresse du serveur Teredo « %s » : %s
 msgid "Teredo server has a non global IPv4 address."
 msgstr "Le serveur a une adresse IPv4 non globale."
 
-#: libteredo/maintain.c:342
+#: libteredo/maintain.c:343
 msgid "No reply from Teredo server"
 msgstr "Pas de réponse du serveur Teredo"
 
-#: libteredo/maintain.c:348
+#: libteredo/maintain.c:349
 msgid "Lost Teredo connectivity"
 msgstr "Connectivité Teredo perdue"
 
-#: libteredo/maintain.c:380
+#: libteredo/maintain.c:379
 msgid "New Teredo address/MTU"
 msgstr "Nouvelle adresse/MTU Teredo"
 
@@ -285,16 +285,16 @@ msgstr ""
 "Impossible de créer le fichier de PID %s :\n"
 " %s\n"
 
-#: src/miredo.c:140
+#: src/miredo.c:139
 #, c-format
 msgid "Loading configuration from %s failed"
 msgstr "Échec du chargement de la configuration depuis %s"
 
-#: src/miredo.c:148
+#: src/miredo.c:147
 msgid "Starting..."
 msgstr "Démarrage..."
 
-#: src/miredo.c:184
+#: src/miredo.c:183
 #, c-format
 msgid "Exiting on signal %d (%s)"
 msgstr "Arrêt suite au signal %d (%s)"
@@ -336,43 +336,48 @@ msgstr ""
 msgid "Invalid relay type \"%s\" at line %u"
 msgstr "Type de relais invalide « %s » à la ligne %u"
 
-#: src/relayd.c:286
+#: src/relayd.c:232
+#, c-format
+msgid "Could not execute %s: %m"
+msgstr ""
+
+#: src/relayd.c:288
 msgid "Teredo pseudo-tunnel started"
 msgstr "Pseudo-tunnel Teredo démarré"
 
-#: src/relayd.c:288
+#: src/relayd.c:290
 #, c-format
 msgid " (address: %s, MTU: %<PRIu16>)"
 msgstr " (adresse : %s, MTU : %<PRIu16>)"
 
-#: src/relayd.c:307
+#: src/relayd.c:309
 msgid "Teredo pseudo-tunnel stopped"
 msgstr "Pseudo-tunnel Teredo arrêté"
 
-#: src/relayd.c:448 src/relayd.c:468 src/relayd.c:485 src/relayd.c:499
-#: src/relayd.c:523 src/serverd.c:94 src/serverd.c:102 src/serverd.c:120
+#: src/relayd.c:450 src/relayd.c:470 src/relayd.c:487 src/relayd.c:501
+#: src/relayd.c:525 src/serverd.c:94 src/serverd.c:102 src/serverd.c:120
 #: src/checkconf.c:149
 msgid "Fatal configuration error"
 msgstr "Erreur fatale de configuration"
 
-#: src/relayd.c:467 src/serverd.c:101 src/checkconf.c:103
+#: src/relayd.c:469 src/serverd.c:101 src/checkconf.c:103
 msgid "Server address not specified"
 msgstr "Adresse du serveur non indiquée"
 
-#: src/relayd.c:484 src/checkconf.c:107
+#: src/relayd.c:486 src/checkconf.c:107
 msgid "Unsupported Teredo client mode"
 msgstr "Mode client Teredo non supporté"
 
-#: src/relayd.c:550 src/relayd.c:556 src/relayd.c:583
+#: src/relayd.c:552 src/relayd.c:558 src/relayd.c:585
 #, c-format
 msgid "Miredo setup failure: %s"
 msgstr "Échec du démarrage de Miredo : %s"
 
-#: src/relayd.c:551
+#: src/relayd.c:553
 msgid "Cannot create IPv6 tunnel"
 msgstr "Impossible de créer le tunnel IPv6"
 
-#: src/relayd.c:557 src/relayd.c:584
+#: src/relayd.c:559 src/relayd.c:586
 msgid "libteredo cannot be initialized"
 msgstr "Impossible d’initialiser libteredo"
 
