@@ -1,5 +1,5 @@
 RELEASE NOTES for Miredo
-stable release version 1.2.0
+stable release version 1.2.1
 =============================
 
   This is a stable release. There are no known outstanding issues. We
@@ -11,6 +11,11 @@ fixes are included.
 informations on this program, see README. For syntax details and
 changes, run “miredo -h” to get help. For detailled internal changes, see
 ChangeLog.
+
+===========================================================================
+STABLE RELEASE 1.2.1 : Minor bug fixes
+
+# Fix deadlock if Miredo fails to start.
 
 ===========================================================================
 STABLE RELEASE 1.2.0 : Minor portability fix
