@@ -125,7 +125,6 @@ miredo (const char *confpath, const char *server_name, int pidfd)
 
 	/* No-op signal */
 	sigaddset (&set, SIGCHLD);
-	sigaddset (&set, SIGPIPE);
 
 	pthread_sigmask (SIG_BLOCK, &set, NULL);
 
@@ -174,7 +173,7 @@ miredo (const char *confpath, const char *server_name, int pidfd)
 		{
 			while (sigwait (&set, &signum));
 		}
-		while (!sigismember (&reload_set, signum));
+		while (!sigismember (&set, signum));
 
 		/* Request children termination */
 		kill (pid, SIGTERM);
@@ -186,6 +185,7 @@ miredo (const char *confpath, const char *server_name, int pidfd)
 			retval = 0;
 		}
 		else
+		if (sigismember (&reload_set, signum))
 		{
 			syslog (LOG_NOTICE,
 			        _("Reloading configuration on signal %d (%s)"),
