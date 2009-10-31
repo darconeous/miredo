@@ -108,11 +108,6 @@ const char os_driver[] = "BSD";
 # include <netinet6/nd6.h> // ND6_INFINITE_LIFETIME
 
 # include <pthread.h>
-# ifdef __GLIBC__
-#  ifdef __FreeBSD_kernel__
-#   include <freebsd/stdlib.h> // devname_r()
-#  endif
-# endif
 
 typedef uint32_t tun_head_t;
 

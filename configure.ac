@@ -62,7 +62,6 @@ AC_CHECK_LIB(rt, clock_gettime, [LIBRT="-lrt"])
 AC_SUBST(LIBRT)
 RDC_FUNC_SOCKET
 AC_SEARCH_LIBS(inet_ntop, [nsl])
-AC_SEARCH_LIBS(devname, [freebsd])
 AC_CHECK_LIB(resolv, res_init)
 
 # Oooh, evil platform-rather-than-feature tests
