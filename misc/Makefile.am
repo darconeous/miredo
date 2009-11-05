@@ -21,19 +21,27 @@ confdir = $(sysconfdir)/miredo
 
 MOSTLYCLEANFILES = $(examples_DATA) $(conf_SCRIPTS)
 
+sed_verbose = $(sed_verbose_$(V))
+sed_verbose_ = $(sed_verbose_$(AM_DEFAULT_VERBOSITY))
+sed_verbose_0 = @echo "  SED    $@";
+cat_verbose = $(cat_verbose_$(V))
+cat_verbose_ = $(cat_verbose_$(AM_DEFAULT_VERBOSITY))
+cat_verbose_0 = @echo "  CAT    $@";
+
 # Configuration files
 dist_noinst_DATA = miredo.conf-in miredo-server.conf-in
 examples_DATA = miredo.conf miredo-server.conf
 
 .conf-in.conf:
-	rm -f -- $@
-	sed -e 's,@sbindir\@,$(sbindir),g' < $< > $@
+	$(AM_V_at)rm -f -- $@
+	$(sed_verbose)sed -e 's,@sbindir\@,$(sbindir),g' < $< > $@
 
 # Hook scripts
 dist_noinst_SCRIPTS = client-hook.iproute client-hook.bsd
 conf_SCRIPTS = client-hook
 
 client-hook: client-hook.$(hook_suffix)
-	cat $(srcdir)/client-hook.$(hook_suffix) > client-hook.tmp
-	mv -f -- client-hook.tmp client-hook
+	$(cat_verbose)cat $(srcdir)/client-hook.$(hook_suffix) \
+		> client-hook.tmp
+	$(AM_V_at)mv -f -- client-hook.tmp client-hook
 
