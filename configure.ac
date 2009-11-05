@@ -49,6 +49,7 @@ dnl Work-around for libtool bug (from Darren Salt)
 LT_PREREQ([2.2.0])
 LT_INIT
 AM_INIT_AUTOMAKE
+m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
 
 # Checks for libraries.
