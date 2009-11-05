@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: miredo 1.1.7\n"
 "Report-Msgid-Bugs-To: miredo-devel_no_bulk_mail@remlab.net\n"
-"POT-Creation-Date: 2009-10-21 21:34+0300\n"
+"POT-Creation-Date: 2009-11-05 21:04+0200\n"
 "PO-Revision-Date: 2009-07-04 23:06+0300\n"
 "Last-Translator: Rémi Denis-Courmont <remi (at) remlab (dot) net>\n"
 "Language-Team: N/A\n"
@@ -33,7 +33,7 @@ msgstr ""
 "globale unicast."
 
 #: libteredo/server.c:555 libteredo/server.c:565 libteredo/maintain.c:466
-#: libtun6/tun6.c:625 libtun6/tun6.c:665 src/miredo.c:70 src/miredo.c:77
+#: libtun6/tun6.c:620 libtun6/tun6.c:660 src/miredo.c:70 src/miredo.c:77
 #: src/miredo.c:155
 #, c-format
 msgid "Error (%s): %m"
@@ -72,18 +72,18 @@ msgstr "Connectivité Teredo perdue"
 msgid "New Teredo address/MTU"
 msgstr "Nouvelle adresse/MTU Teredo"
 
-#: libtun6/tun6.c:186 libtun6/tun6.c:195 libtun6/tun6.c:237 libtun6/tun6.c:256
-#: libtun6/tun6.c:270 libtun6/tun6.c:284 libtun6/tun6.c:298 libtun6/tun6.c:320
+#: libtun6/tun6.c:181 libtun6/tun6.c:190 libtun6/tun6.c:232 libtun6/tun6.c:251
+#: libtun6/tun6.c:265 libtun6/tun6.c:279 libtun6/tun6.c:293 libtun6/tun6.c:315
 #, c-format
 msgid "Tunneling driver error (%s): %m"
 msgstr "Erreur du pilote de tunneling (%s) : %m"
 
-#: libtun6/tun6.c:198 src/main.c:509
+#: libtun6/tun6.c:193 src/main.c:509
 msgid ""
 "Please make sure another instance of the program is not already running."
 msgstr "Veuillez vérifier que le programme n’est pas déjà en fonctionnement."
 
-#: libtun6/tun6.c:342
+#: libtun6/tun6.c:337
 #, c-format
 msgid "%s tunneling interface creation failure"
 msgstr "Échec de création de l’interface de tunneling %s"
@@ -294,31 +294,31 @@ msgstr "Échec du chargement de la configuration depuis %s"
 msgid "Starting..."
 msgstr "Démarrage..."
 
-#: src/miredo.c:183
+#: src/miredo.c:182
 #, c-format
 msgid "Exiting on signal %d (%s)"
 msgstr "Arrêt suite au signal %d (%s)"
 
-#: src/miredo.c:191
+#: src/miredo.c:190
 #, c-format
 msgid "Reloading configuration on signal %d (%s)"
 msgstr "Rechargement de la configuration suite au signal %d (%s)"
 
-#: src/miredo.c:202
+#: src/miredo.c:208
 #, c-format
 msgid "Child %d exited (code: %d)"
 msgstr "Fils %d terminé (code de retour : %d)"
 
-#: src/miredo.c:211
+#: src/miredo.c:217
 #, c-format
 msgid "Child %d killed by signal %d (%s)"
 msgstr "Fils %d tué par le signal %d (%s)"
 
-#: src/miredo.c:222
+#: src/miredo.c:228
 msgid "Terminated with error(s)."
 msgstr "Terminé avec une/des erreur(s)."
 
-#: src/miredo.c:223
+#: src/miredo.c:229
 msgid "Terminated with no error."
 msgstr "Terminé sans erreur."
 
