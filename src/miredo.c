@@ -169,33 +169,39 @@ miredo (const char *confpath, const char *server_name, int pidfd)
 
 		int status, signum;
 
-		do
+		for (;;)
 		{
 			while (sigwait (&set, &signum));
+
+			if (signum == SIGCHLD
+			 && waitpid (pid, &status, WNOHANG) == pid)
+				break; /* child died */
+
+			if (sigismember (&exit_set, signum))
+			{
+				syslog (LOG_NOTICE, _("Exiting on signal %d (%s)"),
+				        signum, strsignal (signum));
+				retval = 0;
+			}
+			else
+			if (sigismember (&reload_set, signum))
+			{
+				syslog (LOG_NOTICE,
+				        _("Reloading configuration on signal %d (%s)"),
+				        signum, strsignal (signum));
+				retval = 2;
+			}
+			else
+				continue;
+
+			// Tells children to exit */
+			kill (pid, SIGTERM);
+			// Waits until the miredo process terminates
+			while (waitpid (pid, &status, 0) != pid);
+			break;
 		}
-		while (!sigismember (&set, signum));
 
-		/* Request children termination */
-		kill (pid, SIGTERM);
-
-		if (sigismember (&exit_set, signum))
-		{
-			syslog (LOG_NOTICE, _("Exiting on signal %d (%s)"),
-			        signum, strsignal (signum));
-			retval = 0;
-		}
-		else
-		if (sigismember (&reload_set, signum))
-		{
-			syslog (LOG_NOTICE,
-			        _("Reloading configuration on signal %d (%s)"),
-			        signum, strsignal (signum));
-			retval = 2;
-		}
-
-		// Waits until the miredo process terminates
-		while (waitpid (pid, &status, 0) != pid);
-
+		// At this point, the child process is gone.
 		if (WIFEXITED (status))
 		{
 			status = WEXITSTATUS (status);
