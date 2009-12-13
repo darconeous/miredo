@@ -17,11 +17,11 @@
 # ***********************************************************************
 
 [Meta]
-RootName: @simphalempin.com/miredo:$SOFTWAREVERSION
+RootName: @remlab.net/miredo:$SOFTWAREVERSION
 DisplayName: Miredo - Teredo IPv6 tunneling
 ShortName: miredo
-Maintainer: Rémi Denis-Courmont <rdenis@simphalempin.com>
-Packager: Rémi Denis-Courmont <rdenis@simphalempin.com>
+Maintainer: Rémi Denis-Courmont <remi@remlab.net>
+Packager: Rémi Denis-Courmont <remi@remlab.net>
 Summary: Teredo IPv6 tunneling daemon.
 URL: http://www.remlab.net/miredo/
 License: GNU General Public License, Version 2
