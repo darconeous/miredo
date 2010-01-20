@@ -79,7 +79,7 @@ SendRA (const teredo_server *restrict s, const struct teredo_packet *p,
         const struct in6_addr *dest_ip6, bool secondary)
 {
 	const uint8_t *nonce;
-	union teredo_addr *addr;
+	struct in6_addr *addr;
 	uint8_t auth[13] = { 0, 1 };
 	struct teredo_orig_ind orig;
 	struct
@@ -137,9 +137,9 @@ SendRA (const teredo_server *restrict s, const struct teredo_packet *p,
 	ra.pi.nd_opt_pi_flags_reserved = ND_OPT_PI_FLAG_AUTO;
 	ra.pi.nd_opt_pi_valid_time = 0xffffffff;
 	ra.pi.nd_opt_pi_preferred_time = 0xffffffff;
-	addr = (union teredo_addr *)&ra.pi.nd_opt_pi_prefix;
-	addr->teredo.prefix = s->prefix;
-	addr->teredo.server_ip = s->server_ip;
+	addr = &ra.pi.nd_opt_pi_prefix;
+	addr->s6_addr32[0] = s->prefix;
+	addr->s6_addr32[1] = s->server_ip;
 	//memset (addr->ip6.s6_addr + 8, 0, 8);
 
 	// ICMPv6 option : MTU
