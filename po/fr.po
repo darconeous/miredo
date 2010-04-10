@@ -339,7 +339,7 @@ msgstr "Type de relais invalide « %s » à la ligne %u"
 #: src/relayd.c:232
 #, c-format
 msgid "Could not execute %s: %m"
-msgstr ""
+msgstr "Impossible d'exécuter %s: %m"
 
 #: src/relayd.c:288
 msgid "Teredo pseudo-tunnel started"
