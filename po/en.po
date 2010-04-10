@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: miredo 0.8.1\n"
 "Report-Msgid-Bugs-To: miredo-devel_no_bulk_mail@remlab.net\n"
-"POT-Creation-Date: 2009-11-05 21:04+0200\n"
+"POT-Creation-Date: 2010-04-10 12:23+0300\n"
 "PO-Revision-Date: 2009-04-13 11:36+0200\n"
 "Last-Translator: Rémi Denis-Courmont <remi (at) remlab (dot) net>\n"
 "Language-Team: N/A\n"
@@ -76,7 +76,7 @@ msgstr ""
 msgid "Tunneling driver error (%s): %m"
 msgstr ""
 
-#: libtun6/tun6.c:193 src/main.c:509
+#: libtun6/tun6.c:193 src/main.c:507
 msgid ""
 "Please make sure another instance of the program is not already running."
 msgstr ""
@@ -203,7 +203,7 @@ msgstr "Invalid number (or capacity exceeded) “%s” for option -%c\n"
 msgid "%s: unexpected extra parameter\n"
 msgstr ""
 
-#: src/main.c:143 src/main.c:482
+#: src/main.c:143 src/main.c:480
 #, c-format
 msgid "Error (%s): %s\n"
 msgstr ""
@@ -215,33 +215,33 @@ msgid ""
 "This program should normally be started by root.\n"
 msgstr ""
 
-#: src/main.c:242
+#: src/main.c:240
 #, c-format
 msgid "User \"%s\": %s\n"
 msgstr "User “%s”: %s\n"
 
-#: src/main.c:243
+#: src/main.c:241
 msgid "User not found"
 msgstr ""
 
-#: src/main.c:249
+#: src/main.c:247
 msgid ""
 "Error: This program is not supposed to keep root\n"
 "privileges. That is potentially very dangerous\n"
 "(all the more as it has never been externally audited).\n"
 msgstr ""
 
-#: src/main.c:260
+#: src/main.c:258
 #, c-format
 msgid "SetUID to root: %s\n"
 msgstr ""
 
-#: src/main.c:430
+#: src/main.c:428
 #, c-format
 msgid "Reading configuration from %s: %s\n"
 msgstr ""
 
-#: src/main.c:505
+#: src/main.c:503
 #, c-format
 msgid ""
 "Cannot create PID file %s:\n"

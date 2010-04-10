@@ -1,5 +1,5 @@
 RELEASE NOTES for Miredo
-stable release version 1.2.2
+stable release version 1.2.3
 =============================
 
   This is a stable release. There are no known outstanding issues. We
@@ -11,6 +11,12 @@ fixes are included.
 informations on this program, see README. For syntax details and
 changes, run “miredo -h” to get help. For detailled internal changes, see
 ChangeLog.
+
+===========================================================================
+STABLE RELEASE 1.2.3 : Minor portability fixes
+
+# Fix C pointer aliasing violations.
+# Fix compilation with FreeBSD 7.2 or later.
 
 ===========================================================================
 STABLE RELEASE 1.2.2 : Major bug fixes
